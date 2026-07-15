@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Swiss Ephemeris data files (if a user adds them locally — do not commit)
+*.se1
+ephe/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Test / scratch output
+*.log
+scratch/
+*.json
+!examples/*.json
+
+# Seeker (personal birth) data — must NEVER be committed. Keep real readings,
+# charts, and birth details in these gitignored paths or in private memory
+# (~/.claude/...). Committed examples/tests use the fictional reference chart only.
+private/
+readings/
+*.seeker.*
+*_seeker.*

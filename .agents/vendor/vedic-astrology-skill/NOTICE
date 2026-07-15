@@ -1,0 +1,63 @@
+vedic-astrology
+Copyright (c) 2026 the vedic-astrology contributors
+
+This product is licensed under the GNU Affero General Public License v3.0
+(AGPL-3.0). See the LICENSE file for the full text.
+
+================================================================================
+THIRD-PARTY COMPONENTS
+================================================================================
+
+This skill depends on, but does not bundle, the following components. They are
+installed by the user via `pip install -r requirements.txt`.
+
+1. Swiss Ephemeris (via the `pyswisseph` Python binding)
+   ----------------------------------------------------------------------------
+   Copyright (c) Astrodienst AG, Switzerland.
+   https://www.astro.com/swisseph/
+   https://github.com/astrorigin/pyswisseph
+
+   The Swiss Ephemeris is dual-licensed:
+     (a) GNU Affero General Public License v3.0 (AGPL-3.0), OR
+     (b) the Swiss Ephemeris Professional License (a paid commercial license).
+
+   Because this skill uses Swiss Ephemeris under option (a), the skill itself is
+   distributed under the AGPL-3.0 to remain license-compatible. If you wish to
+   use this skill (or Swiss Ephemeris) inside a closed-source or commercial
+   product WITHOUT the AGPL obligations, you must obtain a Swiss Ephemeris
+   Professional License directly from Astrodienst AG. See:
+   https://www.astro.com/swisseph/swephinfo_e.htm
+
+   This skill uses the built-in Moshier analytical ephemeris (no external .se1
+   data files are bundled or distributed).
+
+2. pytz
+   ----------------------------------------------------------------------------
+   Copyright (c) Stuart Bishop. MIT License.
+   https://pypi.org/project/pytz/
+
+3. GeoNames geographical database
+   ----------------------------------------------------------------------------
+   Copyright (c) GeoNames.
+   Licensed under the Creative Commons Attribution 4.0 License (CC-BY 4.0).
+   https://www.geonames.org/
+   https://creativecommons.org/licenses/by/4.0/
+
+   The offline geocoder (scripts/geocode.py) ships a compact derivative of the
+   GeoNames "cities15000" dataset, bundled as data/cities.csv. It retains city
+   name, ASCII name, country code, latitude, longitude, IANA timezone, and
+   population. This is a redistributed derivative work under CC-BY 4.0;
+   attribution to GeoNames is required and provided here.
+
+================================================================================
+DISCLAIMER
+================================================================================
+
+This software is provided for cultural, educational, and entertainment purposes
+only. Vedic astrology is not a scientifically validated predictive method.
+Nothing produced by this software should be relied upon for medical, financial,
+legal, psychological, or other consequential decisions.
+
+The licensing summary above is provided in good faith and is NOT legal advice.
+If you intend to redistribute or use this software commercially, consult the
+full AGPL-3.0 text and, where relevant, a qualified attorney.

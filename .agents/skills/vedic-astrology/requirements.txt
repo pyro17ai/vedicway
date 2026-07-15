@@ -1,0 +1,10 @@
+# Vedic Astrology skill — Python dependencies
+# Install with: pip install -r requirements.txt
+
+pyswisseph>=2.10.3   # Swiss Ephemeris binding (AGPL-3.0 or commercial) — planetary positions
+pytz>=2024.1         # IANA timezone database for local->UT conversion
+
+# Optional — only for the PDF output of full_report.py and varga_report.py.
+# Without it, both fall back to a self-contained HTML file (open in a browser,
+# Print → Save as PDF).
+fpdf2>=2.7           # pure-Python PDF generation, no system libraries
