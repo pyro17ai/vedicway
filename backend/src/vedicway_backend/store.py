@@ -15,6 +15,7 @@ from typing import Any, Iterator
 
 from cryptography.fernet import Fernet
 
+from .errors import DomainError
 from .schemas import BirthInput, ChartEvent, ChartSnapshot, InterpretationBundle, JobStatus, SectionStatus
 
 
@@ -164,11 +165,24 @@ class Store:
           chart_id TEXT NOT NULL REFERENCES charts(id),
           idempotency_key TEXT NOT NULL,
           email_ciphertext BLOB,
+          product_code TEXT NOT NULL DEFAULT 'full_report_v1',
           provider TEXT NOT NULL,
+          provider_idempotency_key TEXT,
           provider_payment_id TEXT,
+          checkout_url TEXT,
           status TEXT NOT NULL,
+          provider_status TEXT,
+          provider_payload_json TEXT,
+          failure_code TEXT,
           amount_minor INTEGER NOT NULL,
+          paid_amount_minor INTEGER,
+          refunded_amount_minor INTEGER NOT NULL DEFAULT 0,
           currency TEXT NOT NULL,
+          offer_version TEXT,
+          last_reconciled_at TEXT,
+          paid_at TEXT,
+          canceled_at TEXT,
+          receipt_registration TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           UNIQUE(chart_id, idempotency_key)
@@ -176,6 +190,8 @@ class Store:
         CREATE TABLE IF NOT EXISTS payment_events (
           provider TEXT NOT NULL,
           provider_event_id TEXT NOT NULL,
+          event_type TEXT,
+          object_id TEXT,
           payload_checksum TEXT NOT NULL,
           received_at TEXT NOT NULL,
           PRIMARY KEY(provider, provider_event_id)
@@ -186,8 +202,30 @@ class Store:
           product_code TEXT NOT NULL,
           purchase_id TEXT REFERENCES purchases(id),
           granted_at TEXT NOT NULL,
+          revoked_at TEXT,
+          revocation_reason TEXT,
           UNIQUE(chart_id, product_code)
         );
+        CREATE TABLE IF NOT EXISTS refunds (
+          id TEXT PRIMARY KEY,
+          purchase_id TEXT NOT NULL REFERENCES purchases(id),
+          idempotency_key TEXT NOT NULL,
+          provider_idempotency_key TEXT NOT NULL,
+          provider_refund_id TEXT,
+          status TEXT NOT NULL,
+          amount_minor INTEGER NOT NULL,
+          currency TEXT NOT NULL,
+          reason_ciphertext BLOB,
+          actor_fingerprint TEXT NOT NULL,
+          failure_code TEXT,
+          receipt_registration TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          UNIQUE(purchase_id, idempotency_key),
+          UNIQUE(provider_idempotency_key),
+          UNIQUE(provider_refund_id)
+        );
+        CREATE INDEX IF NOT EXISTS refunds_purchase_idx ON refunds(purchase_id, status, created_at);
         CREATE TABLE IF NOT EXISTS reports (
           id TEXT PRIMARY KEY,
           chart_id TEXT NOT NULL REFERENCES charts(id),
@@ -221,12 +259,60 @@ class Store:
         """
         with self._lock, self._connection() as connection:
             connection.executescript(statements)
-            question_columns = {row["name"] for row in connection.execute("PRAGMA table_info(saved_questions)").fetchall()}
-            if "reflection_status" not in question_columns:
-                connection.execute("ALTER TABLE saved_questions ADD COLUMN reflection_status TEXT NOT NULL DEFAULT 'saved'")
+            self._ensure_columns(
+                connection,
+                "saved_questions",
+                {"reflection_status": "TEXT NOT NULL DEFAULT 'saved'"},
+            )
+            self._ensure_columns(
+                connection,
+                "purchases",
+                {
+                    "product_code": "TEXT NOT NULL DEFAULT 'full_report_v1'",
+                    "provider_idempotency_key": "TEXT",
+                    "checkout_url": "TEXT",
+                    "provider_status": "TEXT",
+                    "provider_payload_json": "TEXT",
+                    "failure_code": "TEXT",
+                    "paid_amount_minor": "INTEGER",
+                    "refunded_amount_minor": "INTEGER NOT NULL DEFAULT 0",
+                    "offer_version": "TEXT",
+                    "last_reconciled_at": "TEXT",
+                    "paid_at": "TEXT",
+                    "canceled_at": "TEXT",
+                    "receipt_registration": "TEXT",
+                },
+            )
+            self._ensure_columns(
+                connection,
+                "payment_events",
+                {"event_type": "TEXT", "object_id": "TEXT"},
+            )
+            self._ensure_columns(
+                connection,
+                "entitlements",
+                {"revoked_at": "TEXT", "revocation_reason": "TEXT"},
+            )
+            connection.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS purchases_provider_key_idx ON purchases(provider, provider_idempotency_key)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS purchases_active_idx ON purchases(chart_id, product_code, status, created_at)"
+            )
             connection.execute(
                 "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) SELECT id, session_id, created_at FROM charts"
             )
+
+    @staticmethod
+    def _ensure_columns(
+        connection: sqlite3.Connection,
+        table: str,
+        columns: dict[str, str],
+    ) -> None:
+        existing = {row["name"] for row in connection.execute(f"PRAGMA table_info({table})").fetchall()}
+        for name, definition in columns.items():
+            if name not in existing:
+                connection.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
 
     @staticmethod
     def _token_hash(token: str) -> str:
@@ -656,82 +742,524 @@ class Store:
             for row in rows
         ]
 
-    def create_purchase(self, chart_id: str, idempotency_key: str, email: str | None) -> tuple[dict[str, Any], bool]:
+    def create_purchase(
+        self,
+        chart_id: str,
+        idempotency_key: str,
+        email: str | None,
+        *,
+        product_code: str = "full_report_v1",
+        provider: str | None = None,
+        offer_version: str | None = None,
+        amount_minor: int = 99_000,
+        currency: str = "RUB",
+    ) -> tuple[dict[str, Any], bool]:
+        """Create one durable checkout attempt before calling a payment provider.
+
+        The client key deduplicates retries. A second key still reuses an unfinished
+        attempt for the same chart and product, so a double click cannot create two
+        YooKassa payments.
+        """
+        selected_provider = provider or (
+            "test" if os.environ.get("VEDICWAY_TEST_PAYMENTS") == "1" else "pending_provider"
+        )
         with self._lock, self._connection() as connection:
-            existing = connection.execute(
-                "SELECT * FROM purchases WHERE chart_id = ? AND idempotency_key = ?", (chart_id, idempotency_key)
-            ).fetchone()
-            if existing:
-                return dict(existing), False
-            now = _iso()
-            purchase = {
-                "id": self._new_id("pur"),
-                "chart_id": chart_id,
-                "idempotency_key": idempotency_key,
-                "provider": "test" if os.environ.get("VEDICWAY_TEST_PAYMENTS") == "1" else "pending_provider",
-                "provider_payment_id": None,
-                "status": "pending",
-                "amount_minor": 99000,
-                "currency": "RUB",
-                "created_at": now,
-                "updated_at": now,
-            }
-            connection.execute(
-                """INSERT INTO purchases
-                   (id, chart_id, idempotency_key, email_ciphertext, provider, provider_payment_id, status, amount_minor, currency, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    purchase["id"], chart_id, idempotency_key, self._encrypt({"email": email}) if email else None,
-                    purchase["provider"], None, purchase["status"], purchase["amount_minor"], purchase["currency"], now, now,
-                ),
-            )
-            self._emit(connection, chart_id, "payment.pending", {"purchase_id": purchase["id"]})
-            return purchase, True
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                existing = connection.execute(
+                    "SELECT * FROM purchases WHERE chart_id = ? AND idempotency_key = ?",
+                    (chart_id, idempotency_key),
+                ).fetchone()
+                if existing:
+                    connection.commit()
+                    return dict(existing), False
+                active = connection.execute(
+                    """SELECT * FROM purchases
+                       WHERE chart_id = ? AND product_code = ? AND status IN ('created', 'pending', 'unknown')
+                       ORDER BY created_at DESC LIMIT 1""",
+                    (chart_id, product_code),
+                ).fetchone()
+                if active:
+                    connection.commit()
+                    return dict(active), False
+                now = _iso()
+                purchase = {
+                    "id": self._new_id("pur"),
+                    "chart_id": chart_id,
+                    "idempotency_key": idempotency_key,
+                    "product_code": product_code,
+                    "provider": selected_provider,
+                    "provider_idempotency_key": secrets.token_urlsafe(32),
+                    "provider_payment_id": None,
+                    "checkout_url": None,
+                    "status": "created",
+                    "provider_status": None,
+                    "amount_minor": amount_minor,
+                    "paid_amount_minor": None,
+                    "refunded_amount_minor": 0,
+                    "currency": currency.upper(),
+                    "offer_version": offer_version,
+                    "created_at": now,
+                    "updated_at": now,
+                }
+                connection.execute(
+                    """INSERT INTO purchases
+                       (id, chart_id, idempotency_key, email_ciphertext, product_code, provider,
+                        provider_idempotency_key, provider_payment_id, checkout_url, status,
+                        provider_status, amount_minor, paid_amount_minor, refunded_amount_minor,
+                        currency, offer_version, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        purchase["id"], chart_id, idempotency_key,
+                        self._encrypt({"email": email}) if email else None,
+                        product_code, selected_provider, purchase["provider_idempotency_key"], None,
+                        None, purchase["status"], None, amount_minor, None, 0,
+                        purchase["currency"], offer_version, now, now,
+                    ),
+                )
+                self._emit(connection, chart_id, "payment.pending", {"purchase_id": purchase["id"]})
+                connection.commit()
+                return purchase, True
+            except Exception:
+                connection.rollback()
+                raise
 
     def get_purchase(self, purchase_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
             row = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
             return dict(row) if row else None
 
-    def set_provider_payment(self, purchase_id: str, provider: str, provider_payment_id: str | None) -> None:
+    def get_purchase_email(self, purchase_id: str) -> str | None:
         with self._lock, self._connection() as connection:
-            connection.execute(
-                "UPDATE purchases SET provider = ?, provider_payment_id = ?, updated_at = ? WHERE id = ?",
-                (provider, provider_payment_id, _iso(), purchase_id),
-            )
+            row = connection.execute(
+                "SELECT email_ciphertext FROM purchases WHERE id = ?", (purchase_id,)
+            ).fetchone()
+        if not row:
+            raise LookupError(purchase_id)
+        if not row["email_ciphertext"]:
+            return None
+        return self._decrypt(row["email_ciphertext"]).get("email")
 
-    def confirm_purchase(self, purchase_id: str, provider_event_id: str) -> str | None:
-        """Idempotent payment transition used only by a verified provider webhook/test adapter."""
+    def set_provider_payment(
+        self,
+        purchase_id: str,
+        provider: str,
+        provider_payment_id: str | None,
+        *,
+        status: str = "pending",
+        checkout_url: str | None = None,
+        provider_status: str | None = None,
+        redacted_payload: dict[str, Any] | None = None,
+        failure_code: str | None = None,
+        receipt_registration: str | None = None,
+    ) -> None:
+        with self._lock, self._connection() as connection:
+            cursor = connection.execute(
+                """UPDATE purchases
+                   SET provider = ?, provider_payment_id = ?, checkout_url = ?, status = ?,
+                       provider_status = ?, provider_payload_json = ?, failure_code = ?,
+                       receipt_registration = ?, updated_at = ?
+                   WHERE id = ?""",
+                (
+                    provider, provider_payment_id, checkout_url, status,
+                    provider_status or status,
+                    _json_dump(redacted_payload) if redacted_payload is not None else None,
+                    failure_code, receipt_registration, _iso(), purchase_id,
+                ),
+            )
+            if cursor.rowcount == 0:
+                raise LookupError(purchase_id)
+
+    @staticmethod
+    def _payment_mismatch(message: str, detail: dict[str, object] | None = None) -> DomainError:
+        return DomainError(
+            "PAYMENT_MISMATCH",
+            message,
+            recoverable=False,
+            status_code=409,
+            detail=detail,
+        )
+
+    def apply_payment_event(
+        self,
+        purchase_id: str,
+        *,
+        provider_event_id: str,
+        event_type: str,
+        object_id: str,
+        payload_checksum: str,
+        status: str,
+        provider_status: str,
+        provider_payment_id: str,
+        amount_minor: int,
+        currency: str,
+        metadata: dict[str, Any] | None = None,
+        failure_code: str | None = None,
+        receipt_registration: str | None = None,
+    ) -> dict[str, Any]:
+        """Apply a verified provider state after checking immutable order data."""
+        metadata = metadata or {}
         with self._lock, self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 purchase = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
                 if not purchase:
                     connection.rollback()
-                    return None
-                event_checksum = hashlib.sha256(provider_event_id.encode("utf-8")).hexdigest()
+                    raise LookupError(purchase_id)
                 duplicate = connection.execute(
                     "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
                     (purchase["provider"], provider_event_id),
                 ).fetchone()
                 if duplicate:
                     connection.commit()
-                    return str(purchase["chart_id"])
+                    return {
+                        "duplicate": True,
+                        "chart_id": str(purchase["chart_id"]),
+                        "status": str(purchase["status"]),
+                        "entitlement_changed": False,
+                    }
+
+                expected_payment_id = purchase["provider_payment_id"]
+                if expected_payment_id and expected_payment_id != provider_payment_id:
+                    raise self._payment_mismatch("Идентификатор платежа не совпадает с заказом.")
+                if object_id != provider_payment_id:
+                    raise self._payment_mismatch("Идентификатор объекта уведомления не совпадает с платежом.")
+                if int(purchase["amount_minor"]) != amount_minor:
+                    raise self._payment_mismatch(
+                        "Сумма платежа не совпадает с суммой заказа.",
+                        {"expected_amount_minor": int(purchase["amount_minor"])},
+                    )
+                if str(purchase["currency"]).upper() != currency.upper():
+                    raise self._payment_mismatch("Валюта платежа не совпадает с валютой заказа.")
+                expected_metadata = {
+                    "purchase_id": str(purchase["id"]),
+                    "chart_id": str(purchase["chart_id"]),
+                    "product_code": str(purchase["product_code"]),
+                }
+                for key, expected in expected_metadata.items():
+                    actual = metadata.get(key)
+                    if actual is not None and str(actual) != expected:
+                        raise self._payment_mismatch(
+                            f"Поле metadata.{key} не совпадает с заказом.",
+                            {"field": key},
+                        )
+
                 now = _iso()
                 connection.execute(
-                    "INSERT INTO payment_events (provider, provider_event_id, payload_checksum, received_at) VALUES (?, ?, ?, ?)",
-                    (purchase["provider"], provider_event_id, event_checksum, now),
+                    """INSERT INTO payment_events
+                       (provider, provider_event_id, event_type, object_id, payload_checksum, received_at)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    (purchase["provider"], provider_event_id, event_type, object_id, payload_checksum, now),
                 )
-                connection.execute("UPDATE purchases SET status = 'paid', updated_at = ? WHERE id = ?", (now, purchase_id))
-                connection.execute(
-                    """INSERT OR IGNORE INTO entitlements (id, chart_id, product_code, purchase_id, granted_at)
-                       VALUES (?, ?, 'report_full', ?, ?)""",
-                    (self._new_id("ent"), purchase["chart_id"], purchase_id, now),
-                )
-                self._emit(connection, purchase["chart_id"], "entitlement.granted", {"product": "report_full"})
-                self._enqueue(connection, purchase["chart_id"], "paid_report_v1", priority=90)
+                normalized = "cancelled" if status in {"cancelled", "canceled"} else status
+                entitlement_changed = False
+                current_status = str(purchase["status"])
+
+                if normalized == "succeeded":
+                    connection.execute(
+                        """UPDATE purchases
+                           SET provider_payment_id = ?, status = 'succeeded', provider_status = ?,
+                               paid_amount_minor = ?, failure_code = NULL, paid_at = COALESCE(paid_at, ?),
+                               last_reconciled_at = ?, receipt_registration = COALESCE(?, receipt_registration),
+                               updated_at = ? WHERE id = ?""",
+                        (
+                            provider_payment_id, provider_status, amount_minor, now, now,
+                            receipt_registration, now, purchase_id,
+                        ),
+                    )
+                    entitlement = connection.execute(
+                        """SELECT * FROM entitlements
+                           WHERE chart_id = ? AND product_code = 'report_full'""",
+                        (purchase["chart_id"],),
+                    ).fetchone()
+                    if not entitlement or entitlement["revoked_at"] is not None:
+                        connection.execute(
+                            """INSERT INTO entitlements
+                               (id, chart_id, product_code, purchase_id, granted_at, revoked_at, revocation_reason)
+                               VALUES (?, ?, 'report_full', ?, ?, NULL, NULL)
+                               ON CONFLICT(chart_id, product_code) DO UPDATE SET
+                                 purchase_id = excluded.purchase_id,
+                                 granted_at = excluded.granted_at,
+                                 revoked_at = NULL,
+                                 revocation_reason = NULL""",
+                            (self._new_id("ent"), purchase["chart_id"], purchase_id, now),
+                        )
+                        self._emit(connection, purchase["chart_id"], "entitlement.granted", {"product": "report_full"})
+                        self._enqueue(connection, purchase["chart_id"], "paid_report_v1", priority=90)
+                        entitlement_changed = True
+                elif normalized == "cancelled" and current_status not in {"succeeded", "partially_refunded", "refunded"}:
+                    connection.execute(
+                        """UPDATE purchases
+                           SET provider_payment_id = ?, status = 'cancelled', provider_status = ?,
+                               failure_code = ?, canceled_at = COALESCE(canceled_at, ?),
+                               last_reconciled_at = ?, updated_at = ? WHERE id = ?""",
+                        (provider_payment_id, provider_status, failure_code, now, now, now, purchase_id),
+                    )
+                    self._emit(
+                        connection,
+                        purchase["chart_id"],
+                        "payment.cancelled",
+                        {"purchase_id": purchase_id, "reason": failure_code},
+                    )
+                else:
+                    next_status = normalized if current_status not in {"succeeded", "partially_refunded", "refunded"} else current_status
+                    connection.execute(
+                        """UPDATE purchases
+                           SET provider_payment_id = ?, status = ?, provider_status = ?, failure_code = ?,
+                               last_reconciled_at = ?, updated_at = ? WHERE id = ?""",
+                        (provider_payment_id, next_status, provider_status, failure_code, now, now, purchase_id),
+                    )
+                final = connection.execute("SELECT status FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
                 connection.commit()
-                return str(purchase["chart_id"])
+                return {
+                    "duplicate": False,
+                    "chart_id": str(purchase["chart_id"]),
+                    "status": str(final["status"]),
+                    "entitlement_changed": entitlement_changed,
+                }
+            except Exception:
+                connection.rollback()
+                raise
+
+    def confirm_purchase(self, purchase_id: str, provider_event_id: str) -> str | None:
+        """Idempotent payment transition used only by a verified provider webhook/test adapter."""
+        purchase = self.get_purchase(purchase_id)
+        if not purchase:
+            return None
+        provider_payment_id = str(purchase["provider_payment_id"] or f"test_{purchase_id}")
+        self.apply_payment_event(
+            purchase_id,
+            provider_event_id=provider_event_id,
+            event_type="payment.succeeded",
+            object_id=provider_payment_id,
+            payload_checksum=hashlib.sha256(provider_event_id.encode("utf-8")).hexdigest(),
+            status="succeeded",
+            provider_status="succeeded",
+            provider_payment_id=provider_payment_id,
+            amount_minor=int(purchase["amount_minor"]),
+            currency=str(purchase["currency"]),
+            metadata={
+                "purchase_id": purchase_id,
+                "chart_id": str(purchase["chart_id"]),
+                "product_code": str(purchase["product_code"]),
+            },
+        )
+        return str(purchase["chart_id"])
+
+    def create_refund(
+        self,
+        purchase_id: str,
+        *,
+        idempotency_key: str,
+        amount_minor: int,
+        reason: str,
+        actor_fingerprint: str,
+    ) -> tuple[dict[str, Any], bool]:
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                existing = connection.execute(
+                    "SELECT * FROM refunds WHERE purchase_id = ? AND idempotency_key = ?",
+                    (purchase_id, idempotency_key),
+                ).fetchone()
+                if existing:
+                    connection.commit()
+                    return dict(existing), False
+                purchase = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
+                if not purchase:
+                    raise DomainError("PURCHASE_NOT_FOUND", "Заказ не найден.", status_code=404)
+                if purchase["status"] not in {"succeeded", "partially_refunded"}:
+                    raise DomainError(
+                        "REFUND_NOT_ALLOWED",
+                        "Возврат доступен только для успешно оплаченного заказа.",
+                        recoverable=False,
+                        status_code=409,
+                    )
+                paid_amount = int(purchase["paid_amount_minor"] or purchase["amount_minor"])
+                reserved_row = connection.execute(
+                    """SELECT COALESCE(SUM(amount_minor), 0) AS total FROM refunds
+                       WHERE purchase_id = ? AND status IN ('created', 'pending', 'unknown', 'succeeded')""",
+                    (purchase_id,),
+                ).fetchone()
+                reserved = int(reserved_row["total"])
+                remaining = paid_amount - reserved
+                remainder_after = remaining - amount_minor
+                if amount_minor < 100 or amount_minor > remaining or (remainder_after != 0 and remainder_after < 100):
+                    raise DomainError(
+                        "REFUND_AMOUNT_INVALID",
+                        "Сумма возврата недопустима: остаток должен быть нулевым или не меньше одного рубля.",
+                        recoverable=False,
+                        status_code=422,
+                        detail={"available_amount_minor": remaining},
+                    )
+                now = _iso()
+                refund = {
+                    "id": self._new_id("ref"),
+                    "purchase_id": purchase_id,
+                    "idempotency_key": idempotency_key,
+                    "provider_idempotency_key": secrets.token_urlsafe(32),
+                    "provider_refund_id": None,
+                    "status": "created",
+                    "amount_minor": amount_minor,
+                    "currency": str(purchase["currency"]),
+                    "actor_fingerprint": actor_fingerprint,
+                    "created_at": now,
+                    "updated_at": now,
+                }
+                connection.execute(
+                    """INSERT INTO refunds
+                       (id, purchase_id, idempotency_key, provider_idempotency_key, provider_refund_id,
+                        status, amount_minor, currency, reason_ciphertext, actor_fingerprint,
+                        created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        refund["id"], purchase_id, idempotency_key, refund["provider_idempotency_key"],
+                        None, refund["status"], amount_minor, refund["currency"],
+                        self._encrypt({"reason": reason}), actor_fingerprint, now, now,
+                    ),
+                )
+                connection.commit()
+                return refund, True
+            except Exception:
+                connection.rollback()
+                raise
+
+    def get_refund(self, refund_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute("SELECT * FROM refunds WHERE id = ?", (refund_id,)).fetchone()
+            return dict(row) if row else None
+
+    def get_refund_reason(self, refund_id: str) -> str | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute("SELECT reason_ciphertext FROM refunds WHERE id = ?", (refund_id,)).fetchone()
+        if not row:
+            raise LookupError(refund_id)
+        return self._decrypt(row["reason_ciphertext"]).get("reason") if row["reason_ciphertext"] else None
+
+    def set_provider_refund(
+        self,
+        refund_id: str,
+        *,
+        provider_refund_id: str | None,
+        status: str,
+        receipt_registration: str | None = None,
+        failure_code: str | None = None,
+    ) -> None:
+        with self._lock, self._connection() as connection:
+            cursor = connection.execute(
+                """UPDATE refunds SET provider_refund_id = ?, status = ?, receipt_registration = ?,
+                   failure_code = ?, updated_at = ? WHERE id = ?""",
+                (provider_refund_id, status, receipt_registration, failure_code, _iso(), refund_id),
+            )
+            if cursor.rowcount == 0:
+                raise LookupError(refund_id)
+
+    def apply_refund_event(
+        self,
+        refund_id: str,
+        *,
+        provider_event_id: str,
+        event_type: str,
+        object_id: str,
+        payload_checksum: str,
+        status: str,
+        provider_payment_id: str,
+        amount_minor: int,
+        currency: str,
+        failure_code: str | None = None,
+        receipt_registration: str | None = None,
+    ) -> dict[str, Any]:
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    """SELECT refunds.*, purchases.chart_id, purchases.provider,
+                              purchases.provider_payment_id, purchases.paid_amount_minor,
+                              purchases.amount_minor AS purchase_amount_minor,
+                              purchases.currency AS purchase_currency
+                       FROM refunds JOIN purchases ON purchases.id = refunds.purchase_id
+                       WHERE refunds.id = ?""",
+                    (refund_id,),
+                ).fetchone()
+                if not row:
+                    connection.rollback()
+                    raise LookupError(refund_id)
+                duplicate = connection.execute(
+                    "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
+                    (row["provider"], provider_event_id),
+                ).fetchone()
+                if duplicate:
+                    connection.commit()
+                    return {
+                        "duplicate": True,
+                        "chart_id": str(row["chart_id"]),
+                        "status": str(row["status"]),
+                        "entitlement_changed": False,
+                    }
+                if str(row["provider_payment_id"]) != provider_payment_id:
+                    raise self._payment_mismatch("Возврат относится к другому платежу.")
+                if row["provider_refund_id"] and str(row["provider_refund_id"]) != object_id:
+                    raise self._payment_mismatch("Идентификатор возврата не совпадает с операцией.")
+                if int(row["amount_minor"]) != amount_minor:
+                    raise self._payment_mismatch("Сумма возврата не совпадает с созданной операцией.")
+                if str(row["purchase_currency"]).upper() != currency.upper():
+                    raise self._payment_mismatch("Валюта возврата не совпадает с валютой платежа.")
+
+                now = _iso()
+                connection.execute(
+                    """INSERT INTO payment_events
+                       (provider, provider_event_id, event_type, object_id, payload_checksum, received_at)
+                       VALUES (?, ?, ?, ?, ?, ?)""",
+                    (row["provider"], provider_event_id, event_type, object_id, payload_checksum, now),
+                )
+                normalized = "cancelled" if status in {"cancelled", "canceled"} else status
+                connection.execute(
+                    """UPDATE refunds SET provider_refund_id = ?, status = ?, failure_code = ?,
+                       receipt_registration = COALESCE(?, receipt_registration), updated_at = ? WHERE id = ?""",
+                    (object_id, normalized, failure_code, receipt_registration, now, refund_id),
+                )
+                entitlement_changed = False
+                if normalized == "succeeded":
+                    total_row = connection.execute(
+                        "SELECT COALESCE(SUM(amount_minor), 0) AS total FROM refunds WHERE purchase_id = ? AND status = 'succeeded'",
+                        (row["purchase_id"],),
+                    ).fetchone()
+                    refunded_total = int(total_row["total"])
+                    paid_total = int(row["paid_amount_minor"] or row["purchase_amount_minor"])
+                    if refunded_total > paid_total:
+                        raise self._payment_mismatch("Сумма подтвержденных возвратов превышает сумму платежа.")
+                    purchase_status = "refunded" if refunded_total == paid_total else "partially_refunded"
+                    connection.execute(
+                        """UPDATE purchases SET status = ?, refunded_amount_minor = ?,
+                           updated_at = ? WHERE id = ?""",
+                        (purchase_status, refunded_total, now, row["purchase_id"]),
+                    )
+                    if purchase_status == "refunded":
+                        active = connection.execute(
+                            """SELECT id FROM entitlements WHERE chart_id = ? AND product_code = 'report_full'
+                               AND revoked_at IS NULL""",
+                            (row["chart_id"],),
+                        ).fetchone()
+                        if active:
+                            connection.execute(
+                                """UPDATE entitlements SET revoked_at = ?, revocation_reason = 'full_refund'
+                                   WHERE id = ?""",
+                                (now, active["id"]),
+                            )
+                            self._emit(
+                                connection,
+                                row["chart_id"],
+                                "entitlement.revoked",
+                                {"product": "report_full", "reason": "full_refund"},
+                            )
+                            entitlement_changed = True
+                connection.commit()
+                return {
+                    "duplicate": False,
+                    "chart_id": str(row["chart_id"]),
+                    "status": normalized,
+                    "entitlement_changed": entitlement_changed,
+                }
             except Exception:
                 connection.rollback()
                 raise
@@ -739,7 +1267,9 @@ class Store:
     def has_entitlement(self, chart_id: str) -> bool:
         with self._lock, self._connection() as connection:
             return connection.execute(
-                "SELECT 1 FROM entitlements WHERE chart_id = ? AND product_code = 'report_full'", (chart_id,)
+                """SELECT 1 FROM entitlements WHERE chart_id = ? AND product_code = 'report_full'
+                   AND revoked_at IS NULL""",
+                (chart_id,),
             ).fetchone() is not None
 
     def save_question(self, chart_id: str, question_id: str, saved: bool, note: str | None, reflection_status: str = "saved") -> None:
