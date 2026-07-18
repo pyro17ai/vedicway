@@ -87,8 +87,6 @@ const pages = [
   }
 ];
 
-const preludeStyle = `<style>.seo-prerender{min-height:100vh;padding:48px;color:#f5eee4;background:#050505;font-family:Georgia,serif}.seo-prerender nav{display:flex;gap:24px}.seo-prerender a{color:#ef7a2e}.seo-prerender h1{max-width:900px;font-size:clamp(42px,7vw,92px)}.seo-prerender p,.seo-prerender label{font-family:Arial,sans-serif;line-height:1.6}.seo-prerender form{display:grid;gap:12px;max-width:560px}.seo-prerender label{display:grid;gap:6px}.seo-prerender input,.seo-prerender button{min-height:44px}</style>`;
-
 for (const page of pages) {
   const target = resolve(DIST, page.output);
   await mkdir(dirname(target), { recursive: true });

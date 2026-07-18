@@ -8,7 +8,10 @@ if (!htmlPath || !outputPath) {
 }
 
 const html = await readFile(htmlPath, 'utf8');
-const browser = await chromium.launch({ headless: true });
+const chromiumArgs = process.env.VEDICWAY_CHROMIUM_NO_SANDBOX === '1'
+  ? ['--no-sandbox', '--disable-setuid-sandbox']
+  : [];
+const browser = await chromium.launch({ headless: true, args: chromiumArgs });
 try {
   const context = await browser.newContext();
   const page = await context.newPage();

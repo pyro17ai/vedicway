@@ -815,14 +815,31 @@ def validate_bundle(
 
 def provider_from_environment() -> InterpretationProvider:
     provider = os.environ.get("VEDICWAY_INTERPRETATION_PROVIDER", "").strip().casefold()
+    production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
     if provider == "codex":
         try:
             return CodexExecProvider()
         except DomainError as exc:
             LOGGER.error("codex_provider_configuration_failed code=%s", exc.code)
+            if production:
+                raise
             return UnavailableInterpretationProvider("Контур персонального объяснения не настроен")
     if provider == "stub":
+        if production:
+            raise DomainError(
+                "INTERPRETATION_CONFIG_INVALID",
+                "Тестовый провайдер объяснений запрещён в production",
+                recoverable=False,
+                status_code=503,
+            )
         return DevelopmentInterpretationProvider()
+    if production:
+        raise DomainError(
+            "INTERPRETATION_CONFIG_INVALID",
+            "Production требует VEDICWAY_INTERPRETATION_PROVIDER=codex",
+            recoverable=False,
+            status_code=503,
+        )
     return UnavailableInterpretationProvider(
         "Персональное объяснение отключено: укажите VEDICWAY_INTERPRETATION_PROVIDER=codex"
     )

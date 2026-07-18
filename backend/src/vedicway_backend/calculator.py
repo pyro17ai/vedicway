@@ -15,8 +15,11 @@ from .schemas import (
     BirthInput,
     ChartCell,
     ChartSnapshot,
+    Place,
     PlanetPosition,
+    ResolvedTime,
     SectionStatus,
+    TimeAccuracy,
     section_model,
 )
 from .time_normalization import normalize_event_time, normalized_dasha_periods
@@ -261,6 +264,51 @@ def calculate_instant(birth: BirthInput, chart_id: str, revision: int = 1) -> Ch
         "created_at": datetime.now(UTC),
     }
     return ChartSnapshot(**payload, checksum=_checksum(payload))
+
+
+@lru_cache(maxsize=1)
+def validate_instant_runtime() -> str:
+    """Run a pinned D1 control chart before production accepts public traffic."""
+
+    birth = BirthInput(
+        local_datetime=datetime(2006, 10, 16, 13, 30),
+        place=Place(
+            place_id="runtime-moscow-control",
+            display_name="Москва, Россия",
+            country_code="RU",
+            latitude=55.7558,
+            longitude=37.6173,
+            tzid="Europe/Moscow",
+        ),
+        resolved_time=ResolvedTime(
+            utc_offset_seconds=14_400,
+            utc_datetime=datetime(2006, 10, 16, 9, 30, tzinfo=UTC),
+            resolution_source="production_runtime_control",
+        ),
+        time_accuracy=TimeAccuracy.EXACT,
+    )
+    snapshot = calculate_instant(birth, "runtime_control")
+    d1 = snapshot.sections["d1"]["data"]
+    ascendant = d1["ascendant"]
+    positions = {
+        planet["planet_code"]: planet
+        for cell in d1["cells"]
+        for planet in cell["planets"]
+    }
+    matches = (
+        ascendant.get("sign_label") == "Скорпион"
+        and abs(float(ascendant.get("longitude_in_sign", -1)) - 23.7133) <= 0.0001
+        and positions.get("MOON", {}).get("sign_label") == "Рак"
+        and abs(float(positions.get("MOON", {}).get("longitude_in_sign", -1)) - 25.7398)
+        <= 0.0001
+    )
+    if not matches:
+        raise DomainError(
+            "RUNTIME_FINGERPRINT_MISMATCH",
+            "Контрольная D1 не совпала с утверждённым расчётным fingerprint",
+            recoverable=False,
+        )
+    return snapshot.snapshot_id
 
 
 def calculate_extended(birth: BirthInput, snapshot: ChartSnapshot) -> dict[str, dict[str, Any]]:

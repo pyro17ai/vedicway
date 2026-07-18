@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from vedicway_backend.calculator import calculate_extended, calculate_instant
+from vedicway_backend.calculator import (
+    calculate_extended,
+    calculate_instant,
+    validate_instant_runtime,
+)
 from vedicway_backend.evidence import compile_evidence
 from vedicway_backend.places import PlaceRegistry
 from vedicway_backend.schemas import ChartCreateRequest, ChartSnapshot
@@ -17,6 +21,7 @@ PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grish
 
 @pytest.mark.skipif(not PYJHORA_SOURCE.exists(), reason="own PyJHora source is required")
 def test_golden_moscow_lahiri_chart() -> None:
+    assert validate_instant_runtime().startswith("cs_")
     request = ChartCreateRequest(local_date=date(2006, 10, 16), local_time="13:30", place_id="ru-moscow-524901")
     birth = resolve_birth_input(request, PlaceRegistry().get(request.place_id))
     snapshot = calculate_instant(birth, "chart_golden")

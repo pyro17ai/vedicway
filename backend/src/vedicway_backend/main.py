@@ -26,7 +26,7 @@ from fastapi.responses import (
 )
 from starlette.middleware.cors import CORSMiddleware
 
-from .calculator import warm_instant_runtime
+from .calculator import validate_instant_runtime, warm_instant_runtime
 from .errors import DomainError
 from .observability import Metrics
 from .payment_config import PaymentSettings
@@ -108,7 +108,7 @@ async def _enforce_rate_limit(
         request.headers.get("X-Forwarded-For"),
         settings.trusted_proxy_networks,
     )
-    bucket_key = hashlib.sha256(f"{scope}:{client_ip}".encode("utf-8")).hexdigest()
+    bucket_key = hashlib.sha256(f"{scope}:{client_ip}".encode()).hexdigest()
     retry_after = await asyncio.to_thread(
         app.state.store.record_rate_limit_hit,
         bucket_key,
@@ -126,10 +126,18 @@ async def _enforce_rate_limit(
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
+    app.state.instant_runtime_ready = False
+    app.state.instant_runtime_error = None
     try:
-        await asyncio.to_thread(warm_instant_runtime)
-    except DomainError:
-        LOGGER.warning("instant calculation runtime will be retried by the worker", exc_info=True)
+        if production:
+            app.state.runtime_fingerprint = await asyncio.to_thread(validate_instant_runtime)
+        else:
+            await asyncio.to_thread(warm_instant_runtime)
+        app.state.instant_runtime_ready = True
+    except DomainError as error:
+        app.state.instant_runtime_error = error.code
+        LOGGER.error("instant calculation runtime is not ready code=%s", error.code, exc_info=True)
     try:
         yield
     finally:
@@ -156,6 +164,7 @@ def create_app(
     app.state.payment_settings = payment_settings or PaymentSettings.from_environment()
     app.state.payment_provider = payment_provider or payment_provider_from_settings(app.state.payment_settings)
     app.state.payment_tasks = set()
+    app.state.production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
 
     app.add_middleware(
         CORSMiddleware,
@@ -375,6 +384,15 @@ def create_app(
 
     @app.get("/api/v1/health/ready")
     async def readiness() -> JSONResponse:
+        if app.state.production and not getattr(app.state, "instant_runtime_ready", False):
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "status": "not_ready",
+                    "reason": getattr(app.state, "instant_runtime_error", None)
+                    or "calculation_runtime_not_warmed",
+                },
+            )
         try:
             app.state.store.events_since("health", 0)
         except Exception:

@@ -6,7 +6,7 @@
 
 Сейчас действует split storage. PostgreSQL предназначен для users, roles, articles и media metadata после объединения admin-ветки. Расчёты, purchases, entitlements и PDF metadata остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно один API и один worker. Масштабирование `backend` или `worker`, rolling update с двумя активными экземплярами и перенос jobs между узлами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
 
-Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. CSP разрешает только собственные скрипты, локальные изображения, Google Fonts из текущего дизайна и браузерный поиск городов Open-Meteo. После перевода шрифтов в локальные assets удалите `fonts.googleapis.com` и `fonts.gstatic.com` из CSP.
+Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. Access log не записывает IP, URL, query, referrer и user-agent; для связи событий остаётся случайный request id. Inter и Cormorant Garamond собираются из локальных `@fontsource` assets: до согласия на cookies браузер не обращается к Google. CSP оставляет прямой поиск городов Open-Meteo, который нужен форме и должен быть раскрыт в политике персональных данных.
 
 `/sitemap.xml` запрашивает `/api/v1/seo/sitemap.xml`. Backend должен включать в ответ только опубликованные статьи. При 404/502/503/504 Nginx отдаёт статический `public/sitemap.xml`, в котором остаются главная и `/guide`. Draft, admin, chart, checkout и API URL запрещены в sitemap и уже закрыты в `robots.txt`.
 
@@ -42,6 +42,10 @@ Remove-Item secrets/admin_bootstrap_email.txt, secrets/admin_bootstrap_password.
 Bootstrap-секреты не передаются обычным backend/worker. Повторный запуск не меняет существующего администратора и завершится без создания дубликата.
 
 FastAPI запускается одним Uvicorn process. `VEDICWAY_INLINE_WORKER=0` отключает обработку очереди внутри API, поэтому jobs исполняет отдельный `worker`. Named volume `runtime_data` обязателен и не удаляется командой `down -v`. PostgreSQL readiness не доказывает сохранность chart/payment Store: отдельно проверяйте SQLite volume и runtime backup.
+
+Production API и worker запускают контрольную D1 для Москвы 16.10.2006 13:30 и сверяют лагну с утверждённым fingerprint. Ошибка импорта PyJHora, эфемерид или расхождение расчёта оставляет API в `not_ready`, а worker завершает процесс и попадает под restart policy. Неверный Codex executable, пустой auth contour и любой provider кроме `codex` в production также останавливают процесс до приёма пользовательских задач.
+
+PDF-рендерер получает только локально собранный и экранированный HTML, блокирует все сетевые запросы страницы и запускает Chromium без внутренней sandbox: контейнер уже работает от непривилегированного UID, без capabilities, с `no-new-privileges` и read-only root filesystem. Такой режим нужен потому, что setuid sandbox Chromium несовместима с этими контейнерными ограничениями.
 
 ## Проверка после выкладки
 
@@ -93,6 +97,10 @@ Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
 
 Раз в квартал восстанавливайте свежий dump в изолированном staging и проверяйте число charts, purchases, entitlements, articles и media references. Runtime archive читается только с тем же `VEDICWAY_DATA_KEY`; signing key отдельно сохраняется в secret manager для действующих ссылок. Backup без проверенного restore не считается резервной копией.
 
+## Срок хранения и удаление
+
+Публичный трафик запрещён, пока владелец не утвердил конкретные сроки хранения карт, контактных данных, consent records, media и резервных копий. Процедура удаления обязана очищать PostgreSQL, SQLite, reports/media и все backup-копии по одному идентификатору субъекта либо подтверждённому отзыву согласия; одно удаление строки из основной базы не закрывает запрос субъекта. Перед релизом проведите проверяемую репетицию удаления в staging, сохраните только обезличенный audit-факт и убедитесь, что удалённые данные не возвращаются после восстановления очередной допустимой резервной копии.
+
 ## Release readiness checklist
 
 - [ ] `.env.production` не содержит `.example`, `REPLACE_*`, тестовых payment flags и чужих CIDR; `check_production_release.py` завершился кодом 0.
@@ -103,5 +111,6 @@ Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
 - [ ] `/`, `/guide`, legal pages и опубликованные статьи возвращают корректные canonical/robots/schema; sitemap не содержит служебных URL, Yandex Webmaster принял robots и sitemap.
 - [ ] Golden-карта, бесплатное объяснение, полный отчёт, вопросы и PDF прошли end-to-end. p95 расчёта и provider timeout укладываются в утверждённый SLO.
 - [ ] Логи, PostgreSQL, media volume и backup физически размещены по утверждённой схеме локализации; секреты и персональные данные не попадают в logs, CI artifacts и error tracking.
+- [ ] Утверждены сроки хранения по каждому классу данных; запрос удаления проверенно очищает primary storage, отчёты, медиа и backup-копии, а восстановление не возвращает данные с истёкшим сроком.
 
 Жёсткий стоп масштабирования: `backend/src/vedicway_backend/store.py` хранит charts и payments в SQLite. Compose передаёт `DATABASE_URL` и `VEDICWAY_DATABASE_URL` для admin/content adapter, но до переноса chart/payment таблиц допускается только single-node split storage. Если после объединения admin-ветки ни один production component не читает PostgreSQL, уберите `postgres` и `migrate` из запуска: декоративная база создаёт ложное ощущение надёжности. Зелёный `/health/ready` сейчас подтверждает доступ к runtime Store, но не полноценный disaster recovery.

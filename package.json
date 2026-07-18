@@ -12,6 +12,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "5.2.11",
+    "@fontsource/inter": "5.2.8",
     "@gsap/react": "2.1.2",
     "gsap": "3.15.0",
     "lucide-react": "1.24.0",

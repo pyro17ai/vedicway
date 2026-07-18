@@ -109,6 +109,22 @@ def test_explicit_contract_stub_is_valid_but_never_selected_implicitly(monkeypat
         provider.generate("snapshot_stub", facts, packets, paid=False)
 
 
+def test_production_provider_configuration_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("VEDICWAY_ENV", "production")
+    monkeypatch.setenv("VEDICWAY_INTERPRETATION_PROVIDER", "stub")
+    with pytest.raises(DomainError, match="запрещён в production"):
+        provider_from_environment()
+
+    monkeypatch.setenv("VEDICWAY_INTERPRETATION_PROVIDER", "codex")
+    monkeypatch.setenv("VEDICWAY_CODEX_HOME", str(tmp_path / "missing-codex-home"))
+    monkeypatch.setenv("VEDICWAY_AGENT_WORKDIR", str(tmp_path / "missing-workdir"))
+    with pytest.raises(DomainError, match="Каталоги контура объяснения не готовы"):
+        provider_from_environment()
+
+
 def test_editorial_validator_rejects_copied_domain_summary() -> None:
     facts, packets = _evidence()
     bundle = DevelopmentInterpretationProvider().generate("snapshot_repeat", facts, packets, paid=False)
@@ -161,7 +177,13 @@ def test_codex_provider_uses_native_executable_and_repairs_invalid_output(
     assert first_command[0] == str(executable)
     assert calls[0]["shell"] is False
     assert calls[0]["env"]["CODEX_HOME"] == str(codex_home)
+    for flag in ("--ephemeral", "--ignore-user-config", "--ignore-rules", "--strict-config"):
+        assert flag in first_command
+    assert first_command[first_command.index("--sandbox") + 1] == "read-only"
     assert 'web_search="disabled"' in first_command
+    assert "features.apps=false" in first_command
+    assert "features.multi_agent=false" in first_command
+    assert "features.shell_tool=false" in first_command
     assert '"repair"' in calls[1]["input"]
 
 

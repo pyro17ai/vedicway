@@ -3,12 +3,19 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import threading
 import time
 from dataclasses import dataclass
 from typing import Any
 
-from .calculator import calculate_expert_extended, calculate_extended, calculate_instant
+from .calculator import (
+    calculate_expert_extended,
+    calculate_extended,
+    calculate_instant,
+    validate_instant_runtime,
+    warm_instant_runtime,
+)
 from .errors import DomainError
 from .evidence import compile_evidence
 from .interpretation import InterpretationProvider, provider_from_environment, validate_bundle
@@ -286,6 +293,10 @@ def main() -> None:
     parser.add_argument("--once", action="store_true", help="Process a single queued job")
     parser.add_argument("--drain", type=int, default=0, help="Process up to N jobs and stop")
     args = parser.parse_args()
+    if os.environ.get("VEDICWAY_ENV", "development").casefold() == "production":
+        validate_instant_runtime()
+    else:
+        warm_instant_runtime()
     worker = ChartWorker(Store())
     if args.once:
         worker.process_once()

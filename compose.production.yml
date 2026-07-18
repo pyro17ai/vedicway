@@ -24,6 +24,7 @@ x-backend-common: &backend-common
     VEDICWAY_CODEX_HOME: /var/lib/vedicway/codex-home
     VEDICWAY_AGENT_WORKDIR: /var/lib/vedicway/agent-workdir
     VEDICWAY_CODEX_EXECUTABLE: /usr/local/bin/codex
+    VEDICWAY_CHROMIUM_NO_SANDBOX: "1"
     VEDICWAY_PLACE_DATASET_PATH: /run/config/places.json
     POSTGRES_HOST: postgres
     POSTGRES_PORT: "5432"

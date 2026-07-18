@@ -28,7 +28,7 @@ jobs:
       - run: npm run build
       - run: node scripts/prerender-seo.mjs
       - name: Verify prerendered public routes
-        run: test -s dist/index.html && test -s dist/guide/index.html && test -s dist/robots.txt && test -s dist/sitemap.xml
+        run: test -s dist/index.html && test -s dist/guide/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
       - name: Build non-root frontend image
         run: docker build --file docker/frontend/Dockerfile --tag vedicway-frontend:ci .
 

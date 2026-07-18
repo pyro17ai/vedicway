@@ -19,6 +19,7 @@ RUN npm run build \
     && node scripts/prerender-seo.mjs \
     && test -s dist/index.html \
     && test -s dist/guide/index.html \
+    && test -s dist/404.html \
     && test -s dist/robots.txt \
     && test -s dist/sitemap.xml
 
