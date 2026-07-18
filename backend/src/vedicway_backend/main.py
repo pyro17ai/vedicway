@@ -39,6 +39,7 @@ from .schemas import (
     ChartAccepted,
     ChartCreateRequest,
     PaymentPublicConfig,
+    PdfCreateRequest,
     PurchaseRequest,
     PurchaseResponse,
     RefundRequest,
@@ -1108,14 +1109,20 @@ def create_app(
         return {"items": app.state.store.saved_questions(chart_id)}
 
     @app.post("/api/v1/charts/{chart_id}/reports/pdf", status_code=status.HTTP_202_ACCEPTED)
-    async def create_pdf(chart_id: str, request: Request) -> dict[str, Any]:
+    async def create_pdf(chart_id: str, request: Request, payload: PdfCreateRequest = Body(default_factory=PdfCreateRequest)) -> dict[str, Any]:
         current_session = session(request)
         assert_owned(chart_id, current_session)
         if not app.state.store.has_entitlement(chart_id):
             raise DomainError("ENTITLEMENT_REQUIRED", "PDF входит в полный отчёт", recoverable=False, status_code=403)
-        job_id = app.state.store.enqueue_job(chart_id, "pdf_v1", priority=60)
+        preferences = payload.preferences.model_dump(mode="json")
+        job_id, render_request_id = app.state.store.enqueue_pdf_job(chart_id, preferences, priority=60)
         await _launch_worker(app)
-        return {"job_id": job_id, "status": app.state.store.get_report(chart_id)["status"]}
+        return {
+            "job_id": job_id,
+            "render_request_id": render_request_id,
+            "status": app.state.store.get_report(chart_id)["status"],
+            "preferences": preferences,
+        }
 
     @app.get("/api/v1/charts/{chart_id}/reports/pdf")
     async def get_pdf(chart_id: str, request: Request) -> Response:

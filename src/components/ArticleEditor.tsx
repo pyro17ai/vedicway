@@ -1,21 +1,26 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ExternalLink, FilePlus2, Save, Send, Trash2 } from "lucide-react";
+import { type ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Check, ExternalLink, FilePlus2, ImagePlus, Save, Send, Trash2, X } from "lucide-react";
 
+import { ARTICLE_MEDIA_ACCEPT, formatMediaBytes, uploadArticleMedia } from "../lib/article-media";
 import {
   ARTICLE_CATEGORIES,
+  articleMediaToken,
   createArticleDraft,
+  mediaIdFromArticleBlock,
   readArticles,
   removeArticle,
   uniqueArticleSlug,
   writeArticle,
+  type ArticleMediaAsset,
   type GuideArticle,
 } from "../lib/article-store";
+import { ArticleMedia } from "./ArticleMedia";
 
 type ArticleEditorProps = {
   onNavigate: (path: string) => void;
 };
 
-type ValidationErrors = Partial<Record<"title" | "slug" | "excerpt" | "content" | "metaDescription", string>>;
+type ValidationErrors = Partial<Record<"title" | "slug" | "excerpt" | "content" | "coverImage" | "metaDescription", string>>;
 
 function snapshot(article: GuideArticle) {
   return JSON.stringify(article);
@@ -23,6 +28,26 @@ function snapshot(article: GuideArticle) {
 
 function formatShortDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+}
+
+function replaceMedia(article: GuideArticle, mediaId: string, patch: Partial<ArticleMediaAsset>) {
+  return {
+    ...article,
+    coverImage: article.coverImage?.id === mediaId ? { ...article.coverImage, ...patch } : article.coverImage,
+    bodyMedia: article.bodyMedia.map((asset) => asset.id === mediaId ? { ...asset, ...patch } : asset),
+  };
+}
+
+function EditorMediaFields({ asset, onChange }: { asset: ArticleMediaAsset; onChange: (patch: Partial<ArticleMediaAsset>) => void }) {
+  return (
+    <div className="editor-media-fields">
+      <div className="editor-field"><label htmlFor={`media-alt-${asset.id}`}>Альтернативное описание</label><input id={`media-alt-${asset.id}`} value={asset.alt} onChange={(event) => onChange({ alt: event.target.value })} placeholder="Что изображено и зачем это важно" /></div>
+      <div className="editor-field-row">
+        <div className="editor-field"><label htmlFor={`media-title-${asset.id}`}>Заголовок изображения</label><input id={`media-title-${asset.id}`} value={asset.title} onChange={(event) => onChange({ title: event.target.value })} /></div>
+        <div className="editor-field"><label htmlFor={`media-caption-${asset.id}`}>Подпись под изображением</label><input id={`media-caption-${asset.id}`} value={asset.caption} onChange={(event) => onChange({ caption: event.target.value })} /></div>
+      </div>
+    </div>
+  );
 }
 
 export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
@@ -34,6 +59,7 @@ export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
   const [notice, setNotice] = useState("Изменения сохраняются локально в этом браузере.");
   const [preview, setPreview] = useState(true);
   const [slugTouched, setSlugTouched] = useState(Boolean(initialArticle.slug));
+  const [uploading, setUploading] = useState<"cover" | "body" | null>(null);
 
   const isDirty = snapshot(draft) !== savedSnapshot;
   const wordCount = useMemo(() => draft.content.trim().split(/\s+/).filter(Boolean).length, [draft.content]);
@@ -54,6 +80,48 @@ export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
   const update = <Key extends keyof GuideArticle>(key: Key, value: GuideArticle[Key]) => {
     setDraft((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
+  };
+
+  const uploadMedia = async (purpose: "cover" | "body", event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setUploading(purpose);
+    setNotice("Загружаем изображение и проверяем формат.");
+    try {
+      const fallbackAlt = draft.title.trim() || file.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+      const asset = await uploadArticleMedia({ file, purpose, alt: fallbackAlt });
+      setDraft((current) => purpose === "cover"
+        ? { ...current, coverImage: asset }
+        : { ...current, bodyMedia: [...current.bodyMedia, asset] });
+      setErrors((current) => ({ ...current, coverImage: undefined }));
+      setNotice(asset.provider === "dev-indexeddb"
+        ? "Изображение сохранено в локальном dev-медиахранилище. В production оно будет загружено через защищённый media API."
+        : "Изображение загружено в медиахранилище.");
+    } catch (reason) {
+      setNotice(reason instanceof Error ? reason.message : "Не удалось загрузить изображение.");
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const insertBodyMedia = (asset: ArticleMediaAsset) => {
+    const token = articleMediaToken(asset.id);
+    if (draft.content.includes(token)) {
+      setNotice("Это изображение уже вставлено в текст.");
+      return;
+    }
+    update("content", `${draft.content.trimEnd()}${draft.content.trim() ? "\n\n" : ""}${token}\n\n`);
+    setNotice("Изображение вставлено в конец текста. Переместите маркер целиком между нужными абзацами.");
+  };
+
+  const removeBodyMedia = (asset: ArticleMediaAsset) => {
+    const token = articleMediaToken(asset.id);
+    setDraft((current) => ({
+      ...current,
+      content: current.content.replaceAll(token, "").replace(/\n{3,}/g, "\n\n").trim(),
+      bodyMedia: current.bodyMedia.filter((item) => item.id !== asset.id),
+    }));
   };
 
   const startNew = () => {
@@ -80,6 +148,9 @@ export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
     if (!draft.title.trim()) next.title = "Укажите заголовок";
     if (publish && !draft.excerpt.trim()) next.excerpt = "Для публикации нужен лид";
     if (publish && draft.content.trim().length < 120) next.content = "Для публикации нужно не меньше 120 знаков";
+    if (publish && !draft.coverImage) next.coverImage = "Для публикации нужна обложка";
+    if (publish && draft.coverImage && !draft.coverImage.alt.trim()) next.coverImage = "Добавьте описание обложки";
+    if (publish && draft.bodyMedia.some((asset) => !asset.alt.trim())) next.content = "У каждого изображения в тексте должно быть альтернативное описание";
     if (publish && draft.metaDescription.trim().length < 70) next.metaDescription = "Метаописание должно содержать не меньше 70 знаков";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -175,11 +246,58 @@ export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
               <textarea id="article-excerpt" rows={3} maxLength={240} value={draft.excerpt} onChange={(event) => update("excerpt", event.target.value)} placeholder="Два предложения, которые объясняют пользу материала." aria-invalid={Boolean(errors.excerpt)} />
               {errors.excerpt && <small className="editor-error">{errors.excerpt}</small>}
             </div>
+            <section className="editor-media-section" aria-labelledby="cover-heading">
+              <header>
+                <div><span>Обложка</span><h2 id="cover-heading">Изображение карточки и статьи</h2></div>
+                <label className="editor-media-upload">
+                  <ImagePlus aria-hidden="true" /> {uploading === "cover" ? "Загружаем…" : draft.coverImage ? "Заменить" : "Добавить обложку"}
+                  <input type="file" accept={ARTICLE_MEDIA_ACCEPT} disabled={uploading !== null} onChange={(event) => void uploadMedia("cover", event)} />
+                </label>
+              </header>
+              {draft.coverImage ? (
+                <div className="editor-cover-media">
+                  <div className="editor-cover-media__preview">
+                    <ArticleMedia asset={draft.coverImage} sizes="460px" />
+                    <button type="button" aria-label="Удалить обложку" onClick={() => update("coverImage", null)}><X aria-hidden="true" /></button>
+                    <small>{draft.coverImage.mimeType.replace("image/", "").toUpperCase()} · {formatMediaBytes(draft.coverImage.sizeBytes)}{draft.coverImage.width ? ` · ${draft.coverImage.width}×${draft.coverImage.height}` : ""}</small>
+                  </div>
+                  <EditorMediaFields asset={draft.coverImage} onChange={(patch) => setDraft((current) => replaceMedia(current, draft.coverImage!.id, patch))} />
+                </div>
+              ) : (
+                <p className="editor-media-hint">Горизонтальная обложка показывается в едином формате 16:9. Сервис аккуратно обрежет края без растяжения; рекомендуемый исходник от 1600×900 px.</p>
+              )}
+              {errors.coverImage && <small className="editor-error">{errors.coverImage}</small>}
+            </section>
             <div className="editor-field">
               <label htmlFor="article-content">Текст статьи <span>{wordCount} слов</span></label>
               <textarea className="editor-content" id="article-content" rows={18} value={draft.content} onChange={(event) => update("content", event.target.value)} placeholder={"Используйте пустую строку между абзацами.\n\n## Подзаголовок\n\nОсновной текст."} aria-invalid={Boolean(errors.content)} />
               {errors.content && <small className="editor-error">{errors.content}</small>}
             </div>
+            <section className="editor-media-section" aria-labelledby="body-media-heading">
+              <header>
+                <div><span>Медиатека статьи</span><h2 id="body-media-heading">Изображения внутри материала</h2></div>
+                <label className="editor-media-upload">
+                  <ImagePlus aria-hidden="true" /> {uploading === "body" ? "Загружаем…" : "Добавить изображение"}
+                  <input type="file" accept={ARTICLE_MEDIA_ACCEPT} disabled={uploading !== null} onChange={(event) => void uploadMedia("body", event)} />
+                </label>
+              </header>
+              {draft.bodyMedia.length === 0 ? <p className="editor-media-hint">Добавьте изображение, заполните описание и вставьте его между абзацами. В тексте появится короткий маркер вида <code>{"{{media:…}}"}</code>.</p> : (
+                <div className="editor-body-media-list">
+                  {draft.bodyMedia.map((asset) => {
+                    const inserted = draft.content.split(/\n{2,}/).some((block) => mediaIdFromArticleBlock(block) === asset.id);
+                    return (
+                      <article key={asset.id}>
+                        <ArticleMedia asset={asset} sizes="180px" />
+                        <div>
+                          <EditorMediaFields asset={asset} onChange={(patch) => setDraft((current) => replaceMedia(current, asset.id, patch))} />
+                          <footer><button type="button" onClick={() => insertBodyMedia(asset)} disabled={inserted}>{inserted ? "Вставлено в текст" : "Вставить в текст"}</button><button type="button" onClick={() => removeBodyMedia(asset)}>Удалить</button></footer>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
           </section>
 
           <section className="editor-card editor-seo">
@@ -198,10 +316,16 @@ export function ArticleEditor({ onNavigate }: ArticleEditorProps) {
           <aside className="editor-preview" aria-label="Предпросмотр статьи">
             <header><span>Предпросмотр</span>{draft.status === "published" && draft.slug && <button type="button" onClick={() => onNavigate(`/guide/${draft.slug}`)}><ExternalLink aria-hidden="true" /> Открыть</button>}</header>
             <article>
+              {draft.coverImage && <ArticleMedia asset={draft.coverImage} className="editor-preview__cover" sizes="390px" loading="eager" />}
               <span>{draft.category}</span>
               <h1>{draft.title || "Заголовок статьи"}</h1>
               <p className="editor-preview__lead">{draft.excerpt || "Здесь появится лид материала."}</p>
-              <div>{draft.content ? draft.content.split(/\n{2,}/).slice(0, 8).map((block, index) => block.startsWith("## ") ? <h2 key={index}>{block.slice(3)}</h2> : <p key={index}>{block}</p>) : <p>Начните писать текст, чтобы увидеть структуру страницы.</p>}</div>
+              <div>{draft.content ? draft.content.split(/\n{2,}/).slice(0, 10).map((block, index) => {
+                const mediaId = mediaIdFromArticleBlock(block);
+                const asset = mediaId ? draft.bodyMedia.find((item) => item.id === mediaId) : null;
+                if (asset) return <figure className="editor-preview__media" key={asset.id}><ArticleMedia asset={asset} sizes="390px" />{asset.caption && <figcaption>{asset.caption}</figcaption>}</figure>;
+                return block.startsWith("## ") ? <h2 key={index}>{block.slice(3)}</h2> : <p key={index}>{block}</p>;
+              }) : <p>Начните писать текст, чтобы увидеть структуру страницы.</p>}</div>
             </article>
           </aside>
         )}

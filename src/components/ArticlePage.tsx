@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { ArrowLeft, Clock3 } from "lucide-react";
 
-import { articleBySlug } from "../lib/article-store";
+import { articleBySlug, mediaIdFromArticleBlock, type ArticleMediaAsset } from "../lib/article-store";
+import { ArticleMedia, ArticleMediaFigure } from "./ArticleMedia";
 import { SiteHeader } from "./SiteHeader";
 
 type ArticlePageProps = {
@@ -13,9 +14,12 @@ function readingMinutes(content: string) {
   return Math.max(1, Math.ceil(content.trim().split(/\s+/).filter(Boolean).length / 180));
 }
 
-function ArticleBody({ content }: { content: string }) {
+function ArticleBody({ content, media }: { content: string; media: ArticleMediaAsset[] }) {
   return content.split(/\n{2,}/).filter(Boolean).map((block, index) => {
     const value = block.trim();
+    const mediaId = mediaIdFromArticleBlock(value);
+    const asset = mediaId ? media.find((item) => item.id === mediaId) : null;
+    if (asset) return <ArticleMediaFigure asset={asset} key={asset.id} />;
     if (value.startsWith("## ")) return <h2 key={`${index}-${value}`}>{value.slice(3)}</h2>;
     if (value.startsWith("### ")) return <h3 key={`${index}-${value}`}>{value.slice(4)}</h3>;
     if (value.startsWith("- ")) {
@@ -58,6 +62,7 @@ export function ArticlePage({ slug, onNavigate }: ArticlePageProps) {
       datePublished: article.publishedAt,
       dateModified: article.updatedAt,
       author: { "@type": "Organization", name: article.author },
+      image: article.coverImage?.url ? new URL(article.coverImage.url, window.location.origin).href : undefined,
       mainEntityOfPage: canonical.href,
     });
     document.getElementById(structuredData.id)?.remove();
@@ -80,13 +85,14 @@ export function ArticlePage({ slug, onNavigate }: ArticlePageProps) {
         ) : (
           <article className="article-reading">
             <button className="article-back" type="button" onClick={() => onNavigate("/guide")}><ArrowLeft aria-hidden="true" /> Все материалы</button>
+            {article.coverImage && <ArticleMedia asset={article.coverImage} className="article-reading__cover" sizes="(max-width: 820px) calc(100vw - 30px), 780px" loading="eager" />}
             <header>
               <span>{article.category}</span>
               <h1>{article.title}</h1>
               <p>{article.excerpt}</p>
               <div><span>{article.author}</span><time dateTime={article.publishedAt ?? article.updatedAt}>{new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(new Date(article.publishedAt ?? article.updatedAt))}</time><span><Clock3 aria-hidden="true" /> {readingMinutes(article.content)} мин</span></div>
             </header>
-            <div className="article-reading__body"><ArticleBody content={article.content} /></div>
+            <div className="article-reading__body"><ArticleBody content={article.content} media={article.bodyMedia} /></div>
           </article>
         )}
       </main>
