@@ -7,6 +7,7 @@ export const ARTICLE_MEDIA_MAX_BYTES = 12 * 1024 * 1024;
 const ALLOWED_MEDIA_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
 const DEV_MEDIA_DATABASE = "vedicway-dev-article-media";
 const DEV_MEDIA_STORE = "assets";
+const ADMIN_CSRF_COOKIES = ["__Host-vedicway-csrf", "vw_admin_csrf"] as const;
 
 export type ArticleMediaPurpose = "cover" | "body";
 
@@ -17,6 +18,21 @@ export type ArticleMediaUpload = {
   title?: string;
   caption?: string;
 };
+
+export function readAdminCsrfToken(cookieHeader = typeof document === "undefined" ? "" : document.cookie) {
+  const cookies = new Map(cookieHeader.split(";").flatMap((item) => {
+    const separator = item.indexOf("=");
+    if (separator < 0) return [];
+    const name = item.slice(0, separator).trim();
+    const value = item.slice(separator + 1).trim();
+    return [[name, decodeURIComponent(value)] as const];
+  }));
+  for (const name of ADMIN_CSRF_COOKIES) {
+    const token = cookies.get(name);
+    if (token) return token;
+  }
+  return "";
+}
 
 type RemoteMediaPayload = {
   asset?: Partial<ArticleMediaAsset>;
@@ -112,9 +128,11 @@ async function uploadRemote(input: ArticleMediaUpload, fetcher: typeof fetch): P
   form.set("alt", input.alt.trim());
   form.set("title", input.title?.trim() ?? "");
   form.set("caption", input.caption?.trim() ?? "");
+  const csrfToken = readAdminCsrfToken();
   const response = await fetcher(ARTICLE_MEDIA_UPLOAD_ENDPOINT, {
     method: "POST",
     credentials: "same-origin",
+    headers: csrfToken ? { "X-CSRF-Token": csrfToken } : undefined,
     body: form,
   });
   if (!response.ok) {

@@ -6,7 +6,7 @@
 
 ## Загрузка
 
-`POST /api/v1/admin/media`, `multipart/form-data`, только для администратора с действующей same-site сессией и CSRF-защитой. Поля:
+`POST /api/v1/admin/media`, `multipart/form-data`, только для администратора с действующей same-site сессией и CSRF-защитой. Frontend читает доступную cookie `__Host-vedicway-csrf` в production или `vw_admin_csrf` в development и передаёт значение в `X-CSRF-Token`; HttpOnly session-cookie остаётся недоступной JavaScript. Ответы `401` и `403` никогда не включают локальный fallback. Поля:
 
 - `file`: JPEG, PNG, WebP или AVIF, до 12 МБ. SVG и любые исполняемые форматы запрещены;
 - `purpose`: `cover` или `body`;

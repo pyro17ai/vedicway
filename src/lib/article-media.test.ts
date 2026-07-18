@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { safeArticleMediaUrl, uploadArticleMedia, validateArticleMediaFile } from "./article-media";
+import { readAdminCsrfToken, safeArticleMediaUrl, uploadArticleMedia, validateArticleMediaFile } from "./article-media";
 
 describe("article-media", () => {
+  it("читает production и dev CSRF cookie без доступа к HttpOnly session", () => {
+    expect(readAdminCsrfToken("other=1; __Host-vedicway-csrf=prod-token")).toBe("prod-token");
+    expect(readAdminCsrfToken("vw_admin_csrf=dev%20token")).toBe("dev token");
+  });
+
   it("не пропускает data, javascript и protocol-relative URL в публичный img", () => {
     expect(safeArticleMediaUrl("data:image/svg+xml,<svg/>")).toBe("");
     expect(safeArticleMediaUrl("javascript:alert(1)")).toBe("");
@@ -18,9 +23,11 @@ describe("article-media", () => {
   });
 
   it("отправляет multipart в защищённый media API и нормализует responsive sources", async () => {
+    document.cookie = "vw_admin_csrf=csrf-test; path=/";
     const fetcher = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
       expect(init?.method).toBe("POST");
       expect(init?.credentials).toBe("same-origin");
+      expect(new Headers(init?.headers).get("X-CSRF-Token")).toBe("csrf-test");
       expect(init?.body).toBeInstanceOf(FormData);
       return {
         ok: true,
