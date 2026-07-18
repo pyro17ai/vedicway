@@ -95,6 +95,12 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         immutable_request = store.get_pdf_render_request(render_request_id)
         assert immutable_request is not None
         assert immutable_request["preferences"]["varga"] == "D24"
+        exact_status = client.get(
+            f"/api/v1/charts/{chart_id}/reports/pdf/requests/{render_request_id}"
+        )
+        assert exact_status.status_code == 200
+        assert exact_status.json()["render_request_id"] == render_request_id
+        assert exact_status.json()["preferences"]["mode"] == "expert"
         snapshot = store.get_snapshot(chart_id)
         bundle = store.get_bundle(chart_id, paid=True)
         assert snapshot is not None and bundle is not None

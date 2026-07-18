@@ -1158,6 +1158,26 @@ def create_app(
             },
         )
 
+    @app.get("/api/v1/charts/{chart_id}/reports/pdf/requests/{render_request_id}")
+    async def get_pdf_render_status(chart_id: str, render_request_id: str, request: Request) -> Response:
+        current_session = session(request)
+        assert_owned(chart_id, current_session)
+        render = app.state.store.get_pdf_render_request(render_request_id)
+        if not render or render["chart_id"] != chart_id:
+            raise DomainError("PDF_RENDER_NOT_FOUND", "Рендер PDF не найден", recoverable=False, status_code=404)
+        payload = {
+            "status": render["status"],
+            "render_request_id": render_request_id,
+            "preferences": render["preferences"],
+            "pages": render.get("pages"),
+            "size_bytes": render.get("size_bytes"),
+            "error_code": render.get("error_code"),
+        }
+        return JSONResponse(
+            status_code=202 if render["status"] in {"queued", "generating"} else 200,
+            content=payload,
+        )
+
     @app.get("/api/v1/reports/download/{chart_id}")
     async def download_pdf(
         chart_id: str,

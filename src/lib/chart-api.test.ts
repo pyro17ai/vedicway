@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { reportDownloadUrl, startPdf } from "./chart-api";
+import { getPdfRenderStatus, reportDownloadUrl, startPdf } from "./chart-api";
 
 describe("startPdf", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -32,6 +32,28 @@ describe("startPdf", () => {
     expect(JSON.parse(String(init?.body))).toEqual({ preferences });
     expect(reportDownloadUrl("chart/unsafe", response.render_request_id)).toBe(
       "/api/v1/charts/chart%2Funsafe/reports/pdf?render_request_id=pdfreq-1",
+    );
+  });
+
+  it("polls one immutable render request instead of the chart-wide latest report", async () => {
+    const fetcher = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        status: "ready",
+        render_request_id: "pdfreq/A",
+        preferences: {},
+        pages: 4,
+        size_bytes: 1024,
+        error_code: null,
+      }),
+    } as Response));
+    vi.stubGlobal("fetch", fetcher);
+
+    await getPdfRenderStatus("chart/A", "pdfreq/A");
+
+    expect(fetcher).toHaveBeenCalledWith(
+      "/api/v1/charts/chart%2FA/reports/pdf/requests/pdfreq%2FA",
+      expect.any(Object),
     );
   });
 });

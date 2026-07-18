@@ -333,6 +333,17 @@ export function startPdf(chartId: string, preferences: PdfRenderPreferences) {
   });
 }
 
+export function getPdfRenderStatus(chartId: string, renderRequestId: string) {
+  return request<{
+    status: "queued" | "generating" | "ready" | "failed";
+    render_request_id: string;
+    preferences: PdfRenderPreferences;
+    pages: number | null;
+    size_bytes: number | null;
+    error_code: string | null;
+  }>(`/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf/requests/${encodeURIComponent(renderRequestId)}`);
+}
+
 export function reportDownloadUrl(chartId: string, renderRequestId: string) {
   const query = new URLSearchParams({ render_request_id: renderRequestId });
   return `/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf?${query.toString()}`;
