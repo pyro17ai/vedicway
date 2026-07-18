@@ -1,0 +1,19 @@
+{
+  "name": "VedicWay",
+  "short_name": "VedicWay",
+  "description": "Персональные натальные карты и понятные объяснения",
+  "lang": "ru",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "/assets/brand-mark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

@@ -5,6 +5,8 @@ import time
 from fastapi.testclient import TestClient
 
 from vedicway_backend.main import create_app
+from vedicway_backend.pdf import report_html
+from vedicway_backend.schemas import PdfRenderPreferences
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
@@ -55,10 +57,23 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         assert saved.json()["reflection_status"] == "thinking"
         saved_list = client.get(f"/api/v1/charts/{chart_id}/questions/saved")
         assert saved_list.json()["items"][0]["note"] == "Вернуться к этой теме после разговора."
-        purchase = client.post(f"/api/v1/charts/{chart_id}/purchases", json={}, headers={"Idempotency-Key": "purchase-idempotency"})
+        purchase = client.post(
+            f"/api/v1/charts/{chart_id}/purchases",
+            json={
+                "email": "buyer@example.com",
+                "offer_accepted": True,
+                "offer_version": "development",
+            },
+            headers={"Idempotency-Key": "purchase-idempotency"},
+        )
         assert purchase.status_code == 202
-        confirmation = client.post(f"/api/v1/test/purchases/{purchase.json()['purchase_id']}/confirm")
-        assert confirmation.status_code == 202
+        checkout_url = purchase.json()["checkout_url"]
+        checkout = client.get(checkout_url)
+        assert checkout.status_code == 200
+        assert "Тестовая оплата YooKassa" in checkout.text
+        confirmation = client.post(f"{checkout_url}/complete", follow_redirects=False)
+        assert confirmation.status_code == 303
+        assert f"payment_return={purchase.json()['purchase_id']}" in confirmation.headers["location"]
         resource = _wait_for(
             client,
             chart_id,
@@ -67,6 +82,33 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         assert resource["entitlement"]["report_full"] is True
         assert len(resource["interpretation"]["questions"]) == 12
         assert resource["interpretation"]["domains"][0]["paragraphs"]
+        requested = client.post(
+            f"/api/v1/charts/{chart_id}/reports/pdf",
+            json={"preferences": {
+                "schema_version": "pdf-render-preferences.v1",
+                "varga": "D24",
+                "mode": "expert",
+                "chart_style": "south_indian",
+            }},
+        )
+        assert requested.status_code == 202
+        render_request_id = requested.json()["render_request_id"]
+        resource = _wait_for(
+            client,
+            chart_id,
+            lambda item: item["pdf"]["status"] == "ready" and item["pdf"].get("render_request_id") == render_request_id,
+        )
+        assert resource["pdf"]["render_preferences"]["varga"] == "D24"
+        assert resource["pdf"]["render_preferences"]["mode"] == "expert"
+        immutable_request = store.get_pdf_render_request(render_request_id)
+        assert immutable_request is not None
+        assert immutable_request["preferences"]["varga"] == "D24"
+        snapshot = store.get_snapshot(chart_id)
+        bundle = store.get_bundle(chart_id, paid=True)
+        assert snapshot is not None and bundle is not None
+        html = report_html(snapshot, bundle, PdfRenderPreferences.model_validate(immutable_request["preferences"]))
+        assert "Натальная карта · D24" in html
+        assert "Профессиональный" in html
         pdf = client.get(f"/api/v1/charts/{chart_id}/reports/pdf", follow_redirects=False)
         assert pdf.status_code == 303
         download = client.get(pdf.headers["location"])

@@ -13,6 +13,7 @@ SQLAlchemy-контур хранит в PostgreSQL пользователей, �
 ```dotenv
 VEDICWAY_ENV=production
 VEDICWAY_PUBLIC_ORIGIN=https://vedicway.ru
+VEDICWAY_PUBLIC_BASE_URL=https://vedicway.ru
 VEDICWAY_DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/vedicway
 VEDICWAY_RUNTIME_PROFILE=single-node-sqlite
 VEDICWAY_DATA_DIR=/srv/vedicway/runtime
@@ -24,9 +25,14 @@ VEDICWAY_LEGAL_OPERATOR_ADDRESS=<реальный адрес>
 VEDICWAY_LEGAL_OPERATOR_INN=<реальный ИНН>
 VEDICWAY_LEGAL_OPERATOR_OGRN=<реальный ОГРН или ОГРНИП>
 VEDICWAY_PRIVACY_EMAIL=<рабочий адрес обращений субъектов>
+VEDICWAY_OFFER_VERSION=<версия опубликованного пользовательского соглашения>
+VEDICWAY_OFFER_URL=https://vedicway.ru/legal/user-agreement
+VEDICWAY_PRIVACY_URL=https://vedicway.ru/legal/privacy-policy
 ```
 
 Frontend получает `VITE_YANDEX_METRIKA_ID` во время production-сборки. Без согласия посетителя скрипт Метрики не загружается. Вебвизор выключен.
+
+Reverse proxy должен отдавать `/sitemap.xml` из backend endpoint, потому что он включает только опубликованные статьи и обновляет `lastmod`. Файл `public/sitemap.xml` служит безопасным запасным вариантом для главной страницы и гида, но не заменяет динамическую карту сайта после публикации материалов.
 
 Endpoint `/api/v1/health/ready` возвращает 503, пока отсутствуют реквизиты, PostgreSQL, явный single-node профиль или постоянные пути. Production также блокируется, если в окружении остался bootstrap-пароль администратора.
 

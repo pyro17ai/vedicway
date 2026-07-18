@@ -1,0 +1,133 @@
+{
+  "site": {
+    "canonical_origin": "https://vedicway.ru",
+    "counter_id": 0,
+    "counter_release_blocker": "Указать настоящий ID отдельного счётчика vedicway.ru",
+    "segment_dimensions": ["traffic_source", "device", "region", "page_id"]
+  },
+  "events": [
+    {
+      "id": "chart_form_view",
+      "stage": "view",
+      "trigger": "форма расчёта вошла в область просмотра",
+      "business_conversion": false,
+      "contains_pii": false
+    },
+    {
+      "id": "chart_form_start",
+      "stage": "intent",
+      "trigger": "первый фокус внутри формы расчёта",
+      "business_conversion": false,
+      "contains_pii": false
+    },
+    {
+      "id": "chart_form_validation_error",
+      "stage": "error",
+      "trigger": "клиентская или серверная проверка отклонила форму",
+      "business_conversion": false,
+      "contains_pii": false
+    },
+    {
+      "id": "chart_create_success",
+      "stage": "success",
+      "trigger": "сервер вернул идентификатор созданной карты",
+      "business_conversion": true,
+      "contains_pii": false
+    },
+    {
+      "id": "guide_article_open",
+      "stage": "intent",
+      "trigger": "переход из раздела гида в опубликованную статью",
+      "business_conversion": false,
+      "contains_pii": false
+    }
+  ],
+  "pages": [
+    {
+      "page_id": "home",
+      "url": "/",
+      "html_file": "index.html",
+      "page_type": "home",
+      "intent": "commercial",
+      "page_job": "Ввести исходные данные, увидеть состав результата и отправить подтверждённую форму расчёта.",
+      "serp_evidence_ref": "seo/yandex/serp-evidence.md#home",
+      "snippet": {
+        "title": "Натальная карта онлайн с персональным разбором | VedicWay",
+        "description": "Рассчитайте натальную карту онлайн по дате, точному времени и месту рождения. Получите наглядную карту и подробное персональное объяснение VedicWay.",
+        "h1": "ПОЗНАЙ СЕБЯ ЧЕРЕЗ КОСМОС",
+        "lead": "Натальная карта раскрывает ваш уникальный рисунок судьбы. Узнайте своё предназначение и скрытые ресурсы."
+      },
+      "first_screen": {
+        "answer": "Натальная карта раскрывает ваш уникальный рисунок судьбы.",
+        "primary_action": {
+          "kind": "form",
+          "id": "natal-chart-form",
+          "label": "Рассчитать карту",
+          "success_event": "chart_create_success"
+        },
+        "proof_ids": ["calculation-inputs", "result-preview"]
+      },
+      "proof_blocks": [
+        {
+          "id": "calculation-inputs",
+          "source": "форма расчёта и контракт API",
+          "visible": true
+        },
+        {
+          "id": "result-preview",
+          "source": "интерактивная демонстрация готового результата",
+          "visible": true
+        }
+      ],
+      "required_internal_links": ["/guide"],
+      "forms": [
+        {
+          "id": "natal-chart-form",
+          "standard_form": true,
+          "success_event": "chart_create_success"
+        }
+      ],
+      "mobile": {
+        "mode": "responsive",
+        "critical_content_before_interaction": ["answer", "primary_action", "proof"]
+      }
+    },
+    {
+      "page_id": "guide",
+      "url": "/guide",
+      "html_file": "guide/index.html",
+      "page_type": "section",
+      "intent": "informational",
+      "page_job": "Найти понятное объяснение нужного элемента натальной карты и перейти к чтению материала.",
+      "serp_evidence_ref": "seo/yandex/serp-evidence.md#guide",
+      "snippet": {
+        "title": "Натальная карта простыми словами — гид VedicWay",
+        "description": "Понятные статьи о натальной карте: планеты, дома, аспекты и последовательное чтение астрологических символов в гиде VedicWay.",
+        "h1": "Гид по астрологии",
+        "lead": "Спокойные и точные объяснения, которые помогают читать натальную карту по смыслу, а не заучивать отдельные символы."
+      },
+      "first_screen": {
+        "answer": "Спокойные и точные объяснения, которые помогают читать натальную карту по смыслу, а не заучивать отдельные символы.",
+        "primary_action": {
+          "kind": "link",
+          "id": "guide-calculate-link",
+          "label": "Рассчитать карту"
+        },
+        "proof_ids": ["guide-topics"]
+      },
+      "proof_blocks": [
+        {
+          "id": "guide-topics",
+          "source": "редакционная структура опубликованных материалов",
+          "visible": true
+        }
+      ],
+      "required_internal_links": ["/"],
+      "forms": [],
+      "mobile": {
+        "mode": "responsive",
+        "critical_content_before_interaction": ["answer", "primary_action", "proof"]
+      }
+    }
+  ]
+}

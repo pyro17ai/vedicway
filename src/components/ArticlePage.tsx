@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Clock3 } from "lucide-react";
 
-import { publicArticle, type ContentArticle, type ContentMediaAsset } from "../lib/admin-api";
+import { publicArticle, type ContentArticle } from "../lib/admin-api";
+import { mediaIdFromArticleBlock, type ArticleMediaAsset } from "../lib/article-store";
+import { applySeo, publicOrigin } from "../lib/seo";
+import { ArticleMedia, ArticleMediaFigure } from "./ArticleMedia";
 import { SiteHeader } from "./SiteHeader";
 
 type ArticlePageProps = {
@@ -13,14 +16,12 @@ function readingMinutes(content: string) {
   return Math.max(1, Math.ceil(content.trim().split(/\s+/).filter(Boolean).length / 180));
 }
 
-function ArticleBody({ content, media }: { content: string; media: ContentMediaAsset[] }) {
+function ArticleBody({ content, media }: { content: string; media: ArticleMediaAsset[] }) {
   return content.split(/\n{2,}/).filter(Boolean).map((block, index) => {
     const value = block.trim();
-    const mediaId = /^\{\{media:([A-Za-z0-9_-]+)\}\}$/.exec(value)?.[1];
-    if (mediaId) {
-      const asset = media.find((item) => item.id === mediaId);
-      return asset ? <figure key={`${index}-${asset.id}`}><img src={asset.url} srcSet={asset.sources.map((source) => `${source.url} ${source.width}w`).join(", ")} sizes="(max-width: 820px) calc(100vw - 30px), 780px" alt={asset.alt} loading="lazy" />{asset.caption && <figcaption>{asset.caption}</figcaption>}</figure> : null;
-    }
+    const mediaId = mediaIdFromArticleBlock(value);
+    const asset = mediaId ? media.find((item) => item.id === mediaId) : null;
+    if (asset) return <ArticleMediaFigure asset={asset} key={asset.id} />;
     if (value.startsWith("## ")) return <h2 key={`${index}-${value}`}>{value.slice(3)}</h2>;
     if (value.startsWith("### ")) return <h3 key={`${index}-${value}`}>{value.slice(4)}</h3>;
     if (value.startsWith("- ")) {
@@ -47,43 +48,40 @@ export function ArticlePage({ slug, onNavigate }: ArticlePageProps) {
   }, [slug]);
 
   useEffect(() => {
-    document.title = article ? `${article.seo_title || article.title} — VedicWay` : "Материал не найден — VedicWay";
-    if (!article) return;
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.append(meta);
+    if (loading) return;
+    if (!article) {
+      return applySeo({
+        title: "Материал не найден | VedicWay",
+        description: "Запрошенный материал гида VedicWay не найден.",
+        path: `/guide/${slug}`,
+        noindex: true,
+      });
     }
-    meta.content = article.meta_description || article.excerpt;
-
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.append(canonical);
-    }
-    canonical.href = article.canonical_url || `${window.location.origin}/guide/${article.slug}`;
-
-    const structuredData = document.createElement("script");
-    structuredData.id = "vedicway-article-jsonld";
-    structuredData.type = "application/ld+json";
-    structuredData.text = JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: article.title,
+    const canonical = article.canonical_url || `${publicOrigin()}/guide/${article.slug}`;
+    return applySeo({
+      title: `${article.seo_title || article.title} | VedicWay`,
       description: article.meta_description || article.excerpt,
-      image: article.cover_image_url ? new URL(article.cover_image_url, window.location.origin).href : undefined,
-      datePublished: article.published_at,
-      dateModified: article.updated_at,
-      author: { "@type": "Organization", name: article.author_name },
-      mainEntityOfPage: canonical.href,
+      path: `/guide/${article.slug}`,
+      canonicalUrl: canonical,
+        image: article.coverImage?.url || article.cover_image_url
+          ? new URL(article.coverImage?.url || article.cover_image_url || "", publicOrigin()).href
+          : undefined,
+      type: "article",
+      structuredData: [{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: article.title,
+        description: article.meta_description || article.excerpt,
+        image: article.coverImage?.url || article.cover_image_url
+          ? new URL(article.coverImage?.url || article.cover_image_url || "", publicOrigin()).href
+          : undefined,
+        datePublished: article.published_at,
+        dateModified: article.updated_at,
+        author: { "@type": "Organization", name: article.author_name },
+        mainEntityOfPage: canonical,
+      }],
     });
-    document.getElementById(structuredData.id)?.remove();
-    document.head.append(structuredData);
-
-    return () => structuredData.remove();
-  }, [article]);
+  }, [article, loading, slug]);
 
   return (
     <div className="guide-site">
@@ -99,8 +97,9 @@ export function ArticlePage({ slug, onNavigate }: ArticlePageProps) {
         ) : (
           <article className="article-reading">
             <button className="article-back" type="button" onClick={() => onNavigate("/guide")}><ArrowLeft aria-hidden="true" /> Все материалы</button>
+            {article.coverImage && <ArticleMedia asset={article.coverImage} className="article-reading__cover" sizes="(max-width: 820px) calc(100vw - 30px), 780px" loading="eager" />}
             <header>
-              {article.cover_image_url && <figure className="article-cover"><img src={article.cover_image_url} alt={article.cover_image_alt} /></figure>}
+              {!article.coverImage && article.cover_image_url && <figure className="article-cover"><img src={article.cover_image_url} alt={article.cover_image_alt} /></figure>}
               <span>{article.category}</span>
               <h1>{article.title}</h1>
               <p>{article.excerpt}</p>

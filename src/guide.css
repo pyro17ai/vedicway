@@ -4,7 +4,11 @@
   background:
     linear-gradient(180deg, rgba(4, 5, 6, 0.34), #050607 720px),
     linear-gradient(90deg, rgba(4, 5, 6, 0.92), rgba(5, 6, 7, 0.44) 54%, rgba(4, 5, 6, 0.86)),
-    url("/assets/faq-space.png") center top / cover no-repeat fixed,
+    image-set(
+      url("/assets/faq-space.avif") type("image/avif") 1x,
+      url("/assets/faq-space.webp") type("image/webp") 1x,
+      url("/assets/faq-space.png") type("image/png") 1x
+    ) center top / cover no-repeat fixed,
     #050607;
 }
 
@@ -210,13 +214,15 @@
 .guide-article-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: 14px;
 }
 
 .guide-article-card {
   display: flex;
   flex-direction: column;
-  min-height: 390px;
+  min-width: 0;
+  min-height: 430px;
   padding: 0;
   overflow: hidden;
   border: 1px solid rgba(242, 161, 102, 0.16);
@@ -226,19 +232,38 @@
 }
 
 .guide-article-card__cover {
-  display: block;
+  display: block !important;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 0 !important;
+  padding: 0 !important;
   overflow: hidden;
-  color: #d9783f;
-  background: radial-gradient(circle, rgba(230, 113, 48, .15), transparent 45%), #0d0e0f;
+  aspect-ratio: 16 / 9;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(242, 161, 102, 0.13) !important;
+  border-radius: 0 !important;
+  color: #c86f38 !important;
+  background: radial-gradient(circle at 50% 38%, rgba(231, 120, 50, 0.14), rgba(6, 7, 8, 0.96) 70%) !important;
+  font-size: 30px !important;
   cursor: pointer;
 }
 
-.guide-article-card__cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 450ms ease; }
-.guide-article-card__cover:hover img { transform: scale(1.025); }
-.guide-article-card__cover > span { display: grid; height: 100%; place-items: center; font-size: 34px; }
-.guide-article-card__content { display: flex; flex: 1; flex-direction: column; min-height: 220px; padding: 22px 24px 24px; }
+.guide-article-card__cover > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 450ms ease;
+}
+
+.guide-article-card__cover:hover > img { transform: scale(1.025); }
+.guide-article-card__cover > span:not(.article-media) { display: grid; height: 100%; place-items: center; }
+
+.guide-article-card__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: 23px 25px 25px;
+}
 
 .guide-article-card__content > span {
   color: #d6773e;
@@ -249,16 +274,24 @@
 }
 
 .guide-article-card h3 {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 17px 0 10px;
   color: #f0e8de;
   font: 500 27px/1.05 "Cormorant Garamond", Georgia, serif;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .guide-article-card__content > p {
+  display: -webkit-box;
+  overflow: hidden;
   margin: 0;
   color: #a8a19b;
   font-size: 13px;
   line-height: 1.57;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
 }
 
 .guide-article-card footer {
@@ -283,6 +316,40 @@
   background: transparent;
 }
 
+.article-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, rgba(231, 120, 50, 0.09), rgba(6, 7, 8, 0.97));
+}
+
+.article-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.article-media__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  background: linear-gradient(105deg, transparent 25%, rgba(231, 120, 50, 0.08) 42%, transparent 58%);
+  background-size: 240% 100%;
+  animation: article-media-loading 1.8s linear infinite;
+}
+
+@keyframes article-media-loading {
+  to { background-position: -200% 0; }
+}
+
+.guide-article-card__cover .article-media {
+  height: 100%;
+}
+
 .article-page {
   width: min(1000px, calc(100% - 48px));
   min-height: calc(100svh - 64px);
@@ -302,6 +369,14 @@
 .article-reading > header {
   padding-bottom: 38px;
   border-bottom: 1px solid rgba(242, 161, 102, 0.16);
+}
+
+.article-reading__cover {
+  margin-bottom: 36px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(242, 161, 102, 0.17);
+  border-radius: 18px;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.3);
 }
 
 .article-cover { aspect-ratio: 16 / 9; margin: 0 0 38px; overflow: hidden; border-radius: 16px; background: #0c0d0e; }
@@ -377,6 +452,23 @@
 
 .article-reading__body li + li {
   margin-top: 8px;
+}
+
+.article-body-media {
+  margin: 38px 0 31px;
+}
+
+.article-body-media .article-media {
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(242, 161, 102, 0.15);
+  border-radius: 14px;
+}
+
+.article-body-media figcaption {
+  margin-top: 10px;
+  color: #817a74;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .article-not-found {
@@ -694,6 +786,172 @@
   min-height: 390px;
 }
 
+.editor-media-section {
+  display: grid;
+  gap: 15px;
+  padding: 19px;
+  border: 1px solid rgba(242, 224, 207, 0.1);
+  border-radius: 10px;
+  background: rgba(5, 6, 7, 0.38);
+}
+
+.editor-media-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.editor-media-section > header span {
+  color: #8c837c;
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.editor-media-section > header h2 {
+  margin: 5px 0 0;
+  color: #e7dfd7;
+  font: 500 22px/1 "Cormorant Garamond", Georgia, serif;
+}
+
+.editor-media-upload {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid rgba(230, 117, 52, 0.25);
+  border-radius: 8px;
+  color: #d99466;
+  background: rgba(230, 117, 52, 0.06);
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.editor-media-upload svg {
+  width: 15px;
+}
+
+.editor-media-upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.editor-media-hint {
+  margin: 0;
+  color: #77716b;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.editor-media-hint code {
+  color: #bf7b50;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.editor-cover-media {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr);
+  gap: 15px;
+  align-items: start;
+}
+
+.editor-cover-media__preview {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid rgba(242, 224, 207, 0.12);
+  border-radius: 9px;
+}
+
+.editor-cover-media__preview .article-media {
+  height: 100%;
+}
+
+.editor-cover-media__preview > button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #eee6de;
+  background: rgba(4, 5, 6, 0.82);
+  cursor: pointer;
+}
+
+.editor-cover-media__preview > button svg {
+  width: 14px;
+}
+
+.editor-cover-media__preview > small {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: #bcb4ac;
+  background: rgba(4, 5, 6, 0.78);
+  font-size: 8px;
+}
+
+.editor-media-fields {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+}
+
+.editor-body-media-list {
+  display: grid;
+  gap: 12px;
+}
+
+.editor-body-media-list > article {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(242, 224, 207, 0.08);
+}
+
+.editor-body-media-list > article > .article-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+.editor-body-media-list footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.editor-body-media-list footer button {
+  min-height: 31px;
+  padding: 0 9px;
+  border: 1px solid rgba(242, 224, 207, 0.12);
+  border-radius: 7px;
+  color: #bcb4ac;
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.editor-body-media-list footer button:disabled {
+  color: #7e756e;
+  cursor: default;
+}
+
 .editor-error {
   color: #ed978a;
   font-size: 10px;
@@ -778,6 +1036,28 @@
 
 .editor-preview > article {
   padding: 35px 27px 70px;
+}
+
+.editor-preview__cover {
+  margin: -15px 0 23px;
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+}
+
+.editor-preview__media {
+  margin: 24px 0;
+}
+
+.editor-preview__media .article-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+.editor-preview__media figcaption {
+  margin-top: 7px;
+  color: #756e69;
+  font-size: 9px;
+  line-height: 1.45;
 }
 
 .editor-preview > article > span {
@@ -892,6 +1172,10 @@
   .editor-preview {
     display: none;
   }
+
+  .editor-cover-media {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -959,4 +1243,25 @@
   .editor-field-row {
     grid-template-columns: 1fr;
   }
+
+  .editor-media-section {
+    padding: 14px;
+  }
+
+  .editor-media-section > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .editor-body-media-list > article {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-body-media-list > article > .article-media {
+    width: min(100%, 340px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-media__placeholder { animation: none; }
 }

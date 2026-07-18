@@ -471,7 +471,7 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
 
         <div className="privacy-note">
           <LockKeyhole aria-hidden="true" />
-          <span>Ваши данные защищены и не передаются третьим лицам</span>
+          <span>Используем данные только для расчёта карты и оказания сервиса</span>
         </div>
 
         <div className="submit-status" role="status" aria-live="polite">

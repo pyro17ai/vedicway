@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Bookmark,
   BookOpen,
-  Check,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
@@ -36,9 +35,10 @@ import {
   type EvidenceFact,
   type ReflectionQuestion,
   type ReflectionStatus,
-  confirmTestPurchase,
+  type PaymentPublicConfig,
   createPurchase,
   getChart,
+  getPaymentConfig,
   getSavedQuestions,
   getSection,
   getVarga,
@@ -48,6 +48,14 @@ import {
   subscribeToChartEvents,
 } from "../lib/chart-api";
 import { trackWorkspaceEvent } from "../lib/analytics";
+import {
+  clearPaymentReturnState,
+  pollPurchase,
+  readPaymentReturnState,
+  savePaymentReturnState,
+  type PaymentReturnState,
+} from "../lib/payment-return";
+import { PaymentPaywall } from "./PaymentPaywall";
 import { SouthIndianChart, formatChartDegree } from "./SouthIndianChart";
 
 type TabId = "chart" | "explanation" | "questions";
@@ -71,6 +79,11 @@ type SavedQuestionState = {
   saved: boolean;
   reflectionStatus: ReflectionStatus;
   note: string | null;
+};
+
+type PaymentRecovery = {
+  state: "checking" | "timeout" | "cancelled" | "failed";
+  message: string;
 };
 
 const reflectionStatusLabels: Record<ReflectionStatus, string> = {
@@ -268,35 +281,6 @@ function DomainDetail({ domain, facts, index, total, onClose, onPrevious, onNext
   );
 }
 
-function Paywall({ domain, facts, onClose, onPurchased }: { domain: DomainCard; facts: Map<string, EvidenceFact>; onClose: () => void; onPurchased: () => Promise<void> }) {
-  const [state, setState] = useState<"idle" | "pending" | "error">("idle");
-  const [message, setMessage] = useState("");
-  async function purchase() {
-    setState("pending");
-    setMessage("Открываем защищённую оплату");
-    try {
-      await onPurchased();
-      setMessage("Оплата прошла. Открываем подробные разделы.");
-    } catch (error) {
-      setState("error");
-      setMessage(error instanceof Error ? error.message : "Платёж пока не подтверждён. Проверьте статус и попробуйте ещё раз.");
-    }
-  }
-  return (
-    <Modal titleId="paywall-title" onClose={onClose} className="workspace-modal--paywall">
-      <header className="workspace-modal__header"><div><span className="workspace-modal__kicker">Продолжение вашей темы</span><h2 id="paywall-title" data-autofocus>{domain.title}</h2></div><button type="button" className="icon-button" aria-label="Вернуться к карте" onClick={onClose}><X aria-hidden="true" /></button></header>
-      <div className="paywall__body">
-        <p>{domain.summary}</p>
-        <EvidenceChips evidenceIds={domain.evidence_ids} facts={facts} />
-        <ul className="paywall__list"><li><Check aria-hidden="true" /> Восемь подробных жизненных тем</li><li><Check aria-hidden="true" /> Общий синтез карты</li><li><Check aria-hidden="true" /> Двенадцать вопросов к себе</li><li><Check aria-hidden="true" /> PDF с южноиндийской картой</li></ul>
-        <div className="paywall__price"><strong>990 ₽</strong><span>Один платёж. Без подписки.</span></div>
-        {message && <p className={state === "error" ? "workspace-notice workspace-notice--error" : "paywall__status"} role={state === "error" ? "alert" : "status"}>{message}</p>}
-      </div>
-      <footer className="workspace-modal__footer workspace-modal__footer--purchase"><button type="button" className="primary-button" disabled={state === "pending"} onClick={purchase}>{state === "pending" ? "Проверяем платёж" : "Открыть полный отчёт за 990 ₽"}</button><span>Без подписки · PDF останется у вас</span></footer>
-    </Modal>
-  );
-}
-
 function QuestionCard({ question, index, facts, saved, reflectionStatus, storedNote, onSave, onSetStatus, onSaveNote, onFocus }: { question: ReflectionQuestion; index: number; facts: Map<string, EvidenceFact>; saved: boolean; reflectionStatus: ReflectionStatus; storedNote: string | null; onSave: () => void; onSetStatus: (status: ReflectionStatus) => void; onSaveNote: (note: string) => void; onFocus: () => void }) {
   const [why, setWhy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -340,9 +324,13 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   const [networkState, setNetworkState] = useState<"live" | "reconnecting" | "offline">("live");
   const [error, setError] = useState<string | null>(null);
   const [questionFilter, setQuestionFilter] = useState<"all" | "saved">("all");
+  const [paymentConfig, setPaymentConfig] = useState<PaymentPublicConfig | null>(null);
+  const [paymentRecovery, setPaymentRecovery] = useState<PaymentRecovery | null>(null);
+  const [recoveryAttempt, setRecoveryAttempt] = useState(0);
   const root = useRef<HTMLElement>(null);
   const tabs = useRef<Partial<Record<TabId, HTMLButtonElement>>>({});
   const reconnectTimer = useRef<number | null>(null);
+  const recoveryRun = useRef<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -355,6 +343,96 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       return null;
     }
   }, [chartId]);
+
+  const clearReturnLocation = useCallback(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("payment_return");
+    const search = params.toString();
+    window.history.replaceState({}, "", `${window.location.pathname}${search ? `?${search}` : ""}`);
+  }, []);
+
+  const recoverReturnedPayment = useCallback(async (saved: PaymentReturnState, signal: AbortSignal) => {
+    setPaymentRecovery({ state: "checking", message: "Проверяем платёж по данным YooKassa" });
+    trackWorkspaceEvent("payment_returned");
+    const result = await pollPurchase(saved.purchaseId, { signal });
+    if (signal.aborted || result.outcome === "aborted") return;
+    if (result.outcome === "succeeded") {
+      trackWorkspaceEvent("payment_server_confirmed");
+      for (let attempt = 0; attempt < 60 && !signal.aborted; attempt += 1) {
+        const next = await refresh();
+        if (next?.entitlement.report_full) {
+          clearPaymentReturnState(window.sessionStorage);
+          setPaymentRecovery(null);
+          if (saved.domain) {
+            setPaywallDomain(null);
+            setDetailDomain(saved.domain);
+            updateRoute({ tab: "explanation", domain: saved.domain, detail: true }, true);
+          } else {
+            clearReturnLocation();
+          }
+          return;
+        }
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
+      }
+      setPaymentRecovery({
+        state: "timeout",
+        message: "Платёж подтверждён. Подробный отчёт ещё формируется, проверку можно продолжить.",
+      });
+      return;
+    }
+    if (result.outcome === "cancelled" || result.outcome === "failed") {
+      clearPaymentReturnState(window.sessionStorage);
+      clearReturnLocation();
+      if (saved.domain) setPaywallDomain(saved.domain);
+      const cancelled = result.outcome === "cancelled";
+      setPaymentRecovery({
+        state: cancelled ? "cancelled" : "failed",
+        message: cancelled
+          ? "Оплата отменена. Списание не подтверждено, можно попробовать ещё раз."
+          : "YooKassa не подтвердила платёж. Попробуйте создать новую оплату.",
+      });
+      trackWorkspaceEvent(cancelled ? "payment_cancelled" : "payment_failed");
+      return;
+    }
+    setPaymentRecovery({
+      state: "timeout",
+      message: "Платёж ещё проверяется. Деньги повторно не списываются.",
+    });
+    trackWorkspaceEvent("payment_timeout");
+  }, [clearReturnLocation, refresh, updateRoute]);
+
+  useEffect(() => {
+    void getPaymentConfig().then(setPaymentConfig).catch(() => {
+      setPaymentRecovery({ state: "failed", message: "Не удалось загрузить условия оплаты. Обновите страницу." });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has("payment_return")) return;
+    const saved = readPaymentReturnState(window.sessionStorage, chartId, window.location.search);
+    if (!saved) {
+      setPaymentRecovery({
+        state: "failed",
+        message: "Не удалось безопасно восстановить платёж. Откройте оплату из этой карты ещё раз.",
+      });
+      return;
+    }
+    const runKey = `${saved.purchaseId}:${recoveryAttempt}`;
+    if (recoveryRun.current === runKey) return;
+    recoveryRun.current = runKey;
+    const controller = new AbortController();
+    void recoverReturnedPayment(saved, controller.signal).catch((reason) => {
+      if (controller.signal.aborted) return;
+      setPaymentRecovery({
+        state: "timeout",
+        message: reason instanceof Error ? reason.message : "Не удалось проверить платёж. Повторите проверку.",
+      });
+    });
+    return () => {
+      controller.abort();
+      if (recoveryRun.current === runKey) recoveryRun.current = null;
+    };
+  }, [chartId, recoverReturnedPayment, recoveryAttempt]);
 
   useEffect(() => {
     let alive = true;
@@ -407,8 +485,13 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     if (!resource?.interpretation || !route.domain || !route.detail) return;
     const domain = resource.interpretation.domains.find((item) => item.slug === route.domain);
     if (!domain) return;
-    if (resource.entitlement.report_full && domain.paragraphs.length) setDetailDomain(domain.slug);
-    else setPaywallDomain(domain.slug);
+    if (resource.entitlement.report_full && domain.paragraphs.length) {
+      setPaywallDomain(null);
+      setDetailDomain(domain.slug);
+    } else {
+      setDetailDomain(null);
+      setPaywallDomain(domain.slug);
+    }
   }, [resource, route.detail, route.domain]);
 
   useGSAP(() => {
@@ -443,27 +526,30 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
 
   const openDomain = (domain: DomainCard) => {
     updateRoute({ tab: "explanation", domain: domain.slug, detail: true });
-    if (resource?.entitlement.report_full && domain.paragraphs.length) setDetailDomain(domain.slug); else setPaywallDomain(domain.slug);
+    if (resource?.entitlement.report_full && domain.paragraphs.length) {
+      setPaywallDomain(null);
+      setDetailDomain(domain.slug);
+    } else {
+      setDetailDomain(null);
+      setPaywallDomain(domain.slug);
+    }
     trackWorkspaceEvent("domain_detail_requested", { domain: domain.slug, access: resource?.entitlement.report_full ? "paid" : "free" });
   };
 
-  const buyFullReport = async () => {
-    const purchase = await createPurchase(chartId);
-    trackWorkspaceEvent("purchase_opened", { price_minor: purchase.price_minor });
-    if (!purchase.checkout_url) throw new Error("Платёжный контур ещё не передал защищённую ссылку.");
-    if (purchase.checkout_url.startsWith("/api/v1/test/")) {
-      await confirmTestPurchase(purchase.purchase_id);
-      for (let retry = 0; retry < 40; retry += 1) {
-        await new Promise((resolve) => window.setTimeout(resolve, 250));
-        const next = await refresh();
-        if (next?.entitlement.report_full && next.interpretation?.schema_version === "interpretation.paid.v1") {
-          if (paywallDomain) setDetailDomain(paywallDomain);
-          setPaywallDomain(null);
-          trackWorkspaceEvent("purchase_confirmed", { provider: "test" });
-          return;
-        }
-      }
-      throw new Error("Платёж подтверждён, но подробные разделы готовятся чуть дольше.");
+  const buyFullReport = async (email: string) => {
+    if (!paymentConfig) throw new Error("Условия оплаты ещё загружаются. Повторите через несколько секунд.");
+    const purchase = await createPurchase(chartId, {
+      email,
+      offerVersion: paymentConfig.offer_version,
+    });
+    trackWorkspaceEvent("checkout_started", { price_minor: purchase.price_minor });
+    savePaymentReturnState(window.sessionStorage, {
+      purchaseId: purchase.purchase_id,
+      chartId,
+      domain: paywallDomain,
+    });
+    if (!purchase.checkout_url) {
+      throw new Error("Платёж создан, но YooKassa ещё не вернула ссылку. Повторите запрос через несколько секунд.");
     }
     window.location.assign(purchase.checkout_url);
   };
@@ -510,23 +596,24 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       if (fallback) setPaywallDomain(fallback.slug);
       return;
     }
-    if (resource.pdf.status === "ready") {
-      trackWorkspaceEvent("pdf_downloaded");
-      window.location.assign(reportDownloadUrl(chartId));
-      return;
-    }
-    trackWorkspaceEvent("pdf_requested", { status: resource.pdf.status });
+    const preferences = {
+      schema_version: "pdf-render-preferences.v1" as const,
+      varga: route.varga,
+      mode: route.mode,
+      chart_style: "south_indian" as const,
+    };
+    trackWorkspaceEvent("pdf_requested", { status: resource.pdf.status, varga: route.varga, mode: route.mode });
     try {
-      await startPdf(chartId);
+      const render = await startPdf(chartId, preferences);
       for (let retry = 0; retry < 40; retry += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 250));
         const next = await refresh();
-        if (next?.pdf.status === "ready") {
-          trackWorkspaceEvent("pdf_downloaded");
+        if (next?.pdf.status === "ready" && next.pdf.render_request_id === render.render_request_id) {
+          trackWorkspaceEvent("pdf_downloaded", { varga: preferences.varga, mode: preferences.mode });
           window.location.assign(reportDownloadUrl(chartId));
           return;
         }
-        if (next?.pdf.status === "failed") {
+        if (next?.pdf.status === "failed" && next.pdf.render_request_id === render.render_request_id) {
           setError("Не удалось подготовить PDF. Карта и текст остаются доступны.");
           return;
         }
@@ -600,6 +687,19 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       <div className="rail-bottom"><p className="rail-status" aria-live="polite"><Sparkles aria-hidden="true" /> {statusText(resource, networkState)}</p><button type="button" className="rail-pdf" onClick={() => void downloadPdf()} disabled={resource?.pdf.status === "generating"}><Download aria-hidden="true" /> <span>{resource?.pdf.status === "generating" ? "PDF готовится" : "Скачать PDF"}</span>{!resource?.entitlement.report_full && <LockKeyhole aria-label="Входит в полный отчёт" />}</button><small>{resource?.pdf.status === "ready" ? `PDF · ${resource.pdf.pages ?? ""} стр. · ${byteSize(resource.pdf.size_bytes) ?? ""}` : resource?.entitlement.report_full ? "PDF войдёт в полный отчёт" : "Входит в полный отчёт"}</small></div>
     </aside>
     <section className="workspace-main" id="workspace-content">
+      {paymentRecovery && (
+        <div
+          className={`workspace-notice ${paymentRecovery.state === "failed" ? "workspace-notice--error" : paymentRecovery.state === "cancelled" ? "workspace-notice--warning" : ""}`}
+          role={paymentRecovery.state === "checking" ? "status" : "alert"}
+        >
+          <span>{paymentRecovery.message}</span>
+          {paymentRecovery.state === "timeout" && (
+            <button type="button" onClick={() => setRecoveryAttempt((value) => value + 1)}>
+              <RefreshCw aria-hidden="true" /> Проверить ещё раз
+            </button>
+          )}
+        </div>
+      )}
       {error && <div className="workspace-notice workspace-notice--error" role="alert"><span>{error}</span><button type="button" onClick={() => void refresh()}><RefreshCw aria-hidden="true" /> Повторить</button></div>}
       {route.tab === "chart" && renderChartTab()}
       {route.tab === "explanation" && renderExplanationTab()}
@@ -607,7 +707,21 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       <p className="workspace-disclaimer">Материал предназначен для самонаблюдения и знакомства с астрологической традицией. Он не заменяет медицинскую, юридическую, финансовую или психологическую помощь.</p>
     </section>
     {selectedDetail && <DomainDetail domain={selectedDetail} facts={facts} index={detailIndex} total={domains.length} onClose={() => { setDetailDomain(null); updateRoute({ detail: false }, true); }} onPrevious={() => moveDetail(-1)} onNext={() => moveDetail(1)} />}
-    {selectedPaywall && <Paywall domain={selectedPaywall} facts={facts} onClose={() => { setPaywallDomain(null); updateRoute({ detail: false }, true); }} onPurchased={buyFullReport} />}
+    {selectedPaywall && paymentConfig && (
+      <PaymentPaywall
+        title={selectedPaywall.title}
+        summary={selectedPaywall.summary}
+        config={paymentConfig}
+        evidence={<EvidenceChips evidenceIds={selectedPaywall.evidence_ids} facts={facts} />}
+        initialMessage={paymentRecovery?.state === "cancelled" || paymentRecovery?.state === "failed" ? paymentRecovery.message : null}
+        onClose={() => {
+          setPaywallDomain(null);
+          setPaymentRecovery(null);
+          updateRoute({ detail: false }, true);
+        }}
+        onCheckout={buyFullReport}
+      />
+    )}
   </main>;
 }
 

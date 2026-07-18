@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import hmac
+import ipaddress
 import json
 import logging
 import os
@@ -13,10 +14,18 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import quote, urlsplit
 
 from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from starlette.middleware.cors import CORSMiddleware
 
 from .admin_api import build_admin_router
@@ -24,10 +33,21 @@ from .calculator import warm_instant_runtime
 from .content_store import ContentDatabase, production_configuration_errors
 from .errors import DomainError
 from .legal_config import LEGAL_DOCUMENT_VERSIONS
-from .places import PlaceRegistry
-from .payments import payment_provider_from_environment
 from .observability import Metrics
-from .schemas import ChartAccepted, ChartCreateRequest, PurchaseRequest, PurchaseResponse
+from .payment_config import PaymentSettings
+from .payment_security import effective_client_ip, is_yookassa_source
+from .payments import PaymentProvider, PaymentStatus, RefundStatus, payment_provider_from_settings
+from .places import PlaceRegistry
+from .schemas import (
+    ChartAccepted,
+    ChartCreateRequest,
+    PaymentPublicConfig,
+    PdfCreateRequest,
+    PurchaseRequest,
+    PurchaseResponse,
+    RefundRequest,
+    RefundResponse,
+)
 from .store import Store
 from .time_normalization import resolve_birth_input
 from .worker import ChartWorker
@@ -97,13 +117,24 @@ async def _lifespan(app: FastAPI):
         await asyncio.to_thread(warm_instant_runtime)
     except DomainError:
         LOGGER.warning("instant calculation runtime will be retried by the worker", exc_info=True)
-    yield
+    try:
+        yield
+    finally:
+        tasks = tuple(getattr(app.state, "payment_tasks", set()))
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        await app.state.payment_provider.aclose()
 
 
 def create_app(
     store: Store | None = None,
     worker: ChartWorker | None = None,
     content_db: ContentDatabase | None = None,
+    *,
+    payment_settings: PaymentSettings | None = None,
+    payment_provider: PaymentProvider | None = None,
 ) -> FastAPI:
     app = FastAPI(title="VedicWay BFF", version="1.0.0", docs_url=None, redoc_url=None, lifespan=_lifespan)
     app.state.store = store or Store()
@@ -121,6 +152,9 @@ def create_app(
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
+    app.state.payment_settings = payment_settings or PaymentSettings.from_environment()
+    app.state.payment_provider = payment_provider or payment_provider_from_settings(app.state.payment_settings)
+    app.state.payment_tasks = set()
 
     app.add_middleware(
         CORSMiddleware,
@@ -198,6 +232,154 @@ def create_app(
         if not app.state.store.chart_owned_by(chart_id, session_id):
             raise DomainError("CHART_NOT_FOUND", "Карта не найдена", recoverable=False, status_code=404)
 
+    def public_purchase(purchase: dict[str, Any]) -> PurchaseResponse:
+        status_value = str(purchase["status"])
+        return PurchaseResponse(
+            purchase_id=str(purchase["id"]),
+            chart_id=str(purchase["chart_id"]),
+            product_code="full_report_v1",
+            status=status_value,
+            checkout_url=purchase.get("checkout_url"),
+            price_minor=int(purchase["amount_minor"]),
+            currency=str(purchase["currency"]),
+            retryable=status_value in {"created", "pending", "unknown"},
+        )
+
+    def validate_provider_intent(purchase: dict[str, Any], intent: Any) -> None:
+        expected_payment_id = purchase.get("provider_payment_id")
+        if expected_payment_id and intent.provider_payment_id != expected_payment_id:
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Платёжный сервис вернул другую операцию",
+                recoverable=False,
+                status_code=409,
+            )
+        if intent.amount_minor != int(purchase["amount_minor"]):
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Сумма платежа не совпадает с суммой заказа",
+                recoverable=False,
+                status_code=409,
+            )
+        if intent.currency.upper() != str(purchase["currency"]).upper():
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Валюта платежа не совпадает с валютой заказа",
+                recoverable=False,
+                status_code=409,
+            )
+        expected_metadata = {
+            "purchase_id": str(purchase["id"]),
+            "chart_id": str(purchase["chart_id"]),
+            "product_code": str(purchase["product_code"]),
+        }
+        for key, expected in expected_metadata.items():
+            actual = intent.metadata.get(key)
+            if actual is not None and actual != expected:
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    f"Поле metadata.{key} не совпадает с заказом",
+                    recoverable=False,
+                    status_code=409,
+                )
+        if intent.status == PaymentStatus.SUCCEEDED and (not intent.paid or not intent.captured):
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Платёж не подтверждён как оплаченный и захваченный",
+                recoverable=False,
+                status_code=409,
+            )
+
+    async def apply_verified_payment(
+        purchase: dict[str, Any],
+        intent: Any,
+        *,
+        provider_event_id: str,
+        event_type: str,
+        payload_checksum: str,
+        trace_id: str,
+        incident_category: str,
+    ) -> dict[str, Any]:
+        try:
+            validate_provider_intent(purchase, intent)
+            transition = app.state.store.apply_payment_event(
+                str(purchase["id"]),
+                provider_event_id=provider_event_id,
+                event_type=event_type,
+                object_id=str(intent.provider_payment_id),
+                payload_checksum=payload_checksum,
+                status=intent.status.value,
+                provider_status=intent.status.value,
+                provider_payment_id=str(intent.provider_payment_id),
+                amount_minor=intent.amount_minor,
+                currency=intent.currency,
+                metadata=intent.metadata,
+                failure_code=intent.failure_code,
+                receipt_registration=str(intent.redacted_payload.get("receipt_registration") or "") or None,
+            )
+        except DomainError as error:
+            if error.code == "PAYMENT_MISMATCH":
+                app.state.store.record_payment_incident(
+                    str(purchase["id"]),
+                    incident_category,
+                    {"code": error.code, "event_type": event_type},
+                    trace_id,
+                )
+            raise
+        if transition["entitlement_changed"]:
+            await _launch_worker(app)
+        return transition
+
+    def authorize_operations(request: Request) -> tuple[str, str]:
+        settings: PaymentSettings = app.state.payment_settings
+        supplied = request.headers.get("X-Operations-Token", "")
+        if not settings.operations_token or not hmac.compare_digest(supplied, settings.operations_token):
+            raise DomainError(
+                "OPERATIONS_NOT_FOUND",
+                "Служебный маршрут не найден",
+                recoverable=False,
+                status_code=404,
+            )
+        peer_ip = request.client.host if request.client else ""
+        source_ip = effective_client_ip(
+            peer_ip,
+            request.headers.get("X-Forwarded-For"),
+            settings.trusted_proxy_networks,
+        )
+        try:
+            source_address = ipaddress.ip_address(source_ip)
+        except ValueError as exc:
+            raise DomainError(
+                "OPERATIONS_SOURCE_FORBIDDEN",
+                "Служебный маршрут недоступен из этой сети",
+                recoverable=False,
+                status_code=403,
+            ) from exc
+        allowed = any(
+            source_address.version == network.version and source_address in network
+            for network in settings.operations_networks
+        )
+        if not allowed:
+            raise DomainError(
+                "OPERATIONS_SOURCE_FORBIDDEN",
+                "Служебный маршрут недоступен из этой сети",
+                recoverable=False,
+                status_code=403,
+            )
+        fingerprint = hashlib.sha256(supplied.encode("utf-8")).hexdigest()[:24]
+        return fingerprint, source_ip
+
+    def public_refund(refund: dict[str, Any]) -> RefundResponse:
+        status_value = str(refund["status"])
+        return RefundResponse(
+            refund_id=str(refund["id"]),
+            purchase_id=str(refund["purchase_id"]),
+            status=status_value,
+            amount_minor=int(refund["amount_minor"]),
+            currency=str(refund["currency"]),
+            retryable=status_value in {"created", "pending", "unknown"},
+        )
+
     @app.get("/api/v1/health")
     async def health() -> dict[str, str]:
         return {"status": "ok"}
@@ -227,6 +409,20 @@ def create_app(
     @app.get("/api/v1/places/search")
     async def search_places(q: str = Query(min_length=2, max_length=160)) -> dict[str, Any]:
         return {"items": [place.model_dump(mode="json") for place in app.state.places.search(q)]}
+
+    @app.get("/api/v1/payments/config", response_model=PaymentPublicConfig)
+    async def payment_public_config() -> PaymentPublicConfig:
+        settings: PaymentSettings = app.state.payment_settings
+        product = settings.catalog.full_report
+        return PaymentPublicConfig(
+            product_code=product.code,
+            title=product.title,
+            price_minor=product.amount_minor,
+            currency=product.currency,
+            offer_version=settings.offer_version,
+            offer_url=settings.offer_url,
+            privacy_url=settings.privacy_url,
+        )
 
     @app.post("/api/v1/charts", status_code=status.HTTP_202_ACCEPTED, response_model=ChartAccepted)
     async def create_chart(
@@ -398,32 +594,429 @@ def create_app(
         assert_owned(chart_id, current_session)
         if not idempotency_key:
             raise DomainError("IDEMPOTENCY_KEY_REQUIRED", "Добавьте ключ защиты от повтора оплаты", status_code=400)
+        if len(idempotency_key) > 200:
+            raise DomainError("IDEMPOTENCY_KEY_INVALID", "Ключ защиты от повтора оплаты слишком длинный", status_code=400)
         await app.state.limiter.check(f"purchase:{request.client.host if request.client else 'unknown'}", limit=5, window_seconds=60 * 60)
         if app.state.store.get_snapshot(chart_id) is None:
             raise DomainError("SNAPSHOT_MISSING", "Сначала дождитесь основной карты", status_code=409)
-        provider = payment_provider_from_environment()
-        if getattr(provider, "name", "") == "pending_provider":
+        if app.state.store.has_entitlement(chart_id):
+            raise DomainError(
+                "ALREADY_ENTITLED",
+                "Полный отчёт для этой карты уже доступен",
+                recoverable=False,
+                status_code=409,
+            )
+        settings: PaymentSettings = app.state.payment_settings
+        if payload.offer_version != settings.offer_version:
+            raise DomainError(
+                "OFFER_VERSION_MISMATCH",
+                "Условия оферты обновились. Откройте их и подтвердите ещё раз",
+                status_code=409,
+                detail={"offer_version": settings.offer_version},
+            )
+        provider: PaymentProvider = app.state.payment_provider
+        if provider.name == "disabled":
             raise DomainError("PAYMENT_PROVIDER_UNAVAILABLE", "Приём платежей временно недоступен", recoverable=True, status_code=503)
-        purchase, _ = app.state.store.create_purchase(chart_id, idempotency_key, payload.email)
-        intent = provider.create_payment(purchase["id"], int(purchase["amount_minor"]), str(purchase["currency"]), f"/chart/{chart_id}")
-        app.state.store.set_provider_payment(purchase["id"], intent.provider, intent.provider_payment_id)
-        return PurchaseResponse(
-            purchase_id=purchase["id"],
-            status=purchase["status"],
-            checkout_url=intent.checkout_url,
-            provider=intent.provider,
-            price_minor=int(purchase["amount_minor"]),
-            currency=purchase["currency"],
+        product = settings.catalog.get(payload.product_code)
+        purchase, _ = app.state.store.create_purchase(
+            chart_id,
+            idempotency_key,
+            payload.email,
+            product_code=product.code,
+            provider=provider.name,
+            offer_version=settings.offer_version,
+            amount_minor=product.amount_minor,
+            currency=product.currency,
         )
+        if purchase.get("provider_payment_id") or purchase["status"] not in {"created", "unknown"}:
+            return public_purchase(purchase)
+
+        return_url = (
+            f"{settings.public_base_url}/chart/{quote(chart_id, safe='')}?payment_return="
+            f"{quote(str(purchase['id']), safe='')}"
+        )
+        try:
+            intent = await provider.create_payment(
+                purchase_id=str(purchase["id"]),
+                chart_id=chart_id,
+                product_code=product.code,
+                idempotency_key=str(purchase["provider_idempotency_key"]),
+                amount_minor=int(purchase["amount_minor"]),
+                currency=str(purchase["currency"]),
+                return_url=return_url,
+                email=app.state.store.get_purchase_email(str(purchase["id"])) or payload.email,
+            )
+            if intent.amount_minor != int(purchase["amount_minor"]) or intent.currency.upper() != str(purchase["currency"]).upper():
+                raise DomainError(
+                    "PAYMENT_PROVIDER_MISMATCH",
+                    "Платёжный сервис вернул другую сумму или валюту",
+                    recoverable=False,
+                    status_code=502,
+                )
+            expected_metadata = {
+                "purchase_id": str(purchase["id"]),
+                "chart_id": chart_id,
+                "product_code": product.code,
+            }
+            for key, expected in expected_metadata.items():
+                actual = intent.metadata.get(key)
+                if actual is not None and actual != expected:
+                    raise DomainError(
+                        "PAYMENT_PROVIDER_MISMATCH",
+                        "Платёжный сервис вернул заказ с другими параметрами",
+                        recoverable=False,
+                        status_code=502,
+                    )
+            if intent.checkout_url:
+                parsed_checkout = urlsplit(intent.checkout_url)
+                if provider.name == "yookassa" and parsed_checkout.scheme != "https":
+                    raise DomainError(
+                        "PAYMENT_PROVIDER_INVALID_RESPONSE",
+                        "Платёжный сервис вернул небезопасный адрес оплаты",
+                        status_code=502,
+                    )
+            if intent.status == PaymentStatus.SUCCEEDED and (not intent.paid or not intent.captured):
+                raise DomainError(
+                    "PAYMENT_PROVIDER_MISMATCH",
+                    "Платёж отмечен завершённым без подтверждения списания",
+                    recoverable=False,
+                    status_code=502,
+                )
+            app.state.store.set_provider_payment(
+                str(purchase["id"]),
+                intent.provider,
+                intent.provider_payment_id,
+                status=intent.status.value,
+                checkout_url=intent.checkout_url,
+                provider_status=intent.status.value,
+                redacted_payload=intent.redacted_payload,
+                failure_code=intent.failure_code,
+                receipt_registration=str(intent.redacted_payload.get("receipt_registration") or "") or None,
+            )
+            if intent.status == PaymentStatus.SUCCEEDED:
+                app.state.store.apply_payment_event(
+                    str(purchase["id"]),
+                    provider_event_id=f"create:succeeded:{intent.provider_payment_id}",
+                    event_type="payment.succeeded",
+                    object_id=str(intent.provider_payment_id),
+                    payload_checksum=hashlib.sha256(json.dumps(intent.redacted_payload, sort_keys=True).encode()).hexdigest(),
+                    status="succeeded",
+                    provider_status="succeeded",
+                    provider_payment_id=str(intent.provider_payment_id),
+                    amount_minor=intent.amount_minor,
+                    currency=intent.currency,
+                    metadata=intent.metadata,
+                )
+                await _launch_worker(app)
+        except DomainError as error:
+            recoverable = error.recoverable or error.code == "PAYMENT_PROVIDER_TEMPORARY"
+            app.state.store.set_provider_payment(
+                str(purchase["id"]),
+                provider.name,
+                None,
+                status="unknown" if recoverable else "failed",
+                provider_status="unknown" if recoverable else "failed",
+                failure_code=error.code,
+            )
+            if not recoverable:
+                raise
+        saved = app.state.store.get_purchase(str(purchase["id"]))
+        if not saved:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        return public_purchase(saved)
 
     @app.get("/api/v1/purchases/{purchase_id}")
-    async def get_purchase(purchase_id: str, request: Request) -> dict[str, Any]:
+    async def get_purchase(purchase_id: str, request: Request) -> PurchaseResponse:
         current_session = session(request)
         purchase = app.state.store.get_purchase(purchase_id)
         if not purchase:
             raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
         assert_owned(str(purchase["chart_id"]), current_session)
-        return {key: purchase[key] for key in ("id", "chart_id", "provider", "status", "amount_minor", "currency", "created_at", "updated_at")}
+        if (
+            purchase["provider"] == "yookassa"
+            and purchase["status"] in {"pending", "unknown"}
+            and purchase.get("provider_payment_id")
+            and app.state.store.claim_purchase_reconciliation(purchase_id)
+        ):
+            try:
+                intent = await app.state.payment_provider.get_payment(str(purchase["provider_payment_id"]))
+                if intent.status in {PaymentStatus.SUCCEEDED, PaymentStatus.CANCELLED}:
+                    await apply_verified_payment(
+                        purchase,
+                        intent,
+                        provider_event_id=f"reconcile:{intent.status.value}:{intent.provider_payment_id}",
+                        event_type=f"payment.{intent.status.value}",
+                        payload_checksum=hashlib.sha256(
+                            json.dumps(intent.redacted_payload, sort_keys=True, separators=(",", ":")).encode()
+                        ).hexdigest(),
+                        trace_id=_trace_id(request),
+                        incident_category="reconciliation_mismatch",
+                    )
+                else:
+                    validate_provider_intent(purchase, intent)
+                    app.state.store.set_provider_payment(
+                        purchase_id,
+                        intent.provider,
+                        intent.provider_payment_id,
+                        status=intent.status.value,
+                        provider_status=intent.status.value,
+                        redacted_payload=intent.redacted_payload,
+                        failure_code=intent.failure_code,
+                    )
+            except DomainError as error:
+                if error.code == "PAYMENT_MISMATCH":
+                    app.state.store.record_payment_incident(
+                        purchase_id,
+                        "reconciliation_mismatch",
+                        {"code": error.code},
+                        _trace_id(request),
+                    )
+                    app.state.store.set_provider_payment(
+                        purchase_id,
+                        "yookassa",
+                        str(purchase["provider_payment_id"]),
+                        status="unknown",
+                        provider_status="unknown",
+                        failure_code=error.code,
+                    )
+                elif error.code != "PAYMENT_PROVIDER_TEMPORARY":
+                    raise
+            purchase = app.state.store.get_purchase(purchase_id) or purchase
+        return public_purchase(purchase)
+
+    @app.post("/internal/payments/{purchase_id}/reconcile", response_model=PurchaseResponse)
+    async def reconcile_payment_operation(purchase_id: str, request: Request) -> PurchaseResponse:
+        actor_fingerprint, source_ip = authorize_operations(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        if not purchase.get("provider_payment_id"):
+            raise DomainError(
+                "PAYMENT_PROVIDER_OBJECT_NOT_FOUND",
+                "У заказа ещё нет идентификатора платёжной операции",
+                status_code=409,
+            )
+        result = "failed"
+        try:
+            intent = await app.state.payment_provider.get_payment(str(purchase["provider_payment_id"]))
+            if intent.status in {PaymentStatus.SUCCEEDED, PaymentStatus.CANCELLED}:
+                await apply_verified_payment(
+                    purchase,
+                    intent,
+                    provider_event_id=f"operations:reconcile:{intent.status.value}:{intent.provider_payment_id}",
+                    event_type=f"payment.{intent.status.value}",
+                    payload_checksum=hashlib.sha256(
+                        json.dumps(intent.redacted_payload, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest(),
+                    trace_id=_trace_id(request),
+                    incident_category="operations_reconciliation_mismatch",
+                )
+            else:
+                validate_provider_intent(purchase, intent)
+                app.state.store.set_provider_payment(
+                    purchase_id,
+                    intent.provider,
+                    intent.provider_payment_id,
+                    status=intent.status.value,
+                    provider_status=intent.status.value,
+                    redacted_payload=intent.redacted_payload,
+                    failure_code=intent.failure_code,
+                )
+            result = intent.status.value
+        finally:
+            app.state.store.record_payment_operation(
+                action="reconcile",
+                purchase_id=purchase_id,
+                refund_id=None,
+                actor_fingerprint=actor_fingerprint,
+                source_ip=source_ip,
+                trace_id=_trace_id(request),
+                reason=None,
+                amount_minor=None,
+                result=result,
+            )
+        saved = app.state.store.get_purchase(purchase_id) or purchase
+        return public_purchase(saved)
+
+    @app.post(
+        "/internal/payments/{purchase_id}/refunds",
+        response_model=RefundResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    async def create_refund_operation(
+        purchase_id: str,
+        request: Request,
+        payload: RefundRequest,
+        idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    ) -> RefundResponse:
+        actor_fingerprint, source_ip = authorize_operations(request)
+        if not idempotency_key or len(idempotency_key) > 200:
+            raise DomainError(
+                "IDEMPOTENCY_KEY_REQUIRED",
+                "Добавьте корректный ключ защиты от повторного возврата",
+                status_code=400,
+            )
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        if purchase["provider"] != app.state.payment_provider.name or not purchase.get("provider_payment_id"):
+            raise DomainError(
+                "REFUND_PROVIDER_UNAVAILABLE",
+                "Платёжный провайдер заказа недоступен для возврата",
+                recoverable=False,
+                status_code=409,
+            )
+        refund, created = app.state.store.create_refund(
+            purchase_id,
+            idempotency_key=idempotency_key,
+            amount_minor=payload.amount_minor,
+            reason=payload.reason,
+            actor_fingerprint=actor_fingerprint,
+        )
+        if not created and (refund.get("provider_refund_id") or refund["status"] not in {"created", "unknown"}):
+            return public_refund(refund)
+
+        result = "failed"
+        try:
+            intent = await app.state.payment_provider.refund(
+                provider_payment_id=str(purchase["provider_payment_id"]),
+                purchase_id=purchase_id,
+                idempotency_key=str(refund["provider_idempotency_key"]),
+                amount_minor=int(refund["amount_minor"]),
+                original_amount_minor=int(purchase["paid_amount_minor"] or purchase["amount_minor"]),
+                currency=str(refund["currency"]),
+                email=app.state.store.get_purchase_email(purchase_id) or "",
+                reason=app.state.store.get_refund_reason(str(refund["id"])) or payload.reason,
+            )
+            if intent.provider_payment_id != purchase["provider_payment_id"]:
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Возврат относится к другому платежу",
+                    recoverable=False,
+                    status_code=409,
+                )
+            if intent.amount_minor != int(refund["amount_minor"]) or intent.currency.upper() != str(refund["currency"]).upper():
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Сумма или валюта возврата не совпадает с созданной операцией",
+                    recoverable=False,
+                    status_code=409,
+                )
+            app.state.store.set_provider_refund(
+                str(refund["id"]),
+                provider_refund_id=intent.provider_refund_id,
+                status=intent.status.value,
+                receipt_registration=intent.receipt_registration,
+                failure_code=intent.failure_code,
+            )
+            if intent.status in {RefundStatus.SUCCEEDED, RefundStatus.CANCELLED, RefundStatus.FAILED}:
+                app.state.store.apply_refund_event(
+                    str(refund["id"]),
+                    provider_event_id=f"operations:refund.{intent.status.value}:{intent.provider_refund_id}",
+                    event_type=f"refund.{intent.status.value}",
+                    object_id=str(intent.provider_refund_id),
+                    payload_checksum=hashlib.sha256(
+                        json.dumps(intent.redacted_payload, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest(),
+                    status=intent.status.value,
+                    provider_payment_id=intent.provider_payment_id,
+                    amount_minor=intent.amount_minor,
+                    currency=intent.currency,
+                    failure_code=intent.failure_code,
+                    receipt_registration=intent.receipt_registration,
+                )
+            result = intent.status.value
+        except DomainError as error:
+            recoverable = error.recoverable or error.code == "PAYMENT_PROVIDER_TEMPORARY"
+            app.state.store.set_provider_refund(
+                str(refund["id"]),
+                provider_refund_id=None,
+                status="unknown" if recoverable else "failed",
+                failure_code=error.code,
+            )
+            result = "unknown" if recoverable else "failed"
+            if not recoverable:
+                raise
+        finally:
+            app.state.store.record_payment_operation(
+                action="refund",
+                purchase_id=purchase_id,
+                refund_id=str(refund["id"]),
+                actor_fingerprint=actor_fingerprint,
+                source_ip=source_ip,
+                trace_id=_trace_id(request),
+                reason=payload.reason,
+                amount_minor=payload.amount_minor,
+                result=result,
+            )
+        saved_refund = app.state.store.get_refund(str(refund["id"])) or refund
+        return public_refund(saved_refund)
+
+    @app.get("/api/v1/test/checkout/{purchase_id}", response_class=HTMLResponse)
+    async def test_checkout_page(
+        purchase_id: str,
+        request: Request,
+        delay_ms: int = Query(default=0, ge=0, le=10_000),
+    ) -> HTMLResponse:
+        if os.environ.get("VEDICWAY_TEST_PAYMENTS") != "1":
+            raise DomainError("TEST_ENDPOINT_DISABLED", "Тестовый контур оплаты выключен", recoverable=False, status_code=404)
+        current_session = session(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        assert_owned(str(purchase["chart_id"]), current_session)
+        action = f"/api/v1/test/checkout/{quote(purchase_id, safe='')}/complete"
+        if delay_ms:
+            action = f"{action}?delay_ms={delay_ms}"
+        return HTMLResponse(
+            "<!doctype html><html lang='ru'><head><meta charset='utf-8'>"
+            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+            "<title>Тестовая оплата YooKassa</title>"
+            "<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080706;color:#f7f0e7;font:16px Arial,sans-serif}"
+            ".card{width:min(420px,calc(100% - 40px));padding:34px;border:1px solid #4d3728;border-radius:18px;background:#11100e}"
+            "h1{font:34px Georgia,serif}p{color:#bdb2a5;line-height:1.6}.price{font-size:30px;color:#f08a45}"
+            "button{width:100%;min-height:52px;border:0;border-radius:10px;background:#df6c2b;color:white;font-weight:700;cursor:pointer}</style>"
+            "</head><body><main class='card'><small>ЛОКАЛЬНЫЙ СИМУЛЯТОР</small>"
+            "<h1>Тестовая оплата YooKassa</h1><p>Реальные деньги и банковские реквизиты не используются.</p>"
+            "<p class='price'>990 ₽</p>"
+            f"<form method='post' action='{action}'><button type='submit'>Оплатить тестовый заказ</button></form>"
+            "</main></body></html>",
+            headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow"},
+        )
+
+    @app.post("/api/v1/test/checkout/{purchase_id}/complete")
+    async def complete_test_checkout(
+        purchase_id: str,
+        request: Request,
+        delay_ms: int = Query(default=0, ge=0, le=10_000),
+    ) -> RedirectResponse:
+        if os.environ.get("VEDICWAY_TEST_PAYMENTS") != "1":
+            raise DomainError("TEST_ENDPOINT_DISABLED", "Тестовый контур оплаты выключен", recoverable=False, status_code=404)
+        current_session = session(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        chart_id = str(purchase["chart_id"])
+        assert_owned(chart_id, current_session)
+
+        async def confirm_after_delay() -> None:
+            if delay_ms:
+                await asyncio.sleep(delay_ms / 1000)
+            confirmed_chart_id = app.state.store.confirm_purchase(purchase_id, f"test_checkout_{purchase_id}")
+            if confirmed_chart_id:
+                await _launch_worker(app)
+
+        if delay_ms:
+            task = asyncio.create_task(confirm_after_delay())
+            app.state.payment_tasks.add(task)
+            task.add_done_callback(app.state.payment_tasks.discard)
+        else:
+            await confirm_after_delay()
+        return_url = (
+            f"{app.state.payment_settings.public_base_url}/chart/{quote(chart_id, safe='')}"
+            f"?payment_return={quote(purchase_id, safe='')}"
+        )
+        return RedirectResponse(return_url, status_code=303)
 
     @app.post("/api/v1/test/purchases/{purchase_id}/confirm", status_code=status.HTTP_202_ACCEPTED)
     async def confirm_test_purchase(purchase_id: str, request: Request) -> dict[str, str]:
@@ -438,28 +1031,123 @@ def create_app(
         if not chart_id:
             raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
         await _launch_worker(app)
-        return {"purchase_id": purchase_id, "status": "paid"}
+        return {"purchase_id": purchase_id, "status": "succeeded"}
 
-    @app.post("/api/v1/webhooks/payments/{provider}", status_code=status.HTTP_202_ACCEPTED)
+    @app.post("/api/v1/webhooks/payments/{provider}", status_code=status.HTTP_200_OK)
     async def payment_webhook(provider: str, request: Request) -> dict[str, str]:
+        if provider != "yookassa":
+            raise DomainError("WEBHOOK_PROVIDER_UNSUPPORTED", "Платёжный провайдер не поддерживается", recoverable=False, status_code=404)
+        peer_ip = request.client.host if request.client else ""
+        source_ip = effective_client_ip(
+            peer_ip,
+            request.headers.get("X-Forwarded-For"),
+            app.state.payment_settings.trusted_proxy_networks,
+        )
+        if not is_yookassa_source(source_ip):
+            raise DomainError(
+                "WEBHOOK_SOURCE_FORBIDDEN",
+                "Источник уведомления не прошёл проверку",
+                recoverable=False,
+                status_code=403,
+            )
         raw = await request.body()
-        signature = request.headers.get("X-VedicWay-Signature", "")
-        secret = os.environ.get("VEDICWAY_PAYMENT_WEBHOOK_SECRET")
-        if not secret:
-            raise DomainError("WEBHOOK_DISABLED", "Приём платежей пока не настроен", recoverable=False, status_code=503)
-        expected = hmac.new(secret.encode("utf-8"), raw, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature, expected):
-            raise DomainError("WEBHOOK_SIGNATURE_INVALID", "Подпись платежа не прошла проверку", recoverable=False, status_code=401)
+        if len(raw) > 64 * 1024:
+            raise DomainError("WEBHOOK_INVALID", "Уведомление превышает допустимый размер", recoverable=False, status_code=413)
         try:
             payload = json.loads(raw)
-            purchase_id = str(payload["purchase_id"])
-            event_id = str(payload["event_id"])
+            if not isinstance(payload, dict) or payload.get("type") != "notification":
+                raise ValueError
+            event_type = payload["event"]
+            payment_object = payload["object"]
+            if not isinstance(event_type, str) or not isinstance(payment_object, dict):
+                raise ValueError
+            provider_payment_id = payment_object["id"]
+            if not isinstance(provider_payment_id, str) or not provider_payment_id:
+                raise ValueError
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise DomainError("WEBHOOK_INVALID", "Событие платежа имеет неверный формат", recoverable=False, status_code=400) from exc
-        chart_id = app.state.store.confirm_purchase(purchase_id, f"{provider}:{event_id}")
-        if not chart_id:
+        if event_type not in {"payment.succeeded", "payment.canceled", "refund.succeeded"}:
+            return {"status": "ignored"}
+
+        if event_type == "refund.succeeded":
+            provider_event_id = f"{event_type}:{provider_payment_id}"
+            if app.state.store.payment_event_exists("yookassa", provider_event_id):
+                return {"status": "duplicate"}
+            refund = app.state.store.get_refund_by_provider_refund_id(provider_payment_id)
+            if not refund:
+                raise DomainError("REFUND_NOT_FOUND", "Возврат не найден", recoverable=False, status_code=404)
+            purchase = app.state.store.get_purchase(str(refund["purchase_id"]))
+            if not purchase:
+                raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+            refund_intent = await app.state.payment_provider.get_refund(provider_payment_id)
+            if refund_intent.status != RefundStatus.SUCCEEDED:
+                app.state.store.record_payment_incident(
+                    str(purchase["id"]),
+                    "refund_webhook_mismatch",
+                    {"event_type": event_type, "provider_status": refund_intent.status.value},
+                    _trace_id(request),
+                )
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Статус возврата не совпадает с уведомлением",
+                    recoverable=False,
+                    status_code=409,
+                )
+            try:
+                app.state.store.apply_refund_event(
+                    str(refund["id"]),
+                    provider_event_id=provider_event_id,
+                    event_type=event_type,
+                    object_id=str(refund_intent.provider_refund_id),
+                    payload_checksum=hashlib.sha256(raw).hexdigest(),
+                    status=refund_intent.status.value,
+                    provider_payment_id=refund_intent.provider_payment_id,
+                    amount_minor=refund_intent.amount_minor,
+                    currency=refund_intent.currency,
+                    failure_code=refund_intent.failure_code,
+                    receipt_registration=refund_intent.receipt_registration,
+                )
+            except DomainError as error:
+                if error.code == "PAYMENT_MISMATCH":
+                    app.state.store.record_payment_incident(
+                        str(purchase["id"]),
+                        "refund_webhook_mismatch",
+                        {"event_type": event_type, "code": error.code},
+                        _trace_id(request),
+                    )
+                raise
+            return {"status": "accepted"}
+
+        provider_event_id = f"{event_type}:{provider_payment_id}"
+        if app.state.store.payment_event_exists("yookassa", provider_event_id):
+            return {"status": "duplicate"}
+        purchase = app.state.store.get_purchase_by_provider_payment_id("yookassa", provider_payment_id)
+        if not purchase:
             raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
-        await _launch_worker(app)
+        intent = await app.state.payment_provider.get_payment(provider_payment_id)
+        expected_status = PaymentStatus.SUCCEEDED if event_type == "payment.succeeded" else PaymentStatus.CANCELLED
+        if intent.status != expected_status:
+            app.state.store.record_payment_incident(
+                str(purchase["id"]),
+                "webhook_mismatch",
+                {"event_type": event_type, "provider_status": intent.status.value},
+                _trace_id(request),
+            )
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Статус платежа не совпадает с уведомлением",
+                recoverable=False,
+                status_code=409,
+            )
+        await apply_verified_payment(
+            purchase,
+            intent,
+            provider_event_id=provider_event_id,
+            event_type=event_type,
+            payload_checksum=hashlib.sha256(raw).hexdigest(),
+            trace_id=_trace_id(request),
+            incident_category="webhook_mismatch",
+        )
         return {"status": "accepted"}
 
     @app.get("/api/v1/charts/{chart_id}/entitlements")
@@ -494,14 +1182,20 @@ def create_app(
         return {"items": app.state.store.saved_questions(chart_id)}
 
     @app.post("/api/v1/charts/{chart_id}/reports/pdf", status_code=status.HTTP_202_ACCEPTED)
-    async def create_pdf(chart_id: str, request: Request) -> dict[str, Any]:
+    async def create_pdf(chart_id: str, request: Request, payload: PdfCreateRequest = Body(default_factory=PdfCreateRequest)) -> dict[str, Any]:
         current_session = session(request)
         assert_owned(chart_id, current_session)
         if not app.state.store.has_entitlement(chart_id):
             raise DomainError("ENTITLEMENT_REQUIRED", "PDF входит в полный отчёт", recoverable=False, status_code=403)
-        job_id = app.state.store.enqueue_job(chart_id, "pdf_v1", priority=60)
+        preferences = payload.preferences.model_dump(mode="json")
+        job_id, render_request_id = app.state.store.enqueue_pdf_job(chart_id, preferences, priority=60)
         await _launch_worker(app)
-        return {"job_id": job_id, "status": app.state.store.get_report(chart_id)["status"]}
+        return {
+            "job_id": job_id,
+            "render_request_id": render_request_id,
+            "status": app.state.store.get_report(chart_id)["status"],
+            "preferences": preferences,
+        }
 
     @app.get("/api/v1/charts/{chart_id}/reports/pdf")
     async def get_pdf(chart_id: str, request: Request) -> Response:

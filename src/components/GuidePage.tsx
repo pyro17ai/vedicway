@@ -3,6 +3,8 @@ import { ArrowRight, BookOpenText, Compass, Sparkles } from "lucide-react";
 
 import { publicArticles, type ContentArticle } from "../lib/admin-api";
 import { ARTICLE_CATEGORIES } from "../lib/article-store";
+import { applySeo } from "../lib/seo";
+import { ArticleMedia } from "./ArticleMedia";
 import { SiteHeader } from "./SiteHeader";
 
 type GuidePageProps = {
@@ -20,23 +22,17 @@ export function GuidePage({ onNavigate }: GuidePageProps) {
 
   useEffect(() => {
     publicArticles().then(({ items }) => setArticles(items)).catch(() => setArticles([])).finally(() => setLoading(false));
-    document.title = "Гид по астрологии — VedicWay";
-    const description = "Понятный гид VedicWay по натальным картам, планетам, домам и практике чтения астрологических символов.";
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.append(meta);
-    }
-    meta.content = description;
-
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.append(canonical);
-    }
-    canonical.href = `${window.location.origin}/guide`;
+    return applySeo({
+      title: "Гид по ведической астрологии | VedicWay",
+      description: "Понятный гид VedicWay по натальным картам, планетам, домам и практике чтения астрологических символов.",
+      path: "/guide",
+      structuredData: [{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Гид по ведической астрологии",
+        description: "Материалы VedicWay о чтении натальной карты и ведической астрологии.",
+      }],
+    });
   }, []);
 
   return (
@@ -79,19 +75,19 @@ export function GuidePage({ onNavigate }: GuidePageProps) {
             <div className="guide-article-grid">
               {articles.map((article) => (
                 <article className="guide-article-card" key={article.id}>
-                  <button className="guide-article-card__cover" type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
-                    {article.cover_image_url ? <img src={article.cover_image_url} alt={article.cover_image_alt} loading="lazy" /> : <span aria-hidden="true">✦</span>}
+                  <button className="guide-article-card__cover" type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Открыть: ${article.title}`}>
+                    {article.coverImage ? <ArticleMedia asset={article.coverImage} sizes="(max-width: 560px) calc(100vw - 30px), (max-width: 820px) 50vw, 380px" /> : article.cover_image_url ? <img src={article.cover_image_url} alt={article.cover_image_alt} loading="lazy" /> : <span aria-hidden="true">✦</span>}
                   </button>
                   <div className="guide-article-card__content">
-                  <span>{article.category}</span>
-                  <h3>{article.title}</h3>
-                  <p>{article.excerpt}</p>
-                  <footer>
-                    <time dateTime={article.published_at ?? article.updated_at}>{formatDate(article.published_at ?? article.updated_at)}</time>
-                    <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
-                      Читать <ArrowRight aria-hidden="true" />
-                    </button>
-                  </footer>
+                    <span>{article.category}</span>
+                    <h3>{article.title}</h3>
+                    <p>{article.excerpt}</p>
+                    <footer>
+                      <time dateTime={article.published_at ?? article.updated_at}>{formatDate(article.published_at ?? article.updated_at)}</time>
+                      <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
+                        Читать <ArrowRight aria-hidden="true" />
+                      </button>
+                    </footer>
                   </div>
                 </article>
               ))}

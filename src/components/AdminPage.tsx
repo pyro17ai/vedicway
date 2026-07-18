@@ -3,6 +3,7 @@ import { ArrowLeft, BarChart3, FileImage, FilePlus2, LayoutDashboard, LogOut, Sa
 
 import { ARTICLE_CATEGORIES, slugifyArticleTitle } from "../lib/article-store";
 import { adminApi, AdminApiError, type AdminUser, type ArticleInput, type ContentArticle } from "../lib/admin-api";
+import { applySeo } from "../lib/seo";
 
 type AdminPageProps = { onNavigate: (path: string) => void };
 
@@ -54,11 +55,17 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   const dirty = JSON.stringify(draft) !== savedDraft;
 
   useEffect(() => {
-    document.title = "Административная панель — VedicWay";
+    const cleanupSeo = applySeo({
+      title: "Административная панель | VedicWay",
+      description: "Закрытая редакция материалов VedicWay.",
+      path: "/admin",
+      noindex: true,
+    });
     adminApi.me().then(({ user: current }) => {
       setUser(current);
       return adminApi.articles();
     }).then(({ items }) => setArticles(items)).catch(() => {}).finally(() => setAuthLoading(false));
+    return cleanupSeo;
   }, []);
 
   useEffect(() => {

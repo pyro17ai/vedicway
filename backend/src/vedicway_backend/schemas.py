@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from enum import StrEnum
 from typing import Any, Literal
@@ -247,18 +248,68 @@ class PurchaseRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     product_code: Literal["full_report_v1"] = "full_report_v1"
-    email: str | None = Field(default=None, max_length=320)
+    email: str = Field(min_length=3, max_length=320)
+    offer_accepted: Literal[True]
+    offer_version: str = Field(min_length=1, max_length=64)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_deliverable_shape(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", normalized):
+            raise ValueError("Укажите корректный email для чека")
+        return normalized
 
 
 class PurchaseResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     purchase_id: str
+    chart_id: str
+    product_code: Literal["full_report_v1"] = "full_report_v1"
     status: str
     checkout_url: str | None = None
-    provider: str
     price_minor: int
     currency: str
+    retryable: bool
+
+
+class PaymentPublicConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    product_code: Literal["full_report_v1"] = "full_report_v1"
+    title: str
+    price_minor: int
+    currency: str
+    offer_version: str
+    offer_url: str
+    privacy_url: str
+
+
+class RefundRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    amount_minor: int = Field(ge=100, le=99_000)
+    reason: str = Field(min_length=3, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def reason_must_contain_text(cls, value: str) -> str:
+        normalized = value.strip()
+        if len(normalized) < 3:
+            raise ValueError("Укажите причину возврата")
+        return normalized
+
+
+class RefundResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    refund_id: str
+    purchase_id: str
+    status: str
+    amount_minor: int
+    currency: str
+    retryable: bool
 
 
 class PdfStatus(BaseModel):
@@ -269,6 +320,26 @@ class PdfStatus(BaseModel):
     size_bytes: int | None = None
     download_url: str | None = None
     error_code: str | None = None
+
+
+class PdfRenderPreferences(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal["pdf-render-preferences.v1"] = "pdf-render-preferences.v1"
+    varga: str = "D1"
+    mode: Literal["plain", "expert"] = "plain"
+    chart_style: Literal["south_indian"] = "south_indian"
+
+    @field_validator("varga")
+    @classmethod
+    def varga_must_be_supported(cls, value: str) -> str:
+        return validate_varga(value)
+
+
+class PdfCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    preferences: PdfRenderPreferences = Field(default_factory=PdfRenderPreferences)
 
 
 class ChartEvent(BaseModel):
