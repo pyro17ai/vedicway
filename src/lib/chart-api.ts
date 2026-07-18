@@ -122,13 +122,21 @@ export type ChartResource = {
 };
 
 export type ApiErrorPayload = {
-  error?: { code?: string; message?: string; recoverable?: boolean; trace_id?: string };
+  error?: {
+    code?: string;
+    message?: string;
+    recoverable?: boolean;
+    trace_id?: string;
+    detail?: Record<string, unknown>;
+  };
 };
 
 export class ApiError extends Error {
   status: number;
   code?: string;
   recoverable?: boolean;
+  traceId?: string;
+  detail?: Record<string, unknown>;
 
   constructor(status: number, payload?: ApiErrorPayload) {
     super(payload?.error?.message || "Не удалось выполнить запрос");
@@ -136,6 +144,8 @@ export class ApiError extends Error {
     this.status = status;
     this.code = payload?.error?.code;
     this.recoverable = payload?.error?.recoverable;
+    this.traceId = payload?.error?.trace_id;
+    this.detail = payload?.error?.detail;
   }
 }
 
@@ -220,18 +230,59 @@ export function getVarga(chartId: string, varga: string): Promise<ChartSection> 
   return request(`/api/v1/charts/${encodeURIComponent(chartId)}/vargas/${encodeURIComponent(varga)}`);
 }
 
-export async function createPurchase(chartId: string, email?: string): Promise<{
+export type PurchaseStatus =
+  | "created"
+  | "pending"
+  | "unknown"
+  | "succeeded"
+  | "cancelled"
+  | "failed"
+  | "partially_refunded"
+  | "refunded";
+
+export type PurchaseResource = {
   purchase_id: string;
-  status: string;
+  chart_id: string;
+  product_code: "full_report_v1";
+  status: PurchaseStatus;
   checkout_url: string | null;
   price_minor: number;
   currency: string;
-}> {
+  retryable: boolean;
+};
+
+export type PaymentPublicConfig = {
+  product_code: "full_report_v1";
+  title: string;
+  price_minor: number;
+  currency: string;
+  offer_version: string;
+  offer_url: string;
+  privacy_url: string;
+};
+
+export function getPaymentConfig(): Promise<PaymentPublicConfig> {
+  return request("/api/v1/payments/config");
+}
+
+export async function createPurchase(
+  chartId: string,
+  input: { email: string; offerVersion: string },
+): Promise<PurchaseResource> {
   return request(`/api/v1/charts/${encodeURIComponent(chartId)}/purchases`, {
     method: "POST",
     headers: { "Idempotency-Key": randomKey("purchase") },
-    body: JSON.stringify({ product_code: "full_report_v1", ...(email ? { email } : {}) }),
+    body: JSON.stringify({
+      product_code: "full_report_v1",
+      email: input.email,
+      offer_accepted: true,
+      offer_version: input.offerVersion,
+    }),
   });
+}
+
+export function getPurchase(purchaseId: string, signal?: AbortSignal): Promise<PurchaseResource> {
+  return request(`/api/v1/purchases/${encodeURIComponent(purchaseId)}`, { signal });
 }
 
 export function confirmTestPurchase(purchaseId: string) {

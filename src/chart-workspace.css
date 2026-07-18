@@ -258,6 +258,15 @@
 .paywall__price { display: grid; gap: 5px; padding-top: 18px; border-top: 1px solid var(--vw-border-soft); }
 .paywall__price strong { color: var(--vw-fg); font: 500 38px/1 Georgia, serif; }
 .paywall__price span, .paywall__status { color: var(--vw-fg-muted); font-size: 13px; }
+.paywall-field { display: grid; gap: 8px; margin-top: 22px; color: var(--vw-fg-secondary); font-size: 13px; }
+.paywall-field input { width: 100%; min-height: 48px; padding: 0 13px; border: 1px solid var(--vw-border); border-radius: 9px; color: var(--vw-fg); background: rgba(4, 4, 4, .62); font: 400 15px/1 Inter, Arial, sans-serif; }
+.paywall-field input[aria-invalid="true"] { border-color: rgba(199, 109, 99, .72); }
+.paywall-field__error { margin: 6px 0 0; color: #f0bbb5; font-size: 12px; line-height: 1.4; }
+.paywall-consent { display: flex; align-items: flex-start; gap: 10px; margin-top: 18px; color: var(--vw-fg-muted); font-size: 12px; line-height: 1.5; cursor: pointer; }
+.paywall-consent input { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--vw-accent); }
+.paywall-consent a { color: var(--vw-accent-light); text-underline-offset: 3px; }
+.paywall-security { display: flex; align-items: center; gap: 7px; margin: 17px 0 0 !important; color: var(--vw-fg-dim) !important; font-size: 11px !important; line-height: 1.45 !important; }
+.paywall-security svg { width: 14px; height: 14px; color: var(--vw-accent-light); }
 .workspace-modal__footer--purchase { align-items: stretch; flex-direction: column; }
 .workspace-modal__footer--purchase > span { color: var(--vw-fg-dim); font-size: 11px; text-align: center; }
 .primary-button { width: 100%; border-color: rgba(231, 120, 50, .65); color: #fff8ef; background: linear-gradient(100deg, #bf581f, #e77832); box-shadow: 0 8px 26px rgba(178, 70, 20, .26); }
@@ -270,7 +279,7 @@
 .time-accuracy input { accent-color: var(--vw-accent); }
 .time-accuracy small { color: rgba(247, 240, 231, .55); font-size: 11px; line-height: 1.4; }
 
-.chart-workspace button:focus-visible, .chart-workspace select:focus-visible, .chart-workspace textarea:focus-visible { outline: 2px solid var(--vw-focus); outline-offset: 2px; }
+.chart-workspace button:focus-visible, .chart-workspace select:focus-visible, .chart-workspace textarea:focus-visible, .chart-workspace input:focus-visible, .chart-workspace a:focus-visible { outline: 2px solid var(--vw-focus); outline-offset: 2px; }
 
 @keyframes vw-dialog-in { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @media (max-width: 1359px) {

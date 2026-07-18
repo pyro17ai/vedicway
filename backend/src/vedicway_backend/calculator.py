@@ -11,7 +11,14 @@ from typing import Any
 
 from .constants import CLASSICAL_PLANETS, PLANET_LABELS_RU, SIGN_CODES, SIGN_NAMES_RU
 from .errors import DomainError
-from .schemas import BirthInput, ChartCell, ChartSnapshot, PlanetPosition, SectionStatus, section_model
+from .schemas import (
+    BirthInput,
+    ChartCell,
+    ChartSnapshot,
+    PlanetPosition,
+    SectionStatus,
+    section_model,
+)
 from .time_normalization import normalize_event_time, normalized_dasha_periods
 
 
@@ -321,7 +328,7 @@ def calculate_expert_extended(birth: BirthInput, snapshot: ChartSnapshot) -> dic
         try:
             cells, ascendant = _cells_from_chart(api["get_divisional_chart"](input_value, divisor), key.lower())
             results[key] = section_model(key, SectionStatus.READY, {"title": key, "cells": [cell.model_dump(mode="json") for cell in cells], "ascendant": ascendant})
-        except Exception as exc:
+        except Exception:
             results[key] = section_model(key, SectionStatus.PARTIAL, None, {"code": "CALCULATION_FAILED", "message": "Не удалось завершить расчёт варги", "recoverable": True})
     if os.environ.get("VEDICWAY_ENABLE_ASHTOTTARI") == "1":
         try:
