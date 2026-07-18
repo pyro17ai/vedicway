@@ -13,4 +13,3 @@ def test_rate_limit_is_shared_by_store_instances(tmp_path) -> None:
 
     assert 1 <= retry_after <= 3600
     assert second.record_rate_limit_hit("another-client", 2, 3600) == 0
-

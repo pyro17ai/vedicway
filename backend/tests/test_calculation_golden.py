@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 
@@ -36,7 +36,7 @@ def test_golden_moscow_lahiri_chart() -> None:
     assert enriched.sections["D9"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(3.4194, abs=0.0001)
     assert enriched.sections["D10"]["data"]["ascendant"]["sign_label"] == "Дева"
     assert enriched.sections["D10"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(27.1326, abs=0.0001)
-    evidence_snapshot = enriched.model_copy(update={"created_at": datetime(2026, 7, 18, tzinfo=timezone.utc)})
+    evidence_snapshot = enriched.model_copy(update={"created_at": datetime(2026, 7, 18, tzinfo=UTC)})
     facts, packets = compile_evidence(evidence_snapshot)
     assert len({fact.id for fact in facts}) == len(facts)
     period_packet = next(packet for packet in packets if packet.slug.value == "current_period")

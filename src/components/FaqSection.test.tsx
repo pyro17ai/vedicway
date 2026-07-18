@@ -8,7 +8,7 @@ describe("FaqSection", () => {
   it("показывает пять вопросов и начинает полностью закрытым", () => {
     render(<FaqSection />);
 
-    const triggers = screen.getAllByRole("button");
+    const triggers = screen.getAllByRole("button").filter((button) => button.hasAttribute("aria-expanded"));
     expect(triggers).toHaveLength(5);
     expect(triggers.every((trigger) => trigger.getAttribute("aria-expanded") === "false")).toBe(true);
     expect(screen.getByTestId("faq-list")).toHaveAttribute("data-open-index", "none");
@@ -18,7 +18,7 @@ describe("FaqSection", () => {
     const user = userEvent.setup();
     render(<FaqSection />);
 
-    const triggers = screen.getAllByRole("button");
+    const triggers = screen.getAllByRole("button").filter((button) => button.hasAttribute("aria-expanded"));
     await user.click(triggers[3]);
 
     expect(triggers[3]).toHaveAttribute("aria-expanded", "true");

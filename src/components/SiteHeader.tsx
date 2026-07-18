@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react";
 
 type SiteHeaderProps = {
-  active: "home" | "guide";
+  active: "home" | "guide" | null;
   onNavigate: (path: string) => void;
   variant?: "overlay" | "solid";
 };

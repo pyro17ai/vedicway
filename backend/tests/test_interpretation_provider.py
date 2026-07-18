@@ -24,7 +24,6 @@ from vedicway_backend.interpretation_prompt import (
 )
 from vedicway_backend.schemas import Coverage, DomainEvidencePacket, EvidenceFact
 
-
 CHART_BY_DOMAIN = {
     DomainSlug.CHARACTER: "D1",
     DomainSlug.INNER_SUPPORT: "D1",

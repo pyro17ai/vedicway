@@ -1622,6 +1622,111 @@ class Store:
             for row in rows
         ]
 
+    def erase_chart_personal_data(self, chart_id: str) -> dict[str, Any]:
+        """Erase a chart and derived personal data while retaining mandatory payment records."""
+        with self._lock, self._connection() as connection:
+            chart = connection.execute(
+                "SELECT id, session_id, birth_profile_id FROM charts WHERE id = ?",
+                (chart_id,),
+            ).fetchone()
+            if not chart:
+                return {"found": False, "chart_id": chart_id}
+            paths = {
+                str(row["path"])
+                for row in connection.execute(
+                    """SELECT path FROM reports WHERE chart_id = ? AND path IS NOT NULL
+                       UNION SELECT path FROM pdf_render_requests WHERE chart_id = ? AND path IS NOT NULL""",
+                    (chart_id, chart_id),
+                ).fetchall()
+            }
+            reports_root = self.reports_dir.resolve()
+            for value in paths:
+                path = Path(value).resolve()
+                if not path.is_relative_to(reports_root):
+                    raise RuntimeError("Refusing to erase a report outside VEDICWAY_DATA_DIR/reports")
+                path.unlink(missing_ok=True)
+
+            retains_financial_records = connection.execute(
+                "SELECT 1 FROM purchases WHERE chart_id = ? LIMIT 1", (chart_id,)
+            ).fetchone() is not None
+            now = _iso()
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                for table in (
+                    "agent_runs",
+                    "pdf_render_requests",
+                    "reports",
+                    "saved_questions",
+                    "magic_links",
+                    "outbox_events",
+                    "chart_access",
+                    "jobs",
+                ):
+                    connection.execute(f"DELETE FROM {table} WHERE chart_id = ?", (chart_id,))
+                if retains_financial_records:
+                    connection.execute(
+                        """UPDATE entitlements SET revoked_at = ?, revocation_reason = 'personal_data_erasure'
+                           WHERE chart_id = ? AND revoked_at IS NULL""",
+                        (now, chart_id),
+                    )
+                    connection.execute(
+                        "UPDATE purchases SET checkout_url = NULL, updated_at = ? WHERE chart_id = ?",
+                        (now, chart_id),
+                    )
+                    connection.execute(
+                        """UPDATE charts SET status = 'erased', birth_public_json = ?, snapshot_json = NULL,
+                           evidence_json = NULL, free_bundle_json = NULL, paid_bundle_json = NULL, updated_at = ?
+                           WHERE id = ?""",
+                        (_json_dump({"erased": True}), now, chart_id),
+                    )
+                    connection.execute(
+                        "UPDATE birth_profiles SET encrypted_payload = ? WHERE id = ?",
+                        (self._encrypt({"erased": True}), chart["birth_profile_id"]),
+                    )
+                else:
+                    connection.execute("DELETE FROM entitlements WHERE chart_id = ?", (chart_id,))
+                    connection.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
+                    connection.execute(
+                        """DELETE FROM birth_profiles WHERE id = ?
+                           AND NOT EXISTS (SELECT 1 FROM charts WHERE birth_profile_id = ?)""",
+                        (chart["birth_profile_id"], chart["birth_profile_id"]),
+                    )
+                    connection.execute(
+                        """DELETE FROM anonymous_sessions WHERE id = ?
+                           AND NOT EXISTS (SELECT 1 FROM charts WHERE session_id = ?)
+                           AND NOT EXISTS (SELECT 1 FROM birth_profiles WHERE session_id = ?)""",
+                        (chart["session_id"], chart["session_id"], chart["session_id"]),
+                    )
+                connection.commit()
+            except Exception:
+                connection.rollback()
+                raise
+        return {
+            "found": True,
+            "chart_id": chart_id,
+            "hard_deleted": not retains_financial_records,
+            "financial_records_retained": retains_financial_records,
+            "report_files_deleted": len(paths),
+        }
+
+    def erase_expired_unpaid_charts(self, *, older_than_days: int = 30) -> int:
+        if older_than_days < 1:
+            raise ValueError("older_than_days must be positive")
+        cutoff = _iso(_utc_now() - timedelta(days=older_than_days))
+        with self._lock, self._connection() as connection:
+            chart_ids = [
+                str(row["id"])
+                for row in connection.execute(
+                    """SELECT id FROM charts
+                       WHERE created_at < ?
+                       AND NOT EXISTS (SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id)""",
+                    (cutoff,),
+                ).fetchall()
+            ]
+        for expired_chart_id in chart_ids:
+            self.erase_chart_personal_data(expired_chart_id)
+        return len(chart_ids)
+
     def upsert_report(
         self,
         chart_id: str,

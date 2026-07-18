@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpenText, Compass, PenLine, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenText, Compass, Sparkles } from "lucide-react";
 
-import { ARTICLE_CATEGORIES, publishedArticles, type GuideArticle } from "../lib/article-store";
+import { publicArticles, type ContentArticle } from "../lib/admin-api";
+import { ARTICLE_CATEGORIES } from "../lib/article-store";
+import { applySeo } from "../lib/seo";
 import { ArticleMedia } from "./ArticleMedia";
 import { SiteHeader } from "./SiteHeader";
 
@@ -15,27 +17,22 @@ function formatDate(value: string | null) {
 }
 
 export function GuidePage({ onNavigate }: GuidePageProps) {
-  const [articles, setArticles] = useState<GuideArticle[]>([]);
+  const [articles, setArticles] = useState<ContentArticle[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setArticles(publishedArticles());
-    document.title = "Гид по астрологии — VedicWay";
-    const description = "Понятный гид VedicWay по натальным картам, планетам, домам и практике чтения астрологических символов.";
-    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!meta) {
-      meta = document.createElement("meta");
-      meta.name = "description";
-      document.head.append(meta);
-    }
-    meta.content = description;
-
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.append(canonical);
-    }
-    canonical.href = `${window.location.origin}/guide`;
+    publicArticles().then(({ items }) => setArticles(items)).catch(() => setArticles([])).finally(() => setLoading(false));
+    return applySeo({
+      title: "Гид по ведической астрологии | VedicWay",
+      description: "Понятный гид VedicWay по натальным картам, планетам, домам и практике чтения астрологических символов.",
+      path: "/guide",
+      structuredData: [{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Гид по ведической астрологии",
+        description: "Материалы VedicWay о чтении натальной карты и ведической астрологии.",
+      }],
+    });
   }, []);
 
   return (
@@ -66,35 +63,27 @@ export function GuidePage({ onNavigate }: GuidePageProps) {
               <span className="guide-kicker"><BookOpenText aria-hidden="true" /> Материалы</span>
               <h2 id="guide-library-title">Читайте с самого начала или выбирайте нужную тему</h2>
             </div>
-            {import.meta.env.DEV && (
-              <button className="guide-editor-link" type="button" onClick={() => onNavigate("/guide/editor")}>
-                <PenLine aria-hidden="true" /> Редактор статей
-              </button>
-            )}
           </header>
 
-          {articles.length === 0 ? (
+          {loading ? <div className="guide-loading" role="status">Загружаем библиотеку…</div> : articles.length === 0 ? (
             <div className="guide-empty" role="status">
               <span aria-hidden="true">✦</span>
               <h3>Первые материалы готовятся</h3>
               <p>Здесь появятся последовательные разборы основ астрологии и практические руководства по чтению карты.</p>
-              {import.meta.env.DEV && (
-                <button type="button" onClick={() => onNavigate("/guide/editor")}>Создать первую статью <ArrowRight aria-hidden="true" /></button>
-              )}
             </div>
           ) : (
             <div className="guide-article-grid">
               {articles.map((article) => (
                 <article className="guide-article-card" key={article.id}>
                   <button className="guide-article-card__cover" type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Открыть: ${article.title}`}>
-                    {article.coverImage ? <ArticleMedia asset={article.coverImage} sizes="(max-width: 560px) calc(100vw - 30px), (max-width: 820px) 50vw, 380px" /> : <span aria-hidden="true">✦</span>}
+                    {article.coverImage ? <ArticleMedia asset={article.coverImage} sizes="(max-width: 560px) calc(100vw - 30px), (max-width: 820px) 50vw, 380px" /> : article.cover_image_url ? <img src={article.cover_image_url} alt={article.cover_image_alt} loading="lazy" /> : <span aria-hidden="true">✦</span>}
                   </button>
                   <div className="guide-article-card__content">
                     <span>{article.category}</span>
                     <h3>{article.title}</h3>
                     <p>{article.excerpt}</p>
                     <footer>
-                      <time dateTime={article.publishedAt ?? article.updatedAt}>{formatDate(article.publishedAt ?? article.updatedAt)}</time>
+                      <time dateTime={article.published_at ?? article.updated_at}>{formatDate(article.published_at ?? article.updated_at)}</time>
                       <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
                         Читать <ArrowRight aria-hidden="true" />
                       </button>

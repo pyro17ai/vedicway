@@ -21,4 +21,3 @@ CREATE INDEX IF NOT EXISTS pdf_render_requests_chart_idx
 
 ALTER TABLE reports ADD COLUMN IF NOT EXISTS render_request_id uuid REFERENCES pdf_render_requests(id);
 ALTER TABLE reports ADD COLUMN IF NOT EXISTS preferences_checksum text;
-
