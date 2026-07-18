@@ -74,6 +74,16 @@ const pages = [
         ]
       }
     ]
+  },
+  {
+    output: "404.html",
+    title: "Страница не найдена | VedicWay",
+    description: "Запрошенная страница VedicWay не найдена.",
+    canonical: "https://vedicway.ru/404",
+    image: "https://vedicway.ru/assets/hero-space.png",
+    noindex: true,
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav><p>404</p><h1>Страница не найдена</h1><p>Адрес мог измениться или в ссылке есть ошибка.</p></main>`,
+    schema: []
   }
 ];
 
@@ -87,7 +97,7 @@ function renderPage(page) {
   let html = template;
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(page.title)}</title>`);
   html = replaceMeta(html, "name", "description", page.description);
-  html = replaceMeta(html, "name", "robots", "index, follow, max-image-preview:large");
+  html = replaceMeta(html, "name", "robots", page.noindex ? "noindex, nofollow, noarchive" : "index, follow, max-image-preview:large");
   html = replaceMeta(html, "property", "og:title", page.title);
   html = replaceMeta(html, "property", "og:description", page.description);
   html = replaceMeta(html, "property", "og:url", page.canonical);
