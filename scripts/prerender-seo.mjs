@@ -106,7 +106,7 @@ function renderPage(page) {
   html = replaceMeta(html, "name", "twitter:description", page.description);
   html = replaceMeta(html, "name", "twitter:image", page.image);
   html = html.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${page.canonical}" />`);
-  const jsonLd = page.schema.map((value) => `<script type="application/ld+json">${safeJson(value)}</script>`).join("\n    ");
+  const jsonLd = page.schema.map((value) => `<script type="application/ld+json" data-vedicway-seo-schema="prerender">${safeJson(value)}</script>`).join("\n    ");
   html = html.replace("</head>", `    ${jsonLd}\n  </head>`);
   html = html.replace('<div id="root"></div>', `<div id="root">${preludeStyle}${page.body}</div>`);
   return html;
