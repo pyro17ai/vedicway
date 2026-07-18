@@ -50,12 +50,16 @@ function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
       <main className="site-main">
         <section className="hero" data-od-id="hero-screen">
         <div className="hero-scene" aria-hidden="true">
-          <img
-            className="hero-scene__background"
-            src="/assets/hero-space.png"
-            alt=""
-            fetchPriority="high"
-          />
+          <picture>
+            <source srcSet="/assets/hero-space.avif" type="image/avif" />
+            <source srcSet="/assets/hero-space.webp" type="image/webp" />
+            <img
+              className="hero-scene__background"
+              src="/assets/hero-space.png"
+              alt=""
+              fetchPriority="high"
+            />
+          </picture>
           <AstrologyWheel />
         </div>
 
