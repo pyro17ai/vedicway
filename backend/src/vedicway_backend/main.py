@@ -9,10 +9,8 @@ import logging
 import os
 import time
 import uuid
-from collections import defaultdict, deque
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import quote, urlsplit
 
@@ -39,6 +37,7 @@ from .schemas import (
     ChartAccepted,
     ChartCreateRequest,
     PaymentPublicConfig,
+    PdfCreateRequest,
     PurchaseRequest,
     PurchaseResponse,
     RefundRequest,
@@ -54,22 +53,6 @@ ALLOWED_SECTIONS = {"d1", "vargas", "panchanga", "dashas", "strength", "combinat
 ALLOWED_JOB_TYPES = {"instant_v1", "evidence_free_v1", "expert_extended_v1", "interpretation_free_v1", "paid_report_v1", "pdf_v1"}
 
 
-@dataclass(slots=True)
-class RateLimiter:
-    entries: dict[str, deque[float]] = field(default_factory=lambda: defaultdict(deque))
-    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
-
-    async def check(self, key: str, limit: int = 12, window_seconds: float = 60) -> None:
-        now = time.monotonic()
-        async with self.lock:
-            bucket = self.entries[key]
-            while bucket and now - bucket[0] >= window_seconds:
-                bucket.popleft()
-            if len(bucket) >= limit:
-                raise DomainError("RATE_LIMITED", "Слишком много запросов. Попробуйте через час.", status_code=429)
-            bucket.append(now)
-
-
 def _trace_id(request: Request) -> str:
     return getattr(request.state, "trace_id", uuid.uuid4().hex)
 
@@ -77,7 +60,8 @@ def _trace_id(request: Request) -> str:
 def _error_response(error: DomainError, trace_id: str) -> JSONResponse:
     headers = {"X-Trace-ID": trace_id}
     if error.code == "RATE_LIMITED":
-        headers["Retry-After"] = "3600"
+        retry_after = (error.detail or {}).get("retry_after_seconds", 3600)
+        headers["Retry-After"] = str(max(1, int(retry_after)))
     return JSONResponse(status_code=error.status_code, content=error.as_payload(trace_id), headers=headers)
 
 
@@ -109,6 +93,37 @@ async def _launch_worker(app: FastAPI) -> None:
     app.state.worker_task = asyncio.create_task(run())
 
 
+async def _enforce_rate_limit(
+    app: FastAPI,
+    request: Request,
+    scope: str,
+    *,
+    limit: int,
+    window_seconds: int,
+) -> None:
+    settings: PaymentSettings = app.state.payment_settings
+    peer_ip = request.client.host if request.client else "unknown"
+    client_ip = effective_client_ip(
+        peer_ip,
+        request.headers.get("X-Forwarded-For"),
+        settings.trusted_proxy_networks,
+    )
+    bucket_key = hashlib.sha256(f"{scope}:{client_ip}".encode("utf-8")).hexdigest()
+    retry_after = await asyncio.to_thread(
+        app.state.store.record_rate_limit_hit,
+        bucket_key,
+        limit,
+        window_seconds,
+    )
+    if retry_after:
+        raise DomainError(
+            "RATE_LIMITED",
+            "Слишком много запросов. Повторите попытку позже.",
+            status_code=429,
+            detail={"retry_after_seconds": retry_after},
+        )
+
+
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
     try:
@@ -138,7 +153,6 @@ def create_app(
     app.state.metrics = Metrics()
     app.state.worker = worker or ChartWorker(app.state.store, metrics=app.state.metrics)
     app.state.places = PlaceRegistry()
-    app.state.limiter = RateLimiter()
     app.state.payment_settings = payment_settings or PaymentSettings.from_environment()
     app.state.payment_provider = payment_provider or payment_provider_from_settings(app.state.payment_settings)
     app.state.payment_tasks = set()
@@ -402,9 +416,8 @@ def create_app(
         if not idempotency_key or len(idempotency_key) > 200:
             raise DomainError("IDEMPOTENCY_KEY_REQUIRED", "Добавьте ключ защиты от повтора запроса", status_code=400)
         if os.environ.get("VEDICWAY_ENV", "development").casefold() == "production":
-            rate_key = request.client.host if request.client else "unknown"
-            await app.state.limiter.check(f"chart-hour:{rate_key}", limit=5, window_seconds=60 * 60)
-            await app.state.limiter.check(f"chart-day:{rate_key}", limit=20, window_seconds=60 * 60 * 24)
+            await _enforce_rate_limit(app, request, "chart-hour", limit=5, window_seconds=60 * 60)
+            await _enforce_rate_limit(app, request, "chart-day", limit=20, window_seconds=60 * 60 * 24)
         current_session = session(request, response, create=True)
         place = app.state.places.get(payload.place_id)
         if place is None and payload.place is not None:
@@ -504,7 +517,7 @@ def create_app(
         assert_owned(chart_id, current_session)
         if job_type not in ALLOWED_JOB_TYPES:
             raise DomainError("JOB_NOT_FOUND", "Такую задачу нельзя повторить", recoverable=False, status_code=404)
-        await app.state.limiter.check(f"retry:{request.client.host if request.client else 'unknown'}", limit=2, window_seconds=60 * 60)
+        await _enforce_rate_limit(app, request, "retry", limit=2, window_seconds=60 * 60)
         job_id = app.state.store.retry_job(chart_id, job_type)
         if not job_id:
             raise DomainError("JOB_NOT_RETRYABLE", "Эта задача сейчас не требует повтора", status_code=409)
@@ -524,7 +537,7 @@ def create_app(
             raise DomainError("IDEMPOTENCY_KEY_REQUIRED", "Добавьте ключ защиты от повтора оплаты", status_code=400)
         if len(idempotency_key) > 200:
             raise DomainError("IDEMPOTENCY_KEY_INVALID", "Ключ защиты от повтора оплаты слишком длинный", status_code=400)
-        await app.state.limiter.check(f"purchase:{request.client.host if request.client else 'unknown'}", limit=5, window_seconds=60 * 60)
+        await _enforce_rate_limit(app, request, "purchase", limit=5, window_seconds=60 * 60)
         if app.state.store.get_snapshot(chart_id) is None:
             raise DomainError("SNAPSHOT_MISSING", "Сначала дождитесь основной карты", status_code=409)
         if app.state.store.has_entitlement(chart_id):
@@ -1110,33 +1123,55 @@ def create_app(
         return {"items": app.state.store.saved_questions(chart_id)}
 
     @app.post("/api/v1/charts/{chart_id}/reports/pdf", status_code=status.HTTP_202_ACCEPTED)
-    async def create_pdf(chart_id: str, request: Request) -> dict[str, Any]:
+    async def create_pdf(chart_id: str, request: Request, payload: PdfCreateRequest = Body(default_factory=PdfCreateRequest)) -> dict[str, Any]:
         current_session = session(request)
         assert_owned(chart_id, current_session)
         if not app.state.store.has_entitlement(chart_id):
             raise DomainError("ENTITLEMENT_REQUIRED", "PDF входит в полный отчёт", recoverable=False, status_code=403)
-        job_id = app.state.store.enqueue_job(chart_id, "pdf_v1", priority=60)
+        preferences = payload.preferences.model_dump(mode="json")
+        job_id, render_request_id = app.state.store.enqueue_pdf_job(chart_id, preferences, priority=60)
         await _launch_worker(app)
-        return {"job_id": job_id, "status": app.state.store.get_report(chart_id)["status"]}
+        return {
+            "job_id": job_id,
+            "render_request_id": render_request_id,
+            "status": app.state.store.get_report(chart_id)["status"],
+            "preferences": preferences,
+        }
 
     @app.get("/api/v1/charts/{chart_id}/reports/pdf")
-    async def get_pdf(chart_id: str, request: Request) -> Response:
+    async def get_pdf(chart_id: str, request: Request, render_request_id: str = Query(...)) -> Response:
         current_session = session(request)
         assert_owned(chart_id, current_session)
-        report = app.state.store.get_report(chart_id)
-        if report["status"] == "ready":
-            token = app.state.store.issue_download_token(chart_id)
-            return RedirectResponse(url=f"/api/v1/reports/download/{chart_id}?token={token}", status_code=303)
-        return JSONResponse(status_code=202, content=report)
+        render = app.state.store.get_pdf_render_request(render_request_id)
+        if not render or render["chart_id"] != chart_id:
+            raise DomainError("PDF_RENDER_NOT_FOUND", "Рендер PDF не найден", recoverable=False, status_code=404)
+        if render["status"] == "ready" and render.get("path"):
+            token = app.state.store.issue_download_token(chart_id, render_request_id)
+            return RedirectResponse(
+                url=f"/api/v1/reports/download/{chart_id}?render_request_id={render_request_id}&token={token}",
+                status_code=303,
+            )
+        return JSONResponse(
+            status_code=202 if render["status"] in {"queued", "generating"} else 409,
+            content={
+                "status": render["status"],
+                "render_request_id": render_request_id,
+                "error_code": render.get("error_code"),
+            },
+        )
 
     @app.get("/api/v1/reports/download/{chart_id}")
-    async def download_pdf(chart_id: str, token: str = Query(...)) -> FileResponse:
-        if not app.state.store.validate_download_token(token, chart_id):
+    async def download_pdf(
+        chart_id: str,
+        render_request_id: str = Query(...),
+        token: str = Query(...),
+    ) -> FileResponse:
+        if not app.state.store.validate_download_token(token, chart_id, render_request_id):
             raise DomainError("DOWNLOAD_TOKEN_INVALID", "Ссылка на файл устарела", recoverable=False, status_code=401)
-        report = app.state.store.get_report(chart_id)
-        if report["status"] != "ready":
+        render = app.state.store.get_pdf_render_request(render_request_id)
+        if not render or render["chart_id"] != chart_id or render["status"] != "ready":
             raise DomainError("PDF_NOT_READY", "PDF ещё готовится", status_code=409)
-        path = app.state.store.report_file_path(chart_id)
+        path = app.state.store.report_file_path(chart_id, render_request_id)
         if path is None or not path.exists():
             raise DomainError("PDF_MISSING", "Файл отчёта не найден", recoverable=True, status_code=404)
         return FileResponse(path, media_type="application/pdf", filename="vedicway-report.pdf")

@@ -12,6 +12,8 @@ const faqEntries = [
   ["Насколько точен разбор?", "Положения небесных тел рассчитываются по эфемеридам, а надёжность домов зависит от точности времени рождения."]
 ];
 
+const preludeStyle = `<style>.seo-prerender{min-height:100vh;padding:48px;color:#f5eee4;background:#050505;font-family:Georgia,serif}.seo-prerender nav{display:flex;gap:24px}.seo-prerender a{color:#ef7a2e}.seo-prerender h1{max-width:900px;font-size:clamp(42px,7vw,92px)}.seo-prerender p,.seo-prerender label{font-family:Arial,sans-serif;line-height:1.6}.seo-prerender form{display:grid;gap:12px;max-width:560px}.seo-prerender label{display:grid;gap:6px}.seo-prerender input,.seo-prerender button{min-height:44px}</style>`;
+
 const pages = [
   {
     output: "index.html",
@@ -72,6 +74,16 @@ const pages = [
         ]
       }
     ]
+  },
+  {
+    output: "404.html",
+    title: "Страница не найдена | VedicWay",
+    description: "Запрошенная страница VedicWay не найдена.",
+    canonical: "https://vedicway.ru/404",
+    image: "https://vedicway.ru/assets/hero-space.png",
+    noindex: true,
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav><p>404</p><h1>Страница не найдена</h1><p>Адрес мог измениться или в ссылке есть ошибка.</p></main>`,
+    schema: []
   }
 ];
 
@@ -87,7 +99,7 @@ function renderPage(page) {
   let html = template;
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(page.title)}</title>`);
   html = replaceMeta(html, "name", "description", page.description);
-  html = replaceMeta(html, "name", "robots", "index, follow, max-image-preview:large");
+  html = replaceMeta(html, "name", "robots", page.noindex ? "noindex, nofollow, noarchive" : "index, follow, max-image-preview:large");
   html = replaceMeta(html, "property", "og:title", page.title);
   html = replaceMeta(html, "property", "og:description", page.description);
   html = replaceMeta(html, "property", "og:url", page.canonical);
@@ -96,7 +108,7 @@ function renderPage(page) {
   html = replaceMeta(html, "name", "twitter:description", page.description);
   html = replaceMeta(html, "name", "twitter:image", page.image);
   html = html.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${page.canonical}" />`);
-  const jsonLd = page.schema.map((value) => `<script type="application/ld+json">${safeJson(value)}</script>`).join("\n    ");
+  const jsonLd = page.schema.map((value) => `<script type="application/ld+json" data-vedicway-seo-schema="prerender">${safeJson(value)}</script>`).join("\n    ");
   html = html.replace("</head>", `    ${jsonLd}\n  </head>`);
   html = html.replace('<div id="root"></div>', `<div id="root">${preludeStyle}${page.body}</div>`);
   return html;

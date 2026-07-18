@@ -8,6 +8,7 @@ import os
 import secrets
 import sqlite3
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
@@ -17,7 +18,13 @@ from typing import Any
 from cryptography.fernet import Fernet
 
 from .errors import DomainError
-from .schemas import BirthInput, ChartEvent, ChartSnapshot, InterpretationBundle, JobStatus
+from .schemas import (
+    BirthInput,
+    ChartEvent,
+    ChartSnapshot,
+    InterpretationBundle,
+    JobStatus,
+)
 
 
 def _utc_now() -> datetime:
@@ -138,6 +145,7 @@ class Store:
           priority INTEGER NOT NULL,
           attempts INTEGER NOT NULL DEFAULT 0,
           input_checksum TEXT,
+          payload_json TEXT,
           error_json TEXT,
           scheduled_at TEXT NOT NULL,
           started_at TEXT,
@@ -267,10 +275,34 @@ class Store:
           size_bytes INTEGER,
           pages INTEGER,
           error_code TEXT,
+          render_request_id TEXT,
+          preferences_checksum TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           UNIQUE(chart_id)
         );
+        CREATE TABLE IF NOT EXISTS pdf_render_requests (
+          id TEXT PRIMARY KEY,
+          chart_id TEXT NOT NULL REFERENCES charts(id),
+          job_id TEXT,
+          preferences_json TEXT NOT NULL,
+          preferences_checksum TEXT NOT NULL,
+          status TEXT NOT NULL,
+          path TEXT,
+          checksum TEXT,
+          size_bytes INTEGER,
+          pages INTEGER,
+          error_code TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS pdf_render_requests_chart_idx ON pdf_render_requests(chart_id, created_at DESC);
+        CREATE TABLE IF NOT EXISTS rate_limit_events (
+          bucket_key TEXT NOT NULL,
+          occurred_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS rate_limit_events_bucket_idx
+          ON rate_limit_events(bucket_key, occurred_at);
         CREATE TABLE IF NOT EXISTS saved_questions (
           chart_id TEXT NOT NULL REFERENCES charts(id),
           question_id TEXT NOT NULL,
@@ -325,6 +357,36 @@ class Store:
                 "entitlements",
                 {"revoked_at": "TEXT", "revocation_reason": "TEXT"},
             )
+            self._ensure_columns(
+                connection,
+                "jobs",
+                {"payload_json": "TEXT"},
+            )
+            self._ensure_columns(
+                connection,
+                "reports",
+                {"render_request_id": "TEXT", "preferences_checksum": "TEXT"},
+            )
+            self._ensure_columns(
+                connection,
+                "pdf_render_requests",
+                {
+                    "path": "TEXT",
+                    "checksum": "TEXT",
+                    "size_bytes": "INTEGER",
+                    "pages": "INTEGER",
+                    "error_code": "TEXT",
+                },
+            )
+            connection.execute(
+                """UPDATE pdf_render_requests
+                   SET path = COALESCE(path, (SELECT reports.path FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                       checksum = COALESCE(checksum, (SELECT reports.checksum FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                       size_bytes = COALESCE(size_bytes, (SELECT reports.size_bytes FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                       pages = COALESCE(pages, (SELECT reports.pages FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                       error_code = COALESCE(error_code, (SELECT reports.error_code FROM reports WHERE reports.render_request_id = pdf_render_requests.id))
+                   WHERE EXISTS (SELECT 1 FROM reports WHERE reports.render_request_id = pdf_render_requests.id)"""
+            )
             connection.execute(
                 "CREATE UNIQUE INDEX IF NOT EXISTS purchases_provider_key_idx ON purchases(provider, provider_idempotency_key)"
             )
@@ -349,6 +411,36 @@ class Store:
     @staticmethod
     def _token_hash(token: str) -> str:
         return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    def record_rate_limit_hit(self, bucket_key: str, limit: int, window_seconds: int) -> int:
+        """Atomically record one hit and return retry seconds when the bucket is full."""
+        now = time.time()
+        cutoff = now - window_seconds
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    "DELETE FROM rate_limit_events WHERE bucket_key = ? AND occurred_at <= ?",
+                    (bucket_key, cutoff),
+                )
+                row = connection.execute(
+                    """SELECT COUNT(*) AS hits, MIN(occurred_at) AS oldest
+                       FROM rate_limit_events WHERE bucket_key = ?""",
+                    (bucket_key,),
+                ).fetchone()
+                if row and int(row["hits"]) >= limit:
+                    retry_after = max(1, int(float(row["oldest"]) + window_seconds - now) + 1)
+                    connection.commit()
+                    return retry_after
+                connection.execute(
+                    "INSERT INTO rate_limit_events (bucket_key, occurred_at) VALUES (?, ?)",
+                    (bucket_key, now),
+                )
+                connection.commit()
+                return 0
+            except Exception:
+                connection.rollback()
+                raise
 
     @staticmethod
     def _new_id(prefix: str) -> str:
@@ -640,13 +732,20 @@ class Store:
             return None
         return snapshot.sections.get(section)
 
-    def _enqueue(self, connection: sqlite3.Connection, chart_id: str, job_type: str, priority: int = 10) -> str:
+    def _enqueue(
+        self,
+        connection: sqlite3.Connection,
+        chart_id: str,
+        job_type: str,
+        priority: int = 10,
+        payload: dict[str, Any] | None = None,
+    ) -> str:
         now = _iso()
         job_id = self._new_id("job")
         connection.execute(
-            """INSERT INTO jobs (id, chart_id, job_type, status, priority, scheduled_at, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (job_id, chart_id, job_type, JobStatus.QUEUED.value, priority, now, now, now),
+            """INSERT INTO jobs (id, chart_id, job_type, status, priority, payload_json, scheduled_at, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (job_id, chart_id, job_type, JobStatus.QUEUED.value, priority, _json_dump(payload) if payload else None, now, now, now),
         )
         return job_id
 
@@ -668,6 +767,75 @@ class Store:
             except Exception:
                 connection.rollback()
                 raise
+
+    def enqueue_pdf_job(self, chart_id: str, preferences: dict[str, Any], priority: int = 60) -> tuple[str, str]:
+        """Create an immutable preference snapshot for one explicit PDF render."""
+        raw_preferences = _json_dump(preferences)
+        checksum = f"sha256:{hashlib.sha256(raw_preferences.encode('utf-8')).hexdigest()}"
+        now = _iso()
+        request_id = self._new_id("pdfreq")
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """UPDATE pdf_render_requests
+                       SET path = COALESCE(path, (SELECT reports.path FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                           checksum = COALESCE(checksum, (SELECT reports.checksum FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                           size_bytes = COALESCE(size_bytes, (SELECT reports.size_bytes FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                           pages = COALESCE(pages, (SELECT reports.pages FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
+                           error_code = COALESCE(error_code, (SELECT reports.error_code FROM reports WHERE reports.render_request_id = pdf_render_requests.id))
+                       WHERE id = (SELECT render_request_id FROM reports WHERE chart_id = ?)""",
+                    (chart_id,),
+                )
+                connection.execute(
+                    """INSERT INTO pdf_render_requests
+                       (id, chart_id, preferences_json, preferences_checksum, status, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, 'queued', ?, ?)""",
+                    (request_id, chart_id, raw_preferences, checksum, now, now),
+                )
+                job_id = self._enqueue(
+                    connection,
+                    chart_id,
+                    "pdf_v1",
+                    priority,
+                    {"render_request_id": request_id},
+                )
+                connection.execute(
+                    "UPDATE pdf_render_requests SET job_id = ?, updated_at = ? WHERE id = ?",
+                    (job_id, now, request_id),
+                )
+                connection.execute(
+                    """INSERT INTO reports
+                       (id, chart_id, status, render_request_id, preferences_checksum, created_at, updated_at)
+                       VALUES (?, ?, 'generating', ?, ?, ?, ?)
+                       ON CONFLICT(chart_id) DO UPDATE SET
+                         status = 'generating', path = NULL, checksum = NULL, size_bytes = NULL,
+                         pages = NULL, error_code = NULL, render_request_id = excluded.render_request_id,
+                         preferences_checksum = excluded.preferences_checksum, updated_at = excluded.updated_at""",
+                    (self._new_id("rpt"), chart_id, request_id, checksum, now, now),
+                )
+                self._emit(connection, chart_id, "pdf.started", {"render_request_id": request_id, "preferences": preferences})
+                connection.commit()
+                return job_id, request_id
+            except Exception:
+                connection.rollback()
+                raise
+
+    def get_pdf_render_request(self, request_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute("SELECT * FROM pdf_render_requests WHERE id = ?", (request_id,)).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        result["preferences"] = _json_load(result.pop("preferences_json"), {})
+        return result
+
+    def update_pdf_render_request(self, request_id: str, status: str) -> None:
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                "UPDATE pdf_render_requests SET status = ?, updated_at = ? WHERE id = ?",
+                (status, _iso(), request_id),
+            )
 
     def claim_next_job(self) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
@@ -1463,15 +1631,19 @@ class Store:
         size_bytes: int | None = None,
         pages: int | None = None,
         error_code: str | None = None,
+        render_request_id: str | None = None,
+        preferences_checksum: str | None = None,
     ) -> None:
         now = _iso()
         with self._lock, self._connection() as connection:
             connection.execute(
-                """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, render_request_id, preferences_checksum, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                    ON CONFLICT(chart_id) DO UPDATE SET status = excluded.status, path = excluded.path, checksum = excluded.checksum,
-                   size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code, updated_at = excluded.updated_at""",
-                (self._new_id("rpt"), chart_id, status, path, checksum, size_bytes, pages, error_code, now, now),
+                   size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code,
+                   render_request_id = excluded.render_request_id, preferences_checksum = excluded.preferences_checksum,
+                   updated_at = excluded.updated_at""",
+                (self._new_id("rpt"), chart_id, status, path, checksum, size_bytes, pages, error_code, render_request_id, preferences_checksum, now, now),
             )
 
     def commit_report_event(self, chart_id: str, status: str, payload: dict[str, Any], **report: Any) -> None:
@@ -1480,24 +1652,73 @@ class Store:
             connection.execute("BEGIN IMMEDIATE")
             try:
                 connection.execute(
-                    """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, render_request_id, preferences_checksum, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                        ON CONFLICT(chart_id) DO UPDATE SET status = excluded.status, path = excluded.path, checksum = excluded.checksum,
-                       size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code, updated_at = excluded.updated_at""",
+                       size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code,
+                       preferences_checksum = excluded.preferences_checksum, updated_at = excluded.updated_at
+                       WHERE reports.render_request_id = excluded.render_request_id""",
                     (
                         self._new_id("rpt"), chart_id, status, report.get("path"), report.get("checksum"), report.get("size_bytes"),
-                        report.get("pages"), report.get("error_code"), now, now,
+                        report.get("pages"), report.get("error_code"), report.get("render_request_id"),
+                        report.get("preferences_checksum"), now, now,
                     ),
                 )
+                if report.get("render_request_id"):
+                    connection.execute(
+                        """UPDATE pdf_render_requests
+                           SET status = ?, path = ?, checksum = ?, size_bytes = ?, pages = ?, error_code = ?, updated_at = ?
+                           WHERE id = ? AND chart_id = ?""",
+                        (
+                            status,
+                            report.get("path"),
+                            report.get("checksum"),
+                            report.get("size_bytes"),
+                            report.get("pages"),
+                            report.get("error_code"),
+                            now,
+                            report["render_request_id"],
+                            chart_id,
+                        ),
+                    )
                 self._emit(connection, chart_id, "pdf.ready" if status == "ready" else "job.failed", payload)
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
+        if status == "ready":
+            self._prune_pdf_render_files(chart_id)
+
+    def _prune_pdf_render_files(self, chart_id: str, keep: int = 3) -> None:
+        """Keep a small retry window without retaining personal reports indefinitely."""
+        with self._lock, self._connection() as connection:
+            rows = connection.execute(
+                """SELECT id, path FROM pdf_render_requests
+                   WHERE chart_id = ? AND status = 'ready' AND path IS NOT NULL
+                   ORDER BY updated_at DESC, created_at DESC""",
+                (chart_id,),
+            ).fetchall()
+            expired = rows[max(1, keep):]
+            for row in expired:
+                try:
+                    Path(row["path"]).unlink(missing_ok=True)
+                except OSError:
+                    continue
+                connection.execute(
+                    """UPDATE pdf_render_requests
+                       SET status = 'failed', path = NULL, checksum = NULL, size_bytes = NULL,
+                           pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ?
+                       WHERE id = ?""",
+                    (_iso(), row["id"]),
+                )
 
     def get_report(self, chart_id: str) -> dict[str, Any]:
         with self._lock, self._connection() as connection:
             row = connection.execute("SELECT * FROM reports WHERE chart_id = ?", (chart_id,)).fetchone()
+            render_request = connection.execute(
+                "SELECT preferences_json FROM pdf_render_requests WHERE id = ?",
+                (row["render_request_id"],),
+            ).fetchone() if row and row["render_request_id"] else None
         if not row:
             return {"status": "locked" if not self.has_entitlement(chart_id) else "generating"}
         return {
@@ -1505,27 +1726,41 @@ class Store:
             "pages": row["pages"],
             "size_bytes": row["size_bytes"],
             "error_code": row["error_code"],
+            "render_request_id": row["render_request_id"],
+            "render_preferences": _json_load(render_request["preferences_json"], {}) if render_request else None,
             "download_url": None,
         }
 
-    def report_file_path(self, chart_id: str) -> Path | None:
+    def report_file_path(self, chart_id: str, render_request_id: str | None = None) -> Path | None:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT path FROM reports WHERE chart_id = ? AND status = 'ready'", (chart_id,)).fetchone()
+            if render_request_id:
+                row = connection.execute(
+                    """SELECT path FROM pdf_render_requests
+                       WHERE id = ? AND chart_id = ? AND status = 'ready'""",
+                    (render_request_id, chart_id),
+                ).fetchone()
+            else:
+                row = connection.execute("SELECT path FROM reports WHERE chart_id = ? AND status = 'ready'", (chart_id,)).fetchone()
         return Path(row["path"]) if row and row["path"] else None
 
-    def issue_download_token(self, chart_id: str, ttl_minutes: int = 10) -> str:
+    def issue_download_token(self, chart_id: str, render_request_id: str, ttl_minutes: int = 10) -> str:
         expires = int((_utc_now() + timedelta(minutes=ttl_minutes)).timestamp())
-        payload = f"{chart_id}.{expires}".encode()
+        payload = f"{chart_id}.{render_request_id}.{expires}".encode()
         signature = hmac.new(self._signing_key, payload, hashlib.sha256).hexdigest()
         return base64.urlsafe_b64encode(payload + b"." + signature.encode("ascii")).decode("ascii")
 
-    def validate_download_token(self, token: str, chart_id: str) -> bool:
+    def validate_download_token(self, token: str, chart_id: str, render_request_id: str) -> bool:
         try:
             decoded = base64.urlsafe_b64decode(token.encode("ascii")).decode("utf-8")
             encoded_payload, signature = decoded.rsplit(".", 1)
-            token_chart_id, expires = encoded_payload.rsplit(".", 1)
+            token_chart_id, token_render_request_id, expires = encoded_payload.rsplit(".", 2)
             expected = hmac.new(self._signing_key, encoded_payload.encode("utf-8"), hashlib.sha256).hexdigest()
-            return token_chart_id == chart_id and int(expires) >= int(_utc_now().timestamp()) and hmac.compare_digest(signature, expected)
+            return (
+                token_chart_id == chart_id
+                and token_render_request_id == render_request_id
+                and int(expires) >= int(_utc_now().timestamp())
+                and hmac.compare_digest(signature, expected)
+            )
         except (ValueError, UnicodeDecodeError):
             return False
 

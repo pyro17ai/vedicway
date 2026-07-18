@@ -9,7 +9,32 @@ export const ARTICLE_CATEGORIES = [
 
 export type ArticleStatus = "draft" | "published";
 
+export type ArticleMediaProvider = "remote" | "dev-indexeddb";
+
+export type ArticleMediaSource = {
+  url: string;
+  width: number;
+  mimeType: string;
+};
+
+export type ArticleMediaAsset = {
+  id: string;
+  provider: ArticleMediaProvider;
+  storageKey: string;
+  url: string;
+  sources: ArticleMediaSource[];
+  width: number;
+  height: number;
+  mimeType: string;
+  sizeBytes: number;
+  alt: string;
+  title: string;
+  caption: string;
+  createdAt: string;
+};
+
 export type GuideArticle = {
+  schemaVersion: "guide-article.v2";
   id: string;
   title: string;
   slug: string;
@@ -21,6 +46,8 @@ export type GuideArticle = {
   focusKeyphrase: string;
   canonicalUrl: string;
   author: string;
+  coverImage: ArticleMediaAsset | null;
+  bodyMedia: ArticleMediaAsset[];
   status: ArticleStatus;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +80,7 @@ export function slugifyArticleTitle(value: string) {
 export function createArticleDraft(): GuideArticle {
   const now = new Date().toISOString();
   return {
+    schemaVersion: "guide-article.v2",
     id: makeId(),
     title: "",
     slug: "",
@@ -64,6 +92,8 @@ export function createArticleDraft(): GuideArticle {
     focusKeyphrase: "",
     canonicalUrl: "",
     author: "Редакция VedicWay",
+    coverImage: null,
+    bodyMedia: [],
     status: "draft",
     createdAt: now,
     updatedAt: now,
@@ -71,7 +101,7 @@ export function createArticleDraft(): GuideArticle {
   };
 }
 
-function isGuideArticle(value: unknown): value is GuideArticle {
+function isGuideArticle(value: unknown): value is Omit<GuideArticle, "schemaVersion" | "coverImage" | "bodyMedia"> & Partial<GuideArticle> {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<GuideArticle>;
   return typeof candidate.id === "string"
@@ -80,15 +110,62 @@ function isGuideArticle(value: unknown): value is GuideArticle {
     && (candidate.status === "draft" || candidate.status === "published");
 }
 
+function isMediaAsset(value: unknown): value is ArticleMediaAsset {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<ArticleMediaAsset>;
+  return typeof candidate.id === "string"
+    && (candidate.provider === "remote" || candidate.provider === "dev-indexeddb")
+    && typeof candidate.storageKey === "string"
+    && typeof candidate.mimeType === "string"
+    && typeof candidate.alt === "string";
+}
+
+function normalizeMediaAsset(value: unknown): ArticleMediaAsset | null {
+  if (!isMediaAsset(value)) return null;
+  return {
+    ...value,
+    url: typeof value.url === "string" ? value.url : "",
+    sources: Array.isArray(value.sources) ? value.sources.filter((source) => (
+      source && typeof source.url === "string" && typeof source.width === "number" && typeof source.mimeType === "string"
+    )) : [],
+    width: Number(value.width) || 0,
+    height: Number(value.height) || 0,
+    sizeBytes: Number(value.sizeBytes) || 0,
+    title: typeof value.title === "string" ? value.title : "",
+    caption: typeof value.caption === "string" ? value.caption : "",
+    createdAt: typeof value.createdAt === "string" ? value.createdAt : new Date(0).toISOString(),
+  };
+}
+
+function normalizeArticle(article: ReturnType<typeof JSON.parse>): GuideArticle {
+  const coverImage = normalizeMediaAsset(article.coverImage);
+  return {
+    ...article,
+    schemaVersion: "guide-article.v2",
+    coverImage,
+    bodyMedia: Array.isArray(article.bodyMedia)
+      ? article.bodyMedia.flatMap((asset: unknown) => normalizeMediaAsset(asset) ?? [])
+      : [],
+  } as GuideArticle;
+}
+
 export function readArticles(): GuideArticle[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed: unknown = JSON.parse(window.localStorage.getItem(ARTICLE_STORE_KEY) ?? "[]");
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(isGuideArticle).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+    return parsed.filter(isGuideArticle).map(normalizeArticle).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   } catch {
     return [];
   }
+}
+
+export function articleMediaToken(mediaId: string) {
+  return `{{media:${mediaId}}}`;
+}
+
+export function mediaIdFromArticleBlock(block: string) {
+  return /^\{\{media:([A-Za-z0-9_-]+)\}\}$/.exec(block.trim())?.[1] ?? null;
 }
 
 export function writeArticle(article: GuideArticle) {

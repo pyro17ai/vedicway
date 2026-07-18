@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, BookOpenText, Compass, PenLine, Sparkles } from "lucide-react";
 
 import { ARTICLE_CATEGORIES, publishedArticles, type GuideArticle } from "../lib/article-store";
+import { ArticleMedia } from "./ArticleMedia";
 import { SiteHeader } from "./SiteHeader";
 
 type GuidePageProps = {
@@ -85,15 +86,20 @@ export function GuidePage({ onNavigate }: GuidePageProps) {
             <div className="guide-article-grid">
               {articles.map((article) => (
                 <article className="guide-article-card" key={article.id}>
-                  <span>{article.category}</span>
-                  <h3>{article.title}</h3>
-                  <p>{article.excerpt}</p>
-                  <footer>
-                    <time dateTime={article.publishedAt ?? article.updatedAt}>{formatDate(article.publishedAt ?? article.updatedAt)}</time>
-                    <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
-                      Читать <ArrowRight aria-hidden="true" />
-                    </button>
-                  </footer>
+                  <button className="guide-article-card__cover" type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Открыть: ${article.title}`}>
+                    {article.coverImage ? <ArticleMedia asset={article.coverImage} sizes="(max-width: 560px) calc(100vw - 30px), (max-width: 820px) 50vw, 380px" /> : <span aria-hidden="true">✦</span>}
+                  </button>
+                  <div className="guide-article-card__content">
+                    <span>{article.category}</span>
+                    <h3>{article.title}</h3>
+                    <p>{article.excerpt}</p>
+                    <footer>
+                      <time dateTime={article.publishedAt ?? article.updatedAt}>{formatDate(article.publishedAt ?? article.updatedAt)}</time>
+                      <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
+                        Читать <ArrowRight aria-hidden="true" />
+                      </button>
+                    </footer>
+                  </div>
                 </article>
               ))}
             </div>

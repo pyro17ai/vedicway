@@ -35,6 +35,17 @@
       "expected_status": 200,
       "render_mode": "prerender",
       "schema_types": ["CollectionPage", "BreadcrumbList"]
+    },
+    {
+      "page_id": "not-found",
+      "url": "/404",
+      "output_file": "404.html",
+      "indexable": false,
+      "canonical": "https://vedicway.ru/404",
+      "sitemap": false,
+      "expected_status": 404,
+      "render_mode": "prerender",
+      "schema_types": []
     }
   ],
   "parameters": [

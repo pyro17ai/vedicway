@@ -39,7 +39,11 @@
   background:
     linear-gradient(90deg, rgba(5, 5, 5, .97) 0%, rgba(5, 5, 5, .77) 29%, rgba(5, 5, 5, .87) 100%),
     linear-gradient(180deg, rgba(5, 5, 5, .22), rgba(5, 5, 5, .92)),
-    url("/assets/results-space.png") center / cover no-repeat;
+    image-set(
+      url("/assets/results-space.avif") type("image/avif") 1x,
+      url("/assets/results-space.webp") type("image/webp") 1x,
+      url("/assets/results-space.png") type("image/png") 1x
+    ) center / cover no-repeat;
 }
 
 .chart-workspace__background::after {
