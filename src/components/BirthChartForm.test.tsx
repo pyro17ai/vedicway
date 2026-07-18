@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { createChart } from "../lib/chart-api";
 import { searchCities } from "../lib/city-search";
 import { BirthChartForm } from "./BirthChartForm";
 
@@ -8,14 +9,20 @@ vi.mock("../lib/city-search", () => ({
   searchCities: vi.fn(),
 }));
 
+vi.mock("../lib/chart-api", async () => {
+  const actual = await vi.importActual<typeof import("../lib/chart-api")>("../lib/chart-api");
+  return { ...actual, createChart: vi.fn() };
+});
+
 const city = {
-  id: 524901,
-  label: "Москва, Москва, Россия",
+  id: "moscow-ru",
+  label: "Москва, Россия",
   name: "Москва",
-  country: "Россия",
-  admin1: "Москва",
-  latitude: 55.75222,
-  longitude: 37.61556,
+  country: "RU",
+  countryCode: "RU",
+  admin1: "Россия",
+  latitude: 55.7558,
+  longitude: 37.6173,
   timezone: "Europe/Moscow",
 };
 
@@ -26,6 +33,7 @@ describe("BirthChartForm", () => {
   });
 
   afterEach(() => {
+    vi.clearAllMocks();
     vi.useRealTimers();
   });
 
@@ -39,9 +47,8 @@ describe("BirthChartForm", () => {
     expect(screen.getByRole("button", { name: /рассчитать карту/i })).toBeEnabled();
   });
 
-  it("объясняет ошибки после отправки и переводит фокус к первому полю", async () => {
+  it("объясняет ошибки после отправки и переводит фокус к первому полю", () => {
     render(<BirthChartForm />);
-
     fireEvent.click(screen.getByRole("button", { name: /рассчитать карту/i }));
 
     expect(screen.getByText("Введите имя")).toBeInTheDocument();
@@ -63,36 +70,49 @@ describe("BirthChartForm", () => {
     });
 
     expect(searchCities).toHaveBeenCalledWith("Москва", expect.any(AbortSignal));
-    expect(screen.getByRole("option", { name: "Москва, Москва, Россия" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: city.label })).toBeInTheDocument();
 
     fireEvent.keyDown(combobox, { key: "ArrowDown" });
     fireEvent.keyDown(combobox, { key: "Enter" });
-
-    expect(combobox).toHaveValue("Москва, Москва, Россия");
+    expect(combobox).toHaveValue(city.label);
   });
 
-  it("подтверждает полностью заполненную форму без очистки данных", async () => {
-    render(<BirthChartForm />);
+  it("отправляет подтверждённое место в BFF и передаёт созданный chart_id", async () => {
+    const onChartCreated = vi.fn();
+    vi.mocked(createChart).mockResolvedValueOnce({ chart_id: "chart-test-1" });
+    render(<BirthChartForm onChartCreated={onChartCreated} />);
 
     fireEvent.change(screen.getByLabelText("Имя"), { target: { value: "Анна" } });
     fireEvent.change(screen.getByLabelText("Дата рождения"), { target: { value: "1991-04-12" } });
     fireEvent.change(screen.getByLabelText("Время рождения"), { target: { value: "14:25" } });
-
     const combobox = screen.getByRole("combobox", { name: "Место рождения" });
     fireEvent.change(combobox, { target: { value: "Москва" } });
     await act(async () => {
       await vi.advanceTimersByTimeAsync(350);
     });
-    screen.getByRole("option", { name: city.label });
     fireEvent.keyDown(combobox, { key: "ArrowDown" });
     fireEvent.keyDown(combobox, { key: "Enter" });
 
     fireEvent.click(screen.getByRole("button", { name: /рассчитать карту/i }));
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(500);
+      await Promise.resolve();
     });
 
-    expect(screen.getByRole("status")).toHaveTextContent("Данные приняты");
+    expect(createChart).toHaveBeenCalledWith({
+      localDate: "1991-04-12",
+      localTime: "14:25",
+      placeId: city.id,
+      place: {
+        displayName: city.label,
+        countryCode: city.countryCode,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        timezone: city.timezone,
+      },
+      timeAccuracy: "exact",
+    });
+    expect(onChartCreated).toHaveBeenCalledWith("chart-test-1");
+    expect(screen.getByRole("status")).toHaveTextContent("Карта принята. Переходим к расчёту.");
     expect(screen.getByLabelText("Имя")).toHaveValue("Анна");
   });
 });

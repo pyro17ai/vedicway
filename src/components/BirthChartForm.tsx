@@ -14,6 +14,8 @@ import {
   MapPin,
 } from "lucide-react";
 
+import { ApiError, createChart } from "../lib/chart-api";
+import { trackWorkspaceEvent } from "../lib/analytics";
 import { searchCities, type CityOption } from "../lib/city-search";
 
 type FieldName = "name" | "birthDate" | "birthTime" | "birthPlace";
@@ -26,6 +28,10 @@ type FormValues = {
 
 type Errors = Partial<Record<FieldName, string>>;
 type SearchState = "idle" | "loading" | "ready" | "empty" | "error";
+
+type BirthChartFormProps = {
+  onChartCreated?: (chartId: string) => void;
+};
 
 const initialValues: FormValues = {
   name: "",
@@ -48,7 +54,7 @@ function errorForField(
   return "";
 }
 
-export function BirthChartForm() {
+export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>({});
@@ -61,12 +67,12 @@ export function BirthChartForm() {
   const [retryNonce, setRetryNonce] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [timeAccuracy, setTimeAccuracy] = useState<"exact" | "approximate_15m" | "approximate_hour" | "unknown">("exact");
 
   const nameRef = useRef<HTMLInputElement>(null);
   const birthDateRef = useRef<HTMLInputElement>(null);
   const birthTimeRef = useRef<HTMLInputElement>(null);
   const birthPlaceRef = useRef<HTMLInputElement>(null);
-  const submitTimerRef = useRef<number | null>(null);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
@@ -108,15 +114,6 @@ export function BirthChartForm() {
       controller.abort();
     };
   }, [cityQuery, retryNonce, selectedCity]);
-
-  useEffect(
-    () => () => {
-      if (submitTimerRef.current !== null) {
-        window.clearTimeout(submitTimerRef.current);
-      }
-    },
-    [],
-  );
 
   const refs: Record<FieldName, React.RefObject<HTMLInputElement | null>> = {
     name: nameRef,
@@ -184,7 +181,7 @@ export function BirthChartForm() {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitMessage("");
 
@@ -205,10 +202,30 @@ export function BirthChartForm() {
     }
 
     setIsSubmitting(true);
-    submitTimerRef.current = window.setTimeout(() => {
+    setSubmitMessage("Проверяем данные");
+    try {
+      const result = await createChart({
+        localDate: values.birthDate,
+        localTime: values.birthTime,
+        placeId: selectedCity!.id,
+        place: {
+          displayName: selectedCity!.label,
+          countryCode: selectedCity!.countryCode,
+          latitude: selectedCity!.latitude,
+          longitude: selectedCity!.longitude,
+          timezone: selectedCity!.timezone,
+        },
+        timeAccuracy,
+      });
+      window.sessionStorage.setItem(`vedicway:profile:${result.chart_id}`, JSON.stringify({ name: values.name.trim() }));
+      trackWorkspaceEvent("chart_create_accepted", { time_accuracy: timeAccuracy });
+      setSubmitMessage("Карта принята. Переходим к расчёту.");
+      onChartCreated?.(result.chart_id);
+    } catch (error) {
       setIsSubmitting(false);
-      setSubmitMessage("Данные приняты. Переходим к расчёту натальной карты.");
-    }, 500);
+      setSubmitMessage(error instanceof ApiError ? error.message : "Не удалось отправить данные. Проверьте соединение и повторите.");
+      trackWorkspaceEvent("chart_create_failed", { code: error instanceof ApiError ? error.code ?? "api" : "network" });
+    }
   }
 
   return (
@@ -405,6 +422,25 @@ export function BirthChartForm() {
         <input type="hidden" name="latitude" value={selectedCity?.latitude ?? ""} />
         <input type="hidden" name="longitude" value={selectedCity?.longitude ?? ""} />
         <input type="hidden" name="timezone" value={selectedCity?.timezone ?? ""} />
+
+        <fieldset className="time-accuracy" aria-describedby="time-accuracy-hint">
+          <legend>Точность времени</legend>
+          <div className="time-accuracy__choices">
+            <label>
+              <input type="radio" name="timeAccuracy" value="exact" checked={timeAccuracy === "exact"} onChange={() => setTimeAccuracy("exact")} />
+              Точно
+            </label>
+            <label>
+              <input type="radio" name="timeAccuracy" value="approximate_15m" checked={timeAccuracy === "approximate_15m"} onChange={() => setTimeAccuracy("approximate_15m")} />
+              До 15 минут
+            </label>
+            <label>
+              <input type="radio" name="timeAccuracy" value="approximate_hour" checked={timeAccuracy === "approximate_hour"} onChange={() => setTimeAccuracy("approximate_hour")} />
+              Примерно
+            </label>
+          </div>
+          <small id="time-accuracy-hint">Лагна, дома и дробные карты чувствительны к минутам рождения.</small>
+        </fieldset>
 
         <button className="submit-button" type="submit" disabled={isSubmitting}>
           <span>{isSubmitting ? "РАССЧИТЫВАЕМ..." : "РАССЧИТАТЬ КАРТУ"}</span>

@@ -35,6 +35,12 @@ body {
   background: #050506;
 }
 
+.site-main {
+  min-width: 320px;
+  overflow: clip;
+  background: #050506;
+}
+
 button,
 input {
   font: inherit;
@@ -825,5 +831,1192 @@ svg {
 
   .astrology-wheel {
     will-change: auto;
+  }
+}
+
+/* Results showcase */
+
+.results-showcase {
+  position: relative;
+  isolation: isolate;
+  min-height: max(941px, 100svh);
+  overflow: hidden;
+  color: #f2eee8;
+  background:
+    linear-gradient(90deg, rgba(4, 5, 6, 0.97) 0, rgba(5, 6, 7, 0.7) 20%, rgba(5, 6, 7, 0.27) 56%, rgba(5, 6, 7, 0.64) 100%),
+    linear-gradient(0deg, rgba(4, 5, 6, 0.64), transparent 42%),
+    url("/assets/results-space.png") center / cover no-repeat,
+    #060708;
+  --results-panel: rgba(11, 11, 11, 0.83);
+  --results-panel-soft: rgba(15, 14, 13, 0.74);
+  --results-border: rgba(231, 223, 214, 0.14);
+  --results-muted: #aaa6a2;
+  --results-accent: #ef792c;
+  --results-accent-soft: #d96829;
+}
+
+.results-showcase::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background:
+    radial-gradient(circle at 62% 28%, rgba(220, 91, 28, 0.08), transparent 31%),
+    linear-gradient(90deg, rgba(3, 4, 5, 0.72) 0 15.7%, transparent 34% 72%, rgba(3, 4, 5, 0.34));
+  pointer-events: none;
+}
+
+.results-showcase__veil {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: radial-gradient(circle at 54% 48%, transparent 0 28%, rgba(4, 5, 6, 0.13) 58%, rgba(4, 5, 6, 0.3) 100%);
+  pointer-events: none;
+}
+
+.results-sidebar {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: 262px;
+  padding: 95px 0 30px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(90deg, rgba(5, 6, 7, 0.96), rgba(7, 8, 9, 0.79) 73%, rgba(7, 8, 9, 0.39)),
+    radial-gradient(circle at 15% 80%, rgba(224, 91, 28, 0.14), transparent 34%);
+}
+
+.results-sidebar__tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.results-sidebar__tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: calc(100% - 17px);
+  min-height: 69px;
+  padding: 0 20px 0 39px;
+  border-radius: 0 13px 13px 0;
+  color: #e7e4df;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  text-align: left;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.results-sidebar__tab::before {
+  position: absolute;
+  top: 21px;
+  bottom: 21px;
+  left: 16px;
+  width: 2px;
+  border-radius: 99px;
+  content: "";
+  background: transparent;
+  box-shadow: none;
+}
+
+.results-sidebar__tab > svg {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  margin-right: 17px;
+  color: #e9803f;
+  stroke-width: 1.45;
+}
+
+.results-sidebar__tab:hover {
+  color: #fff8ef;
+  background: rgba(232, 112, 43, 0.06);
+}
+
+.results-sidebar__tab[aria-selected="true"] {
+  color: #f18a43;
+  background:
+    linear-gradient(90deg, rgba(174, 79, 29, 0.25), rgba(64, 40, 28, 0.18) 75%, transparent),
+    rgba(255, 255, 255, 0.018);
+}
+
+.results-sidebar__tab[aria-selected="true"]::before {
+  background: #f17d32;
+  box-shadow: 0 0 14px rgba(242, 111, 39, 0.72);
+}
+
+.results-sidebar__tab:focus-visible,
+.results-download:focus-visible,
+.result-data-tab:focus-visible {
+  outline: 2px solid #ffad72;
+  outline-offset: -3px;
+}
+
+.results-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 184px;
+  min-height: 56px;
+  margin: auto auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  border-radius: 9px;
+  color: #e7e4df;
+  background: rgba(5, 6, 7, 0.34);
+  cursor: pointer;
+  font-size: 14px;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.results-download svg {
+  width: 18px;
+  height: 18px;
+  color: var(--results-accent);
+  stroke-width: 1.6;
+}
+
+.results-download:hover {
+  border-color: rgba(240, 123, 52, 0.55);
+  background: rgba(221, 98, 34, 0.08);
+}
+
+.results-download:active {
+  transform: translateY(1px);
+}
+
+.results-profile {
+  position: absolute;
+  z-index: 5;
+  top: 30px;
+  right: 35px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ddd9d4;
+  font-size: 14px;
+}
+
+.results-profile__icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(236, 126, 55, 0.42);
+  border-radius: 50%;
+  color: #e77c37;
+}
+
+.results-profile__icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.45;
+}
+
+.results-profile > svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 1px;
+  color: #d6793e;
+  stroke-width: 1.5;
+}
+
+.results-stage {
+  position: relative;
+  z-index: 2;
+  min-height: max(941px, 100svh);
+  margin-left: 262px;
+  padding: 64px 34px 28px 44px;
+}
+
+.results-panel {
+  width: 100%;
+  min-height: 100%;
+  will-change: transform, opacity;
+}
+
+.result-view-heading h2,
+.explanation-section > h3,
+.foundation-card h4,
+.additional-card h4,
+.question-card h3,
+.key-aspects-card h3 {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+.result-view-heading h2 {
+  margin: 0;
+  color: #f2eee8;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.018em;
+}
+
+.result-view-heading > p {
+  margin: 11px 0 0;
+  color: var(--results-muted);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.result-chart-heading > p {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.result-chart-heading > p svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+  color: var(--results-accent);
+  stroke-width: 1.45;
+}
+
+.result-chart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 426px;
+  gap: 30px;
+  margin-top: -16px;
+}
+
+.result-chart-center {
+  min-width: 0;
+}
+
+.natal-graphic {
+  width: min(100%, 648px);
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+  color: rgba(241, 125, 56, 0.95);
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.34));
+}
+
+.natal-graphic__surface {
+  stroke: rgba(232, 115, 49, 0.16);
+  stroke-width: 1;
+}
+
+.natal-graphic__halo {
+  fill: none;
+  stroke: rgba(232, 115, 49, 0.26);
+  stroke-width: 2;
+  filter: url("#chart-glow");
+}
+
+.natal-graphic__cell rect {
+  fill: rgba(14, 13, 12, 0.66);
+  stroke: rgba(224, 215, 204, 0.48);
+  stroke-width: 1.2;
+}
+
+.natal-graphic__cell:nth-child(4) rect,
+.natal-graphic__cell:nth-child(7) rect,
+.natal-graphic__cell:nth-child(10) rect {
+  stroke: rgba(235, 226, 216, 0.68);
+}
+
+.natal-graphic__cell line {
+  stroke: rgba(222, 124, 66, 0.24);
+  stroke-width: 1;
+}
+
+.natal-graphic__cell-index {
+  fill: rgba(218, 211, 202, 0.46);
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 11px;
+  text-anchor: start !important;
+}
+
+.natal-graphic__zodiac-glyph {
+  fill: #f07b30;
+  font-size: 29px;
+}
+
+.natal-graphic__zodiac-label {
+  fill: rgba(218, 126, 73, 0.83);
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px;
+}
+
+.natal-graphic text,
+.astrology-symbol,
+.additional-card__glyph,
+.moon-phases {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", serif;
+  font-variant-emoji: text;
+}
+
+.natal-graphic text {
+  text-anchor: middle;
+  user-select: none;
+}
+
+.natal-graphic__planet-token {
+  fill: #efa064;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 11px;
+  text-anchor: start !important;
+}
+
+.natal-graphic__planet-token--lagna {
+  fill: #f2c097;
+  font-weight: 700;
+}
+
+.natal-graphic__center {
+  pointer-events: none;
+}
+
+.natal-graphic__center-kicker {
+  fill: #c57b4c;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.natal-graphic__center-title {
+  fill: #f2eee8;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.natal-graphic__center-copy {
+  fill: rgba(218, 211, 202, 0.6);
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px;
+}
+
+.natal-graphic__core {
+  fill: #f07a31;
+  filter: url("#chart-glow");
+}
+
+.result-chart-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  margin-top: -58px;
+}
+
+.result-data-card,
+.key-aspects-card,
+.foundation-card,
+.planet-meaning-row,
+.additional-card,
+.question-card,
+.questions-note,
+.chart-summary {
+  border: 1px solid var(--results-border);
+  background:
+    radial-gradient(circle at 18% 4%, rgba(222, 111, 50, 0.045), transparent 33%),
+    linear-gradient(140deg, rgba(17, 17, 17, 0.87), rgba(8, 9, 10, 0.79));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 16px 42px rgba(0, 0, 0, 0.14);
+}
+
+.result-data-card {
+  min-height: 493px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.result-data-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 74px;
+  padding: 24px 27px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.result-data-tab {
+  position: relative;
+  min-height: 49px;
+  padding: 0 7px 19px;
+  color: #e4e0dc;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.result-data-tab::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: transparent;
+}
+
+.result-data-tab[aria-selected="true"] {
+  color: var(--results-accent);
+  background: linear-gradient(0deg, rgba(225, 99, 35, 0.1), transparent 74%);
+}
+
+.result-data-tab[aria-selected="true"]::after {
+  background: var(--results-accent);
+  box-shadow: 0 0 10px rgba(239, 121, 44, 0.5);
+}
+
+.result-data-list {
+  padding: 25px 29px 26px;
+}
+
+.result-data-row {
+  display: grid;
+  grid-template-columns: 25px minmax(105px, 1.25fr) minmax(90px, 0.95fr) 72px;
+  align-items: center;
+  min-height: 32px;
+  color: #d7d3ce;
+  font-size: 13px;
+}
+
+.result-data-row .astrology-symbol {
+  color: var(--results-accent);
+  font-size: 19px;
+}
+
+.result-data-row span:nth-child(3) {
+  color: #dd7132;
+}
+
+.result-data-row span:last-child {
+  color: #e1ddd8;
+  text-align: right;
+}
+
+.key-aspects-card {
+  min-height: 321px;
+  padding: 31px 28px;
+  border-radius: 14px;
+}
+
+.key-aspects-card h3 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.key-aspects-card p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 41px;
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  color: #dedad4;
+  font-size: 13px;
+}
+
+.key-aspects-card p b {
+  margin: 0 5px;
+  color: var(--results-accent);
+  font-family: "Segoe UI Symbol", serif;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.chart-summary {
+  display: grid;
+  grid-template-columns: 1.1fr 1.22fr 1.03fr 2.2fr;
+  min-height: 130px;
+  margin-top: -37px;
+  overflow: hidden;
+  border-radius: 13px;
+}
+
+.chart-summary__fact,
+.chart-summary__balance {
+  padding: 23px 23px 18px;
+}
+
+.chart-summary__fact + .chart-summary__fact,
+.chart-summary__balance {
+  border-left: 1px solid rgba(255, 255, 255, 0.075);
+}
+
+.chart-summary small {
+  display: block;
+  min-height: 24px;
+  color: #cbc7c2;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.chart-summary__fact p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0 0;
+  color: #e4e0db;
+  font-size: 13px;
+}
+
+.chart-summary__fact p .astrology-symbol {
+  color: var(--results-accent);
+  font-size: 21px;
+}
+
+.chart-summary__balance > div {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.chart-summary__balance span {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  color: #cbc7c3;
+  font-size: 11px;
+  line-height: 1.32;
+}
+
+.chart-summary__balance b {
+  margin-bottom: 4px;
+  color: var(--results-accent);
+  font-family: "Segoe UI Symbol", serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.chart-summary__balance em {
+  color: #9e9a96;
+  font-style: normal;
+}
+
+.result-explanation-view,
+.result-questions-view {
+  padding-top: 2px;
+}
+
+.explanation-section > h3 {
+  margin: 22px 0 10px;
+  color: #ebe7e1;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.foundation-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.foundation-card {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  gap: 12px;
+  min-height: 202px;
+  padding: 22px 21px 17px;
+  border-radius: 10px;
+}
+
+.foundation-card > .astrology-symbol {
+  color: var(--results-accent);
+  font-size: 35px;
+  line-height: 1;
+}
+
+.foundation-card h4,
+.additional-card h4 {
+  margin: 0;
+  color: #eeebe5;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.foundation-card p {
+  margin: 12px 0 13px;
+  color: #aaa6a1;
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.foundation-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--results-accent);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.foundation-card__link svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.4;
+}
+
+.foundation-card__link:focus-visible,
+.question-card:focus-visible {
+  outline: 2px solid #ffad72;
+  outline-offset: 3px;
+}
+
+.foundation-card__detail {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #c3bbb4 !important;
+  font-size: 10px !important;
+}
+
+.planet-meaning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 18px;
+}
+
+.planet-meaning-row {
+  display: grid;
+  grid-template-columns: 30px 100px 1fr 18px;
+  align-items: center;
+  min-height: 54px;
+  padding: 7px 14px;
+  border-radius: 8px;
+}
+
+.planet-meaning-row .astrology-symbol {
+  color: var(--results-accent);
+  font-size: 22px;
+}
+
+.planet-meaning-row h4 {
+  margin: 0;
+  color: #e9813f;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.planet-meaning-row p {
+  margin: 0;
+  color: #a9a5a0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.planet-meaning-row > svg {
+  width: 15px;
+  height: 15px;
+  color: var(--results-accent);
+  stroke-width: 1.35;
+}
+
+.additional-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.additional-card {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 13px;
+  min-height: 116px;
+  padding: 20px 17px;
+  border-radius: 10px;
+}
+
+.additional-card__glyph {
+  display: grid;
+  width: 37px;
+  height: 37px;
+  place-items: center;
+  border: 1px solid #dc6d2f;
+  border-radius: 50%;
+  color: var(--results-accent);
+  font-size: 13px;
+}
+
+.additional-card h4 {
+  font-size: 16px;
+}
+
+.additional-card p {
+  margin: 10px 0 0;
+  color: #9f9b97;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.result-questions-view .result-view-heading {
+  margin-top: 25px;
+}
+
+.question-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
+  margin-top: 44px;
+}
+
+.question-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 20px;
+  min-height: 249px;
+  padding: 38px 37px 45px;
+  border-radius: 12px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.question-card[aria-expanded="true"] {
+  border-color: rgba(239, 121, 44, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 185, 132, 0.08), 0 16px 42px rgba(0, 0, 0, 0.2);
+}
+
+.question-card__glyph {
+  color: var(--results-accent);
+  font-size: 48px;
+  line-height: 1;
+}
+
+.question-card h3 {
+  margin: 6px 0 18px;
+  color: #f0ece6;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.question-card p {
+  max-width: 24ch;
+  margin: 0;
+  color: #b2aeaa;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.68;
+}
+
+.question-card__detail {
+  display: block;
+  margin-top: 16px;
+  color: var(--results-accent);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.question-card > svg {
+  position: absolute;
+  bottom: 34px;
+  left: 40px;
+  width: 20px;
+  height: 20px;
+  color: var(--results-accent);
+  stroke-width: 1.45;
+}
+
+.questions-note {
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  min-height: 104px;
+  margin-top: 47px;
+  padding: 20px 28px;
+  border-radius: 12px;
+}
+
+.questions-note > svg {
+  width: 46px;
+  height: 46px;
+  color: #c16b38;
+  stroke-width: 1.1;
+}
+
+.questions-note p {
+  margin: 0;
+  color: #aaa6a2;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.55;
+}
+
+.moon-phases {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #b66c3c;
+  font-size: 15px;
+}
+
+.moon-phases b {
+  color: var(--results-accent);
+  font-size: 38px;
+  font-weight: 400;
+}
+
+@media (max-width: 1480px) {
+  .result-chart-layout {
+    grid-template-columns: minmax(0, 1fr) 370px;
+    gap: 22px;
+  }
+
+  .result-data-row {
+    grid-template-columns: 24px minmax(88px, 1.15fr) minmax(78px, 0.85fr) 68px;
+    font-size: 12px;
+  }
+
+  .foundation-grid,
+  .additional-grid {
+    gap: 13px;
+  }
+
+  .question-grid {
+    gap: 18px;
+  }
+
+  .question-card {
+    padding-right: 25px;
+    padding-left: 28px;
+  }
+}
+
+@media (max-width: 1230px) {
+  .results-stage {
+    padding-right: 27px;
+    padding-left: 34px;
+  }
+
+  .result-chart-layout {
+    grid-template-columns: 1fr;
+    margin-top: 2px;
+  }
+
+  .natal-graphic {
+    width: min(100%, 670px);
+  }
+
+  .result-chart-aside {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(290px, 0.85fr);
+    margin-top: 18px;
+  }
+
+  .key-aspects-card {
+    min-height: auto;
+  }
+
+  .chart-summary {
+    margin-top: -24px;
+  }
+
+  .results-showcase,
+  .results-stage {
+    min-height: 1490px;
+  }
+
+  .foundation-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foundation-card {
+    min-height: 172px;
+  }
+
+  .additional-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .result-explanation-view .planet-meaning-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .question-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .results-showcase {
+    min-height: 0;
+    overflow: clip;
+    background-position: 43% center;
+  }
+
+  .results-sidebar {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+    min-height: 148px;
+    padding: 74px 22px 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(5, 6, 7, 0.8);
+  }
+
+  .results-sidebar__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    flex: 1 1 auto;
+    gap: 5px;
+  }
+
+  .results-sidebar__tab {
+    justify-content: center;
+    width: 100%;
+    min-height: 58px;
+    padding: 0 12px;
+    border-radius: 9px;
+    text-align: center;
+  }
+
+  .results-sidebar__tab::before {
+    top: auto;
+    right: 22px;
+    bottom: 0;
+    left: 22px;
+    width: auto;
+    height: 2px;
+  }
+
+  .results-sidebar__tab > svg {
+    margin-right: 9px;
+  }
+
+  .results-download {
+    width: 52px;
+    flex: 0 0 52px;
+    margin: 0 0 0 10px;
+  }
+
+  .results-download span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .results-profile {
+    top: 20px;
+    right: 23px;
+  }
+
+  .results-stage {
+    min-height: 0;
+    margin-left: 0;
+    padding: 40px 24px 50px;
+  }
+
+  .result-chart-aside {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .chart-summary__balance {
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(255, 255, 255, 0.075);
+    border-left: 0;
+  }
+
+  .question-card {
+    min-height: 225px;
+  }
+
+  .questions-note {
+    grid-template-columns: 46px 1fr;
+  }
+
+  .moon-phases {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .results-sidebar {
+    align-items: stretch;
+    flex-direction: column;
+    min-height: 0;
+    padding: 65px 14px 13px;
+  }
+
+  .results-sidebar__tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+  }
+
+  .results-sidebar__tab {
+    width: 100%;
+    min-width: 0;
+    min-height: 58px;
+    padding: 0 6px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .results-sidebar__tab > svg {
+    width: 19px;
+    height: 19px;
+    margin-right: 6px;
+  }
+
+  .results-download {
+    width: 100%;
+    min-height: 44px;
+    margin: 9px 0 0;
+  }
+
+  .results-download span {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .results-profile {
+    right: 16px;
+  }
+
+  .results-stage {
+    padding: 32px 16px 40px;
+  }
+
+  .result-view-heading h2 {
+    font-size: 31px;
+  }
+
+  .result-view-heading > p br {
+    display: none;
+  }
+
+  .result-chart-heading > p {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .natal-graphic {
+    width: calc(100% + 18px);
+    margin-left: -9px;
+  }
+
+  .chart-summary {
+    grid-template-columns: 1fr;
+    margin-top: -8px;
+  }
+
+  .chart-summary__fact + .chart-summary__fact,
+  .chart-summary__balance {
+    border-top: 1px solid rgba(255, 255, 255, 0.075);
+    border-left: 0;
+  }
+
+  .chart-summary__balance {
+    grid-column: auto;
+  }
+
+  .result-data-tabs {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .result-data-list {
+    padding-right: 17px;
+    padding-left: 17px;
+  }
+
+  .result-data-row {
+    grid-template-columns: 22px 1fr auto;
+    gap: 6px;
+    min-height: 43px;
+  }
+
+  .result-data-row span:nth-child(3) {
+    display: none;
+  }
+
+  .foundation-grid,
+  .planet-meaning-grid,
+  .additional-grid,
+  .question-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .foundation-card {
+    min-height: 0;
+  }
+
+  .planet-meaning-row {
+    grid-template-columns: 28px 86px 1fr;
+    min-height: 72px;
+  }
+
+  .planet-meaning-row > svg {
+    display: none;
+  }
+
+  .question-grid {
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  .question-card {
+    min-height: 220px;
+    padding: 32px 24px 42px;
+  }
+
+  .question-card h3 {
+    font-size: 21px;
+  }
+
+  .question-card p {
+    font-size: 14px;
+  }
+
+  .questions-note {
+    grid-template-columns: 1fr;
+    margin-top: 24px;
+    text-align: left;
+  }
+}
+
+@media print {
+  .hero,
+  .results-sidebar,
+  .results-profile {
+    display: none !important;
+  }
+
+  .results-showcase,
+  .results-stage {
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    color: #111;
+    background: #fff;
   }
 }
