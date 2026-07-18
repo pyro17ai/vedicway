@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import os
 import time
+from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from vedicway_backend.main import create_app
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
+
+PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"))
 
 
 def _wait_for(client: TestClient, chart_id: str, predicate, timeout: float = 12.0):
@@ -22,6 +27,7 @@ def _wait_for(client: TestClient, chart_id: str, predicate, timeout: float = 12.
     raise AssertionError(last)
 
 
+@pytest.mark.skipif(not PYJHORA_SOURCE.exists(), reason="own PyJHora source is required")
 def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
     store = Store(tmp_path / "runtime")
     app = create_app(store=store, worker=ChartWorker(store))

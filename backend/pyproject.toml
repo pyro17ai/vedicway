@@ -32,6 +32,9 @@ target-version = "py311"
 select = ["E", "W", "F", "I", "UP"]
 ignore = ["E501"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["vedicway_backend"]
+
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"

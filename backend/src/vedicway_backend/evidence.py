@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .constants import DOMAIN_LABELS_RU, DOMAIN_ORDER, PLANET_LABELS_RU, DomainSlug
@@ -56,11 +56,11 @@ def _period_datetime(value: object) -> datetime | None:
         result = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
-    return result if result.tzinfo else result.replace(tzinfo=timezone.utc)
+    return result if result.tzinfo else result.replace(tzinfo=UTC)
 
 
 def _active_period(periods: list[dict[str, Any]], reference: datetime) -> tuple[int, dict[str, Any]] | None:
-    reference = reference if reference.tzinfo else reference.replace(tzinfo=timezone.utc)
+    reference = reference if reference.tzinfo else reference.replace(tzinfo=UTC)
     for index, period in enumerate(periods):
         start = _period_datetime(period.get("start"))
         end = _period_datetime(period.get("end"))

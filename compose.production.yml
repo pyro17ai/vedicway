@@ -1,0 +1,365 @@
+name: ${COMPOSE_PROJECT_NAME:-vedicway}
+
+x-backend-common: &backend-common
+  image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+  build:
+    context: .
+    dockerfile: docker/backend/Dockerfile
+    args:
+      CODEX_CLI_VERSION: ${CODEX_CLI_VERSION:-0.144.6}
+    additional_contexts:
+      pyjhora: ${PYJHORA_WHEELHOUSE_DIR:?Set PYJHORA_WHEELHOUSE_DIR to a verified Linux wheelhouse}
+  env_file:
+    - .env.production
+  environment: &backend-environment
+    VEDICWAY_ENV: production
+    VEDICWAY_TEST_PAYMENTS: "0"
+    VEDICWAY_PAYMENT_PROVIDER: yookassa
+    VEDICWAY_INTERPRETATION_PROVIDER: codex
+    VEDICWAY_INLINE_WORKER: "0"
+    VEDICWAY_STORAGE_MODE: split
+    VEDICWAY_RUNTIME_PROFILE: single-node-sqlite
+    VEDICWAY_DATA_DIR: /var/lib/vedicway/data
+    VEDICWAY_MEDIA_DIR: /var/lib/vedicway/media
+    VEDICWAY_CODEX_HOME: /var/lib/vedicway/codex-home
+    VEDICWAY_AGENT_WORKDIR: /var/lib/vedicway/agent-workdir
+    VEDICWAY_CODEX_EXECUTABLE: /usr/local/bin/codex
+    VEDICWAY_PLACE_DATASET_PATH: /run/config/places.json
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+    POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+    POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    VEDICWAY_DATA_KEY_FILE: /run/secrets/vedicway_data_key
+    VEDICWAY_SIGNING_KEY_FILE: /run/secrets/vedicway_signing_key
+    VEDICWAY_OPERATIONS_TOKEN_FILE: /run/secrets/vedicway_operations_token
+    VEDICWAY_METRICS_TOKEN_FILE: /run/secrets/vedicway_metrics_token
+    YOOKASSA_SHOP_ID_FILE: /run/secrets/yookassa_shop_id
+    YOOKASSA_SECRET_KEY_FILE: /run/secrets/yookassa_secret_key
+    CODEX_API_KEY_FILE: /run/secrets/codex_api_key
+    FORWARDED_ALLOW_IPS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
+    VEDICWAY_TRUSTED_PROXY_CIDRS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
+  secrets: &backend-secrets
+    - postgres_password
+    - vedicway_data_key
+    - vedicway_signing_key
+    - vedicway_operations_token
+    - vedicway_metrics_token
+    - yookassa_shop_id
+    - yookassa_secret_key
+    - codex_api_key
+  configs:
+    - source: places
+      target: /run/config/places.json
+      mode: 0444
+  volumes: &backend-volumes
+    - runtime_data:/var/lib/vedicway/data
+    - media_data:/var/lib/vedicway/media
+  networks:
+    - edge
+    - data
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=512m,uid=10001,gid=10001,mode=1770
+    - /var/lib/vedicway/codex-home:rw,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=0700
+    - /var/lib/vedicway/agent-workdir:rw,noexec,nosuid,nodev,size=16m,uid=10001,gid=10001,mode=0500
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  pids_limit: 512
+  shm_size: 256m
+  init: true
+  restart: unless-stopped
+  stop_grace_period: 45s
+
+services:
+  postgres:
+    image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    stop_grace_period: 60s
+
+  migrate:
+    image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
+    entrypoint: ["/bin/sh", "/opt/vedicway/run-migrations.sh"]
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - ./backend/migrations:/migrations:ro
+      - ./docker/postgres/run-migrations.sh:/opt/vedicway/run-migrations.sh:ro
+    networks:
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+  content-migrate:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    entrypoint: ["/usr/local/bin/vedicway-run-alembic"]
+    user: "10001:10001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  bootstrap-admin:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["bootstrap"]
+    entrypoint: ["python", "/opt/vedicway/backend/scripts/bootstrap_admin.py"]
+    user: "10001:10001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      VEDICWAY_BOOTSTRAP_ADMIN_NAME: ${VEDICWAY_BOOTSTRAP_ADMIN_NAME:-Администратор}
+    secrets:
+      - postgres_password
+      - admin_bootstrap_email
+      - admin_bootstrap_password
+    networks:
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      content-migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  backend:
+    <<: *backend-common
+    depends_on:
+      content-migrate:
+        condition: service_completed_successfully
+
+  worker:
+    <<: *backend-common
+    command: ["python", "-m", "vedicway_backend.worker"]
+    environment:
+      <<: *backend-environment
+      VEDICWAY_INLINE_WORKER: "0"
+    secrets: *backend-secrets
+    volumes: *backend-volumes
+    healthcheck:
+      disable: true
+    depends_on:
+      content-migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-vedicway-frontend}:${RELEASE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        VITE_PUBLIC_ORIGIN: ${VEDICWAY_PUBLIC_ORIGIN:-}
+        VITE_YANDEX_METRIKA_ID: ${VITE_YANDEX_METRIKA_ID:-}
+    ports:
+      - "${PUBLIC_HTTP_BIND:-127.0.0.1}:${PUBLIC_HTTP_PORT:-8080}:8080"
+    networks:
+      - edge
+    depends_on:
+      backend:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=101,gid=101,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    restart: unless-stopped
+    stop_grace_period: 20s
+
+  backup:
+    image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
+    profiles: ["ops"]
+    entrypoint: ["/bin/sh", "/opt/vedicway/backup.sh"]
+    user: "10001:10001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      BACKUP_DIR: /backups
+    secrets:
+      - postgres_password
+    volumes:
+      - ./backups:/backups
+      - ./docker/postgres/backup.sh:/opt/vedicway/backup.sh:ro
+    networks:
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+  restore:
+    image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
+    profiles: ["ops"]
+    entrypoint: ["/bin/sh", "/opt/vedicway/restore.sh"]
+    user: "10001:10001"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      BACKUP_DIR: /backups
+      RESTORE_FILE: ${RESTORE_FILE:-}
+      CONFIRM_RESTORE: ${CONFIRM_RESTORE:-}
+    secrets:
+      - postgres_password
+    volumes:
+      - ./backups:/backups:ro
+      - ./docker/postgres/restore.sh:/opt/vedicway/restore.sh:ro
+    networks:
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+  runtime-backup:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    entrypoint: ["python", "/opt/vedicway/backend/scripts/runtime_backup.py"]
+    command: ["backup"]
+    user: "10001:10001"
+    volumes:
+      - runtime_data:/var/lib/vedicway/data:ro
+      - media_data:/var/lib/vedicway/media:ro
+      - ./backups:/backups
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+  runtime-restore:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    entrypoint: ["python", "/opt/vedicway/backend/scripts/runtime_backup.py"]
+    command: ["restore"]
+    user: "10001:10001"
+    environment:
+      RESTORE_RUNTIME_FILE: ${RESTORE_RUNTIME_FILE:-}
+      CONFIRM_RUNTIME_RESTORE: ${CONFIRM_RUNTIME_RESTORE:-}
+    volumes:
+      - runtime_data:/var/lib/vedicway/data
+      - media_data:/var/lib/vedicway/media
+      - ./backups:/backups:ro
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=512m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+networks:
+  edge:
+    ipam:
+      config:
+        - subnet: ${VEDICWAY_DOCKER_SUBNET:-172.29.0.0/24}
+  data:
+    internal: true
+
+volumes:
+  postgres_data:
+  runtime_data:
+  media_data:
+
+configs:
+  places:
+    file: ${VEDICWAY_PLACE_DATASET_FILE:?Set VEDICWAY_PLACE_DATASET_FILE to the licensed local JSON registry}
+
+secrets:
+  postgres_password:
+    file: ${POSTGRES_PASSWORD_FILE:-./secrets/postgres_password.txt}
+  vedicway_data_key:
+    file: ${VEDICWAY_DATA_KEY_FILE:-./secrets/vedicway_data_key.txt}
+  vedicway_signing_key:
+    file: ${VEDICWAY_SIGNING_KEY_FILE:-./secrets/vedicway_signing_key.txt}
+  vedicway_operations_token:
+    file: ${VEDICWAY_OPERATIONS_TOKEN_FILE:-./secrets/vedicway_operations_token.txt}
+  vedicway_metrics_token:
+    file: ${VEDICWAY_METRICS_TOKEN_FILE:-./secrets/vedicway_metrics_token.txt}
+  yookassa_shop_id:
+    file: ${YOOKASSA_SHOP_ID_FILE:-./secrets/yookassa_shop_id.txt}
+  yookassa_secret_key:
+    file: ${YOOKASSA_SECRET_KEY_FILE:-./secrets/yookassa_secret_key.txt}
+  codex_api_key:
+    file: ${CODEX_API_KEY_FILE:-./secrets/codex_api_key.txt}
+  admin_bootstrap_email:
+    file: ${VEDICWAY_BOOTSTRAP_ADMIN_EMAIL_FILE:-./secrets/admin_bootstrap_email.txt}
+  admin_bootstrap_password:
+    file: ${VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD_FILE:-./secrets/admin_bootstrap_password.txt}

@@ -8,3 +8,9 @@ test-results/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.env.production
+backups/
+runtime/*
+!runtime/README.md
+secrets/*.txt
+!secrets/README.md

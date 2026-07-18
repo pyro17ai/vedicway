@@ -1,0 +1,17 @@
+.git
+.github
+.playwright-cli
+.pytest_cache
+.venv
+artifacts
+backups
+backend/.data
+dist
+node_modules
+runtime
+secrets
+test-results
+VedicWay Light Version
+*.py[cod]
+*.tsbuildinfo
+*.log

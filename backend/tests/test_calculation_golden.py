@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+import os
+from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pytest
 
@@ -10,8 +12,10 @@ from vedicway_backend.places import PlaceRegistry
 from vedicway_backend.schemas import ChartCreateRequest, ChartSnapshot
 from vedicway_backend.time_normalization import resolve_birth_input
 
+PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"))
 
-@pytest.mark.skipif(not __import__("os").environ.get("VEDICWAY_PYJHORA_SOURCE"), reason="own PyJHora source is required")
+
+@pytest.mark.skipif(not PYJHORA_SOURCE.exists(), reason="own PyJHora source is required")
 def test_golden_moscow_lahiri_chart() -> None:
     request = ChartCreateRequest(local_date=date(2006, 10, 16), local_time="13:30", place_id="ru-moscow-524901")
     birth = resolve_birth_input(request, PlaceRegistry().get(request.place_id))
@@ -36,7 +40,7 @@ def test_golden_moscow_lahiri_chart() -> None:
     assert enriched.sections["D9"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(3.4194, abs=0.0001)
     assert enriched.sections["D10"]["data"]["ascendant"]["sign_label"] == "Дева"
     assert enriched.sections["D10"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(27.1326, abs=0.0001)
-    evidence_snapshot = enriched.model_copy(update={"created_at": datetime(2026, 7, 18, tzinfo=timezone.utc)})
+    evidence_snapshot = enriched.model_copy(update={"created_at": datetime(2026, 7, 18, tzinfo=UTC)})
     facts, packets = compile_evidence(evidence_snapshot)
     assert len({fact.id for fact in facts}) == len(facts)
     period_packet = next(packet for packet in packets if packet.slug.value == "current_period")

@@ -97,6 +97,8 @@ def _sse_frame(event: str | None = None, data: dict[str, Any] | None = None, eve
 
 
 async def _launch_worker(app: FastAPI) -> None:
+    if os.environ.get("VEDICWAY_INLINE_WORKER", "1").strip() == "0":
+        return
     task = getattr(app.state, "worker_task", None)
     if task and not task.done():
         return
