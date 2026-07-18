@@ -9,12 +9,12 @@ from dataclasses import dataclass
 from typing import Any
 
 from .calculator import calculate_expert_extended, calculate_extended, calculate_instant
-from .evidence import compile_evidence
 from .errors import DomainError
+from .evidence import compile_evidence
 from .interpretation import InterpretationProvider, provider_from_environment, validate_bundle
 from .observability import Metrics
 from .pdf import PdfRenderer
-from .schemas import ChartSnapshot, JobStatus, SectionStatus, section_model
+from .schemas import ChartSnapshot, JobStatus, PdfRenderPreferences, SectionStatus, section_model
 from .store import Store
 
 
@@ -217,7 +217,7 @@ class ChartWorker:
             )
         events.append(("report.ready", {"report_version": validated.schema_version}))
         self.store.commit_bundle_events(chart_id, validated, paid=True, events=events)
-        self.store.enqueue_job(chart_id, "pdf_v1", priority=60)
+        self.store.enqueue_pdf_job(chart_id, PdfRenderPreferences().model_dump(mode="json"), priority=60)
 
     def _start_agent_run(self, chart_id: str, job: dict[str, Any], facts, packets, paid: bool) -> str:
         payload = {
@@ -247,17 +247,36 @@ class ChartWorker:
         bundle = self.store.get_bundle(chart_id, paid=True)
         if snapshot is None or bundle is None:
             raise DomainError("REPORT_MISSING", "Полный отчёт ещё не готов", recoverable=True)
-        self.store.emit(chart_id, "pdf.started", {"report_version": bundle.schema_version})
-        self.store.upsert_report(chart_id, "generating")
+        payload = json.loads(job.get("payload_json") or "{}")
+        render_request_id = str(payload.get("render_request_id") or "")
+        render_request = self.store.get_pdf_render_request(render_request_id) if render_request_id else None
+        if render_request is None:
+            raise DomainError("PDF_REQUEST_MISSING", "Настройки PDF не найдены", recoverable=False)
+        preferences = PdfRenderPreferences.model_validate(render_request["preferences"])
+        self.store.update_pdf_render_request(render_request_id, "generating")
         try:
-            report = self.pdf_renderer.render(chart_id, snapshot, bundle)
+            report = self.pdf_renderer.render(chart_id, snapshot, bundle, preferences, render_request_id)
         except DomainError as exc:
-            self.store.commit_report_event(chart_id, "failed", {"job_type": "pdf_v1", "code": exc.code, "recoverable": exc.recoverable}, error_code=exc.code)
+            self.store.commit_report_event(
+                chart_id,
+                "failed",
+                {"job_type": "pdf_v1", "code": exc.code, "recoverable": exc.recoverable, "render_request_id": render_request_id},
+                error_code=exc.code,
+                render_request_id=render_request_id,
+                preferences_checksum=render_request["preferences_checksum"],
+            )
             raise
         self.store.commit_report_event(
             chart_id,
             "ready",
-            {"size": report["size_bytes"], "pages": report["pages"]},
+            {
+                "size": report["size_bytes"],
+                "pages": report["pages"],
+                "render_request_id": render_request_id,
+                "preferences": preferences.model_dump(mode="json"),
+            },
+            render_request_id=render_request_id,
+            preferences_checksum=render_request["preferences_checksum"],
             **report,
         )
 

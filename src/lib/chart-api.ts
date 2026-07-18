@@ -118,6 +118,8 @@ export type ChartResource = {
     pages?: number | null;
     size_bytes?: number | null;
     error_code?: string | null;
+    render_request_id?: string | null;
+    render_preferences?: PdfRenderPreferences | null;
   };
 };
 
@@ -243,6 +245,13 @@ export function confirmTestPurchase(purchaseId: string) {
 
 export type ReflectionStatus = "saved" | "thinking" | "return_later";
 
+export type PdfRenderPreferences = {
+  schema_version: "pdf-render-preferences.v1";
+  varga: string;
+  mode: "plain" | "expert";
+  chart_style: "south_indian";
+};
+
 export type SavedQuestion = {
   question_id: string;
   saved: boolean;
@@ -261,8 +270,16 @@ export function getSavedQuestions(chartId: string): Promise<{ items: SavedQuesti
   return request(`/api/v1/charts/${encodeURIComponent(chartId)}/questions/saved`);
 }
 
-export function startPdf(chartId: string) {
-  return request(`/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf`, { method: "POST" });
+export function startPdf(chartId: string, preferences: PdfRenderPreferences) {
+  return request<{
+    job_id: string;
+    render_request_id: string;
+    status: string;
+    preferences: PdfRenderPreferences;
+  }>(`/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf`, {
+    method: "POST",
+    body: JSON.stringify({ preferences }),
+  });
 }
 
 export function reportDownloadUrl(chartId: string) {
