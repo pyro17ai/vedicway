@@ -3,9 +3,9 @@ from __future__ import annotations
 import threading
 import time
 from collections import Counter, defaultdict
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterator
 
 
 def _labels(values: dict[str, str] | None = None) -> tuple[tuple[str, str], ...]:
@@ -20,7 +20,7 @@ def _format_labels(values: tuple[tuple[str, str], ...]) -> str:
 
 @dataclass(slots=True)
 class Timer:
-    metrics: "Metrics"
+    metrics: Metrics
     metric: str
     labels: dict[str, str]
     started: float

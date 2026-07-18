@@ -1,7 +1,7 @@
 // spec: docs/testing/chart-result-e2e.plan.md
 import { expect, test } from "playwright/test";
 
-import { createMoscowChart, waitForExplanation } from "./helpers";
+import { createMoscowChart, openTestCheckout, waitForExplanation } from "./helpers";
 
 test.describe("Доступ к подробному отчёту", () => {
   test("free-to-full-report", async ({ page }) => {
@@ -21,14 +21,15 @@ test.describe("Доступ к подробному отчёту", () => {
     await expect(paywall).toBeHidden();
     await expect(detailButton).toBeFocused();
 
-    // 3. Подтвердить тестовую оплату и запросить PDF.
-    await detailButton.click();
-    await page.getByRole("button", { name: "Открыть полный отчёт за 990 ₽" }).click();
-    await expect(page.getByRole("dialog")).toContainText("На чём основано");
+    // 3. Пройти redirect через локальный симулятор YooKassa и запросить PDF.
+    await openTestCheckout(page);
+    await page.getByRole("button", { name: "Оплатить тестовый заказ" }).click();
+    await expect(page).toHaveURL(/\/chart\/chart_[A-Za-z0-9_-]+\?.*tab=explanation/);
+    await expect(page.getByRole("dialog")).toContainText("На чём основано", { timeout: 45_000 });
     await page.getByRole("button", { name: "Закрыть подробный текст" }).click();
 
-    const pdfButton = page.getByRole("button", { name: /скачать PDF/i });
-    await expect(pdfButton).toBeEnabled({ timeout: 15_000 });
+    const pdfButton = page.locator(".rail-pdf");
+    await expect(pdfButton).toBeEnabled({ timeout: 45_000 });
     const download = page.waitForEvent("download");
     await pdfButton.click();
     const file = await download;
