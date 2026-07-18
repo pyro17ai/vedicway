@@ -16,15 +16,27 @@ from typing import Any
 
 from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from starlette.middleware.cors import CORSMiddleware
 
 from .calculator import warm_instant_runtime
 from .errors import DomainError
-from .places import PlaceRegistry
-from .payments import payment_provider_from_environment
 from .observability import Metrics
-from .schemas import ChartAccepted, ChartCreateRequest, PurchaseRequest, PurchaseResponse
+from .payments import payment_provider_from_environment
+from .places import PlaceRegistry
+from .schemas import (
+    ChartAccepted,
+    ChartCreateRequest,
+    PdfCreateRequest,
+    PurchaseRequest,
+    PurchaseResponse,
+)
 from .store import Store
 from .time_normalization import resolve_birth_input
 from .worker import ChartWorker
@@ -418,14 +430,20 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
         return {"items": app.state.store.saved_questions(chart_id)}
 
     @app.post("/api/v1/charts/{chart_id}/reports/pdf", status_code=status.HTTP_202_ACCEPTED)
-    async def create_pdf(chart_id: str, request: Request) -> dict[str, Any]:
+    async def create_pdf(chart_id: str, request: Request, payload: PdfCreateRequest = Body(default_factory=PdfCreateRequest)) -> dict[str, Any]:
         current_session = session(request)
         assert_owned(chart_id, current_session)
         if not app.state.store.has_entitlement(chart_id):
             raise DomainError("ENTITLEMENT_REQUIRED", "PDF входит в полный отчёт", recoverable=False, status_code=403)
-        job_id = app.state.store.enqueue_job(chart_id, "pdf_v1", priority=60)
+        preferences = payload.preferences.model_dump(mode="json")
+        job_id, render_request_id = app.state.store.enqueue_pdf_job(chart_id, preferences, priority=60)
         await _launch_worker(app)
-        return {"job_id": job_id, "status": app.state.store.get_report(chart_id)["status"]}
+        return {
+            "job_id": job_id,
+            "render_request_id": render_request_id,
+            "status": app.state.store.get_report(chart_id)["status"],
+            "preferences": preferences,
+        }
 
     @app.get("/api/v1/charts/{chart_id}/reports/pdf")
     async def get_pdf(chart_id: str, request: Request) -> Response:

@@ -261,6 +261,26 @@ class PdfStatus(BaseModel):
     error_code: str | None = None
 
 
+class PdfRenderPreferences(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    schema_version: Literal["pdf-render-preferences.v1"] = "pdf-render-preferences.v1"
+    varga: str = "D1"
+    mode: Literal["plain", "expert"] = "plain"
+    chart_style: Literal["south_indian"] = "south_indian"
+
+    @field_validator("varga")
+    @classmethod
+    def varga_must_be_supported(cls, value: str) -> str:
+        return validate_varga(value)
+
+
+class PdfCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    preferences: PdfRenderPreferences = Field(default_factory=PdfRenderPreferences)
+
+
 class ChartEvent(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
