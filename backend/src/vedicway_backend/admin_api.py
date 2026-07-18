@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import hmac
 import io
 import os
@@ -9,15 +11,17 @@ import uuid
 from html import escape
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, File, Form, Header, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from .content_store import ContentDatabase, User, token_hash
 from .errors import DomainError
 from .legal_config import public_legal_config
+from .payment_security import effective_client_ip
 
 ADMIN_COOKIE_DEV = "vw_admin"
 CSRF_COOKIE_DEV = "vw_admin_csrf"
@@ -80,6 +84,25 @@ class ArticlePayload(BaseModel):
             raise ValueError("Некорректный список изображений статьи")
         return values
 
+    @model_validator(mode="after")
+    def valid_canonical_url(self) -> ArticlePayload:
+        if not self.canonical_url.strip():
+            self.canonical_url = ""
+            return self
+        origin = (os.environ.get("VEDICWAY_PUBLIC_ORIGIN") or "https://vedicway.ru").rstrip("/")
+        expected = urlsplit(origin)
+        canonical = urlsplit(self.canonical_url.strip())
+        if (
+            canonical.scheme != expected.scheme
+            or canonical.netloc != expected.netloc
+            or canonical.path.rstrip("/") != f"/guide/{self.slug}"
+            or canonical.query
+            or canonical.fragment
+        ):
+            raise ValueError("Canonical должен совпадать с публичным адресом этой статьи")
+        self.canonical_url = self.canonical_url.strip()
+        return self
+
 
 def _database(request: Request) -> ContentDatabase:
     return request.app.state.content_db
@@ -112,6 +135,30 @@ def _client_ip(request: Request) -> str | None:
     if request.client is None:
         return None
     return request.client.host
+
+
+async def _enforce_admin_login_rate_limit(request: Request) -> None:
+    settings = request.app.state.payment_settings
+    peer_ip = _client_ip(request) or "unknown"
+    client_ip = effective_client_ip(
+        peer_ip,
+        request.headers.get("X-Forwarded-For"),
+        settings.trusted_proxy_networks,
+    )
+    bucket_key = hashlib.sha256(f"admin-login:{client_ip}".encode()).hexdigest()
+    retry_after = await asyncio.to_thread(
+        request.app.state.store.record_rate_limit_hit,
+        bucket_key,
+        8,
+        15 * 60,
+    )
+    if retry_after:
+        raise DomainError(
+            "RATE_LIMITED",
+            "Слишком много попыток входа. Повторите позже.",
+            status_code=429,
+            detail={"retry_after_seconds": retry_after},
+        )
 
 
 def _assert_same_origin(request: Request) -> None:
@@ -351,9 +398,7 @@ def build_admin_router() -> APIRouter:
         _assert_same_origin(request)
         if request.headers.get("X-Admin-Request") != "1":
             raise DomainError("ADMIN_REQUEST_INVALID", "Некорректный запрос входа", status_code=400)
-        await request.app.state.limiter.check(
-            f"admin-login:{_client_ip(request) or 'unknown'}", limit=8, window_seconds=15 * 60
-        )
+        await _enforce_admin_login_rate_limit(request)
         user = _database(request).authenticate(str(payload.email), payload.password)
         if not user or user.role != "admin":
             raise DomainError("ADMIN_LOGIN_FAILED", "Неверная почта или пароль", status_code=401)
@@ -434,9 +479,16 @@ def build_admin_router() -> APIRouter:
         session, user = _current_admin(request)
         _assert_csrf(request, session, x_csrf_token)
         database = _database(request)
-        if not database.get_article(article_id):
+        existing = database.get_article(article_id)
+        if not existing:
             raise DomainError(
                 "ARTICLE_NOT_FOUND", "Материал не найден", recoverable=False, status_code=404
+            )
+        if existing.published_at is not None and payload.slug != existing.slug:
+            raise DomainError(
+                "ARTICLE_SLUG_IMMUTABLE",
+                "Адрес опубликованного материала нельзя изменить",
+                status_code=409,
             )
         _validate_publish(payload)
         if database.slug_exists(payload.slug, except_id=article_id):

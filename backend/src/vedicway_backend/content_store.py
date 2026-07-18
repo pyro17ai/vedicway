@@ -21,6 +21,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     create_engine,
+    inspect,
     select,
     text,
 )
@@ -37,6 +38,14 @@ from sqlalchemy.orm import (
 PASSWORD_HASH = PasswordHash.recommended()
 DUMMY_PASSWORD_HASH = PASSWORD_HASH.hash(secrets.token_urlsafe(32))
 ADMIN_SESSION_TTL = timedelta(hours=8)
+CONTENT_SCHEMA_REVISION = "20260719_01"
+CONTENT_SCHEMA_TABLES = {
+    "users",
+    "admin_sessions",
+    "articles",
+    "media_assets",
+    "consent_records",
+}
 
 
 def utc_now() -> datetime:
@@ -189,9 +198,20 @@ class ContentDatabase:
         if os.environ.get("VEDICWAY_ENV", "development").casefold() != "production":
             Base.metadata.create_all(self.engine)
 
-    def ping(self) -> None:
+    def ping(self, *, require_migrations: bool = False) -> None:
         with self.engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+            if not require_migrations:
+                return
+            tables = set(inspect(connection).get_table_names())
+            missing = CONTENT_SCHEMA_TABLES - tables
+            if missing or "alembic_version" not in tables:
+                raise RuntimeError(f"Content schema is incomplete: {', '.join(sorted(missing))}")
+            revision = connection.scalar(text("SELECT version_num FROM alembic_version"))
+            if revision != CONTENT_SCHEMA_REVISION:
+                raise RuntimeError(
+                    f"Content schema revision {revision!r} does not match {CONTENT_SCHEMA_REVISION}"
+                )
 
     @contextmanager
     def session(self) -> Iterator[Session]:
@@ -360,8 +380,6 @@ class ContentDatabase:
             article.updated_at = utc_now()
             if article.status == "published" and article.published_at is None:
                 article.published_at = utc_now()
-            if article.status != "published":
-                article.published_at = None
             database.flush()
             database.refresh(article)
             return article

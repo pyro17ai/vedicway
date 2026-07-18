@@ -35,13 +35,20 @@ function Operator({ config }: { config: LegalConfig }) {
 }
 
 export function LegalPage({ kind, onNavigate }: LegalPageProps) {
-  const [config, setConfig] = useState<LegalConfig>(fallback);
+  const [config, setConfig] = useState<LegalConfig | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     fetch("/api/v1/legal/config", { headers: { Accept: "application/json" } })
       .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((value: LegalConfig) => setConfig(value))
-      .catch(() => setConfig(fallback));
+      .then((value: LegalConfig) => {
+        if (!value.configured && import.meta.env.PROD) throw new Error("legal config is incomplete");
+        setConfig(value);
+      })
+      .catch(() => {
+        if (import.meta.env.DEV) setConfig(fallback);
+        else setUnavailable(true);
+      });
   }, []);
 
   const titles: Record<LegalDocumentKind, string> = {
@@ -70,6 +77,21 @@ export function LegalPage({ kind, onNavigate }: LegalPageProps) {
       path: paths[kind],
     });
   }, [kind]);
+
+  if (!config) {
+    return (
+      <div className="legal-site">
+        <SiteHeader active={null} onNavigate={onNavigate} />
+        <main className="legal-page">
+          <button className="legal-back" type="button" onClick={() => onNavigate("/")}><ArrowLeft /> На главную</button>
+          <section className="legal-production-warning" role={unavailable ? "alert" : "status"}>
+            <h1>{titles[kind]}</h1>
+            <p>{unavailable ? "Документ временно недоступен. Попробуйте открыть страницу позже." : "Загружаем реквизиты оператора…"}</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="legal-site">

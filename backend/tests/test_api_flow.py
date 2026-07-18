@@ -10,7 +10,6 @@ from vedicway_backend.schemas import PdfRenderPreferences
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
-
 LEGAL = {
     "personal_data": True,
     "personal_data_version": "2026-07-19",
@@ -109,11 +108,20 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         html = report_html(snapshot, bundle, PdfRenderPreferences.model_validate(immutable_request["preferences"]))
         assert "Натальная карта · D24" in html
         assert "Профессиональный" in html
-        pdf = client.get(f"/api/v1/charts/{chart_id}/reports/pdf", follow_redirects=False)
+        pdf = client.get(
+            f"/api/v1/charts/{chart_id}/reports/pdf",
+            params={"render_request_id": render_request_id},
+            follow_redirects=False,
+        )
         assert pdf.status_code == 303
+        assert f"render_request_id={render_request_id}" in pdf.headers["location"]
         download = client.get(pdf.headers["location"])
         assert download.status_code == 200
         assert download.headers["content-type"].startswith("application/pdf")
+        wrong_render = client.get(
+            pdf.headers["location"].replace(render_request_id, "pdfreq-substitution"),
+        )
+        assert wrong_render.status_code == 401
 
 
 def test_magic_link_grants_new_browser_session(tmp_path) -> None:

@@ -3,3 +3,7 @@ type AnalyticsPayload = Record<string, string | number | boolean | null | undefi
 export function trackWorkspaceEvent(name: string, payload: AnalyticsPayload = {}) {
   window.dispatchEvent(new CustomEvent("vedicway:analytics", { detail: { name, payload } }));
 }
+
+export function trackPageView(pathname = window.location.pathname) {
+  window.dispatchEvent(new CustomEvent("vedicway:analytics-pageview", { detail: { pathname } }));
+}

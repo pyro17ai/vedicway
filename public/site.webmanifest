@@ -11,7 +11,7 @@
   "icons": [
     {
       "src": "/assets/brand-mark.png",
-      "sizes": "512x512",
+      "sizes": "320x320",
       "type": "image/png",
       "purpose": "any"
     }

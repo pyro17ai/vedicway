@@ -1,3 +1,5 @@
+import { LEGAL_DOCUMENT_VERSIONS } from "./legal";
+
 export type SectionStatus = "queued" | "running" | "ready" | "partial" | "error" | "unavailable";
 export type AccessLevel = "free_summary" | "paid_full";
 export type Coverage = "multiple_factors" | "single_factor" | "insufficient";
@@ -220,9 +222,9 @@ export async function createChart(input: {
       time_accuracy: input.timeAccuracy,
       legal: {
         personal_data: input.personalDataConsent,
-        personal_data_version: "2026-07-19",
+        personal_data_version: LEGAL_DOCUMENT_VERSIONS.personalDataConsent,
         terms: input.termsAccepted,
-        terms_version: "2026-07-19",
+        terms_version: LEGAL_DOCUMENT_VERSIONS.terms,
       },
     }),
   });
@@ -341,8 +343,9 @@ export function startPdf(chartId: string, preferences: PdfRenderPreferences) {
   });
 }
 
-export function reportDownloadUrl(chartId: string) {
-  return `/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf`;
+export function reportDownloadUrl(chartId: string, renderRequestId: string) {
+  const query = new URLSearchParams({ render_request_id: renderRequestId });
+  return `/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf?${query.toString()}`;
 }
 
 export function subscribeToChartEvents(

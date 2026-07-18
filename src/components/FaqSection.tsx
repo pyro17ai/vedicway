@@ -1,5 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+
+type PublicLegalConfig = {
+  operator_name: string;
+  operator_address: string;
+  inn: string;
+  ogrn: string;
+  privacy_email: string;
+  configured: boolean;
+};
 
 const faqItems = [
   {
@@ -46,7 +55,19 @@ function Ornament({ position }: { position: "top" | "bottom" }) {
 
 export function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [legalConfig, setLegalConfig] = useState<PublicLegalConfig | null>(null);
+  const [legalUnavailable, setLegalUnavailable] = useState(false);
   const activeItem = openIndex === null ? null : faqItems[openIndex];
+
+  useEffect(() => {
+    fetch("/api/v1/legal/config", { headers: { Accept: "application/json" } })
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((value: PublicLegalConfig) => {
+        if (!value.configured) throw new Error("legal config is incomplete");
+        setLegalConfig(value);
+      })
+      .catch(() => setLegalUnavailable(true));
+  }, []);
 
   return (
     <>
@@ -127,7 +148,7 @@ export function FaqSection() {
           <footer className="faq-footer">
             <Ornament position="bottom" />
             <p>
-              Не нашли ответ? <a href="mailto:support@vedicway.ru">Свяжитесь с нами <span aria-hidden="true">→</span></a>
+              Не нашли ответ? {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Свяжитесь с нами <span aria-hidden="true">→</span></a> : <a href="/legal/privacy-policy">Контакты оператора <span aria-hidden="true">→</span></a>}
             </p>
           </footer>
         </div>
@@ -145,10 +166,12 @@ export function FaqSection() {
 
           <div className="faq-legal-footer__operator">
             <p className="faq-legal-footer__label">Реквизиты оператора</p>
-            <p>Наименование оператора (ООО): будет указано перед публикацией</p>
-            <p>ОГРН: будет указан перед публикацией · ИНН: будет указан перед публикацией</p>
-            <p>Юридический адрес: будет указан перед публикацией</p>
-            <p>Обращения по персональным данным: <a href="mailto:support@vedicway.ru">support@vedicway.ru</a></p>
+            {legalConfig ? <>
+              <p>{legalConfig.operator_name}</p>
+              <p>ОГРН/ОГРНИП: {legalConfig.ogrn} · ИНН: {legalConfig.inn}</p>
+              <p>Юридический адрес: {legalConfig.operator_address}</p>
+              <p>Обращения по персональным данным: <a href={`mailto:${legalConfig.privacy_email}`}>{legalConfig.privacy_email}</a></p>
+            </> : <p>{legalUnavailable ? "Реквизиты временно недоступны" : "Загружаем реквизиты…"}</p>}
           </div>
 
           <nav className="faq-legal-footer__links" aria-label="Правовая информация">
@@ -157,7 +180,7 @@ export function FaqSection() {
             <a href="/legal/personal-data-consent">Согласие на обработку персональных данных</a>
             <a href="/legal/cookies">Политика cookies</a>
             <button type="button" onClick={() => window.dispatchEvent(new Event("vedicway:open-cookie-settings"))}>Настроить cookies</button>
-            <a href="mailto:support@vedicway.ru">Контакты</a>
+            {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Контакты</a> : <a href="/legal/privacy-policy">Контакты</a>}
           </nav>
 
           <p className="faq-legal-footer__copyright">© 2026 VedicWay · Материал предназначен для самонаблюдения и знакомства с астрологической традицией.</p>

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import io
 
+import pytest
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from PIL import Image
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from vedicway_backend.content_store import PASSWORD_HASH, ConsentRecord, ContentDatabase, User
 from vedicway_backend.main import create_app
@@ -110,6 +111,45 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert "https://vedicway.ru/guide/kak-chitat-pervyy-dom" in sitemap.text
         assert sitemap.text.count("kak-chitat-pervyy-dom") == 1
 
+        renamed_payload = dict(published_payload)
+        renamed_payload["slug"] = "novyy-adres"
+        renamed_payload["canonical_url"] = "https://vedicway.ru/guide/novyy-adres"
+        renamed = client.put(
+            f"/api/v1/admin/articles/{draft.json()['id']}",
+            json=renamed_payload,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert renamed.status_code == 409
+        assert renamed.json()["error"]["code"] == "ARTICLE_SLUG_IMMUTABLE"
+
+        unpublished_payload = dict(published_payload)
+        unpublished_payload["status"] = "draft"
+        unpublished = client.put(
+            f"/api/v1/admin/articles/{draft.json()['id']}",
+            json=unpublished_payload,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert unpublished.status_code == 200
+        assert unpublished.json()["published_at"] is not None
+        rename_after_unpublish = dict(unpublished_payload)
+        rename_after_unpublish["slug"] = "obhod-posle-snyatiya"
+        rename_after_unpublish["canonical_url"] = "https://vedicway.ru/guide/obhod-posle-snyatiya"
+        blocked_after_unpublish = client.put(
+            f"/api/v1/admin/articles/{draft.json()['id']}",
+            json=rename_after_unpublish,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert blocked_after_unpublish.status_code == 409
+
+        external_canonical = dict(_article())
+        external_canonical["slug"] = "vneshniy-canonical"
+        external_canonical["canonical_url"] = "https://example.org/guide/vneshniy-canonical"
+        assert client.post(
+            "/api/v1/admin/articles",
+            json=external_canonical,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        ).status_code == 400
+
         in_use = client.delete(
             f"/api/v1/admin/media/{asset['id']}",
             headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
@@ -213,3 +253,21 @@ def test_production_readiness_rejects_placeholders_and_sqlite(tmp_path, monkeypa
         reasons = response.json()["reasons"]
         assert "database:postgresql_required" in reasons
         assert "missing:VEDICWAY_LEGAL_OPERATOR_NAME" in reasons
+
+
+def test_content_database_requires_current_alembic_revision(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("VEDICWAY_ENV", "development")
+    database = ContentDatabase(f"sqlite:///{(tmp_path / 'schema.sqlite3').as_posix()}")
+    database.initialize()
+    with pytest.raises(RuntimeError):
+        database.ping(require_migrations=True)
+
+    with database.engine.begin() as connection:
+        connection.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)"))
+        connection.execute(text("INSERT INTO alembic_version (version_num) VALUES ('20260719_01')"))
+    database.ping(require_migrations=True)
+
+    with database.engine.begin() as connection:
+        connection.execute(text("UPDATE alembic_version SET version_num = 'stale_revision'"))
+    with pytest.raises(RuntimeError):
+        database.ping(require_migrations=True)

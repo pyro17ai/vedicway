@@ -11,6 +11,7 @@ import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
 import { NotFoundPage } from "./components/NotFoundPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
 import { SiteHeader } from "./components/SiteHeader";
+import { trackPageView } from "./lib/analytics";
 import { applySeo } from "./lib/seo";
 
 const avatars = [
@@ -174,6 +175,10 @@ function App() {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  useEffect(() => {
+    trackPageView(pathname);
+  }, [pathname]);
 
   const navigate = (path: string) => {
     if (window.location.pathname === path) {

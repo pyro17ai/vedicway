@@ -45,7 +45,13 @@ uv sync --frozen --extra test
 uv run alembic upgrade head
 ```
 
-Для первого старта временно задаются `VEDICWAY_BOOTSTRAP_ADMIN_EMAIL`, `VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD` длиной от 16 символов и `VEDICWAY_BOOTSTRAP_ADMIN_NAME`. Приложение создаёт ровно одну запись с ролью `admin`, пароль хранится как Argon2id. После успешного входа обе bootstrap-переменные удаляются из secret store, процесс перезапускается, затем проверяется `/api/v1/health/ready`.
+Первого администратора создаёт отдельный одноразовый процесс после миграции и до запуска API. Только этому процессу передаются `VEDICWAY_BOOTSTRAP_ADMIN_EMAIL`, `VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD` длиной от 16 символов и `VEDICWAY_BOOTSTRAP_ADMIN_NAME`:
+
+```powershell
+uv run python -m vedicway_backend.bootstrap_admin
+```
+
+Команда проверяет Alembic revision, создаёт ровно одну запись с ролью `admin` и завершает работу; пароль хранится как Argon2id. Долгоживущие backend и frontend запускаются уже без bootstrap-переменных. Если пароль остался в их окружении, `/api/v1/health/ready` намеренно отвечает 503. Повторный one-shot с тем же email не меняет пароль и сообщает `admin_already_exists`.
 
 Админка доступна по `/admin`. Сессия живёт 8 часов в HttpOnly Secure cookie с SameSite Strict. Все изменения статей и медиа требуют CSRF-токен и ту же origin. Обычная роль `user` получает 403.
 
@@ -53,7 +59,7 @@ uv run alembic upgrade head
 
 Media API принимает JPEG, PNG, WebP и AVIF до 12 МБ. Файл декодируется, метаданные удаляются повторным кодированием в WebP, варианты 640, 960, 1280 и 1600 пикселей создаются без увеличения исходника. Файлы размещаются в `VEDICWAY_MEDIA_DIR/articles/<uuid>`, а в PostgreSQL хранится метадата. Удаление используемого статьёй файла отвечает 409.
 
-Каталог `VEDICWAY_MEDIA_DIR` монтируется как постоянный том и резервируется вместе с базой. Публичный URL обслуживает API по `/media/articles/...`; reverse proxy может раздавать этот путь сам, сохраняя `Cache-Control: public, max-age=31536000, immutable`.
+Каталог `VEDICWAY_MEDIA_DIR` монтируется как постоянный том и резервируется вместе с базой. Публичный URL имеет вид `/media/articles/{asset_uuid}/{width}.webp`; API проверяет UUID и имя варианта. Reverse proxy направляет этот путь в backend либо раздаёт тот же каталог сам, сохраняя `Cache-Control: public, max-age=31536000, immutable`. Для media-контура обязательны постоянный `VEDICWAY_MEDIA_DIR` и совпадающий публичный `VEDICWAY_PUBLIC_ORIGIN`.
 
 ## Правовой release gate
 

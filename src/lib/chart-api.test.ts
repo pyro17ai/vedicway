@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { startPdf } from "./chart-api";
+import { reportDownloadUrl, startPdf } from "./chart-api";
 
 describe("startPdf", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -30,5 +30,8 @@ describe("startPdf", () => {
     const [url, init] = fetcher.mock.calls[0];
     expect(url).toBe("/api/v1/charts/chart%2Funsafe/reports/pdf");
     expect(JSON.parse(String(init?.body))).toEqual({ preferences });
+    expect(reportDownloadUrl("chart/unsafe", response.render_request_id)).toBe(
+      "/api/v1/charts/chart%2Funsafe/reports/pdf?render_request_id=pdfreq-1",
+    );
   });
 });
