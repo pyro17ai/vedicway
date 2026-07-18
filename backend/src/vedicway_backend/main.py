@@ -31,6 +31,7 @@ from .observability import Metrics
 from .schemas import (
     ChartAccepted,
     ChartCreateRequest,
+    PaymentPublicConfig,
     PurchaseRequest,
     PurchaseResponse,
     RefundRequest,
@@ -362,6 +363,20 @@ def create_app(
     async def search_places(q: str = Query(min_length=2, max_length=160)) -> dict[str, Any]:
         return {"items": [place.model_dump(mode="json") for place in app.state.places.search(q)]}
 
+    @app.get("/api/v1/payments/config", response_model=PaymentPublicConfig)
+    async def payment_public_config() -> PaymentPublicConfig:
+        settings: PaymentSettings = app.state.payment_settings
+        product = settings.catalog.full_report
+        return PaymentPublicConfig(
+            product_code=product.code,
+            title=product.title,
+            price_minor=product.amount_minor,
+            currency=product.currency,
+            offer_version=settings.offer_version,
+            offer_url=settings.offer_url,
+            privacy_url=settings.privacy_url,
+        )
+
     @app.post("/api/v1/charts", status_code=status.HTTP_202_ACCEPTED, response_model=ChartAccepted)
     async def create_chart(
         request: Request,
@@ -530,7 +545,7 @@ def create_app(
             return public_purchase(purchase)
 
         return_url = (
-            f"{settings.public_base_url}/payment/return?purchase_id="
+            f"{settings.public_base_url}/chart/{quote(chart_id, safe='')}?payment_return="
             f"{quote(str(purchase['id']), safe='')}"
         )
         try:

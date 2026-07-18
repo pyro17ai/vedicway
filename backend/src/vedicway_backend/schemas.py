@@ -264,6 +264,18 @@ class PurchaseResponse(BaseModel):
     retryable: bool
 
 
+class PaymentPublicConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    product_code: Literal["full_report_v1"] = "full_report_v1"
+    title: str
+    price_minor: int
+    currency: str
+    offer_version: str
+    offer_url: str
+    privacy_url: str
+
+
 class RefundRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
