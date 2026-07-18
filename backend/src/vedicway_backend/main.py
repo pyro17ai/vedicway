@@ -13,6 +13,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import quote, urlsplit
 
 from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
@@ -21,8 +22,9 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .calculator import warm_instant_runtime
 from .errors import DomainError
+from .payment_config import PaymentSettings
+from .payments import PaymentProvider, PaymentStatus, payment_provider_from_settings
 from .places import PlaceRegistry
-from .payments import payment_provider_from_environment
 from .observability import Metrics
 from .schemas import ChartAccepted, ChartCreateRequest, PurchaseRequest, PurchaseResponse
 from .store import Store
@@ -94,16 +96,27 @@ async def _lifespan(app: FastAPI):
         await asyncio.to_thread(warm_instant_runtime)
     except DomainError:
         LOGGER.warning("instant calculation runtime will be retried by the worker", exc_info=True)
-    yield
+    try:
+        yield
+    finally:
+        await app.state.payment_provider.aclose()
 
 
-def create_app(store: Store | None = None, worker: ChartWorker | None = None) -> FastAPI:
+def create_app(
+    store: Store | None = None,
+    worker: ChartWorker | None = None,
+    *,
+    payment_settings: PaymentSettings | None = None,
+    payment_provider: PaymentProvider | None = None,
+) -> FastAPI:
     app = FastAPI(title="VedicWay BFF", version="1.0.0", docs_url=None, redoc_url=None, lifespan=_lifespan)
     app.state.store = store or Store()
     app.state.metrics = Metrics()
     app.state.worker = worker or ChartWorker(app.state.store, metrics=app.state.metrics)
     app.state.places = PlaceRegistry()
     app.state.limiter = RateLimiter()
+    app.state.payment_settings = payment_settings or PaymentSettings.from_environment()
+    app.state.payment_provider = payment_provider or payment_provider_from_settings(app.state.payment_settings)
 
     app.add_middleware(
         CORSMiddleware,
@@ -168,6 +181,19 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
     def assert_owned(chart_id: str, session_id: str) -> None:
         if not app.state.store.chart_owned_by(chart_id, session_id):
             raise DomainError("CHART_NOT_FOUND", "Карта не найдена", recoverable=False, status_code=404)
+
+    def public_purchase(purchase: dict[str, Any]) -> PurchaseResponse:
+        status_value = str(purchase["status"])
+        return PurchaseResponse(
+            purchase_id=str(purchase["id"]),
+            chart_id=str(purchase["chart_id"]),
+            product_code="full_report_v1",
+            status=status_value,
+            checkout_url=purchase.get("checkout_url"),
+            price_minor=int(purchase["amount_minor"]),
+            currency=str(purchase["currency"]),
+            retryable=status_value in {"created", "pending", "unknown"},
+        )
 
     @app.get("/api/v1/health")
     async def health() -> dict[str, str]:
@@ -322,41 +348,145 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
         assert_owned(chart_id, current_session)
         if not idempotency_key:
             raise DomainError("IDEMPOTENCY_KEY_REQUIRED", "Добавьте ключ защиты от повтора оплаты", status_code=400)
+        if len(idempotency_key) > 200:
+            raise DomainError("IDEMPOTENCY_KEY_INVALID", "Ключ защиты от повтора оплаты слишком длинный", status_code=400)
         await app.state.limiter.check(f"purchase:{request.client.host if request.client else 'unknown'}", limit=5, window_seconds=60 * 60)
         if app.state.store.get_snapshot(chart_id) is None:
             raise DomainError("SNAPSHOT_MISSING", "Сначала дождитесь основной карты", status_code=409)
-        provider = payment_provider_from_environment()
-        if getattr(provider, "name", "") == "pending_provider":
+        if app.state.store.has_entitlement(chart_id):
+            raise DomainError(
+                "ALREADY_ENTITLED",
+                "Полный отчёт для этой карты уже доступен",
+                recoverable=False,
+                status_code=409,
+            )
+        settings: PaymentSettings = app.state.payment_settings
+        if payload.offer_version != settings.offer_version:
+            raise DomainError(
+                "OFFER_VERSION_MISMATCH",
+                "Условия оферты обновились. Откройте их и подтвердите ещё раз",
+                status_code=409,
+                detail={"offer_version": settings.offer_version},
+            )
+        provider: PaymentProvider = app.state.payment_provider
+        if provider.name == "disabled":
             raise DomainError("PAYMENT_PROVIDER_UNAVAILABLE", "Приём платежей временно недоступен", recoverable=True, status_code=503)
-        purchase, _ = app.state.store.create_purchase(chart_id, idempotency_key, payload.email)
-        intent = await provider.create_payment(
-            purchase_id=str(purchase["id"]),
-            chart_id=chart_id,
-            product_code="full_report_v1",
-            idempotency_key=f"provider_{purchase['id']}",
-            amount_minor=int(purchase["amount_minor"]),
-            currency=str(purchase["currency"]),
-            return_url=f"http://127.0.0.1:5173/chart/{chart_id}",
-            email=payload.email or "development@example.invalid",
+        product = settings.catalog.get(payload.product_code)
+        purchase, _ = app.state.store.create_purchase(
+            chart_id,
+            idempotency_key,
+            payload.email,
+            product_code=product.code,
+            provider=provider.name,
+            offer_version=settings.offer_version,
+            amount_minor=product.amount_minor,
+            currency=product.currency,
         )
-        app.state.store.set_provider_payment(purchase["id"], intent.provider, intent.provider_payment_id)
-        return PurchaseResponse(
-            purchase_id=purchase["id"],
-            status=purchase["status"],
-            checkout_url=intent.checkout_url,
-            provider=intent.provider,
-            price_minor=int(purchase["amount_minor"]),
-            currency=purchase["currency"],
+        if purchase.get("provider_payment_id") or purchase["status"] not in {"created", "unknown"}:
+            return public_purchase(purchase)
+
+        return_url = (
+            f"{settings.public_base_url}/payment/return?purchase_id="
+            f"{quote(str(purchase['id']), safe='')}"
         )
+        try:
+            intent = await provider.create_payment(
+                purchase_id=str(purchase["id"]),
+                chart_id=chart_id,
+                product_code=product.code,
+                idempotency_key=str(purchase["provider_idempotency_key"]),
+                amount_minor=int(purchase["amount_minor"]),
+                currency=str(purchase["currency"]),
+                return_url=return_url,
+                email=app.state.store.get_purchase_email(str(purchase["id"])) or payload.email,
+            )
+            if intent.amount_minor != int(purchase["amount_minor"]) or intent.currency.upper() != str(purchase["currency"]).upper():
+                raise DomainError(
+                    "PAYMENT_PROVIDER_MISMATCH",
+                    "Платёжный сервис вернул другую сумму или валюту",
+                    recoverable=False,
+                    status_code=502,
+                )
+            expected_metadata = {
+                "purchase_id": str(purchase["id"]),
+                "chart_id": chart_id,
+                "product_code": product.code,
+            }
+            for key, expected in expected_metadata.items():
+                actual = intent.metadata.get(key)
+                if actual is not None and actual != expected:
+                    raise DomainError(
+                        "PAYMENT_PROVIDER_MISMATCH",
+                        "Платёжный сервис вернул заказ с другими параметрами",
+                        recoverable=False,
+                        status_code=502,
+                    )
+            if intent.checkout_url:
+                parsed_checkout = urlsplit(intent.checkout_url)
+                if provider.name == "yookassa" and parsed_checkout.scheme != "https":
+                    raise DomainError(
+                        "PAYMENT_PROVIDER_INVALID_RESPONSE",
+                        "Платёжный сервис вернул небезопасный адрес оплаты",
+                        status_code=502,
+                    )
+            if intent.status == PaymentStatus.SUCCEEDED and (not intent.paid or not intent.captured):
+                raise DomainError(
+                    "PAYMENT_PROVIDER_MISMATCH",
+                    "Платёж отмечен завершённым без подтверждения списания",
+                    recoverable=False,
+                    status_code=502,
+                )
+            app.state.store.set_provider_payment(
+                str(purchase["id"]),
+                intent.provider,
+                intent.provider_payment_id,
+                status=intent.status.value,
+                checkout_url=intent.checkout_url,
+                provider_status=intent.status.value,
+                redacted_payload=intent.redacted_payload,
+                failure_code=intent.failure_code,
+                receipt_registration=str(intent.redacted_payload.get("receipt_registration") or "") or None,
+            )
+            if intent.status == PaymentStatus.SUCCEEDED:
+                app.state.store.apply_payment_event(
+                    str(purchase["id"]),
+                    provider_event_id=f"create:succeeded:{intent.provider_payment_id}",
+                    event_type="payment.succeeded",
+                    object_id=str(intent.provider_payment_id),
+                    payload_checksum=hashlib.sha256(json.dumps(intent.redacted_payload, sort_keys=True).encode()).hexdigest(),
+                    status="succeeded",
+                    provider_status="succeeded",
+                    provider_payment_id=str(intent.provider_payment_id),
+                    amount_minor=intent.amount_minor,
+                    currency=intent.currency,
+                    metadata=intent.metadata,
+                )
+                await _launch_worker(app)
+        except DomainError as error:
+            recoverable = error.recoverable or error.code == "PAYMENT_PROVIDER_TEMPORARY"
+            app.state.store.set_provider_payment(
+                str(purchase["id"]),
+                provider.name,
+                None,
+                status="unknown" if recoverable else "failed",
+                provider_status="unknown" if recoverable else "failed",
+                failure_code=error.code,
+            )
+            if not recoverable:
+                raise
+        saved = app.state.store.get_purchase(str(purchase["id"]))
+        if not saved:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        return public_purchase(saved)
 
     @app.get("/api/v1/purchases/{purchase_id}")
-    async def get_purchase(purchase_id: str, request: Request) -> dict[str, Any]:
+    async def get_purchase(purchase_id: str, request: Request) -> PurchaseResponse:
         current_session = session(request)
         purchase = app.state.store.get_purchase(purchase_id)
         if not purchase:
             raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
         assert_owned(str(purchase["chart_id"]), current_session)
-        return {key: purchase[key] for key in ("id", "chart_id", "provider", "status", "amount_minor", "currency", "created_at", "updated_at")}
+        return public_purchase(purchase)
 
     @app.post("/api/v1/test/purchases/{purchase_id}/confirm", status_code=status.HTTP_202_ACCEPTED)
     async def confirm_test_purchase(purchase_id: str, request: Request) -> dict[str, str]:
@@ -371,7 +501,7 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
         if not chart_id:
             raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
         await _launch_worker(app)
-        return {"purchase_id": purchase_id, "status": "paid"}
+        return {"purchase_id": purchase_id, "status": "succeeded"}
 
     @app.post("/api/v1/webhooks/payments/{provider}", status_code=status.HTTP_202_ACCEPTED)
     async def payment_webhook(provider: str, request: Request) -> dict[str, str]:

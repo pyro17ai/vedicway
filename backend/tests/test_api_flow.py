@@ -47,7 +47,15 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         assert saved.json()["reflection_status"] == "thinking"
         saved_list = client.get(f"/api/v1/charts/{chart_id}/questions/saved")
         assert saved_list.json()["items"][0]["note"] == "Вернуться к этой теме после разговора."
-        purchase = client.post(f"/api/v1/charts/{chart_id}/purchases", json={}, headers={"Idempotency-Key": "purchase-idempotency"})
+        purchase = client.post(
+            f"/api/v1/charts/{chart_id}/purchases",
+            json={
+                "email": "buyer@example.com",
+                "offer_accepted": True,
+                "offer_version": "development",
+            },
+            headers={"Idempotency-Key": "purchase-idempotency"},
+        )
         assert purchase.status_code == 202
         confirmation = client.post(f"/api/v1/test/purchases/{purchase.json()['purchase_id']}/confirm")
         assert confirmation.status_code == 202
