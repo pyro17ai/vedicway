@@ -2,3 +2,8 @@ node_modules/
 dist/
 .playwright-cli/
 backend/.data/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+test-results/
+tsconfig.*.tsbuildinfo
