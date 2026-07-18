@@ -8,7 +8,11 @@ import pytest
 from vedicway_backend.errors import DomainError
 from vedicway_backend.places import PlaceRegistry
 from vedicway_backend.schemas import ChartCreateRequest
-from vedicway_backend.time_normalization import normalize_event_time, parse_dasha_datetime, resolve_birth_input
+from vedicway_backend.time_normalization import (
+    normalize_event_time,
+    parse_dasha_datetime,
+    resolve_birth_input,
+)
 
 
 def test_moscow_historic_offset_uses_tzdb() -> None:

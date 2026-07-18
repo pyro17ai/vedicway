@@ -3,7 +3,6 @@ from __future__ import annotations
 import ipaddress
 from collections.abc import Iterable
 
-
 IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
 IPNetwork = ipaddress.IPv4Network | ipaddress.IPv6Network
 

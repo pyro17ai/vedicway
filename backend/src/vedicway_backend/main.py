@@ -18,16 +18,23 @@ from urllib.parse import quote, urlsplit
 
 from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 from starlette.middleware.cors import CORSMiddleware
 
 from .calculator import warm_instant_runtime
 from .errors import DomainError
+from .observability import Metrics
 from .payment_config import PaymentSettings
 from .payment_security import effective_client_ip, is_yookassa_source
 from .payments import PaymentProvider, PaymentStatus, RefundStatus, payment_provider_from_settings
 from .places import PlaceRegistry
-from .observability import Metrics
 from .schemas import (
     ChartAccepted,
     ChartCreateRequest,

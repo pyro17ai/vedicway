@@ -771,7 +771,7 @@ Server catalog содержит `full_report_v1`, RUB 99000 kopeks для баз
 
 ### 16.3. Webhook
 
-Signature, timestamp и replay проверяются до бизнес-логики. Event dedupe происходит до обновления purchase. Для success server при необходимости запрашивает provider API и сверяет amount, currency, merchant account, order metadata. Entitlement и outbox создаются одной транзакцией.
+Подлинность уведомления проверяется способом, который документирует выбранный provider, до бизнес-логики. Для YooKassa backend разрешает только опубликованные сети уведомлений, не доверяет `X-Forwarded-For` вне заданных reverse proxy и всегда повторно получает payment или refund через API v3. Event dedupe происходит до обновления purchase. Server сверяет provider ID, amount, currency и order metadata. Entitlement и outbox создаются одной транзакцией.
 
 ### 16.4. Redirect
 
@@ -1049,7 +1049,7 @@ User text, email и имя не попадают в prompt. Public endpoint не
 
 8. Free model routing и paid routing конфигурируются. Staging хранит p50/p95, token usage, actual tier и стоимость. Интерфейс не обещает мгновенный текст; D1 SLO независим.
 
-9. Оплата идемпотентна. Browser redirect не выдаёт entitlement. Webhook проверяет подпись и amount. Один purchase создаёт один `report_full`. Повторное скачивание не создаёт новый заказ.
+9. Оплата идемпотентна. Browser redirect не выдаёт entitlement. Webhook проверяет официальный источник, затем подтверждает payment или refund server-to-server и сверяет сумму с metadata. Один purchase создаёт один `report_full`. Повторное скачивание не создаёт новый заказ.
 
 10. PDF строится Playwright Chromium из validated bundle, содержит векторную D1, встроенные шрифты и selectable text. Worker ждёт fonts/readiness, блокирует внешнюю сеть и выдаёт signed URL.
 
@@ -1063,14 +1063,14 @@ User text, email и имя не попадают в prompt. Public endpoint не
 
 Этот журнал дополняет спецификацию и не меняет её требований. Перед переходом к следующему этапу исполнитель сопоставляет статус с кодом, контрактными тестами и живым прогоном; `готово` ставится только при полном прохождении проверок.
 
-| ID | Контур | Статус на 17.07.2026 | Проверка и фактическое состояние |
+| ID | Контур | Статус на 18.07.2026 | Проверка и фактическое состояние |
 |---|---|---|---|
 | BE-00 | Исходный аудит | готово | В `D:\CODEX_WORK\VedicWay` отсутствует серверный пакет, очередь, БД, API и PDF worker. Внешний собственный PyJHora MCP существует отдельно и пока не подключён к VedicWay. |
 | BE-01 | Подключение собственного расчётного пакета, time normalization и golden D1 | готово | `backend/src/vedicway_backend/calculator.py` вызывает только собственный пакет PyJHora через адаптер; исторический IANA offset, structured event time, ISO dashas, civil vaara, инварианты и golden fixture Москвы покрыты тестами. D1 импортирует только минимальный расчётный контракт, прогревается на lifespan и публикуется до панчанги, даш и текстов; локальный warm benchmark из 20 D1 дал p95 0,0033 с. |
 | BE-02 | Immutable snapshot, evidence compiler и восемь domain packets | готово | Добавлены Pydantic-контракты, checksum snapshot, фиксированные ChartCell, EvidenceFact с source path и восемь packets с coverage. |
 | BE-03 | FastAPI BFF, place registry, jobs/outbox и SSE | готово | Реализованы `/api/v1`, place registry, шифрованный локальный durable store, PostgreSQL DDL, idempotency, jobs, transactional outbox и SSE с `Last-Event-ID`; production требует локальный лицензированный JSON-справочник через `VEDICWAY_PLACE_DATASET_PATH`, поддерживает alternate names и не вызывает публичный geocoder. |
 | BE-04 | Interpretation provider, JSON Schema и semantic validation | готово | Есть isolated one-shot `CodexExecProvider`, безопасный local fallback, JSON Schema, проверка порядка domains, evidence IDs, paid/free access, служебной лексики и raw HTML. |
-| BE-05 | Покупка, webhook, entitlement и magic link | готово | Добавлены server catalog 99000 RUB, PaymentProvider contract, отдельный test provider за `VEDICWAY_TEST_PAYMENTS=1`, подпись webhook, dedupe, entitlement transaction и одноразовый magic link. Реальный платёжный adapter подключается конфигурацией и секретами окружения. |
+| BE-05 | Покупка, webhook, entitlement и magic link | готово | Реализованы server catalog 99000 RUB, async YooKassa API v3 adapter, `capture=true`, email-чек, сохранённый `Idempotence-Key`, fail-closed production settings и локальный simulator за `VEDICWAY_TEST_PAYMENTS=1`. Webhook ограничен официальными сетями YooKassa и подтверждает payment/refund через API; provider ID, amount, currency и metadata сверяются до транзакционного entitlement. Есть dedupe, безопасный browser return, служебный reconcile, частичный/полный refund с audit и отзывом доступа. |
 | BE-06 | Playwright PDF worker, storage и signed download | готово | PDF строится из сохранённых snapshot и bundle: trusted escaped HTML, SVG D1, Chromium A4, random object key, checksum, pages и short-lived signed download. |
-| BE-07 | Приватность, ограничения, наблюдаемость и runbook-контуры | готово | Birth/email/note шифруются, доступ проверяется на каждом chart route, subprocess без shell, нет PII в log labels, есть trace ID, Prometheus-compatible internal metrics, rate limits, security headers и `backend/docs/RUNBOOKS.md`. |
-| BE-08 | Unit, golden, API, runner, payment, load и PDF-проверки | частично | Создано 8 backend regression/integration-тестов для timezone, golden D1/D9/D10, асинхронных sections, API, saved-question status/note, entitlement, PDF и magic link. Frontend Playwright добавляет 5 сквозных сценариев, включая реальную тестовую оплату, PDF и проверку публичного текста; они идут одним worker против fresh BFF, чтобы не пересекать rate limit. Нагрузочные 10/50/200 и 100 agent eval требуют отдельного staging контура, поэтому остаются перед production rollout. |
+| BE-07 | Приватность, ограничения, наблюдаемость и runbook-контуры | готово | Birth/email/note и причины возвратов шифруются, доступ проверяется на каждом chart route, subprocess запускается без shell, PII не попадает в log labels. Есть trace ID, internal metrics, rate limits, security headers, operations token с CIDR, redacted provider errors, `backend/docs/RUNBOOKS.md` и отдельный checklist активации YooKassa. |
+| BE-08 | Unit, golden, API, runner, payment, load и PDF-проверки | частично | Проходят 64 backend regression/integration-теста: timezone, golden D1/D9/D10, API, runner, payment idempotency, YooKassa adapter через MockTransport, webhook source verification, reconcile, partial/full refund, entitlement, PDF и magic link. Восемь Playwright-сценариев идут одним worker против fresh BFF и проверяют локальный redirect simulator, восстановление после reload и PDF. Нагрузочные 10/50/200, 100 agent eval и живой тестовый магазин YooKassa требуют staging и авторизации владельца, поэтому остаются перед production rollout. |

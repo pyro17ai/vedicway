@@ -8,15 +8,16 @@ import os
 import secrets
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from cryptography.fernet import Fernet
 
 from .errors import DomainError
-from .schemas import BirthInput, ChartEvent, ChartSnapshot, InterpretationBundle, JobStatus, SectionStatus
+from .schemas import BirthInput, ChartEvent, ChartSnapshot, InterpretationBundle, JobStatus
 
 
 def _utc_now() -> datetime:
@@ -70,7 +71,12 @@ class Store:
     def _load_signing_key(self) -> bytes:
         configured = os.environ.get("VEDICWAY_SIGNING_KEY")
         if configured:
-            return configured.encode("utf-8")
+            key = configured.encode("utf-8")
+            if os.environ.get("VEDICWAY_ENV") == "production" and len(key) < 32:
+                raise RuntimeError("VEDICWAY_SIGNING_KEY must contain at least 32 bytes in production")
+            return key
+        if os.environ.get("VEDICWAY_ENV") == "production":
+            raise RuntimeError("VEDICWAY_SIGNING_KEY is required in production")
         key_file = self.data_dir / "development-signing.key"
         if key_file.exists():
             return key_file.read_bytes()
@@ -1509,7 +1515,7 @@ class Store:
 
     def issue_download_token(self, chart_id: str, ttl_minutes: int = 10) -> str:
         expires = int((_utc_now() + timedelta(minutes=ttl_minutes)).timestamp())
-        payload = f"{chart_id}.{expires}".encode("utf-8")
+        payload = f"{chart_id}.{expires}".encode()
         signature = hmac.new(self._signing_key, payload, hashlib.sha256).hexdigest()
         return base64.urlsafe_b64encode(payload + b"." + signature.encode("ascii")).decode("ascii")
 

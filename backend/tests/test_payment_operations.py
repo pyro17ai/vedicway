@@ -19,7 +19,6 @@ from vedicway_backend.schemas import BirthInput, Place, ResolvedTime, TimeAccura
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
-
 OPERATIONS_TOKEN = "operations-token-at-least-thirty-two-characters"
 
 

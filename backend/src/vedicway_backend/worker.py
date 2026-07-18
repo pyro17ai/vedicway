@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .calculator import calculate_expert_extended, calculate_extended, calculate_instant
-from .evidence import compile_evidence
 from .errors import DomainError
+from .evidence import compile_evidence
 from .interpretation import InterpretationProvider, provider_from_environment, validate_bundle
 from .observability import Metrics
 from .pdf import PdfRenderer

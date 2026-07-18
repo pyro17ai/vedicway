@@ -1,6 +1,6 @@
 # VedicWay backend
 
-Сервис реализует путь от формы рождения до вычисленного снимка D1, бесплатных объяснений, тестовой оплаты и PDF. Для вычислений он импортирует собственный пакет `pyjhora_mcp`; астрологические формулы в этот репозиторий не копируются.
+Сервис реализует путь от формы рождения до вычисленного снимка D1, бесплатных объяснений, оплаты через YooKassa и PDF. Для вычислений он импортирует собственный пакет `pyjhora_mcp`; астрологические формулы в этот репозиторий не копируются.
 
 ## Локальный запуск
 
@@ -15,10 +15,37 @@ C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\.venv311\Scripts\python.e
 
 `VEDICWAY_TEST_PAYMENTS=1` открывает только локальный тестовый провайдер. Production-процесс принимает реальный payment adapter по конфигурации и не подтверждает оплату браузерным query-параметром.
 
+Локальный тестовый провайдер проводит браузер через `/api/v1/test/checkout/:purchaseId`. Страница симулирует внешний redirect, но не запрашивает реквизиты и не списывает деньги. `VEDICWAY_ENV=production` запрещает запуск этого контура.
+
 Для production также задайте `VEDICWAY_PLACE_DATASET_PATH`: это путь к лицензированному JSON-справочнику городов, который хранится рядом с приложением. Каждая запись содержит `place_id`, отображаемое имя, код страны, координаты, IANA `tzid` и необязательный массив `alternate_names`. Бэкенд не отправляет поисковый запрос в публичный геокодер; без этого файла production-процесс не стартует.
+
+## Production-конфигурация YooKassa
+
+Процесс запускается с `VEDICWAY_ENV=production`, `VEDICWAY_PAYMENT_PROVIDER=yookassa` и `VEDICWAY_TEST_PAYMENTS=0`. Он аварийно завершает startup при отсутствии `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY`, публичного HTTPS-origin, оферты, кода НДС, operations token, разрешённых operations CIDR, `VEDICWAY_DATA_KEY` или `VEDICWAY_SIGNING_KEY`. Signing key содержит не меньше 32 байт. В production адаптер обращается только к `https://api.yookassa.ru/v3`; подмена origin запрещена.
+
+Публичные адреса после выкладки:
+
+- webhook: `https://<домен>/api/v1/webhooks/payments/yookassa`;
+- return: `https://<домен>/chart/<chartId>?payment_return=<purchaseId>`;
+- открытая конфигурация товара: `https://<домен>/api/v1/payments/config`.
+
+Создание заказа принимает email для чека и принятую версию оферты. Цена `99000 RUB` читается из серверного каталога. Backend сохраняет provider idempotency key до запроса, поэтому сетевой повтор использует тот же объект YooKassa. Browser получает только внутренний ID заказа, статус, цену и `confirmation_url`; платёжные реквизиты VedicWay не собирает.
+
+YooKassa не присылает пользовательскую HMAC-подпись для уведомлений этого типа. Backend допускает webhook только из опубликованных сетей YooKassa, учитывает `X-Forwarded-For` лишь от `VEDICWAY_TRUSTED_PROXY_CIDRS`, затем повторно запрашивает payment или refund через API v3. Entitlement появляется после сверки provider ID, `99000 RUB`, metadata и признаков `paid/captured`.
+
+Внутренние `reconcile` и `refund` закрыты токеном `VEDICWAY_OPERATIONS_TOKEN` и сетями `VEDICWAY_OPERATIONS_CIDRS`. Причина возврата и email шифруются `VEDICWAY_DATA_KEY`; audit хранит fingerprint токена, trace ID и результат. Частичный возврат оставляет entitlement, полный помечает его отозванным.
+
+PostgreSQL накатывается по порядку:
+
+```text
+backend/migrations/001_chart_result.sql
+backend/migrations/002_yookassa_production.sql
+```
+
+SQLite остаётся локальным runnable-контуром и обновляет старую базу совместимыми `ALTER TABLE`. Перед production необходимо подключить PostgreSQL-backed store согласно основной backend-спецификации; сама платёжная доменная модель и DDL уже подготовлены.
 
 ## Границы
 
-- SQLite используется для локального runnable-контура. Миграция PostgreSQL лежит в `migrations/001_chart_result.sql` и повторяет production-модель из спецификации.
+- SQLite используется для локального runnable-контура. PostgreSQL DDL лежит в `migrations/001_chart_result.sql` и `migrations/002_yookassa_production.sql`.
 - `DevelopmentInterpretationProvider` создаёт проверяемые локальные тексты для разработки. `CodexExecProvider` реализован как изолированный one-shot adapter и включается только конфигурацией в контейнере без пользовательского `CODEX_HOME`.
 - PDF создаёт Node/Playwright worker через `scripts/render_pdf.mjs`. Он строит HTML из экранированных строк и SVG D1, без model HTML и внешней сети.

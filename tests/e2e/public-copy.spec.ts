@@ -6,21 +6,22 @@ test.describe("Публичные тексты демонстрации", () => 
 
     const showcase = page.getByRole("region", { name: "Пример результата натальной карты" });
     await expect(showcase).toBeVisible();
+    const panel = showcase.getByRole("tabpanel");
 
-    const data = showcase.getByRole("region", { name: "Расчётные данные карты" });
-    await data.getByRole("tab", { name: "Аспекты" }).click();
-    await expect(data.getByText(/основание: положения основной карты D1/i)).toBeVisible();
+    await panel.getByRole("button", { name: "Исходные данные" }).click();
+    await expect(panel.getByRole("region", { name: "Исходные данные карты" })).toContainText(
+      "Сидерический зодиак",
+    );
 
     await showcase.getByRole("tab", { name: "Объяснение" }).click();
-    await showcase.getByRole("button", { name: /Подробнее: Лагна в Скорпионе/ }).click();
-    await expect(showcase.getByText("Источник: Положения основной карты D1")).toBeVisible();
+    await panel.getByRole("button", { name: "Подробнее" }).first().click();
+    await expect(panel.getByText(/готовый отчёт раскрывает тему через положение карты/i)).toBeVisible();
 
     await showcase.getByRole("tab", { name: "Вопросы к себе" }).click();
-    await showcase.getByRole("button", { name: "Работа", exact: true }).click();
-    await showcase.getByRole("button", { name: /Периоды и работа/ }).click();
-    await expect(showcase.getByText(/нужно завершить расчёт периодов Вимшоттари/i)).toBeVisible();
+    await panel.getByRole("button", { name: "Почему этот вопрос?" }).first().click();
+    await expect(panel.locator(".question-card__why")).toBeVisible();
 
-    await expect(showcase).not.toContainText("get_rasi_chart");
-    await expect(showcase).not.toContainText("get_vimsottari_dasha");
+    const publicCopy = (await showcase.textContent()) ?? "";
+    expect(publicCopy).not.toMatch(/codex|pyjhora|\bmcp\b|get_rasi_chart|get_vimsottari_dasha/i);
   });
 });

@@ -13,7 +13,14 @@ from pydantic import ValidationError
 
 from .constants import DOMAIN_LABELS_RU, DOMAIN_ORDER, DomainSlug
 from .errors import DomainError
-from .schemas import Coverage, DomainEvidencePacket, DomainInterpretation, EvidenceFact, InterpretationBundle, ReflectionQuestion
+from .schemas import (
+    Coverage,
+    DomainEvidencePacket,
+    DomainInterpretation,
+    EvidenceFact,
+    InterpretationBundle,
+    ReflectionQuestion,
+)
 
 FORBIDDEN_PUBLIC_TERMS = (
     "codex",

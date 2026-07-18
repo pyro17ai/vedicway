@@ -35,7 +35,7 @@ test.describe("Мобильная навигация", () => {
     const closeButton = dialog.getByRole("button", { name: "Вернуться к карте" });
     await closeButton.focus();
     await page.keyboard.press("Shift+Tab");
-    await expect(dialog.getByRole("button", { name: /открыть полный отчёт/i })).toBeFocused();
+    await expect(dialog.getByRole("button", { name: /перейти к оплате/i })).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
   });

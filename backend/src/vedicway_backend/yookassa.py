@@ -13,7 +13,6 @@ from .errors import DomainError
 from .payment_config import PaymentSettings
 from .payments import PaymentIntent, PaymentProvider, PaymentStatus, RefundIntent, RefundStatus
 
-
 _OBJECT_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 _SAFE_PROVIDER_CODE = re.compile(r"^[a-z0-9_.-]{1,64}$")
 

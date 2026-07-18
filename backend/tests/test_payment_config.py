@@ -8,7 +8,6 @@ from vedicway_backend.payment_config import (
     PaymentSettings,
 )
 
-
 PAYMENT_ENV_KEYS = (
     "VEDICWAY_ENV",
     "VEDICWAY_TEST_PAYMENTS",

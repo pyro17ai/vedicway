@@ -21,7 +21,6 @@ from vedicway_backend.schemas import BirthInput, Place, ResolvedTime, TimeAccura
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
-
 OFFICIAL_ADDRESSES = [
     "185.71.76.1",
     "185.71.77.25",

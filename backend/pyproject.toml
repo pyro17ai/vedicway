@@ -16,6 +16,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "pytest>=8.0,<9.0",
+  "ruff>=0.12,<1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -29,6 +30,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "UP"]
+ignore = ["E501"]
 
 [tool.pyright]
 pythonVersion = "3.11"

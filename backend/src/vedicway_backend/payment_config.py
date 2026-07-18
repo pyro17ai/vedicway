@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from typing import Literal
 from urllib.parse import urlsplit
 
-
 OFFICIAL_YOOKASSA_API_BASE_URL = "https://api.yookassa.ru/v3"
 
 
@@ -98,7 +97,7 @@ class PaymentSettings:
     catalog: PaymentCatalog = field(default_factory=PaymentCatalog)
 
     @classmethod
-    def from_environment(cls) -> "PaymentSettings":
+    def from_environment(cls) -> PaymentSettings:
         environment = os.getenv("VEDICWAY_ENV", "development").strip().casefold() or "development"
         production = environment == "production"
         test_payments = os.getenv("VEDICWAY_TEST_PAYMENTS", "0").strip() == "1"
