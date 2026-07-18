@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -140,6 +141,13 @@ def test_magic_link_grants_new_browser_session(tmp_path) -> None:
         )
         chart_id = created.json()["chart_id"]
         token = store.create_magic_link(chart_id)
+        with store._connection() as connection:
+            magic_link = connection.execute("SELECT created_at, expires_at FROM magic_links").fetchone()
+        assert magic_link is not None
+        assert (
+            datetime.fromisoformat(magic_link["expires_at"])
+            - datetime.fromisoformat(magic_link["created_at"])
+        ) >= timedelta(days=30)
     with TestClient(app) as visitor:
         response = visitor.get(f"/api/v1/magic-links/{token}", follow_redirects=False)
         assert response.status_code == 303

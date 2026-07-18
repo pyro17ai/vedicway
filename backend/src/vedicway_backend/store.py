@@ -1764,7 +1764,7 @@ class Store:
         except (ValueError, UnicodeDecodeError):
             return False
 
-    def create_magic_link(self, chart_id: str, ttl_hours: int = 24) -> str:
+    def create_magic_link(self, chart_id: str, ttl_hours: int = 24 * 30) -> str:
         token = secrets.token_urlsafe(32)
         expires = _utc_now() + timedelta(hours=ttl_hours)
         with self._lock, self._connection() as connection:
