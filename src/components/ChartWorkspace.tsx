@@ -39,6 +39,7 @@ import {
   createPurchase,
   getChart,
   getPaymentConfig,
+  getPdfRenderStatus,
   getSavedQuestions,
   getSection,
   getVarga,
@@ -607,13 +608,13 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       const render = await startPdf(chartId, preferences);
       for (let retry = 0; retry < 40; retry += 1) {
         await new Promise((resolve) => window.setTimeout(resolve, 250));
-        const next = await refresh();
-        if (next?.pdf.status === "ready" && next.pdf.render_request_id === render.render_request_id) {
+        const status = await getPdfRenderStatus(chartId, render.render_request_id);
+        if (status.status === "ready") {
           trackWorkspaceEvent("pdf_downloaded", { varga: preferences.varga, mode: preferences.mode });
           window.location.assign(reportDownloadUrl(chartId, render.render_request_id));
           return;
         }
-        if (next?.pdf.status === "failed" && next.pdf.render_request_id === render.render_request_id) {
+        if (status.status === "failed") {
           setError("Не удалось подготовить PDF. Карта и текст остаются доступны.");
           return;
         }

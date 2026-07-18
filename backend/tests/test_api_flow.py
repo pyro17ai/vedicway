@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -102,6 +103,12 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         immutable_request = store.get_pdf_render_request(render_request_id)
         assert immutable_request is not None
         assert immutable_request["preferences"]["varga"] == "D24"
+        exact_status = client.get(
+            f"/api/v1/charts/{chart_id}/reports/pdf/requests/{render_request_id}"
+        )
+        assert exact_status.status_code == 200
+        assert exact_status.json()["render_request_id"] == render_request_id
+        assert exact_status.json()["preferences"]["mode"] == "expert"
         snapshot = store.get_snapshot(chart_id)
         bundle = store.get_bundle(chart_id, paid=True)
         assert snapshot is not None and bundle is not None
@@ -135,6 +142,13 @@ def test_magic_link_grants_new_browser_session(tmp_path) -> None:
         )
         chart_id = created.json()["chart_id"]
         token = store.create_magic_link(chart_id)
+        with store._connection() as connection:
+            magic_link = connection.execute("SELECT created_at, expires_at FROM magic_links").fetchone()
+        assert magic_link is not None
+        assert (
+            datetime.fromisoformat(magic_link["expires_at"])
+            - datetime.fromisoformat(magic_link["created_at"])
+        ) >= timedelta(days=30)
     with TestClient(app) as visitor:
         response = visitor.get(f"/api/v1/magic-links/{token}", follow_redirects=False)
         assert response.status_code == 303
