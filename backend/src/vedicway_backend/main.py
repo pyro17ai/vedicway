@@ -329,7 +329,16 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
         if getattr(provider, "name", "") == "pending_provider":
             raise DomainError("PAYMENT_PROVIDER_UNAVAILABLE", "Приём платежей временно недоступен", recoverable=True, status_code=503)
         purchase, _ = app.state.store.create_purchase(chart_id, idempotency_key, payload.email)
-        intent = provider.create_payment(purchase["id"], int(purchase["amount_minor"]), str(purchase["currency"]), f"/chart/{chart_id}")
+        intent = await provider.create_payment(
+            purchase_id=str(purchase["id"]),
+            chart_id=chart_id,
+            product_code="full_report_v1",
+            idempotency_key=f"provider_{purchase['id']}",
+            amount_minor=int(purchase["amount_minor"]),
+            currency=str(purchase["currency"]),
+            return_url=f"http://127.0.0.1:5173/chart/{chart_id}",
+            email=payload.email or "development@example.invalid",
+        )
         app.state.store.set_provider_payment(purchase["id"], intent.provider, intent.provider_payment_id)
         return PurchaseResponse(
             purchase_id=purchase["id"],
