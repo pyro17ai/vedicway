@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 
 import App from "./App";
 import "./styles.css";
+import "./results-showcase.css";
+import "./faq-section.css";
+import "./chart-workspace.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

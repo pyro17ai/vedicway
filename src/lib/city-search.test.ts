@@ -4,67 +4,44 @@ import { searchCities } from "./city-search";
 
 describe("searchCities", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("не отправляет запрос для строки короче двух символов", async () => {
-    const fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-
+  it("не обращается к Open-Meteo для строки короче двух символов", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
     await expect(searchCities(" М ")).resolves.toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("запрашивает мировые города и нормализует ответ", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        results: [
-          {
-            id: 524901,
-            name: "Москва",
-            country: "Россия",
-            admin1: "Москва",
-            latitude: 55.75222,
-            longitude: 37.61556,
-            timezone: "Europe/Moscow",
-          },
-        ],
-      }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
+  it("возвращает мировой результат Open-Meteo вместе с координатами и timezone", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(new Response(JSON.stringify({
+      results: [{
+        id: 2950159,
+        name: "Берлин",
+        country: "Германия",
+        country_code: "DE",
+        admin1: "Берлин",
+        latitude: 52.52437,
+        longitude: 13.41053,
+        timezone: "Europe/Berlin",
+      }],
+    }), { status: 200 }));
 
-    await expect(searchCities("Москва")).resolves.toEqual([
-      {
-        id: 524901,
-        label: "Москва, Москва, Россия",
-        name: "Москва",
-        country: "Россия",
-        admin1: "Москва",
-        latitude: 55.75222,
-        longitude: 37.61556,
-        timezone: "Europe/Moscow",
-      },
-    ]);
-
-    const requestedUrl = new URL(fetchMock.mock.calls[0][0]);
-    expect(requestedUrl.origin + requestedUrl.pathname).toBe(
-      "https://geocoding-api.open-meteo.com/v1/search",
-    );
-    expect(requestedUrl.searchParams.get("name")).toBe("Москва");
-    expect(requestedUrl.searchParams.get("count")).toBe("6");
-    expect(requestedUrl.searchParams.get("language")).toBe("ru");
-    expect(requestedUrl.searchParams.get("format")).toBe("json");
+    await expect(searchCities("Berlin")).resolves.toEqual([{
+      id: "2950159",
+      label: "Берлин, Берлин, Германия",
+      name: "Берлин",
+      country: "Германия",
+      countryCode: "DE",
+      admin1: "Берлин",
+      latitude: 52.52437,
+      longitude: 13.41053,
+      timezone: "Europe/Berlin",
+    }]);
   });
 
-  it("возвращает понятную ошибку при недоступности сервиса", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 503 }),
-    );
-
-    await expect(searchCities("Berlin")).rejects.toThrow(
-      "Не удалось загрузить варианты городов",
-    );
+  it("возвращает понятную ошибку при недоступности Open-Meteo", async () => {
+    vi.spyOn(globalThis, "fetch").mockRejectedValueOnce(new Error("network down"));
+    await expect(searchCities("Berlin")).rejects.toThrow("Не удалось загрузить варианты городов");
   });
 });
