@@ -1,0 +1,112 @@
+{
+  "project": {
+    "primary_host": "https://vedicway.ru",
+    "site_type": "online_service_and_editorial_guide",
+    "launch_stage": "prelaunch",
+    "routing_strategy": "folders",
+    "trailing_slash": "never",
+    "language": "ru",
+    "verification": {
+      "method": "html_file",
+      "owner": "site-owner",
+      "planned_path": "/yandex-verification.html"
+    },
+    "target_regions": [
+      {
+        "id": 225,
+        "name": "Россия",
+        "real_presence": false,
+        "local_proof": ""
+      }
+    ]
+  },
+  "pages": [
+    {
+      "id": "home",
+      "url": "/",
+      "parent_id": null,
+      "page_type": "home",
+      "template_id": "landing-v1",
+      "intent": "commercial",
+      "primary_cluster": "натальная карта онлайн",
+      "serp_evidence": {
+        "query": "натальная карта онлайн",
+        "region_id": 225,
+        "checked_at": "2026-07-19",
+        "top_result_pattern": "калькулятор с формой и объяснением состава результата"
+      },
+      "index_state": "index",
+      "canonical_url": "https://vedicway.ru/",
+      "sitemap_include": true,
+      "first_release": true,
+      "data_owner": "product",
+      "unique_value_proof": [
+        "Расчёт принимает дату, точное время и место рождения и показывает пользователю состав результата до отправки формы.",
+        "Демонстрационный блок воспроизводит интерфейс готовой карты, объяснений и вопросов к себе."
+      ],
+      "region_ids": [225],
+      "internal_entrypoints": ["/guide"]
+    },
+    {
+      "id": "guide",
+      "url": "/guide",
+      "parent_id": "home",
+      "page_type": "section",
+      "template_id": "guide-index-v1",
+      "intent": "informational",
+      "primary_cluster": "что такое натальная карта",
+      "serp_evidence": {
+        "query": "что такое натальная карта простыми словами",
+        "region_id": 225,
+        "checked_at": "2026-07-19",
+        "top_result_pattern": "объясняющая статья с определением, составом карты и практическими примерами"
+      },
+      "index_state": "index",
+      "canonical_url": "https://vedicway.ru/guide",
+      "sitemap_include": true,
+      "first_release": true,
+      "data_owner": "editorial",
+      "unique_value_proof": [
+        "Тематический индекс связывает материалы о планетах, домах, аспектах и чтении карты.",
+        "Каждая опубликованная статья имеет автора, дату обновления, обложку и самостоятельный канонический адрес."
+      ],
+      "region_ids": [225],
+      "internal_entrypoints": ["/"]
+    },
+    {
+      "id": "guide-editor",
+      "url": "/guide/editor",
+      "parent_id": "guide",
+      "page_type": "section",
+      "template_id": "admin-editor-v1",
+      "intent": "navigation",
+      "primary_cluster": "редактор материалов",
+      "index_state": "blocked",
+      "canonical_url": "https://vedicway.ru/guide/editor",
+      "sitemap_include": false,
+      "first_release": true,
+      "data_owner": "admin",
+      "unique_value_proof": [],
+      "region_ids": [225],
+      "internal_entrypoints": []
+    },
+    {
+      "id": "admin",
+      "url": "/admin",
+      "parent_id": null,
+      "page_type": "section",
+      "template_id": "admin-shell-v1",
+      "intent": "navigation",
+      "primary_cluster": "администрирование VedicWay",
+      "index_state": "blocked",
+      "canonical_url": "https://vedicway.ru/admin",
+      "sitemap_include": false,
+      "first_release": true,
+      "data_owner": "admin",
+      "unique_value_proof": [],
+      "region_ids": [225],
+      "internal_entrypoints": []
+    }
+  ],
+  "redirects": []
+}

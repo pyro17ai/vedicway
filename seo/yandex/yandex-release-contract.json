@@ -1,0 +1,71 @@
+{
+  "site": {
+    "canonical_origin": "https://vedicway.ru",
+    "render_mode": "prerender",
+    "mobile_mode": "responsive",
+    "sitemap_path": "/sitemap.xml",
+    "declare_sitemap_in_robots": true,
+    "metrika": {
+      "counter_id": 0,
+      "install_mode": "external",
+      "webvisor": false,
+      "route_hit_policy": "manual_spa_hit",
+      "release_blocker": "Указать настоящий ID отдельного счётчика vedicway.ru"
+    }
+  },
+  "pages": [
+    {
+      "page_id": "home",
+      "url": "/",
+      "output_file": "index.html",
+      "indexable": true,
+      "canonical": "https://vedicway.ru/",
+      "sitemap": true,
+      "expected_status": 200,
+      "render_mode": "prerender",
+      "schema_types": ["Organization", "WebSite", "FAQPage"]
+    },
+    {
+      "page_id": "guide",
+      "url": "/guide",
+      "output_file": "guide/index.html",
+      "indexable": true,
+      "canonical": "https://vedicway.ru/guide",
+      "sitemap": true,
+      "expected_status": 200,
+      "render_mode": "prerender",
+      "schema_types": ["CollectionPage", "BreadcrumbList"]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "utm_source",
+      "changes_content": false,
+      "scope": "/",
+      "policy": "clean-param",
+      "owner": "analytics"
+    },
+    {
+      "name": "utm_medium",
+      "changes_content": false,
+      "scope": "/",
+      "policy": "clean-param",
+      "owner": "analytics"
+    },
+    {
+      "name": "utm_campaign",
+      "changes_content": false,
+      "scope": "/",
+      "policy": "clean-param",
+      "owner": "analytics"
+    },
+    {
+      "name": "yclid",
+      "changes_content": false,
+      "scope": "/",
+      "policy": "clean-param",
+      "owner": "analytics"
+    }
+  ],
+  "redirects": []
+}

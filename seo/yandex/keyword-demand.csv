@@ -1,0 +1,17 @@
+query,monthly_queries,region_id,region_name,source,checked_at,target_page,intent,decision
+натальная карта онлайн,181271,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,primary
+натальная карта онлайн бесплатно,49729,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,exclude_free_claim
+рассчитать натальную карту онлайн,17892,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+натальная карта онлайн с расшифровкой,16587,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+расчет натальной карты,15655,225,Россия,Yandex Wordstat association,2026-07-19,/,commercial,secondary
+натальная карта по дате онлайн,8815,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+натальная карта по дате рождения онлайн,7519,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+рассчитать натальную карту с расшифровкой,5829,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+построить натальную карту онлайн,3351,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,secondary
+что такое натальная карта,2680,225,Россия,Yandex Wordstat top_requests,2026-07-19,/guide,informational,primary
+рассчитать натальную карту джйотиш,642,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,editorial_support
+ведическая натальная карта рассчитать,486,225,Россия,Yandex Wordstat top_requests,2026-07-19,/,commercial,editorial_support
+что такое натальная карта простыми словами,340,225,Россия,Yandex Wordstat top_requests,2026-07-19,/guide,informational,secondary
+что такое дома в натальной карте,146,225,Россия,Yandex Wordstat top_requests,2026-07-19,/guide,informational,article_candidate
+что такое аспекты в натальной карте,62,225,Россия,Yandex Wordstat top_requests,2026-07-19,/guide,informational,article_candidate
+гид по астрологии,2,225,Россия,Yandex Wordstat top_requests,2026-07-19,/guide,navigation,do_not_target_as_primary
