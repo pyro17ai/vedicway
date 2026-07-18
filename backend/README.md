@@ -55,12 +55,13 @@ PostgreSQL накатывается по порядку:
 backend/migrations/001_chart_result.sql
 backend/migrations/002_yookassa_production.sql
 backend/migrations/003_pdf_render_preferences.sql
+backend/migrations/004_runtime_rate_limits.sql
 ```
 
 SQLite остаётся локальным runnable-контуром и обновляет старую базу совместимыми `ALTER TABLE`. Перед production необходимо подключить PostgreSQL-backed store согласно основной backend-спецификации; сама платёжная доменная модель и DDL уже подготовлены.
 
 ## Границы
 
-- SQLite используется для локального runnable-контура. PostgreSQL DDL лежит в последовательных миграциях `001_chart_result.sql`, `002_yookassa_production.sql` и `003_pdf_render_preferences.sql`.
+- SQLite используется для локального runnable-контура. PostgreSQL DDL лежит в последовательных миграциях `001_chart_result.sql` - `004_runtime_rate_limits.sql`.
 - `DevelopmentInterpretationProvider` служит только явным контрактным stub в тестах. Рабочий процесс не подставляет его при сбое: D1 остаётся доступной, а вкладка объяснений получает локальную retryable-ошибку. `CodexExecProvider` делает до двух one-shot вызовов: основной и один repair после schema/semantic validation.
 - PDF создаёт Node/Playwright worker через `scripts/render_pdf.mjs`. Он строит HTML из экранированных строк и SVG D1, без model HTML и внешней сети.

@@ -8,6 +8,7 @@ import os
 import secrets
 import sqlite3
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
@@ -296,6 +297,12 @@ class Store:
           updated_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS pdf_render_requests_chart_idx ON pdf_render_requests(chart_id, created_at DESC);
+        CREATE TABLE IF NOT EXISTS rate_limit_events (
+          bucket_key TEXT NOT NULL,
+          occurred_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS rate_limit_events_bucket_idx
+          ON rate_limit_events(bucket_key, occurred_at);
         CREATE TABLE IF NOT EXISTS saved_questions (
           chart_id TEXT NOT NULL REFERENCES charts(id),
           question_id TEXT NOT NULL,
@@ -404,6 +411,36 @@ class Store:
     @staticmethod
     def _token_hash(token: str) -> str:
         return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    def record_rate_limit_hit(self, bucket_key: str, limit: int, window_seconds: int) -> int:
+        """Atomically record one hit and return retry seconds when the bucket is full."""
+        now = time.time()
+        cutoff = now - window_seconds
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    "DELETE FROM rate_limit_events WHERE bucket_key = ? AND occurred_at <= ?",
+                    (bucket_key, cutoff),
+                )
+                row = connection.execute(
+                    """SELECT COUNT(*) AS hits, MIN(occurred_at) AS oldest
+                       FROM rate_limit_events WHERE bucket_key = ?""",
+                    (bucket_key,),
+                ).fetchone()
+                if row and int(row["hits"]) >= limit:
+                    retry_after = max(1, int(float(row["oldest"]) + window_seconds - now) + 1)
+                    connection.commit()
+                    return retry_after
+                connection.execute(
+                    "INSERT INTO rate_limit_events (bucket_key, occurred_at) VALUES (?, ?)",
+                    (bucket_key, now),
+                )
+                connection.commit()
+                return 0
+            except Exception:
+                connection.rollback()
+                raise
 
     @staticmethod
     def _new_id(prefix: str) -> str:
