@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 
 import { AstrologyWheel } from "./components/AstrologyWheel";
-import { ArticleEditor } from "./components/ArticleEditor";
+import { AdminPage } from "./components/AdminPage";
 import { ArticlePage } from "./components/ArticlePage";
 import { BirthChartForm } from "./components/BirthChartForm";
 import { ChartWorkspace } from "./components/ChartWorkspace";
 import { FaqSection } from "./components/FaqSection";
 import { GuidePage } from "./components/GuidePage";
+import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
 import { SiteHeader } from "./components/SiteHeader";
 
@@ -127,6 +128,13 @@ function guideSlugFromPath(pathname: string) {
   return decodeURIComponent(matched[1]);
 }
 
+const legalRoutes: Record<string, LegalDocumentKind> = {
+  "/legal/user-agreement": "terms",
+  "/legal/privacy-policy": "privacy",
+  "/legal/personal-data-consent": "consent",
+  "/legal/cookies": "cookies",
+};
+
 function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
@@ -153,8 +161,11 @@ function App() {
     }} />;
   }
 
-  if (pathname === "/guide/editor") return <ArticleEditor onNavigate={navigate} />;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
+
+  const legalKind = legalRoutes[pathname];
+  if (legalKind) return <LegalPage kind={legalKind} onNavigate={navigate} />;
 
   const guideSlug = guideSlugFromPath(pathname);
   if (guideSlug) return <ArticlePage slug={guideSlug} onNavigate={navigate} />;

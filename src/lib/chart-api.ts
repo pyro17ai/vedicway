@@ -187,6 +187,8 @@ export async function createChart(input: {
     timezone: string;
   };
   timeAccuracy: ChartResource["birth"]["time_accuracy"];
+  personalDataConsent: boolean;
+  termsAccepted: boolean;
 }): Promise<{ chart_id: string }> {
   return request("/api/v1/charts", {
     method: "POST",
@@ -204,6 +206,12 @@ export async function createChart(input: {
         tzid: input.place.timezone,
       },
       time_accuracy: input.timeAccuracy,
+      legal: {
+        personal_data: input.personalDataConsent,
+        personal_data_version: "2026-07-19",
+        terms: input.termsAccepted,
+        terms_version: "2026-07-19",
+      },
     }),
   });
 }

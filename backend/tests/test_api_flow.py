@@ -9,6 +9,14 @@ from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
 
+LEGAL = {
+    "personal_data": True,
+    "personal_data_version": "2026-07-19",
+    "terms": True,
+    "terms_version": "2026-07-19",
+}
+
+
 def _wait_for(client: TestClient, chart_id: str, predicate, timeout: float = 12.0):
     deadline = time.monotonic() + timeout
     last = None
@@ -26,7 +34,7 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
     store = Store(tmp_path / "runtime")
     app = create_app(store=store, worker=ChartWorker(store))
     with TestClient(app) as client:
-        payload = {"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901", "time_accuracy": "exact"}
+        payload = {"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901", "time_accuracy": "exact", "legal": LEGAL}
         first = client.post("/api/v1/charts", json=payload, headers={"Idempotency-Key": "chart-idempotency"})
         assert first.status_code == 202
         chart_id = first.json()["chart_id"]
@@ -72,7 +80,7 @@ def test_magic_link_grants_new_browser_session(tmp_path) -> None:
     with TestClient(app) as owner:
         created = owner.post(
             "/api/v1/charts",
-            json={"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901"},
+            json={"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901", "legal": LEGAL},
             headers={"Idempotency-Key": "magic-chart"},
         )
         chart_id = created.json()["chart_id"]

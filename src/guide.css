@@ -216,15 +216,31 @@
 .guide-article-card {
   display: flex;
   flex-direction: column;
-  min-height: 310px;
-  padding: 25px;
+  min-height: 390px;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid rgba(242, 161, 102, 0.16);
   border-radius: 15px;
   background: rgba(9, 10, 10, 0.84);
   box-shadow: 0 20px 55px rgba(0, 0, 0, 0.2);
 }
 
-.guide-article-card > span {
+.guide-article-card__cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  color: #d9783f;
+  background: radial-gradient(circle, rgba(230, 113, 48, .15), transparent 45%), #0d0e0f;
+  cursor: pointer;
+}
+
+.guide-article-card__cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 450ms ease; }
+.guide-article-card__cover:hover img { transform: scale(1.025); }
+.guide-article-card__cover > span { display: grid; height: 100%; place-items: center; font-size: 34px; }
+.guide-article-card__content { display: flex; flex: 1; flex-direction: column; min-height: 220px; padding: 22px 24px 24px; }
+
+.guide-article-card__content > span {
   color: #d6773e;
   font-size: 9px;
   font-weight: 600;
@@ -238,7 +254,7 @@
   font: 500 27px/1.05 "Cormorant Garamond", Georgia, serif;
 }
 
-.guide-article-card > p {
+.guide-article-card__content > p {
   margin: 0;
   color: #a8a19b;
   font-size: 13px;
@@ -253,6 +269,8 @@
   margin-top: auto;
   padding-top: 20px;
 }
+
+.guide-loading { display: grid; min-height: 250px; place-items: center; color: #8b837c; font-size: 12px; }
 
 .guide-article-card time {
   color: #77716d;
@@ -285,6 +303,9 @@
   padding-bottom: 38px;
   border-bottom: 1px solid rgba(242, 161, 102, 0.16);
 }
+
+.article-cover { aspect-ratio: 16 / 9; margin: 0 0 38px; overflow: hidden; border-radius: 16px; background: #0c0d0e; }
+.article-cover img { width: 100%; height: 100%; object-fit: cover; }
 
 .article-reading > header > span {
   color: #df8248;
@@ -349,6 +370,10 @@
 .article-reading__body ul {
   margin: 0 0 22px;
 }
+
+.article-reading__body figure { margin: 34px 0; }
+.article-reading__body figure img { width: 100%; max-height: 620px; object-fit: contain; border-radius: 13px; background: #0b0c0d; }
+.article-reading__body figcaption { margin-top: 9px; color: #7d756f; font-size: 11px; line-height: 1.45; text-align: center; }
 
 .article-reading__body li + li {
   margin-top: 8px;

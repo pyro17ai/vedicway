@@ -19,8 +19,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
+from .admin_api import build_admin_router
 from .calculator import warm_instant_runtime
+from .content_store import ContentDatabase, production_configuration_errors
 from .errors import DomainError
+from .legal_config import LEGAL_DOCUMENT_VERSIONS
 from .places import PlaceRegistry
 from .payments import payment_provider_from_environment
 from .observability import Metrics
@@ -97,20 +100,37 @@ async def _lifespan(app: FastAPI):
     yield
 
 
-def create_app(store: Store | None = None, worker: ChartWorker | None = None) -> FastAPI:
+def create_app(
+    store: Store | None = None,
+    worker: ChartWorker | None = None,
+    content_db: ContentDatabase | None = None,
+) -> FastAPI:
     app = FastAPI(title="VedicWay BFF", version="1.0.0", docs_url=None, redoc_url=None, lifespan=_lifespan)
     app.state.store = store or Store()
     app.state.metrics = Metrics()
     app.state.worker = worker or ChartWorker(app.state.store, metrics=app.state.metrics)
     app.state.places = PlaceRegistry()
     app.state.limiter = RateLimiter()
+    app.state.content_db = content_db or ContentDatabase()
+    app.state.content_db.initialize()
+    app.state.content_db.bootstrap_admin_from_environment()
+
+    production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
+    public_origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "").rstrip("/")
+    cors_origins = [public_origin] if production and public_origin else [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=cors_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "OPTIONS"],
-        allow_headers=["Content-Type", "Idempotency-Key", "If-None-Match", "Last-Event-ID", "X-Client-Version"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=[
+            "Content-Type", "Idempotency-Key", "If-None-Match", "Last-Event-ID", "X-Client-Version",
+            "X-CSRF-Token", "X-Admin-Request",
+        ],
     )
 
     @app.middleware("http")
@@ -130,11 +150,20 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
                 _trace_id(request),
             )
         response.headers["X-Trace-ID"] = _trace_id(request)
-        response.headers["Cache-Control"] = "no-store"
+        response.headers.setdefault("Cache-Control", "no-store")
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "same-origin"
-        if os.environ.get("VEDICWAY_ENV") == "production":
-            response.headers["Content-Security-Policy"] = "default-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; connect-src 'self'"
+        if production:
+            response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' https://mc.yandex.ru; "
+                "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://geocoding-api.open-meteo.com; "
+                "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com; "
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "font-src 'self' https://fonts.gstatic.com; "
+                "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+            )
         route = request.scope.get("route")
         route_path = getattr(route, "path", request.url.path)
         app.state.metrics.increment("http_requests_total", {"method": request.method, "route": route_path, "status": str(response.status_code)})
@@ -177,8 +206,15 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
     async def readiness() -> JSONResponse:
         try:
             app.state.store.events_since("health", 0)
+            app.state.content_db.ping()
         except Exception:
             return JSONResponse(status_code=503, content={"status": "not_ready"})
+        configuration_errors = production_configuration_errors(app.state.content_db)
+        if configuration_errors:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "not_ready", "reasons": configuration_errors},
+            )
         return JSONResponse(content={"status": "ready"})
 
     @app.get("/internal/metrics")
@@ -201,6 +237,23 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
     ) -> ChartAccepted:
         if not idempotency_key or len(idempotency_key) > 200:
             raise DomainError("IDEMPOTENCY_KEY_REQUIRED", "Добавьте ключ защиты от повтора запроса", status_code=400)
+        legal = payload.legal
+        if (
+            legal is None
+            or not legal.personal_data
+            or legal.personal_data_version != LEGAL_DOCUMENT_VERSIONS["personal_data_consent"]
+        ):
+            raise DomainError(
+                "PERSONAL_DATA_CONSENT_REQUIRED",
+                "Подтвердите отдельное согласие на обработку персональных данных",
+                status_code=422,
+            )
+        if not legal.terms or legal.terms_version != LEGAL_DOCUMENT_VERSIONS["terms"]:
+            raise DomainError(
+                "TERMS_ACCEPTANCE_REQUIRED",
+                "Подтвердите пользовательское соглашение",
+                status_code=422,
+            )
         if os.environ.get("VEDICWAY_ENV", "development").casefold() == "production":
             rate_key = request.client.host if request.client else "unknown"
             await app.state.limiter.check(f"chart-hour:{rate_key}", limit=5, window_seconds=60 * 60)
@@ -215,6 +268,27 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
             raise DomainError("PLACE_NOT_FOUND", "Выберите город из подсказок", status_code=422)
         birth = resolve_birth_input(payload, place)
         chart_id, created = app.state.store.create_chart(current_session, birth, idempotency_key)
+        client_ip = request.client.host if request.client else None
+        app.state.content_db.record_consent(
+            subject_reference=current_session,
+            consent_type="personal_data",
+            document_version=legal.personal_data_version,
+            granted=True,
+            data_categories=["birth_date", "birth_time", "birth_place", "time_accuracy", "technical_session"],
+            chart_id=chart_id,
+            ip=client_ip,
+            user_agent=request.headers.get("user-agent"),
+        )
+        app.state.content_db.record_consent(
+            subject_reference=current_session,
+            consent_type="terms",
+            document_version=legal.terms_version,
+            granted=True,
+            data_categories=[],
+            chart_id=chart_id,
+            ip=client_ip,
+            user_agent=request.headers.get("user-agent"),
+        )
         if created:
             await _launch_worker(app)
         resource = app.state.store.get_chart_resource(chart_id)
@@ -225,6 +299,8 @@ def create_app(store: Store | None = None, worker: ChartWorker | None = None) ->
             accepted_birth=resource["birth"],
             statuses=resource["sections"],
         )
+
+    app.include_router(build_admin_router())
 
     @app.get("/api/v1/charts/{chart_id}")
     async def get_chart(chart_id: str, request: Request) -> dict[str, Any]:

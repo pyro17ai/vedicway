@@ -70,6 +70,8 @@ class Store:
         configured = os.environ.get("VEDICWAY_SIGNING_KEY")
         if configured:
             return configured.encode("utf-8")
+        if os.environ.get("VEDICWAY_ENV") == "production":
+            raise RuntimeError("VEDICWAY_SIGNING_KEY is required in production")
         key_file = self.data_dir / "development-signing.key"
         if key_file.exists():
             return key_file.read_bytes()

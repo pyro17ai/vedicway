@@ -208,7 +208,24 @@
   .chart-card .submit-button {
     grid-template-columns: 1fr 66px;
     min-height: 56px;
-    margin-top: 18px;
+    margin-top: 12px;
+  }
+
+  .chart-card .legal-acceptance {
+    gap: 4px;
+    margin-top: 9px;
+  }
+
+  .chart-card .legal-acceptance label {
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 6px;
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .chart-card .legal-acceptance input {
+    width: 13px;
+    height: 13px;
   }
 
   .chart-card .submit-button > span:first-child {

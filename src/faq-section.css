@@ -363,15 +363,26 @@
 }
 
 .faq-legal-footer__operator a,
-.faq-legal-footer__links a {
+.faq-legal-footer__links a,
+.faq-legal-footer__links button {
   color: #d98a4e;
   text-decoration: none;
   text-underline-offset: 3px;
   transition: color 150ms ease, text-decoration-color 150ms ease;
 }
 
+.faq-legal-footer__links button {
+  width: fit-content;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
 .faq-legal-footer__operator a:hover,
-.faq-legal-footer__links a:hover {
+.faq-legal-footer__links a:hover,
+.faq-legal-footer__links button:hover {
   color: #ffab6c;
   text-decoration: underline;
 }
@@ -385,6 +396,7 @@
 }
 
 .faq-legal-footer__links a:focus-visible,
+.faq-legal-footer__links button:focus-visible,
 .faq-legal-footer__operator a:focus-visible {
   outline: 2px solid #ffad74;
   outline-offset: 3px;

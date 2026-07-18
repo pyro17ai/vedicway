@@ -68,6 +68,8 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
   const [timeAccuracy, setTimeAccuracy] = useState<"exact" | "approximate_15m" | "approximate_hour" | "unknown">("exact");
+  const [personalDataConsent, setPersonalDataConsent] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const nameRef = useRef<HTMLInputElement>(null);
   const birthDateRef = useRef<HTMLInputElement>(null);
@@ -201,6 +203,11 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
       return;
     }
 
+    if (!personalDataConsent || !termsAccepted) {
+      setSubmitMessage("Подтвердите отдельное согласие и пользовательское соглашение.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitMessage("Проверяем данные");
     try {
@@ -216,6 +223,8 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
           timezone: selectedCity!.timezone,
         },
         timeAccuracy,
+        personalDataConsent,
+        termsAccepted,
       });
       window.sessionStorage.setItem(`vedicway:profile:${result.chart_id}`, JSON.stringify({ name: values.name.trim() }));
       trackWorkspaceEvent("chart_create_accepted", { time_accuracy: timeAccuracy });
@@ -442,7 +451,18 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
           <small id="time-accuracy-hint">Лагна, дома и дробные карты чувствительны к минутам рождения.</small>
         </fieldset>
 
-        <button className="submit-button" type="submit" disabled={isSubmitting}>
+        <div className="legal-acceptance" aria-label="Правовые согласия">
+          <label>
+            <input type="checkbox" checked={personalDataConsent} onChange={(event) => setPersonalDataConsent(event.target.checked)} required />
+            <span>Даю отдельное <a href="/legal/personal-data-consent" target="_blank" rel="noreferrer">согласие на обработку персональных данных</a></span>
+          </label>
+          <label>
+            <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
+            <span>Принимаю <a href="/legal/user-agreement" target="_blank" rel="noreferrer">пользовательское соглашение</a></span>
+          </label>
+        </div>
+
+        <button className="submit-button" type="submit" disabled={isSubmitting || !personalDataConsent || !termsAccepted}>
           <span>{isSubmitting ? "РАССЧИТЫВАЕМ..." : "РАССЧИТАТЬ КАРТУ"}</span>
           <span className="submit-button__star" aria-hidden="true">
             <img src="/assets/celestial-star.png" alt="" />

@@ -5,9 +5,16 @@ description = "VedicWay chart-result BFF and deterministic calculation workflow"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
 dependencies = [
+  "alembic>=1.14,<2.0",
   "cryptography>=46.0,<50.0",
+  "email-validator>=2.2,<3.0",
   "fastapi==0.128.0",
+  "pillow>=11.0,<13.0",
   "pydantic>=2.13,<3.0",
+  "psycopg[binary]>=3.2,<4.0",
+  "pwdlib[argon2]>=0.2,<1.0",
+  "python-multipart>=0.0.20,<1.0",
+  "sqlalchemy>=2.0.38,<3.0",
   "tzdata>=2025.2,<2027.0",
   "uvicorn[standard]>=0.35,<1.0",
 ]
