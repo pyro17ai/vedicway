@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, createPurchase, type PurchaseResource } from "./chart-api";
+import { createPurchase, type PurchaseResource } from "./chart-api";
 import {
   clearPaymentReturnState,
   pollPurchase,
@@ -77,7 +77,7 @@ describe("purchase API", () => {
 
     await expect(
       createPurchase("chart_123", { email: "buyer@example.com", offerVersion: "old" }),
-    ).rejects.toMatchObject<ApiError>({
+    ).rejects.toMatchObject({
       code: "OFFER_VERSION_MISMATCH",
       traceId: "trace-1",
       detail: { offer_version: "2026-07-18" },
