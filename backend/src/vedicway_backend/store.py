@@ -196,6 +196,16 @@ class Store:
           received_at TEXT NOT NULL,
           PRIMARY KEY(provider, provider_event_id)
         );
+        CREATE TABLE IF NOT EXISTS payment_incidents (
+          id TEXT PRIMARY KEY,
+          purchase_id TEXT REFERENCES purchases(id),
+          category TEXT NOT NULL,
+          detail_json TEXT NOT NULL,
+          trace_id TEXT,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS payment_incidents_purchase_idx
+          ON payment_incidents(purchase_id, created_at);
         CREATE TABLE IF NOT EXISTS entitlements (
           id TEXT PRIMARY KEY,
           chart_id TEXT NOT NULL REFERENCES charts(id),
@@ -856,8 +866,9 @@ class Store:
         with self._lock, self._connection() as connection:
             cursor = connection.execute(
                 """UPDATE purchases
-                   SET provider = ?, provider_payment_id = ?, checkout_url = ?, status = ?,
-                       provider_status = ?, provider_payload_json = ?, failure_code = ?,
+                   SET provider = ?, provider_payment_id = COALESCE(?, provider_payment_id),
+                       checkout_url = COALESCE(?, checkout_url), status = ?,
+                       provider_status = ?, provider_payload_json = COALESCE(?, provider_payload_json), failure_code = ?,
                        receipt_registration = ?, updated_at = ?
                    WHERE id = ?""",
                 (
@@ -869,6 +880,79 @@ class Store:
             )
             if cursor.rowcount == 0:
                 raise LookupError(purchase_id)
+
+    def get_purchase_by_provider_payment_id(self, provider: str, provider_payment_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM purchases WHERE provider = ? AND provider_payment_id = ?",
+                (provider, provider_payment_id),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def payment_event_exists(self, provider: str, provider_event_id: str) -> bool:
+        with self._lock, self._connection() as connection:
+            return connection.execute(
+                "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
+                (provider, provider_event_id),
+            ).fetchone() is not None
+
+    def claim_purchase_reconciliation(self, purchase_id: str, cooldown_seconds: int = 5) -> bool:
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    "SELECT last_reconciled_at FROM purchases WHERE id = ?", (purchase_id,)
+                ).fetchone()
+                if not row:
+                    connection.rollback()
+                    raise LookupError(purchase_id)
+                now = _utc_now()
+                previous = row["last_reconciled_at"]
+                if previous:
+                    elapsed = (now - datetime.fromisoformat(str(previous))).total_seconds()
+                    if elapsed < cooldown_seconds:
+                        connection.commit()
+                        return False
+                connection.execute(
+                    "UPDATE purchases SET last_reconciled_at = ?, updated_at = ? WHERE id = ?",
+                    (_iso(now), _iso(now), purchase_id),
+                )
+                connection.commit()
+                return True
+            except Exception:
+                connection.rollback()
+                raise
+
+    def record_payment_incident(
+        self,
+        purchase_id: str | None,
+        category: str,
+        detail: dict[str, Any],
+        trace_id: str | None = None,
+    ) -> str:
+        incident_id = self._new_id("inc")
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """INSERT INTO payment_incidents
+                   (id, purchase_id, category, detail_json, trace_id, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (incident_id, purchase_id, category, _json_dump(detail), trace_id, _iso()),
+            )
+        return incident_id
+
+    def payment_incidents(self, purchase_id: str) -> list[dict[str, Any]]:
+        with self._lock, self._connection() as connection:
+            rows = connection.execute(
+                "SELECT * FROM payment_incidents WHERE purchase_id = ? ORDER BY created_at, id",
+                (purchase_id,),
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "detail": _json_load(row["detail_json"], {}),
+            }
+            for row in rows
+        ]
 
     @staticmethod
     def _payment_mismatch(message: str, detail: dict[str, object] | None = None) -> DomainError:

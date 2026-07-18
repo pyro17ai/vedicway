@@ -23,6 +23,17 @@ CREATE INDEX IF NOT EXISTS purchases_active_idx
 ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS event_type text;
 ALTER TABLE payment_events ADD COLUMN IF NOT EXISTS object_id text;
 
+CREATE TABLE IF NOT EXISTS payment_incidents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  purchase_id uuid REFERENCES purchases(id),
+  category text NOT NULL,
+  detail jsonb NOT NULL,
+  trace_id text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS payment_incidents_purchase_idx
+  ON payment_incidents(purchase_id, created_at DESC);
+
 ALTER TABLE entitlements ADD COLUMN IF NOT EXISTS revoked_at timestamptz;
 ALTER TABLE entitlements ADD COLUMN IF NOT EXISTS revocation_reason text;
 
