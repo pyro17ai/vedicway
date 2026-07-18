@@ -4,12 +4,27 @@
 
 ## Локальный запуск
 
-Укажите путь к исходникам собственного PyJHora MCP и используйте Python 3.11 из его виртуального окружения:
+Для локального интерфейса с настоящими персональными объяснениями запускайте готовый изолированный контур. Первый запуск копирует только файл авторизации в отдельный `CODEX_HOME`; пользовательские настройки, skills, MCP, память и рабочие файлы runner не видит:
+
+```powershell
+.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015 -BootstrapAuthFromCurrentUser
+```
+
+Следующие запуски не требуют bootstrap-флага:
+
+```powershell
+.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015
+```
+
+Скрипт находит настоящий `codex.exe`, потому что npm-обёртку `codex.cmd` нельзя безопасно запустить через `subprocess` с `shell=False`. Он создаёт пустой read-only workdir в `%LOCALAPPDATA%\VedicWay\codex-runner`, включает `VEDICWAY_INTERPRETATION_PROVIDER=codex` и хранит локальную БД отдельно от основной рабочей копии.
+
+Для запуска только расчётного контура без персонального текста укажите путь к исходникам собственного PyJHora MCP и используйте Python 3.11 из его виртуального окружения:
 
 ```powershell
 $env:PYTHONPATH = "D:\CODEX_WORK\VedicWay\backend\src"
 $env:VEDICWAY_PYJHORA_SOURCE = "C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"
 $env:VEDICWAY_TEST_PAYMENTS = "1"
+$env:VEDICWAY_INTERPRETATION_PROVIDER = "stub" # только локальные контрактные тесты
 C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\.venv311\Scripts\python.exe -m uvicorn vedicway_backend.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -20,5 +35,5 @@ C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\.venv311\Scripts\python.e
 ## Границы
 
 - SQLite используется для локального runnable-контура. Миграция PostgreSQL лежит в `migrations/001_chart_result.sql` и повторяет production-модель из спецификации.
-- `DevelopmentInterpretationProvider` создаёт проверяемые локальные тексты для разработки. `CodexExecProvider` реализован как изолированный one-shot adapter и включается только конфигурацией в контейнере без пользовательского `CODEX_HOME`.
+- `DevelopmentInterpretationProvider` служит только явным контрактным stub в тестах. Рабочий процесс не подставляет его при сбое: D1 остаётся доступной, а вкладка объяснений получает локальную retryable-ошибку. `CodexExecProvider` делает до двух one-shot вызовов: основной и один repair после schema/semantic validation.
 - PDF создаёт Node/Playwright worker через `scripts/render_pdf.mjs`. Он строит HTML из экранированных строк и SVG D1, без model HTML и внешней сети.

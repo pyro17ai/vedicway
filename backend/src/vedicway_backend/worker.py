@@ -230,7 +230,7 @@ class ChartWorker:
             chart_id,
             str(job["id"]),
             type(self.provider).__name__,
-            "interpretation.paid.v1" if paid else "interpretation.free.v1",
+            getattr(self.provider, "prompt_version", "interpretation-provider.v1"),
             input_checksum,
         )
 

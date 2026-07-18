@@ -21,5 +21,6 @@ if PYJHORA_SOURCE.exists():
 def test_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setenv("VEDICWAY_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("VEDICWAY_TEST_PAYMENTS", "1")
+    monkeypatch.setenv("VEDICWAY_INTERPRETATION_PROVIDER", "stub")
     if PYJHORA_SOURCE.exists():
         monkeypatch.setenv("VEDICWAY_PYJHORA_SOURCE", str(PYJHORA_SOURCE))

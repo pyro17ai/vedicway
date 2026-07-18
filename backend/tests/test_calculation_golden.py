@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime, timezone
 
 import pytest
 
 from vedicway_backend.calculator import calculate_extended, calculate_instant
+from vedicway_backend.evidence import compile_evidence
 from vedicway_backend.places import PlaceRegistry
 from vedicway_backend.schemas import ChartCreateRequest, ChartSnapshot
 from vedicway_backend.time_normalization import resolve_birth_input
@@ -35,3 +36,13 @@ def test_golden_moscow_lahiri_chart() -> None:
     assert enriched.sections["D9"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(3.4194, abs=0.0001)
     assert enriched.sections["D10"]["data"]["ascendant"]["sign_label"] == "Дева"
     assert enriched.sections["D10"]["data"]["ascendant"]["longitude_in_sign"] == pytest.approx(27.1326, abs=0.0001)
+    evidence_snapshot = enriched.model_copy(update={"created_at": datetime(2026, 7, 18, tzinfo=timezone.utc)})
+    facts, packets = compile_evidence(evidence_snapshot)
+    assert len({fact.id for fact in facts}) == len(facts)
+    period_packet = next(packet for packet in packets if packet.slug.value == "current_period")
+    period_facts = {fact.id: fact for fact in facts}
+    active = [period_facts[fact_id] for fact_id in period_packet.primary_facts + period_packet.confirming_facts]
+    assert [fact.human_label_ru for fact in active] == [
+        "Активная махадаша Вимшоттари: Венера",
+        "Активная антардаша Вимшоттари: Раху",
+    ]
