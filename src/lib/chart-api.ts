@@ -333,8 +333,9 @@ export function startPdf(chartId: string, preferences: PdfRenderPreferences) {
   });
 }
 
-export function reportDownloadUrl(chartId: string) {
-  return `/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf`;
+export function reportDownloadUrl(chartId: string, renderRequestId: string) {
+  const query = new URLSearchParams({ render_request_id: renderRequestId });
+  return `/api/v1/charts/${encodeURIComponent(chartId)}/reports/pdf?${query.toString()}`;
 }
 
 export function subscribeToChartEvents(

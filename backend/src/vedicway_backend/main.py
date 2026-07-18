@@ -1125,23 +1125,39 @@ def create_app(
         }
 
     @app.get("/api/v1/charts/{chart_id}/reports/pdf")
-    async def get_pdf(chart_id: str, request: Request) -> Response:
+    async def get_pdf(chart_id: str, request: Request, render_request_id: str = Query(...)) -> Response:
         current_session = session(request)
         assert_owned(chart_id, current_session)
-        report = app.state.store.get_report(chart_id)
-        if report["status"] == "ready":
-            token = app.state.store.issue_download_token(chart_id)
-            return RedirectResponse(url=f"/api/v1/reports/download/{chart_id}?token={token}", status_code=303)
-        return JSONResponse(status_code=202, content=report)
+        render = app.state.store.get_pdf_render_request(render_request_id)
+        if not render or render["chart_id"] != chart_id:
+            raise DomainError("PDF_RENDER_NOT_FOUND", "Рендер PDF не найден", recoverable=False, status_code=404)
+        if render["status"] == "ready" and render.get("path"):
+            token = app.state.store.issue_download_token(chart_id, render_request_id)
+            return RedirectResponse(
+                url=f"/api/v1/reports/download/{chart_id}?render_request_id={render_request_id}&token={token}",
+                status_code=303,
+            )
+        return JSONResponse(
+            status_code=202 if render["status"] in {"queued", "generating"} else 409,
+            content={
+                "status": render["status"],
+                "render_request_id": render_request_id,
+                "error_code": render.get("error_code"),
+            },
+        )
 
     @app.get("/api/v1/reports/download/{chart_id}")
-    async def download_pdf(chart_id: str, token: str = Query(...)) -> FileResponse:
-        if not app.state.store.validate_download_token(token, chart_id):
+    async def download_pdf(
+        chart_id: str,
+        render_request_id: str = Query(...),
+        token: str = Query(...),
+    ) -> FileResponse:
+        if not app.state.store.validate_download_token(token, chart_id, render_request_id):
             raise DomainError("DOWNLOAD_TOKEN_INVALID", "Ссылка на файл устарела", recoverable=False, status_code=401)
-        report = app.state.store.get_report(chart_id)
-        if report["status"] != "ready":
+        render = app.state.store.get_pdf_render_request(render_request_id)
+        if not render or render["chart_id"] != chart_id or render["status"] != "ready":
             raise DomainError("PDF_NOT_READY", "PDF ещё готовится", status_code=409)
-        path = app.state.store.report_file_path(chart_id)
+        path = app.state.store.report_file_path(chart_id, render_request_id)
         if path is None or not path.exists():
             raise DomainError("PDF_MISSING", "Файл отчёта не найден", recoverable=True, status_code=404)
         return FileResponse(path, media_type="application/pdf", filename="vedicway-report.pdf")

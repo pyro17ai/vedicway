@@ -610,7 +610,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         const next = await refresh();
         if (next?.pdf.status === "ready" && next.pdf.render_request_id === render.render_request_id) {
           trackWorkspaceEvent("pdf_downloaded", { varga: preferences.varga, mode: preferences.mode });
-          window.location.assign(reportDownloadUrl(chartId));
+          window.location.assign(reportDownloadUrl(chartId, render.render_request_id));
           return;
         }
         if (next?.pdf.status === "failed" && next.pdf.render_request_id === render.render_request_id) {
