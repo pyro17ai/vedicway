@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import hmac
+import ipaddress
 import json
 import logging
 import os
@@ -24,10 +25,17 @@ from .calculator import warm_instant_runtime
 from .errors import DomainError
 from .payment_config import PaymentSettings
 from .payment_security import effective_client_ip, is_yookassa_source
-from .payments import PaymentProvider, PaymentStatus, payment_provider_from_settings
+from .payments import PaymentProvider, PaymentStatus, RefundStatus, payment_provider_from_settings
 from .places import PlaceRegistry
 from .observability import Metrics
-from .schemas import ChartAccepted, ChartCreateRequest, PurchaseRequest, PurchaseResponse
+from .schemas import (
+    ChartAccepted,
+    ChartCreateRequest,
+    PurchaseRequest,
+    PurchaseResponse,
+    RefundRequest,
+    RefundResponse,
+)
 from .store import Store
 from .time_normalization import resolve_birth_input
 from .worker import ChartWorker
@@ -280,6 +288,56 @@ def create_app(
         if transition["entitlement_changed"]:
             await _launch_worker(app)
         return transition
+
+    def authorize_operations(request: Request) -> tuple[str, str]:
+        settings: PaymentSettings = app.state.payment_settings
+        supplied = request.headers.get("X-Operations-Token", "")
+        if not settings.operations_token or not hmac.compare_digest(supplied, settings.operations_token):
+            raise DomainError(
+                "OPERATIONS_NOT_FOUND",
+                "Служебный маршрут не найден",
+                recoverable=False,
+                status_code=404,
+            )
+        peer_ip = request.client.host if request.client else ""
+        source_ip = effective_client_ip(
+            peer_ip,
+            request.headers.get("X-Forwarded-For"),
+            settings.trusted_proxy_networks,
+        )
+        try:
+            source_address = ipaddress.ip_address(source_ip)
+        except ValueError as exc:
+            raise DomainError(
+                "OPERATIONS_SOURCE_FORBIDDEN",
+                "Служебный маршрут недоступен из этой сети",
+                recoverable=False,
+                status_code=403,
+            ) from exc
+        allowed = any(
+            source_address.version == network.version and source_address in network
+            for network in settings.operations_networks
+        )
+        if not allowed:
+            raise DomainError(
+                "OPERATIONS_SOURCE_FORBIDDEN",
+                "Служебный маршрут недоступен из этой сети",
+                recoverable=False,
+                status_code=403,
+            )
+        fingerprint = hashlib.sha256(supplied.encode("utf-8")).hexdigest()[:24]
+        return fingerprint, source_ip
+
+    def public_refund(refund: dict[str, Any]) -> RefundResponse:
+        status_value = str(refund["status"])
+        return RefundResponse(
+            refund_id=str(refund["id"]),
+            purchase_id=str(refund["purchase_id"]),
+            status=status_value,
+            amount_minor=int(refund["amount_minor"]),
+            currency=str(refund["currency"]),
+            retryable=status_value in {"created", "pending", "unknown"},
+        )
 
     @app.get("/api/v1/health")
     async def health() -> dict[str, str]:
@@ -624,6 +682,174 @@ def create_app(
             purchase = app.state.store.get_purchase(purchase_id) or purchase
         return public_purchase(purchase)
 
+    @app.post("/internal/payments/{purchase_id}/reconcile", response_model=PurchaseResponse)
+    async def reconcile_payment_operation(purchase_id: str, request: Request) -> PurchaseResponse:
+        actor_fingerprint, source_ip = authorize_operations(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        if not purchase.get("provider_payment_id"):
+            raise DomainError(
+                "PAYMENT_PROVIDER_OBJECT_NOT_FOUND",
+                "У заказа ещё нет идентификатора платёжной операции",
+                status_code=409,
+            )
+        result = "failed"
+        try:
+            intent = await app.state.payment_provider.get_payment(str(purchase["provider_payment_id"]))
+            if intent.status in {PaymentStatus.SUCCEEDED, PaymentStatus.CANCELLED}:
+                await apply_verified_payment(
+                    purchase,
+                    intent,
+                    provider_event_id=f"operations:reconcile:{intent.status.value}:{intent.provider_payment_id}",
+                    event_type=f"payment.{intent.status.value}",
+                    payload_checksum=hashlib.sha256(
+                        json.dumps(intent.redacted_payload, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest(),
+                    trace_id=_trace_id(request),
+                    incident_category="operations_reconciliation_mismatch",
+                )
+            else:
+                validate_provider_intent(purchase, intent)
+                app.state.store.set_provider_payment(
+                    purchase_id,
+                    intent.provider,
+                    intent.provider_payment_id,
+                    status=intent.status.value,
+                    provider_status=intent.status.value,
+                    redacted_payload=intent.redacted_payload,
+                    failure_code=intent.failure_code,
+                )
+            result = intent.status.value
+        finally:
+            app.state.store.record_payment_operation(
+                action="reconcile",
+                purchase_id=purchase_id,
+                refund_id=None,
+                actor_fingerprint=actor_fingerprint,
+                source_ip=source_ip,
+                trace_id=_trace_id(request),
+                reason=None,
+                amount_minor=None,
+                result=result,
+            )
+        saved = app.state.store.get_purchase(purchase_id) or purchase
+        return public_purchase(saved)
+
+    @app.post(
+        "/internal/payments/{purchase_id}/refunds",
+        response_model=RefundResponse,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    async def create_refund_operation(
+        purchase_id: str,
+        request: Request,
+        payload: RefundRequest,
+        idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    ) -> RefundResponse:
+        actor_fingerprint, source_ip = authorize_operations(request)
+        if not idempotency_key or len(idempotency_key) > 200:
+            raise DomainError(
+                "IDEMPOTENCY_KEY_REQUIRED",
+                "Добавьте корректный ключ защиты от повторного возврата",
+                status_code=400,
+            )
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        if purchase["provider"] != app.state.payment_provider.name or not purchase.get("provider_payment_id"):
+            raise DomainError(
+                "REFUND_PROVIDER_UNAVAILABLE",
+                "Платёжный провайдер заказа недоступен для возврата",
+                recoverable=False,
+                status_code=409,
+            )
+        refund, created = app.state.store.create_refund(
+            purchase_id,
+            idempotency_key=idempotency_key,
+            amount_minor=payload.amount_minor,
+            reason=payload.reason,
+            actor_fingerprint=actor_fingerprint,
+        )
+        if not created and (refund.get("provider_refund_id") or refund["status"] not in {"created", "unknown"}):
+            return public_refund(refund)
+
+        result = "failed"
+        try:
+            intent = await app.state.payment_provider.refund(
+                provider_payment_id=str(purchase["provider_payment_id"]),
+                purchase_id=purchase_id,
+                idempotency_key=str(refund["provider_idempotency_key"]),
+                amount_minor=int(refund["amount_minor"]),
+                original_amount_minor=int(purchase["paid_amount_minor"] or purchase["amount_minor"]),
+                currency=str(refund["currency"]),
+                email=app.state.store.get_purchase_email(purchase_id) or "",
+                reason=app.state.store.get_refund_reason(str(refund["id"])) or payload.reason,
+            )
+            if intent.provider_payment_id != purchase["provider_payment_id"]:
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Возврат относится к другому платежу",
+                    recoverable=False,
+                    status_code=409,
+                )
+            if intent.amount_minor != int(refund["amount_minor"]) or intent.currency.upper() != str(refund["currency"]).upper():
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Сумма или валюта возврата не совпадает с созданной операцией",
+                    recoverable=False,
+                    status_code=409,
+                )
+            app.state.store.set_provider_refund(
+                str(refund["id"]),
+                provider_refund_id=intent.provider_refund_id,
+                status=intent.status.value,
+                receipt_registration=intent.receipt_registration,
+                failure_code=intent.failure_code,
+            )
+            if intent.status in {RefundStatus.SUCCEEDED, RefundStatus.CANCELLED, RefundStatus.FAILED}:
+                app.state.store.apply_refund_event(
+                    str(refund["id"]),
+                    provider_event_id=f"operations:refund.{intent.status.value}:{intent.provider_refund_id}",
+                    event_type=f"refund.{intent.status.value}",
+                    object_id=str(intent.provider_refund_id),
+                    payload_checksum=hashlib.sha256(
+                        json.dumps(intent.redacted_payload, sort_keys=True, separators=(",", ":")).encode()
+                    ).hexdigest(),
+                    status=intent.status.value,
+                    provider_payment_id=intent.provider_payment_id,
+                    amount_minor=intent.amount_minor,
+                    currency=intent.currency,
+                    failure_code=intent.failure_code,
+                    receipt_registration=intent.receipt_registration,
+                )
+            result = intent.status.value
+        except DomainError as error:
+            recoverable = error.recoverable or error.code == "PAYMENT_PROVIDER_TEMPORARY"
+            app.state.store.set_provider_refund(
+                str(refund["id"]),
+                provider_refund_id=None,
+                status="unknown" if recoverable else "failed",
+                failure_code=error.code,
+            )
+            result = "unknown" if recoverable else "failed"
+            if not recoverable:
+                raise
+        finally:
+            app.state.store.record_payment_operation(
+                action="refund",
+                purchase_id=purchase_id,
+                refund_id=str(refund["id"]),
+                actor_fingerprint=actor_fingerprint,
+                source_ip=source_ip,
+                trace_id=_trace_id(request),
+                reason=payload.reason,
+                amount_minor=payload.amount_minor,
+                result=result,
+            )
+        saved_refund = app.state.store.get_refund(str(refund["id"])) or refund
+        return public_refund(saved_refund)
+
     @app.post("/api/v1/test/purchases/{purchase_id}/confirm", status_code=status.HTTP_202_ACCEPTED)
     async def confirm_test_purchase(purchase_id: str, request: Request) -> dict[str, str]:
         if os.environ.get("VEDICWAY_TEST_PAYMENTS") != "1":
@@ -672,8 +898,57 @@ def create_app(
                 raise ValueError
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise DomainError("WEBHOOK_INVALID", "Событие платежа имеет неверный формат", recoverable=False, status_code=400) from exc
-        if event_type not in {"payment.succeeded", "payment.canceled"}:
+        if event_type not in {"payment.succeeded", "payment.canceled", "refund.succeeded"}:
             return {"status": "ignored"}
+
+        if event_type == "refund.succeeded":
+            provider_event_id = f"{event_type}:{provider_payment_id}"
+            if app.state.store.payment_event_exists("yookassa", provider_event_id):
+                return {"status": "duplicate"}
+            refund = app.state.store.get_refund_by_provider_refund_id(provider_payment_id)
+            if not refund:
+                raise DomainError("REFUND_NOT_FOUND", "Возврат не найден", recoverable=False, status_code=404)
+            purchase = app.state.store.get_purchase(str(refund["purchase_id"]))
+            if not purchase:
+                raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+            refund_intent = await app.state.payment_provider.get_refund(provider_payment_id)
+            if refund_intent.status != RefundStatus.SUCCEEDED:
+                app.state.store.record_payment_incident(
+                    str(purchase["id"]),
+                    "refund_webhook_mismatch",
+                    {"event_type": event_type, "provider_status": refund_intent.status.value},
+                    _trace_id(request),
+                )
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    "Статус возврата не совпадает с уведомлением",
+                    recoverable=False,
+                    status_code=409,
+                )
+            try:
+                app.state.store.apply_refund_event(
+                    str(refund["id"]),
+                    provider_event_id=provider_event_id,
+                    event_type=event_type,
+                    object_id=str(refund_intent.provider_refund_id),
+                    payload_checksum=hashlib.sha256(raw).hexdigest(),
+                    status=refund_intent.status.value,
+                    provider_payment_id=refund_intent.provider_payment_id,
+                    amount_minor=refund_intent.amount_minor,
+                    currency=refund_intent.currency,
+                    failure_code=refund_intent.failure_code,
+                    receipt_registration=refund_intent.receipt_registration,
+                )
+            except DomainError as error:
+                if error.code == "PAYMENT_MISMATCH":
+                    app.state.store.record_payment_incident(
+                        str(purchase["id"]),
+                        "refund_webhook_mismatch",
+                        {"event_type": event_type, "code": error.code},
+                        _trace_id(request),
+                    )
+                raise
+            return {"status": "accepted"}
 
         provider_event_id = f"{event_type}:{provider_payment_id}"
         if app.state.store.payment_event_exists("yookassa", provider_event_id):

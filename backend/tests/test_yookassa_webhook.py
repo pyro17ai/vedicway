@@ -10,7 +10,13 @@ from vedicway_backend.errors import DomainError
 from vedicway_backend.main import create_app
 from vedicway_backend.payment_config import PaymentSettings
 from vedicway_backend.payment_security import effective_client_ip, is_yookassa_source
-from vedicway_backend.payments import PaymentIntent, PaymentProvider, PaymentStatus, RefundIntent
+from vedicway_backend.payments import (
+    PaymentIntent,
+    PaymentProvider,
+    PaymentStatus,
+    RefundIntent,
+    RefundStatus,
+)
 from vedicway_backend.schemas import BirthInput, Place, ResolvedTime, TimeAccuracy
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
@@ -33,6 +39,7 @@ class LookupProvider(PaymentProvider):
     def __init__(self, intent: PaymentIntent | DomainError) -> None:
         self.intent = intent
         self.lookup_calls: list[str] = []
+        self.refund_intent: RefundIntent | DomainError | None = None
 
     async def create_payment(self, **kwargs) -> PaymentIntent:  # type: ignore[no-untyped-def]
         raise NotImplementedError
@@ -47,7 +54,11 @@ class LookupProvider(PaymentProvider):
         raise NotImplementedError
 
     async def get_refund(self, provider_refund_id: str) -> RefundIntent:
-        raise NotImplementedError
+        if isinstance(self.refund_intent, DomainError):
+            raise self.refund_intent
+        if self.refund_intent is None:
+            raise NotImplementedError
+        return self.refund_intent
 
     def normalize_status(self, value: str) -> PaymentStatus:
         return PaymentStatus(value)
@@ -235,3 +246,51 @@ def test_purchase_get_reconciles_once_and_uses_server_state(tmp_path) -> None:
     assert second.json()["status"] == "succeeded"
     assert provider.lookup_calls == ["payment_123"]
     assert store.has_entitlement(str(purchase["chart_id"])) is True
+
+
+def test_refund_success_webhook_is_refetched_and_revokes_full_entitlement(tmp_path) -> None:
+    app, store, _, purchase, provider = _setup(tmp_path)
+    store.apply_payment_event(
+        str(purchase["id"]),
+        provider_event_id="setup:succeeded:payment_123",
+        event_type="payment.succeeded",
+        object_id="payment_123",
+        payload_checksum="setup",
+        status="succeeded",
+        provider_status="succeeded",
+        provider_payment_id="payment_123",
+        amount_minor=99_000,
+        currency="RUB",
+        metadata={
+            "purchase_id": str(purchase["id"]),
+            "chart_id": str(purchase["chart_id"]),
+            "product_code": "full_report_v1",
+        },
+    )
+    refund, _ = store.create_refund(
+        str(purchase["id"]),
+        idempotency_key="refund-key",
+        amount_minor=99_000,
+        reason="Полный возврат",
+        actor_fingerprint="operator",
+    )
+    store.set_provider_refund(str(refund["id"]), provider_refund_id="refund_123", status="pending")
+    provider.refund_intent = RefundIntent(
+        provider="yookassa",
+        provider_refund_id="refund_123",
+        provider_payment_id="payment_123",
+        status=RefundStatus.SUCCEEDED,
+        amount_minor=99_000,
+        currency="RUB",
+        redacted_payload={"id": "refund_123", "status": "succeeded"},
+    )
+
+    with TestClient(app, client=("185.71.76.3", 50000)) as client:
+        response = client.post(
+            "/api/v1/webhooks/payments/yookassa",
+            json={"type": "notification", "event": "refund.succeeded", "object": {"id": "refund_123"}},
+        )
+
+    assert response.status_code == 200
+    assert store.get_purchase(str(purchase["id"]))["status"] == "refunded"  # type: ignore[index]
+    assert store.has_entitlement(str(purchase["chart_id"])) is False

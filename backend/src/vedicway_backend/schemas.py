@@ -264,6 +264,32 @@ class PurchaseResponse(BaseModel):
     retryable: bool
 
 
+class RefundRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    amount_minor: int = Field(ge=100, le=99_000)
+    reason: str = Field(min_length=3, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def reason_must_contain_text(cls, value: str) -> str:
+        normalized = value.strip()
+        if len(normalized) < 3:
+            raise ValueError("Укажите причину возврата")
+        return normalized
+
+
+class RefundResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    refund_id: str
+    purchase_id: str
+    status: str
+    amount_minor: int
+    currency: str
+    retryable: bool
+
+
 class PdfStatus(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

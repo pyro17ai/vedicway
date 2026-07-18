@@ -236,6 +236,22 @@ class Store:
           UNIQUE(provider_refund_id)
         );
         CREATE INDEX IF NOT EXISTS refunds_purchase_idx ON refunds(purchase_id, status, created_at);
+        CREATE TABLE IF NOT EXISTS payment_operations (
+          id TEXT PRIMARY KEY,
+          action TEXT NOT NULL,
+          purchase_id TEXT REFERENCES purchases(id),
+          refund_id TEXT REFERENCES refunds(id),
+          actor_fingerprint TEXT NOT NULL,
+          source_ip TEXT NOT NULL,
+          trace_id TEXT NOT NULL,
+          reason_ciphertext BLOB,
+          amount_minor INTEGER,
+          result TEXT NOT NULL,
+          detail_json TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS payment_operations_purchase_idx
+          ON payment_operations(purchase_id, created_at);
         CREATE TABLE IF NOT EXISTS reports (
           id TEXT PRIMARY KEY,
           chart_id TEXT NOT NULL REFERENCES charts(id),
@@ -1213,6 +1229,13 @@ class Store:
             row = connection.execute("SELECT * FROM refunds WHERE id = ?", (refund_id,)).fetchone()
             return dict(row) if row else None
 
+    def get_refund_by_provider_refund_id(self, provider_refund_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM refunds WHERE provider_refund_id = ?", (provider_refund_id,)
+            ).fetchone()
+            return dict(row) if row else None
+
     def get_refund_reason(self, refund_id: str) -> str | None:
         with self._lock, self._connection() as connection:
             row = connection.execute("SELECT reason_ciphertext FROM refunds WHERE id = ?", (refund_id,)).fetchone()
@@ -1347,6 +1370,52 @@ class Store:
             except Exception:
                 connection.rollback()
                 raise
+
+    def record_payment_operation(
+        self,
+        *,
+        action: str,
+        purchase_id: str | None,
+        refund_id: str | None,
+        actor_fingerprint: str,
+        source_ip: str,
+        trace_id: str,
+        reason: str | None,
+        amount_minor: int | None,
+        result: str,
+        detail: dict[str, Any] | None = None,
+    ) -> str:
+        operation_id = self._new_id("op")
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """INSERT INTO payment_operations
+                   (id, action, purchase_id, refund_id, actor_fingerprint, source_ip,
+                    trace_id, reason_ciphertext, amount_minor, result, detail_json, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    operation_id, action, purchase_id, refund_id, actor_fingerprint, source_ip,
+                    trace_id, self._encrypt({"reason": reason}) if reason else None,
+                    amount_minor, result, _json_dump(detail or {}), _iso(),
+                ),
+            )
+        return operation_id
+
+    def payment_operations(self, purchase_id: str) -> list[dict[str, Any]]:
+        with self._lock, self._connection() as connection:
+            rows = connection.execute(
+                "SELECT * FROM payment_operations WHERE purchase_id = ? ORDER BY created_at, id",
+                (purchase_id,),
+            ).fetchall()
+        return [
+            {
+                **dict(row),
+                "reason": self._decrypt(row["reason_ciphertext"]).get("reason")
+                if row["reason_ciphertext"]
+                else None,
+                "detail": _json_load(row["detail_json"], {}),
+            }
+            for row in rows
+        ]
 
     def has_entitlement(self, chart_id: str) -> bool:
         with self._lock, self._connection() as connection:

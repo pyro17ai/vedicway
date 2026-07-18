@@ -55,3 +55,20 @@ CREATE TABLE IF NOT EXISTS refunds (
   UNIQUE(purchase_id, idempotency_key)
 );
 CREATE INDEX IF NOT EXISTS refunds_purchase_idx ON refunds(purchase_id, status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS payment_operations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  action text NOT NULL,
+  purchase_id uuid REFERENCES purchases(id),
+  refund_id uuid REFERENCES refunds(id),
+  actor_fingerprint text NOT NULL,
+  source_ip inet NOT NULL,
+  trace_id text NOT NULL,
+  reason_ciphertext bytea,
+  amount_minor integer,
+  result text NOT NULL,
+  detail jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS payment_operations_purchase_idx
+  ON payment_operations(purchase_id, created_at DESC);
