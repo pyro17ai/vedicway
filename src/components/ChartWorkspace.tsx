@@ -428,7 +428,10 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         message: reason instanceof Error ? reason.message : "Не удалось проверить платёж. Повторите проверку.",
       });
     });
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (recoveryRun.current === runKey) recoveryRun.current = null;
+    };
   }, [chartId, recoverReturnedPayment, recoveryAttempt]);
 
   useEffect(() => {

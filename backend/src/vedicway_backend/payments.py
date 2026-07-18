@@ -125,11 +125,11 @@ class TestPaymentProvider(PaymentProvider):
             provider=self.name,
             provider_payment_id=f"test_{purchase_id}",
             status=PaymentStatus.PENDING,
-            checkout_url=f"/api/v1/test/purchases/{purchase_id}/confirm",
+            checkout_url=f"/api/v1/test/checkout/{purchase_id}",
             amount_minor=amount_minor,
             currency=currency,
             metadata={"purchase_id": purchase_id, "chart_id": chart_id, "product_code": product_code},
-            redacted_payload={"return_url": return_url, "idempotency_key": idempotency_key},
+            redacted_payload={"id": f"test_{purchase_id}", "status": "pending"},
         )
 
     async def get_payment(self, provider_payment_id: str) -> PaymentIntent:

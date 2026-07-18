@@ -18,7 +18,7 @@ from urllib.parse import quote, urlsplit
 
 from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 from starlette.middleware.cors import CORSMiddleware
 
 from .calculator import warm_instant_runtime
@@ -109,6 +109,11 @@ async def _lifespan(app: FastAPI):
     try:
         yield
     finally:
+        tasks = tuple(getattr(app.state, "payment_tasks", set()))
+        for task in tasks:
+            task.cancel()
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
         await app.state.payment_provider.aclose()
 
 
@@ -127,6 +132,7 @@ def create_app(
     app.state.limiter = RateLimiter()
     app.state.payment_settings = payment_settings or PaymentSettings.from_environment()
     app.state.payment_provider = payment_provider or payment_provider_from_settings(app.state.payment_settings)
+    app.state.payment_tasks = set()
 
     app.add_middleware(
         CORSMiddleware,
@@ -864,6 +870,72 @@ def create_app(
             )
         saved_refund = app.state.store.get_refund(str(refund["id"])) or refund
         return public_refund(saved_refund)
+
+    @app.get("/api/v1/test/checkout/{purchase_id}", response_class=HTMLResponse)
+    async def test_checkout_page(
+        purchase_id: str,
+        request: Request,
+        delay_ms: int = Query(default=0, ge=0, le=10_000),
+    ) -> HTMLResponse:
+        if os.environ.get("VEDICWAY_TEST_PAYMENTS") != "1":
+            raise DomainError("TEST_ENDPOINT_DISABLED", "Тестовый контур оплаты выключен", recoverable=False, status_code=404)
+        current_session = session(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        assert_owned(str(purchase["chart_id"]), current_session)
+        action = f"/api/v1/test/checkout/{quote(purchase_id, safe='')}/complete"
+        if delay_ms:
+            action = f"{action}?delay_ms={delay_ms}"
+        return HTMLResponse(
+            "<!doctype html><html lang='ru'><head><meta charset='utf-8'>"
+            "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+            "<title>Тестовая оплата YooKassa</title>"
+            "<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#080706;color:#f7f0e7;font:16px Arial,sans-serif}"
+            ".card{width:min(420px,calc(100% - 40px));padding:34px;border:1px solid #4d3728;border-radius:18px;background:#11100e}"
+            "h1{font:34px Georgia,serif}p{color:#bdb2a5;line-height:1.6}.price{font-size:30px;color:#f08a45}"
+            "button{width:100%;min-height:52px;border:0;border-radius:10px;background:#df6c2b;color:white;font-weight:700;cursor:pointer}</style>"
+            "</head><body><main class='card'><small>ЛОКАЛЬНЫЙ СИМУЛЯТОР</small>"
+            "<h1>Тестовая оплата YooKassa</h1><p>Реальные деньги и банковские реквизиты не используются.</p>"
+            "<p class='price'>990 ₽</p>"
+            f"<form method='post' action='{action}'><button type='submit'>Оплатить тестовый заказ</button></form>"
+            "</main></body></html>",
+            headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow"},
+        )
+
+    @app.post("/api/v1/test/checkout/{purchase_id}/complete")
+    async def complete_test_checkout(
+        purchase_id: str,
+        request: Request,
+        delay_ms: int = Query(default=0, ge=0, le=10_000),
+    ) -> RedirectResponse:
+        if os.environ.get("VEDICWAY_TEST_PAYMENTS") != "1":
+            raise DomainError("TEST_ENDPOINT_DISABLED", "Тестовый контур оплаты выключен", recoverable=False, status_code=404)
+        current_session = session(request)
+        purchase = app.state.store.get_purchase(purchase_id)
+        if not purchase:
+            raise DomainError("PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404)
+        chart_id = str(purchase["chart_id"])
+        assert_owned(chart_id, current_session)
+
+        async def confirm_after_delay() -> None:
+            if delay_ms:
+                await asyncio.sleep(delay_ms / 1000)
+            confirmed_chart_id = app.state.store.confirm_purchase(purchase_id, f"test_checkout_{purchase_id}")
+            if confirmed_chart_id:
+                await _launch_worker(app)
+
+        if delay_ms:
+            task = asyncio.create_task(confirm_after_delay())
+            app.state.payment_tasks.add(task)
+            task.add_done_callback(app.state.payment_tasks.discard)
+        else:
+            await confirm_after_delay()
+        return_url = (
+            f"{app.state.payment_settings.public_base_url}/chart/{quote(chart_id, safe='')}"
+            f"?payment_return={quote(purchase_id, safe='')}"
+        )
+        return RedirectResponse(return_url, status_code=303)
 
     @app.post("/api/v1/test/purchases/{purchase_id}/confirm", status_code=status.HTTP_202_ACCEPTED)
     async def confirm_test_purchase(purchase_id: str, request: Request) -> dict[str, str]:

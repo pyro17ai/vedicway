@@ -57,8 +57,13 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
             headers={"Idempotency-Key": "purchase-idempotency"},
         )
         assert purchase.status_code == 202
-        confirmation = client.post(f"/api/v1/test/purchases/{purchase.json()['purchase_id']}/confirm")
-        assert confirmation.status_code == 202
+        checkout_url = purchase.json()["checkout_url"]
+        checkout = client.get(checkout_url)
+        assert checkout.status_code == 200
+        assert "Тестовая оплата YooKassa" in checkout.text
+        confirmation = client.post(f"{checkout_url}/complete", follow_redirects=False)
+        assert confirmation.status_code == 303
+        assert f"payment_return={purchase.json()['purchase_id']}" in confirmation.headers["location"]
         resource = _wait_for(
             client,
             chart_id,
