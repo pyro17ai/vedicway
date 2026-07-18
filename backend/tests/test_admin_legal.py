@@ -36,6 +36,14 @@ def _login(client: TestClient) -> str:
     return token
 
 
+def _edit_headers(csrf: str, revision: int) -> dict[str, str]:
+    return {
+        "Origin": "http://testserver",
+        "X-CSRF-Token": csrf,
+        "If-Match": f'"{revision}"',
+    }
+
+
 def _article(
     cover: str | None = None, cover_id: str | None = None, status: str = "draft"
 ) -> dict[str, object]:
@@ -99,7 +107,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         published = client.put(
             f"/api/v1/admin/articles/{draft.json()['id']}",
             json=published_payload,
-            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+            headers=_edit_headers(csrf, draft.json()["revision"]),
         )
         assert published.status_code == 200
         public = client.get("/api/v1/content/articles").json()["items"]
@@ -117,7 +125,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         renamed = client.put(
             f"/api/v1/admin/articles/{draft.json()['id']}",
             json=renamed_payload,
-            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+            headers=_edit_headers(csrf, published.json()["revision"]),
         )
         assert renamed.status_code == 409
         assert renamed.json()["error"]["code"] == "ARTICLE_SLUG_IMMUTABLE"
@@ -127,17 +135,26 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         unpublished = client.put(
             f"/api/v1/admin/articles/{draft.json()['id']}",
             json=unpublished_payload,
-            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+            headers=_edit_headers(csrf, published.json()["revision"]),
         )
         assert unpublished.status_code == 200
         assert unpublished.json()["published_at"] is not None
+        stale_payload = dict(unpublished_payload)
+        stale_payload["title"] = "Устаревшая правка"
+        stale = client.put(
+            f"/api/v1/admin/articles/{draft.json()['id']}",
+            json=stale_payload,
+            headers=_edit_headers(csrf, published.json()["revision"]),
+        )
+        assert stale.status_code == 409
+        assert stale.json()["error"]["code"] == "ARTICLE_REVISION_CONFLICT"
         rename_after_unpublish = dict(unpublished_payload)
         rename_after_unpublish["slug"] = "obhod-posle-snyatiya"
         rename_after_unpublish["canonical_url"] = "https://vedicway.ru/guide/obhod-posle-snyatiya"
         blocked_after_unpublish = client.put(
             f"/api/v1/admin/articles/{draft.json()['id']}",
             json=rename_after_unpublish,
-            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+            headers=_edit_headers(csrf, unpublished.json()["revision"]),
         )
         assert blocked_after_unpublish.status_code == 409
 

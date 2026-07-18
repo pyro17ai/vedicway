@@ -207,8 +207,8 @@ def create_app(
                 "script-src 'self' https://mc.yandex.ru; "
                 "connect-src 'self' https://mc.yandex.ru https://mc.yandex.com https://geocoding-api.open-meteo.com; "
                 "img-src 'self' data: blob: https://mc.yandex.ru https://mc.yandex.com; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                "font-src 'self' https://fonts.gstatic.com; "
+                "style-src 'self' 'unsafe-inline'; "
+                "font-src 'self'; "
                 "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
             )
         route = request.scope.get("route")

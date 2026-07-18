@@ -18,7 +18,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
-from .content_store import ContentDatabase, User, token_hash
+from .content_store import ArticleRevisionConflict, ContentDatabase, User, token_hash
 from .errors import DomainError
 from .legal_config import public_legal_config
 from .payment_security import effective_client_ip
@@ -269,6 +269,19 @@ def _validate_publish(payload: ArticlePayload) -> None:
         )
 
 
+def _if_match_revision(value: str | None) -> int:
+    if not value:
+        raise DomainError(
+            "ARTICLE_REVISION_REQUIRED",
+            "Обновите материал перед сохранением",
+            status_code=428,
+        )
+    matched = re.fullmatch(r'(?:W/)?"?([1-9][0-9]*)"?', value.strip())
+    if not matched:
+        raise DomainError("ARTICLE_REVISION_INVALID", "Некорректная версия материала", status_code=400)
+    return int(matched.group(1))
+
+
 def _article_values(payload: ArticlePayload, database: ContentDatabase) -> dict[str, Any]:
     values = payload.model_dump()
     referenced_ids = (
@@ -474,6 +487,7 @@ def build_admin_router() -> APIRouter:
         article_id: str,
         payload: ArticlePayload,
         request: Request,
+        if_match: Annotated[str | None, Header(alias="If-Match")] = None,
         x_csrf_token: Annotated[str | None, Header(alias="X-CSRF-Token")] = None,
     ) -> dict[str, Any]:
         session, user = _current_admin(request)
@@ -493,9 +507,19 @@ def build_admin_router() -> APIRouter:
         _validate_publish(payload)
         if database.slug_exists(payload.slug, except_id=article_id):
             raise DomainError("ARTICLE_SLUG_TAKEN", "Такой адрес уже занят", status_code=409)
-        article = database.save_article(
-            _article_values(payload, database), user.id, article_id=article_id
-        )
+        try:
+            article = database.save_article(
+                _article_values(payload, database),
+                user.id,
+                article_id=article_id,
+                expected_revision=_if_match_revision(if_match),
+            )
+        except ArticleRevisionConflict as exc:
+            raise DomainError(
+                "ARTICLE_REVISION_CONFLICT",
+                "Материал уже изменён в другой вкладке. Обновите редактор.",
+                status_code=409,
+            ) from exc
         return _article_dict(article, database)
 
     @router.delete("/api/v1/admin/articles/{article_id}", status_code=204)

@@ -34,6 +34,7 @@ from sqlalchemy.orm import (
     relationship,
     sessionmaker,
 )
+from sqlalchemy.orm.exc import StaleDataError
 
 PASSWORD_HASH = PasswordHash.recommended()
 DUMMY_PASSWORD_HASH = PASSWORD_HASH.hash(secrets.token_urlsafe(32))
@@ -122,6 +123,7 @@ class Article(Base):
     )
     status: Mapped[str] = mapped_column(String(20), default="draft", index=True)
     revision: Mapped[int] = mapped_column(Integer, default=1)
+    __mapper_args__ = {"version_id_col": revision}
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
@@ -177,6 +179,10 @@ class ConsentRecord(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, index=True
     )
+
+
+class ArticleRevisionConflict(RuntimeError):
+    pass
 
 
 class ContentDatabase:
@@ -348,7 +354,11 @@ class ContentDatabase:
             return database.scalar(query) is not None
 
     def save_article(
-        self, values: dict[str, Any], author_id: str, article_id: str | None = None
+        self,
+        values: dict[str, Any],
+        author_id: str,
+        article_id: str | None = None,
+        expected_revision: int | None = None,
     ) -> Article:
         with self.session() as database:
             article = database.get(Article, article_id) if article_id else None
@@ -357,6 +367,8 @@ class ContentDatabase:
                     id=article_id or new_id(), slug=values["slug"], author_id=author_id
                 )
                 database.add(article)
+            elif expected_revision is None or article.revision != expected_revision:
+                raise ArticleRevisionConflict
             for field in (
                 "title",
                 "slug",
@@ -376,11 +388,13 @@ class ContentDatabase:
             ):
                 setattr(article, field, values.get(field))
             article.author_id = author_id
-            article.revision = (article.revision or 0) + 1
             article.updated_at = utc_now()
             if article.status == "published" and article.published_at is None:
                 article.published_at = utc_now()
-            database.flush()
+            try:
+                database.flush()
+            except StaleDataError as exc:
+                raise ArticleRevisionConflict from exc
             database.refresh(article)
             return article
 

@@ -46,6 +46,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   const [authLoading, setAuthLoading] = useState(true);
   const [articles, setArticles] = useState<ContentArticle[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeRevision, setActiveRevision] = useState<number | null>(null);
   const [draft, setDraft] = useState<ArticleInput>(emptyArticle);
   const [savedDraft, setSavedDraft] = useState(() => JSON.stringify(emptyArticle()));
   const [notice, setNotice] = useState("");
@@ -91,6 +92,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     if (dirty && !window.confirm("Открыть другой материал без сохранения изменений?")) return;
     const value = asInput(article);
     setActiveId(article.id);
+    setActiveRevision(article.revision);
     setDraft(value);
     setSavedDraft(JSON.stringify(value));
     setView("editor");
@@ -101,6 +103,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     if (dirty && !window.confirm("Создать новый материал без сохранения изменений?")) return;
     const value = emptyArticle();
     setActiveId(null);
+    setActiveRevision(null);
     setDraft(value);
     setSavedDraft(JSON.stringify(value));
     setView("editor");
@@ -119,8 +122,11 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       status: publish ? "published" : draft.status,
     };
     try {
-      const saved = activeId ? await adminApi.updateArticle(activeId, value) : await adminApi.createArticle(value);
+      const saved = activeId && activeRevision !== null
+        ? await adminApi.updateArticle(activeId, value, activeRevision)
+        : await adminApi.createArticle(value);
       setActiveId(saved.id);
+      setActiveRevision(saved.revision);
       setDraft(asInput(saved));
       setSavedDraft(JSON.stringify(asInput(saved)));
       await reload();

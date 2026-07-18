@@ -88,7 +88,11 @@ export const adminApi = {
   logout: () => api<void>("/api/v1/admin/auth/logout", { method: "POST" }),
   articles: () => api<{ items: ContentArticle[] }>("/api/v1/admin/articles"),
   createArticle: (value: ArticleInput) => api<ContentArticle>("/api/v1/admin/articles", { method: "POST", body: JSON.stringify(value) }),
-  updateArticle: (id: string, value: ArticleInput) => api<ContentArticle>(`/api/v1/admin/articles/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(value) }),
+  updateArticle: (id: string, value: ArticleInput, revision: number) => api<ContentArticle>(`/api/v1/admin/articles/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    headers: { "If-Match": `"${revision}"` },
+    body: JSON.stringify(value),
+  }),
   deleteArticle: (id: string) => api<void>(`/api/v1/admin/articles/${encodeURIComponent(id)}`, { method: "DELETE" }),
   uploadMedia: (file: File, purpose: "cover" | "body", alt: string, title = "", caption = "") => {
     const body = new FormData();
