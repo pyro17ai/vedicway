@@ -21,17 +21,34 @@ test.describe("Доступ к подробному отчёту", () => {
     await expect(paywall).toBeHidden();
     await expect(detailButton).toBeFocused();
 
-    // 3. Пройти redirect через локальный симулятор YooKassa и запросить PDF.
+    // 3. Пройти redirect через локальный симулятор YooKassa.
     await openTestCheckout(page);
     await page.getByRole("button", { name: "Оплатить тестовый заказ" }).click();
     await expect(page).toHaveURL(/\/chart\/chart_[A-Za-z0-9_-]+\?.*tab=explanation/);
     await expect(page.getByRole("dialog")).toContainText("На чём основано", { timeout: 45_000 });
     await page.getByRole("button", { name: "Закрыть подробный текст" }).click();
 
+    // 4. PDF должен получить именно текущую варгу и режим, а не значения по умолчанию.
+    await page.getByRole("tab", { name: /^Натальная карта/ }).click();
+    await page.getByLabel("Варга").selectOption("D24");
+    await page.getByRole("button", { name: "Профессионально" }).click();
+    await expect(page).toHaveURL(/tab=chart&varga=D24&mode=expert/);
+
     const pdfButton = page.locator(".rail-pdf");
     await expect(pdfButton).toBeEnabled({ timeout: 45_000 });
+    const renderRequest = page.waitForRequest((request) =>
+      request.method() === "POST" && /\/reports\/pdf$/.test(new URL(request.url()).pathname),
+    );
     const download = page.waitForEvent("download");
     await pdfButton.click();
+    expect((await renderRequest).postDataJSON()).toEqual({
+      preferences: {
+        schema_version: "pdf-render-preferences.v1",
+        varga: "D24",
+        mode: "expert",
+        chart_style: "south_indian",
+      },
+    });
     const file = await download;
     expect((await file.suggestedFilename()).endsWith(".pdf")).toBe(true);
   });
