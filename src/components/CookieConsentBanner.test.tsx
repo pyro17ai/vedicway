@@ -12,8 +12,22 @@ describe("CookieConsentBanner", () => {
     const user = userEvent.setup();
     render(<CookieConsentBanner />);
 
-    expect(screen.getByRole("dialog", { name: "Настройки cookies" })).toBeInTheDocument();
+    const dialog = screen.getByRole("dialog", { name: "Настройки cookies" });
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).not.toHaveAttribute("aria-modal");
     await user.click(screen.getByRole("button", { name: "Отклонить необязательные" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(readCookiePreferences()?.analytics).toBe(false);
+  });
+
+  it("закрывается с отказом по Escape, когда фокус находится в плашке", async () => {
+    const user = userEvent.setup();
+    render(<CookieConsentBanner />);
+
+    const settings = screen.getByRole("button", { name: "Настроить" });
+    settings.focus();
+    await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(readCookiePreferences()?.analytics).toBe(false);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 import { ArrowRight, BookOpenText, Compass, Sparkles } from "lucide-react";
 
 import { publicArticles, type ContentArticle } from "../lib/admin-api";
@@ -14,6 +14,23 @@ type GuidePageProps = {
 function formatDate(value: string | null) {
   if (!value) return "";
   return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric" }).format(new Date(value));
+}
+
+function followInternalLink(
+  event: MouseEvent<HTMLAnchorElement>,
+  path: string,
+  onNavigate: (path: string) => void,
+) {
+  if (
+    event.defaultPrevented
+    || event.button !== 0
+    || event.metaKey
+    || event.ctrlKey
+    || event.shiftKey
+    || event.altKey
+  ) return;
+  event.preventDefault();
+  onNavigate(path);
 }
 
 export function GuidePage({ onNavigate }: GuidePageProps) {
@@ -75,18 +92,18 @@ export function GuidePage({ onNavigate }: GuidePageProps) {
             <div className="guide-article-grid">
               {articles.map((article) => (
                 <article className="guide-article-card" key={article.id}>
-                  <button className="guide-article-card__cover" type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Открыть: ${article.title}`}>
+                  <a className="guide-article-card__cover" href={`/guide/${article.slug}`} onClick={(event) => followInternalLink(event, `/guide/${article.slug}`, onNavigate)} aria-label={`Открыть: ${article.title}`}>
                     {article.coverImage ? <ArticleMedia asset={article.coverImage} sizes="(max-width: 560px) calc(100vw - 30px), (max-width: 820px) 50vw, 380px" /> : article.cover_image_url ? <img src={article.cover_image_url} alt={article.cover_image_alt} loading="lazy" /> : <span aria-hidden="true">✦</span>}
-                  </button>
+                  </a>
                   <div className="guide-article-card__content">
                     <span>{article.category}</span>
                     <h3>{article.title}</h3>
                     <p>{article.excerpt}</p>
                     <footer>
                       <time dateTime={article.published_at ?? article.updated_at}>{formatDate(article.published_at ?? article.updated_at)}</time>
-                      <button type="button" onClick={() => onNavigate(`/guide/${article.slug}`)} aria-label={`Читать: ${article.title}`}>
+                      <a className="guide-article-card__read" href={`/guide/${article.slug}`} onClick={(event) => followInternalLink(event, `/guide/${article.slug}`, onNavigate)} aria-label={`Читать: ${article.title}`}>
                         Читать <ArrowRight aria-hidden="true" />
-                      </button>
+                      </a>
                     </footer>
                   </div>
                 </article>

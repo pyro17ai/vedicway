@@ -150,7 +150,7 @@
 
 .guide-editor-link,
 .guide-empty button,
-.guide-article-card button,
+.guide-article-card__read,
 .article-page button {
   display: inline-flex;
   align-items: center;
@@ -164,11 +164,12 @@
   background: rgba(8, 8, 9, 0.58);
   cursor: pointer;
   font-size: 11px;
+  text-decoration: none;
 }
 
 .guide-editor-link svg,
 .guide-empty button svg,
-.guide-article-card button svg,
+.guide-article-card__read svg,
 .article-page button svg {
   width: 15px;
   height: 15px;
@@ -245,6 +246,7 @@
   background: radial-gradient(circle at 50% 38%, rgba(231, 120, 50, 0.14), rgba(6, 7, 8, 0.96) 70%) !important;
   font-size: 30px !important;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .guide-article-card__cover > img {
@@ -310,7 +312,7 @@
   font-size: 10px;
 }
 
-.guide-article-card button {
+.guide-article-card__read {
   min-height: 34px;
   border: 0;
   background: transparent;

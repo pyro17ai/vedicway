@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import os
 import secrets
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import urlsplit
 
 from pwdlib import PasswordHash
 from sqlalchemy import (
@@ -59,6 +61,24 @@ def new_id() -> str:
 
 def token_hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def fingerprint_hash(value: str, purpose: str) -> str:
+    """Hash low-entropy personal data with a server secret and domain separation."""
+    configured = os.environ.get("VEDICWAY_PRIVACY_PEPPER") or os.environ.get(
+        "VEDICWAY_SIGNING_KEY"
+    )
+    production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
+    if not configured:
+        if production:
+            raise RuntimeError(
+                "VEDICWAY_SIGNING_KEY or VEDICWAY_PRIVACY_PEPPER is required for fingerprints"
+            )
+        configured = "vedicway-development-only-fingerprint-pepper"
+    if production and len(configured.encode()) < 32:
+        raise RuntimeError("Fingerprint secret must contain at least 32 bytes in production")
+    message = f"{purpose}\0{value}".encode()
+    return hmac.new(configured.encode(), message, hashlib.sha256).hexdigest()
 
 
 class Base(DeclarativeBase):
@@ -287,8 +307,10 @@ class ContentDatabase:
                     session_token_hash=token_hash(session_token),
                     csrf_token_hash=token_hash(csrf_token),
                     expires_at=utc_now() + ADMIN_SESSION_TTL,
-                    user_agent_hash=token_hash(user_agent) if user_agent else None,
-                    ip_hash=token_hash(ip) if ip else None,
+                    user_agent_hash=(
+                        fingerprint_hash(user_agent, "admin-user-agent") if user_agent else None
+                    ),
+                    ip_hash=fingerprint_hash(ip, "admin-ip") if ip else None,
                 )
             )
         return session_token, csrf_token
@@ -441,6 +463,29 @@ class ContentDatabase:
                 for article in articles
             )
 
+    def media_is_public(self, asset_id: str, filename: str) -> bool:
+        marker = f"{{{{media:{asset_id}}}}}"
+        with self.session() as database:
+            asset = database.get(MediaAsset, asset_id)
+            if not asset:
+                return False
+            urls = [asset.public_url, *(source.get("url", "") for source in asset.sources or [])]
+            allowed_filenames = {
+                PurePosixPath(urlsplit(url).path).name for url in urls if isinstance(url, str) and url
+            }
+            if filename not in allowed_filenames:
+                return False
+            articles = database.scalars(
+                select(Article).where(Article.status == "published")
+            ).all()
+            return any(
+                article.cover_media_id == asset_id
+                or asset_id in (article.body_media_ids or [])
+                or marker in article.content
+                or article.cover_image_url == asset.public_url
+                for article in articles
+            )
+
     def delete_media(self, asset_id: str) -> bool:
         with self.session() as database:
             asset = database.get(MediaAsset, asset_id)
@@ -460,7 +505,7 @@ class ContentDatabase:
         ip: str | None,
         user_agent: str | None,
     ) -> None:
-        subject_hash = token_hash(subject_reference)
+        subject_hash = fingerprint_hash(subject_reference, "consent-subject")
         with self.session() as database:
             existing = database.scalar(
                 select(ConsentRecord.id).where(
@@ -480,8 +525,12 @@ class ContentDatabase:
                     document_version=document_version,
                     granted=granted,
                     data_categories=data_categories,
-                    ip_hash=token_hash(ip) if ip else None,
-                    user_agent_hash=token_hash(user_agent) if user_agent else None,
+                    ip_hash=fingerprint_hash(ip, "consent-ip") if ip else None,
+                    user_agent_hash=(
+                        fingerprint_hash(user_agent, "consent-user-agent")
+                        if user_agent
+                        else None
+                    ),
                 )
             )
 
@@ -505,6 +554,11 @@ def production_configuration_errors(database: ContentDatabase) -> list[str]:
         if not os.environ.get(name, "").strip()
     ]
     errors = [f"missing:{name}" for name in missing]
+    fingerprint_secret = os.environ.get("VEDICWAY_PRIVACY_PEPPER") or os.environ.get(
+        "VEDICWAY_SIGNING_KEY", ""
+    )
+    if fingerprint_secret and len(fingerprint_secret.encode()) < 32:
+        errors.append("security:fingerprint_secret_too_short")
     if not database.url.startswith(("postgresql://", "postgresql+psycopg://")):
         errors.append("database:postgresql_required")
     if os.environ.get("VEDICWAY_RUNTIME_PROFILE") != "single-node-sqlite":

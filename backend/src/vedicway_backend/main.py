@@ -28,7 +28,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from .admin_api import build_admin_router
 from .calculator import warm_instant_runtime
-from .content_store import ContentDatabase, production_configuration_errors
+from .content_store import ContentDatabase, fingerprint_hash, production_configuration_errors
 from .errors import DomainError
 from .legal_config import LEGAL_DOCUMENT_VERSIONS
 from .observability import Metrics
@@ -109,7 +109,7 @@ async def _enforce_rate_limit(
         request.headers.get("X-Forwarded-For"),
         settings.trusted_proxy_networks,
     )
-    bucket_key = hashlib.sha256(f"{scope}:{client_ip}".encode()).hexdigest()
+    bucket_key = fingerprint_hash(client_ip, f"{scope}-rate-limit")
     retry_after = await asyncio.to_thread(
         app.state.store.record_rate_limit_hit,
         bucket_key,
@@ -486,7 +486,12 @@ def create_app(
             raise DomainError("PLACE_NOT_FOUND", "Выберите город из подсказок", status_code=422)
         birth = resolve_birth_input(payload, place)
         chart_id, created = app.state.store.create_chart(current_session, birth, idempotency_key)
-        client_ip = request.client.host if request.client else None
+        peer_ip = request.client.host if request.client else "unknown"
+        client_ip = effective_client_ip(
+            peer_ip,
+            request.headers.get("X-Forwarded-For"),
+            app.state.payment_settings.trusted_proxy_networks,
+        )
         app.state.content_db.record_consent(
             subject_reference=current_session,
             consent_type="personal_data",

@@ -12,13 +12,13 @@ type ArticleMediaProps = {
 };
 
 export function ArticleMedia({ asset, className = "", sizes = "100vw", loading = "lazy", decorative = false }: ArticleMediaProps) {
-  const [source, setSource] = useState(asset.url);
+  const [source, setSource] = useState(() => safeArticleMediaUrl(asset.url));
 
   useEffect(() => {
     let alive = true;
     let revoke = false;
     let resolvedUrl = "";
-    setSource(asset.url);
+    setSource(safeArticleMediaUrl(asset.url));
     void resolveArticleMediaUrl(asset).then((resolved) => {
       if (!alive) {
         if (resolved.revoke) URL.revokeObjectURL(resolved.url);

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import hmac
 import io
 import os
@@ -18,7 +17,13 @@ from fastapi.responses import FileResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
-from .content_store import ArticleRevisionConflict, ContentDatabase, User, token_hash
+from .content_store import (
+    ArticleRevisionConflict,
+    ContentDatabase,
+    User,
+    fingerprint_hash,
+    token_hash,
+)
 from .errors import DomainError
 from .legal_config import public_legal_config
 from .payment_security import effective_client_ip
@@ -137,15 +142,17 @@ def _client_ip(request: Request) -> str | None:
     return request.client.host
 
 
-async def _enforce_admin_login_rate_limit(request: Request) -> None:
+def _effective_client_ip(request: Request) -> str:
     settings = request.app.state.payment_settings
-    peer_ip = _client_ip(request) or "unknown"
-    client_ip = effective_client_ip(
-        peer_ip,
+    return effective_client_ip(
+        _client_ip(request) or "unknown",
         request.headers.get("X-Forwarded-For"),
         settings.trusted_proxy_networks,
     )
-    bucket_key = hashlib.sha256(f"admin-login:{client_ip}".encode()).hexdigest()
+
+
+async def _enforce_admin_login_rate_limit(request: Request) -> None:
+    bucket_key = fingerprint_hash(_effective_client_ip(request), "admin-login-rate-limit")
     retry_after = await asyncio.to_thread(
         request.app.state.store.record_rate_limit_hit,
         bucket_key,
@@ -359,10 +366,14 @@ def build_admin_router() -> APIRouter:
         return _article_dict(article, database)
 
     @router.get("/media/articles/{asset_id}/{filename}")
-    async def public_media(asset_id: str, filename: str) -> FileResponse:
+    async def public_media(asset_id: str, filename: str, request: Request) -> FileResponse:
         if not re.fullmatch(r"[a-f0-9-]{36}", asset_id) or not re.fullmatch(
             r"[1-9][0-9]{1,3}\.webp", filename
         ):
+            raise DomainError(
+                "MEDIA_NOT_FOUND", "Изображение не найдено", recoverable=False, status_code=404
+            )
+        if not _database(request).media_is_public(asset_id, filename):
             raise DomainError(
                 "MEDIA_NOT_FOUND", "Изображение не найдено", recoverable=False, status_code=404
             )
@@ -375,7 +386,7 @@ def build_admin_router() -> APIRouter:
         return FileResponse(
             path,
             media_type="image/webp",
-            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+            headers={"Cache-Control": "public, max-age=300"},
         )
 
     async def sitemap_response(request: Request) -> Response:
@@ -416,7 +427,7 @@ def build_admin_router() -> APIRouter:
         if not user or user.role != "admin":
             raise DomainError("ADMIN_LOGIN_FAILED", "Неверная почта или пароль", status_code=401)
         session_token, csrf_token = _database(request).create_admin_session(
-            user, request.headers.get("user-agent"), _client_ip(request)
+            user, request.headers.get("user-agent"), _effective_client_ip(request)
         )
         response = JSONResponse(
             {

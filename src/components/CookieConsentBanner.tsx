@@ -31,7 +31,14 @@ export function CookieConsentBanner() {
   if (!visible) return null;
 
   return (
-    <aside className="cookie-consent" role="dialog" aria-modal="true" aria-labelledby="cookie-title">
+    <aside
+      className="cookie-consent"
+      role="dialog"
+      aria-labelledby="cookie-title"
+      onKeyDown={(event) => {
+        if (event.key === "Escape") save(false);
+      }}
+    >
       <button className="cookie-consent__close" type="button" aria-label="Отклонить необязательные cookies" onClick={() => save(false)}><X /></button>
       <div className="cookie-consent__icon" aria-hidden="true"><Cookie /></div>
       <div className="cookie-consent__copy">
