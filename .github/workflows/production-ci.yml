@@ -70,9 +70,9 @@ jobs:
           (cd backend && python -m alembic -c alembic.ini upgrade head)
           python -c "from vedicway_backend.content_store import ContentDatabase; ContentDatabase().ping(require_migrations=True)"
           rm -f /tmp/vedicway-postgres-password
-      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py scripts/check_production_release.py scripts/check_compose_contract.py
+      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py
       - run: python -m pytest backend/tests
-      - run: python -m py_compile scripts/check_production_release.py scripts/check_compose_contract.py backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py
+      - run: python -m py_compile scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py
 
   release-config:
     runs-on: ubuntu-latest
@@ -97,6 +97,7 @@ jobs:
           sh -n docker/postgres/restore.sh
           docker compose --env-file .env.production -f compose.production.yml config --format json > /tmp/vedicway-compose.json
           python scripts/check_compose_contract.py /tmp/vedicway-compose.json
+          python scripts/check_nginx_contract.py docker/nginx/nginx.conf
       - name: Static Dockerfile checks
         run: |
           docker buildx build --check --file docker/frontend/Dockerfile .

@@ -12,7 +12,7 @@ CONTAINER_SECRET_PATHS = {
     "VEDICWAY_METRICS_TOKEN_FILE": "/run/secrets/vedicway_metrics_token",
     "YOOKASSA_SHOP_ID_FILE": "/run/secrets/yookassa_shop_id",
     "YOOKASSA_SECRET_KEY_FILE": "/run/secrets/yookassa_secret_key",
-    "CODEX_API_KEY_FILE": "/run/secrets/codex_api_key",
+    "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
 }
 
 

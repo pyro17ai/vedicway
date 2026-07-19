@@ -537,7 +537,7 @@ codex exec `
 
 Prompt подаётся через stdin. `--json` относится к потоку runtime events и используется для метрик; итог читается из `result.json`. В production на Linux пути меняются, семантика сохраняется. Перед релизом exact flags smoke-тестируются на pinned Codex CLI, потому что CLI развивается.
 
-При API-key auth секрет задаётся как `CODEX_API_KEY` только в env дочернего процесса. Официальная документация отдельно предупреждает не выставлять Codex execution в untrusted/public environment. Публичный HTTP никогда не проксирует prompt или CLI flags. Runner находится за очередью, принимает только внутренний typed job и работает в изолированном контейнере.
+При API-key auth секрет задаётся стандартной для Codex CLI переменной `OPENAI_API_KEY` только в env дочернего процесса. Официальная документация отдельно предупреждает не выставлять Codex execution в untrusted/public environment. Публичный HTTP никогда не проксирует prompt или CLI flags. Runner находится за очередью, принимает только внутренний typed job и работает в изолированном контейнере.
 
 ### 10.3. Dedicated CODEX_HOME
 

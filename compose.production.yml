@@ -37,7 +37,7 @@ x-backend-common: &backend-common
     VEDICWAY_METRICS_TOKEN_FILE: /run/secrets/vedicway_metrics_token
     YOOKASSA_SHOP_ID_FILE: /run/secrets/yookassa_shop_id
     YOOKASSA_SECRET_KEY_FILE: /run/secrets/yookassa_secret_key
-    CODEX_API_KEY_FILE: /run/secrets/codex_api_key
+    OPENAI_API_KEY_FILE: /run/secrets/codex_api_key
     FORWARDED_ALLOW_IPS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
     VEDICWAY_TRUSTED_PROXY_CIDRS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
   secrets: &backend-secrets
@@ -359,7 +359,7 @@ secrets:
   yookassa_secret_key:
     file: ${YOOKASSA_SECRET_KEY_FILE:-./secrets/yookassa_secret_key.txt}
   codex_api_key:
-    file: ${CODEX_API_KEY_FILE:-./secrets/codex_api_key.txt}
+    file: ${OPENAI_API_KEY_FILE:-./secrets/codex_api_key.txt}
   admin_bootstrap_email:
     file: ${VEDICWAY_BOOTSTRAP_ADMIN_EMAIL_FILE:-./secrets/admin_bootstrap_email.txt}
   admin_bootstrap_password:

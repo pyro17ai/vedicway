@@ -1,8 +1,17 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const DIST = resolve("dist");
 const template = await readFile(resolve(DIST, "index.html"), "utf8");
+const entryScript = template.match(/<script\b[^>]*\bsrc="(\/assets\/[^"]+\.js)"[^>]*><\/script>/i)?.[1];
+const entryStyle = template.match(/<link\b[^>]*\bhref="(\/assets\/[^"]+\.css)"[^>]*>/i)?.[1];
+
+if (!entryScript || !entryStyle) {
+  throw new Error("Vite entry assets are missing from dist/index.html");
+}
+
+await copyFile(resolve(DIST, entryScript.slice(1)), resolve(DIST, "assets/seo-entry.js"));
+await copyFile(resolve(DIST, entryStyle.slice(1)), resolve(DIST, "assets/seo-entry.css"));
 
 const faqEntries = [
   ["Что такое натальная карта и как работает сервис VedicWay?", "Натальная карта показывает положение небесных тел в момент рождения. VedicWay сопоставляет дату, точное время и координаты места с астрономическими эфемеридами, а затем строит карту и её объяснение."],

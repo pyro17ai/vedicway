@@ -123,6 +123,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert draft.status_code == 201
         assert client.get(cover).status_code == 404
         assert client.get("/api/v1/content/articles").json()["items"] == []
+        assert client.get("/internal/seo/articles/kak-chitat-pervyy-dom/page").status_code == 404
         assert "kak-chitat-pervyy-dom" not in client.get("/sitemap.xml").text
 
         published_payload = _article(cover=cover, cover_id=asset["id"], status="published")
@@ -142,6 +143,14 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert public[0]["cover_image_url"] == cover
         assert public[0]["coverImage"]["id"] == asset["id"]
         assert client.get("/api/v1/content/articles/kak-chitat-pervyy-dom").status_code == 200
+        article_page = client.get("/internal/seo/articles/kak-chitat-pervyy-dom/page")
+        assert article_page.status_code == 200
+        assert article_page.headers["content-type"].startswith("text/html")
+        assert '<link rel="canonical" href="https://vedicway.ru/guide/kak-chitat-pervyy-dom"' in article_page.text
+        assert '"@type":"Article"' in article_page.text
+        assert "Первый дом описывает" in article_page.text
+        assert "/assets/seo-entry.css" in article_page.text
+        assert "/assets/seo-entry.js" in article_page.text
         sitemap = client.get("/api/v1/seo/sitemap.xml")
         assert sitemap.status_code == 200
         assert "https://vedicway.ru/guide/kak-chitat-pervyy-dom" in sitemap.text
@@ -168,6 +177,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert unpublished.status_code == 200
         assert unpublished.json()["published_at"] is not None
         assert client.get(cover).status_code == 404
+        assert client.get("/internal/seo/articles/kak-chitat-pervyy-dom/page").status_code == 404
         stale_payload = dict(unpublished_payload)
         stale_payload["title"] = "Устаревшая правка"
         stale = client.put(

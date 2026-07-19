@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hmac
 import io
+import json
 import os
 import re
 import shutil
@@ -13,7 +14,7 @@ from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, File, Form, Header, Request, Response, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
@@ -258,6 +259,100 @@ def _article_dict(article: Any, database: ContentDatabase) -> dict[str, Any]:
     }
 
 
+def _absolute_public_url(origin: str, value: str | None) -> str | None:
+    if not value:
+        return None
+    if value.startswith("/"):
+        return f"{origin}{value}"
+    parsed = urlsplit(value)
+    return value if parsed.scheme in {"http", "https"} and parsed.netloc else None
+
+
+def _article_content_html(content: str) -> str:
+    rendered: list[str] = []
+    for block in re.split(r"\n{2,}", content.strip()):
+        block = re.sub(r"\{\{media:[a-f0-9-]{36}\}\}", "", block).strip()
+        if not block:
+            continue
+        if block.startswith("### "):
+            rendered.append(f"<h3>{escape(block[4:].strip())}</h3>")
+        elif block.startswith("## "):
+            rendered.append(f"<h2>{escape(block[3:].strip())}</h2>")
+        else:
+            rendered.append(f"<p>{'<br />'.join(escape(line) for line in block.splitlines())}</p>")
+    return "".join(rendered)
+
+
+def _article_seo_html(article: Any) -> str:
+    origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru").rstrip("/")
+    canonical = article.canonical_url or f"{origin}/guide/{article.slug}"
+    title = article.seo_title or article.title
+    description = article.meta_description or article.excerpt
+    cover = _absolute_public_url(origin, article.cover_image_url)
+    schema: dict[str, Any] = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": article.title,
+        "description": description,
+        "url": canonical,
+        "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
+        "inLanguage": "ru-RU",
+        "datePublished": article.published_at.isoformat(),
+        "dateModified": article.updated_at.isoformat(),
+        "author": {"@type": "Person", "name": article.author_name or "Редакция VedicWay"},
+        "publisher": {
+            "@type": "Organization",
+            "name": "VedicWay",
+            "url": origin,
+            "logo": {"@type": "ImageObject", "url": f"{origin}/assets/brand-mark.png"},
+        },
+    }
+    if cover:
+        schema["image"] = [cover]
+    schema_json = json.dumps(schema, ensure_ascii=False, separators=(",", ":")).replace(
+        "<", "\\u003c"
+    )
+    cover_html = (
+        f'<figure><img src="{escape(cover)}" alt="{escape(article.cover_image_alt or article.title)}" /></figure>'
+        if cover
+        else ""
+    )
+    return f"""<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="description" content="{escape(description)}" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="VedicWay" />
+    <meta property="og:title" content="{escape(title)}" />
+    <meta property="og:description" content="{escape(description)}" />
+    <meta property="og:url" content="{escape(canonical)}" />
+    {f'<meta property="og:image" content="{escape(cover)}" />' if cover else ''}
+    <link rel="canonical" href="{escape(canonical)}" />
+    <link rel="icon" type="image/png" href="/assets/brand-mark.png" />
+    <link rel="stylesheet" href="/assets/seo-entry.css" />
+    <script type="application/ld+json">{schema_json}</script>
+    <title>{escape(title)}</title>
+  </head>
+  <body>
+    <div id="root">
+      <main class="seo-prerender" data-yandex-first-screen>
+        <nav aria-label="Хлебные крошки"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav>
+        <article itemscope itemtype="https://schema.org/Article">
+          <header><span>{escape(article.category)}</span><h1 itemprop="headline">{escape(article.title)}</h1><p>{escape(article.excerpt)}</p></header>
+          {cover_html}
+          <section itemprop="articleBody">{_article_content_html(article.content)}</section>
+        </article>
+      </main>
+    </div>
+    <script type="module" crossorigin src="/assets/seo-entry.js"></script>
+  </body>
+</html>"""
+
+
 def _validate_publish(payload: ArticlePayload) -> None:
     if payload.status != "published":
         return
@@ -364,6 +459,22 @@ def build_admin_router() -> APIRouter:
                 "ARTICLE_NOT_FOUND", "Материал не найден", recoverable=False, status_code=404
             )
         return _article_dict(article, database)
+
+    @router.get(
+        "/internal/seo/articles/{slug}/page",
+        response_class=HTMLResponse,
+        include_in_schema=False,
+    )
+    async def published_article_page(slug: str, request: Request) -> HTMLResponse:
+        article = _database(request).get_published_article_by_slug(slug)
+        if not article:
+            raise DomainError(
+                "ARTICLE_NOT_FOUND", "Материал не найден", recoverable=False, status_code=404
+            )
+        return HTMLResponse(
+            _article_seo_html(article),
+            headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=300"},
+        )
 
     @router.get("/media/articles/{asset_id}/{filename}")
     async def public_media(asset_id: str, filename: str, request: Request) -> FileResponse:

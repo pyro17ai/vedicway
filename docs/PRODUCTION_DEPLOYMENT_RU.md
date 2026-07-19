@@ -10,11 +10,13 @@ Nginx проксирует `/api`, отключает buffering для SSE, за
 
 `/sitemap.xml` запрашивает `/api/v1/seo/sitemap.xml`. Backend должен включать в ответ только опубликованные статьи. При 404/502/503/504 Nginx отдаёт статический `public/sitemap.xml`, в котором остаются главная и `/guide`. Draft, admin, chart, checkout и API URL запрещены в sitemap и уже закрыты в `robots.txt`.
 
+Запрос `/guide/<slug>` проходит через серверный HTML endpoint. Опубликованная статья уже в первом ответе содержит собственные title, description, canonical, полный текст и Article JSON-LD, после загрузки стабильных `seo-entry` aliases React заменяет исходную разметку обычным интерфейсом. Неизвестный slug и черновик возвращают статический 404 без SPA fallback; frontend image проверяет Nginx через `nginx -t` при сборке.
+
 ## Обязательные входы релиза
 
 Нужны Docker Engine с BuildKit и Docker Compose 2.24 или новее. Скопируйте `.env.production.example` в `.env.production` и замените все `REPLACE_*` и `vedicway.example`. Реальный домен обязан работать по HTTPS до активации YooKassa. Создайте secret-файлы по [secrets/README.md](../secrets/README.md), положите лицензированный мировой справочник мест в путь `VEDICWAY_PLACE_DATASET_FILE`, подготовьте Linux wheelhouse по [runtime/README.md](../runtime/README.md).
 
-Никакой secret не запекается в image и не передаётся build argument. Compose монтирует credentials через `/run/secrets`, а backend entrypoint переносит их в process environment без вывода в лог. `CODEX_CLI_VERSION=0.144.6`, Node 22.17.0, Python 3.11.13, Playwright 1.58.2, PostgreSQL 17.5 и Nginx 1.28.0 зафиксированы в release-файлах; base images дополнительно закреплены manifest digest. Перед каждым обновлением версии прогоняйте весь CI и golden-карту.
+Никакой secret не запекается в image и не передаётся build argument. Compose монтирует credentials через `/run/secrets`, а backend entrypoint переносит их в process environment без вывода в лог. Файл `codex_api_key.txt` экспортируется только как стандартная переменная `OPENAI_API_KEY`, которую читает Codex CLI; custom-имя ключа readiness не принимает. `CODEX_CLI_VERSION=0.144.6`, Node 22.17.0, Python 3.11.13, Playwright 1.58.2, PostgreSQL 17.5 и Nginx 1.28.0 зафиксированы в release-файлах; base images дополнительно закреплены manifest digest. Перед каждым обновлением версии прогоняйте весь CI и golden-карту.
 
 ## Сборка и запуск
 

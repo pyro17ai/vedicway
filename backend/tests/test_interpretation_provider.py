@@ -125,6 +125,31 @@ def test_production_provider_configuration_fails_closed(
         provider_from_environment()
 
 
+def test_codex_settings_use_standard_openai_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    codex_home = tmp_path / "codex-home"
+    workdir = tmp_path / "empty-workdir"
+    codex_home.mkdir()
+    workdir.mkdir()
+    executable = tmp_path / "codex.exe"
+    executable.write_bytes(b"test")
+    monkeypatch.setenv("VEDICWAY_CODEX_HOME", str(codex_home))
+    monkeypatch.setenv("VEDICWAY_AGENT_WORKDIR", str(workdir))
+    monkeypatch.setenv("VEDICWAY_CODEX_EXECUTABLE", str(executable))
+    monkeypatch.setenv("CODEX_API_KEY", "legacy-key-must-not-work")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    with pytest.raises(DomainError, match="нет авторизации"):
+        CodexExecSettings.from_environment()
+
+    monkeypatch.setenv("OPENAI_API_KEY", "standard-cli-key")
+    settings = CodexExecSettings.from_environment()
+    environment = CodexExecProvider(settings)._child_environment()
+    assert environment["OPENAI_API_KEY"] == "standard-cli-key"
+    assert "CODEX_API_KEY" not in environment
+
+
 def test_editorial_validator_rejects_copied_domain_summary() -> None:
     facts, packets = _evidence()
     bundle = DevelopmentInterpretationProvider().generate("snapshot_repeat", facts, packets, paid=False)
@@ -160,6 +185,7 @@ def test_codex_provider_uses_native_executable_and_repairs_invalid_output(
     executable = tmp_path / "codex.exe"
     executable.write_bytes(b"test")
     settings = CodexExecSettings(codex_home=codex_home, workdir=workdir, executable=executable)
+    monkeypatch.setenv("OPENAI_API_KEY", "standard-cli-key")
     calls: list[dict[str, object]] = []
 
     def fake_run(command, **kwargs):
@@ -177,6 +203,8 @@ def test_codex_provider_uses_native_executable_and_repairs_invalid_output(
     assert first_command[0] == str(executable)
     assert calls[0]["shell"] is False
     assert calls[0]["env"]["CODEX_HOME"] == str(codex_home)
+    assert calls[0]["env"]["OPENAI_API_KEY"] == "standard-cli-key"
+    assert "CODEX_API_KEY" not in calls[0]["env"]
     for flag in ("--ephemeral", "--ignore-user-config", "--ignore-rules", "--strict-config"):
         assert flag in first_command
     assert first_command[first_command.index("--sandbox") + 1] == "read-only"

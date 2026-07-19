@@ -20,6 +20,8 @@ RUN npm run build \
     && test -s dist/index.html \
     && test -s dist/guide/index.html \
     && test -s dist/404.html \
+    && test -s dist/assets/seo-entry.js \
+    && test -s dist/assets/seo-entry.css \
     && test -s dist/robots.txt \
     && test -s dist/sitemap.xml
 
@@ -31,6 +33,7 @@ RUN rm -f /etc/nginx/conf.d/default.conf \
 
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build --chown=101:101 /build/dist /usr/share/nginx/html
+RUN nginx -t -c /etc/nginx/nginx.conf
 
 USER 101:101
 EXPOSE 8080

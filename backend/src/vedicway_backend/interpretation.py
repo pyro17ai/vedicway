@@ -400,7 +400,7 @@ class CodexExecSettings:
             raise DomainError("INTERPRETATION_CONFIG_INVALID", "Каталоги auth и sandbox должны быть разделены", status_code=503)
         if any(workdir.iterdir()):
             raise DomainError("INTERPRETATION_CONFIG_INVALID", "Рабочий каталог агента должен быть пустым", status_code=503)
-        if not (codex_home / "auth.json").is_file() and not os.environ.get("CODEX_API_KEY"):
+        if not (codex_home / "auth.json").is_file() and not os.environ.get("OPENAI_API_KEY"):
             raise DomainError("INTERPRETATION_CONFIG_INVALID", "В отдельном CODEX_HOME нет авторизации", status_code=503)
 
         free_model = os.environ.get("VEDICWAY_CODEX_FREE_MODEL", "gpt-5.6-luna")
@@ -646,8 +646,8 @@ class CodexExecProvider(InterpretationProvider):
         environment["CODEX_HOME"] = str(self.settings.codex_home)
         environment["NO_COLOR"] = "1"
         environment["CI"] = "1"
-        if os.environ.get("CODEX_API_KEY"):
-            environment["CODEX_API_KEY"] = os.environ["CODEX_API_KEY"]
+        if os.environ.get("OPENAI_API_KEY"):
+            environment["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
         return environment
 
     @staticmethod

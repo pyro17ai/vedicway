@@ -25,7 +25,7 @@ if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
   read_secret VEDICWAY_METRICS_TOKEN "${VEDICWAY_METRICS_TOKEN_FILE:-/run/secrets/vedicway_metrics_token}"
   read_secret YOOKASSA_SHOP_ID "${YOOKASSA_SHOP_ID_FILE:-/run/secrets/yookassa_shop_id}"
   read_secret YOOKASSA_SECRET_KEY "${YOOKASSA_SECRET_KEY_FILE:-/run/secrets/yookassa_secret_key}"
-  read_secret CODEX_API_KEY "${CODEX_API_KEY_FILE:-/run/secrets/codex_api_key}"
+  read_secret OPENAI_API_KEY "${OPENAI_API_KEY_FILE:-/run/secrets/codex_api_key}"
   read_secret postgres_password "${POSTGRES_PASSWORD_FILE:-/run/secrets/postgres_password}"
 
   encoded_password="$(python -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["postgres_password"], safe=""))')"
