@@ -26,6 +26,7 @@ export default defineConfig({
         ...process.env,
         VEDICWAY_DATA_DIR: dataDir,
         VEDICWAY_ENV: "development",
+        VEDICWAY_INTERPRETATION_PROVIDER: "stub",
         VEDICWAY_TEST_PAYMENTS: "1",
         VEDICWAY_PUBLIC_BASE_URL: frontendOrigin,
         VEDICWAY_OFFER_VERSION: "development",

@@ -2,6 +2,8 @@ import { expect, type Page } from "playwright/test";
 
 export async function createMoscowChart(page: Page) {
   await page.goto("/");
+  const cookieChoice = page.getByRole("button", { name: "Отклонить необязательные", exact: true });
+  if (await cookieChoice.isVisible()) await cookieChoice.click();
   await page.getByLabel("Имя").fill("Александр");
   await page.getByLabel("Дата рождения").fill("2006-10-16");
   await page.getByLabel("Время рождения").fill("13:30");
