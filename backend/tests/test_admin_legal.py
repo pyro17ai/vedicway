@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 
 import pytest
@@ -8,7 +9,13 @@ from fastapi.testclient import TestClient
 from PIL import Image
 from sqlalchemy import select, text
 
-from vedicway_backend.content_store import PASSWORD_HASH, ConsentRecord, ContentDatabase, User
+from vedicway_backend.content_store import (
+    PASSWORD_HASH,
+    ConsentRecord,
+    ContentDatabase,
+    User,
+    fingerprint_hash,
+)
 from vedicway_backend.main import create_app
 from vedicway_backend.store import Store
 
@@ -78,6 +85,20 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         )
         assert missing_csrf.status_code == 403
 
+        mismatched_csrf = client.post(
+            "/api/v1/admin/articles",
+            json=_article(),
+            headers={"Origin": "http://testserver", "X-CSRF-Token": "wrong-token"},
+        )
+        assert mismatched_csrf.status_code == 403
+
+        cross_origin = client.post(
+            "/api/v1/admin/articles",
+            json=_article(),
+            headers={"Origin": "https://attacker.example", "X-CSRF-Token": csrf},
+        )
+        assert cross_origin.status_code == 403
+
         source = Image.new("RGB", (1200, 630), (29, 15, 8))
         buffer = io.BytesIO()
         source.save(buffer, "PNG")
@@ -92,7 +113,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert asset["width"] == 1200
         assert [item["width"] for item in asset["sources"]] == [640, 960, 1200]
         cover = asset["url"]
-        assert client.get(cover).headers["content-type"] == "image/webp"
+        assert client.get(cover).status_code == 404
 
         draft = client.post(
             "/api/v1/admin/articles",
@@ -100,6 +121,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
             headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
         )
         assert draft.status_code == 201
+        assert client.get(cover).status_code == 404
         assert client.get("/api/v1/content/articles").json()["items"] == []
         assert "kak-chitat-pervyy-dom" not in client.get("/sitemap.xml").text
 
@@ -110,6 +132,12 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
             headers=_edit_headers(csrf, draft.json()["revision"]),
         )
         assert published.status_code == 200
+        published_media = client.get(cover)
+        assert published_media.status_code == 200
+        assert published_media.headers["content-type"] == "image/webp"
+        assert published_media.headers["cache-control"] == "public, max-age=300"
+        assert client.get(cover.replace("1200.webp", "960.webp")).status_code == 200
+        assert client.get(cover.replace("1200.webp", "9999.webp")).status_code == 404
         public = client.get("/api/v1/content/articles").json()["items"]
         assert public[0]["cover_image_url"] == cover
         assert public[0]["coverImage"]["id"] == asset["id"]
@@ -139,6 +167,7 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         )
         assert unpublished.status_code == 200
         assert unpublished.json()["published_at"] is not None
+        assert client.get(cover).status_code == 404
         stale_payload = dict(unpublished_payload)
         stale_payload["title"] = "Устаревшая правка"
         stale = client.put(
@@ -288,3 +317,22 @@ def test_content_database_requires_current_alembic_revision(tmp_path, monkeypatc
         connection.execute(text("UPDATE alembic_version SET version_num = 'stale_revision'"))
     with pytest.raises(RuntimeError):
         database.ping(require_migrations=True)
+
+
+def test_low_entropy_fingerprints_are_secret_keyed_and_domain_separated(monkeypatch) -> None:
+    monkeypatch.setenv("VEDICWAY_ENV", "development")
+    monkeypatch.setenv("VEDICWAY_SIGNING_KEY", "development-signing-key-that-is-long-enough")
+    ip = "203.0.113.42"
+    plain_sha = hashlib.sha256(ip.encode("utf-8")).hexdigest()
+
+    admin_hash = fingerprint_hash(ip, "admin-ip")
+
+    assert admin_hash != plain_sha
+    assert admin_hash == fingerprint_hash(ip, "admin-ip")
+    assert admin_hash != fingerprint_hash(ip, "consent-ip")
+
+    monkeypatch.setenv("VEDICWAY_ENV", "production")
+    monkeypatch.delenv("VEDICWAY_SIGNING_KEY")
+    monkeypatch.delenv("VEDICWAY_PRIVACY_PEPPER", raising=False)
+    with pytest.raises(RuntimeError, match="required for fingerprints"):
+        fingerprint_hash(ip, "consent-ip")

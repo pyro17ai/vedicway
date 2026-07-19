@@ -2,6 +2,7 @@ node_modules/
 dist/
 .playwright-cli/
 backend/.data/
+.data/
 backend/.venv/
 *.egg-info/
 artifacts/
