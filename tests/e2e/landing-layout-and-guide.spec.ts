@@ -37,7 +37,7 @@ test("публичный гид не открывает редактор, а а�
   await page.goto("/guide");
 
   await expect(page.getByRole("heading", { name: "Гид по астрологии" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Первые материалы готовятся" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Читайте с самого начала или выбирайте нужную тему" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Редактор статей" })).toHaveCount(0);
 
   await page.goto("/admin");
