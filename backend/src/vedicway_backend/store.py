@@ -114,7 +114,8 @@ class Store:
           id TEXT PRIMARY KEY,
           session_id TEXT NOT NULL REFERENCES anonymous_sessions(id),
           encrypted_payload BLOB NOT NULL,
-          created_at TEXT NOT NULL
+          created_at TEXT NOT NULL,
+          deleted_at TEXT
         );
         CREATE TABLE IF NOT EXISTS charts (
           id TEXT PRIMARY KEY,
@@ -129,6 +130,7 @@ class Store:
           paid_bundle_json TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
+          soft_deleted_at TEXT,
           UNIQUE(session_id, idempotency_key)
         );
         CREATE TABLE IF NOT EXISTS chart_access (
@@ -179,6 +181,7 @@ class Store:
           chart_id TEXT NOT NULL REFERENCES charts(id),
           idempotency_key TEXT NOT NULL,
           email_ciphertext BLOB,
+          email_lookup_hmac TEXT,
           product_code TEXT NOT NULL DEFAULT 'full_report_v1',
           provider TEXT NOT NULL,
           provider_idempotency_key TEXT,
@@ -316,10 +319,61 @@ class Store:
           token_hash TEXT PRIMARY KEY,
           chart_id TEXT NOT NULL REFERENCES charts(id),
           scope TEXT NOT NULL,
+          render_request_id TEXT,
           expires_at TEXT NOT NULL,
           used_at TEXT,
           created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS privacy_requests (
+          id TEXT PRIMARY KEY,
+          request_type TEXT NOT NULL,
+          email_lookup_hmac TEXT NOT NULL,
+          email_ciphertext BLOB NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS privacy_requests_lookup_idx
+          ON privacy_requests(email_lookup_hmac, created_at DESC);
+        CREATE TABLE IF NOT EXISTS erasure_tombstones (
+          chart_id TEXT PRIMARY KEY,
+          reason TEXT NOT NULL,
+          financial_records_retained INTEGER NOT NULL,
+          report_paths_json TEXT NOT NULL,
+          status TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          files_deleted_at TEXT,
+          last_error_code TEXT
+        );
+        CREATE TABLE IF NOT EXISTS retention_runs (
+          id TEXT PRIMARY KEY,
+          mode TEXT NOT NULL,
+          cutoff_at TEXT NOT NULL,
+          candidates INTEGER NOT NULL,
+          erased INTEGER NOT NULL,
+          failed INTEGER NOT NULL,
+          detail_json TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          finished_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS email_deliveries (
+          id TEXT PRIMARY KEY,
+          purpose TEXT NOT NULL,
+          request_key TEXT NOT NULL UNIQUE,
+          email_lookup_hmac TEXT,
+          purchase_id TEXT REFERENCES purchases(id),
+          chart_id TEXT REFERENCES charts(id),
+          render_request_id TEXT,
+          status TEXT NOT NULL,
+          attempts INTEGER NOT NULL DEFAULT 0,
+          scheduled_at TEXT NOT NULL,
+          provider_message_id TEXT,
+          error_code TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS email_deliveries_queue_idx
+          ON email_deliveries(status, scheduled_at, created_at);
         """
         with self._lock, self._connection() as connection:
             connection.executescript(statements)
@@ -332,6 +386,7 @@ class Store:
                 connection,
                 "purchases",
                 {
+                    "email_lookup_hmac": "TEXT",
                     "product_code": "TEXT NOT NULL DEFAULT 'full_report_v1'",
                     "provider_idempotency_key": "TEXT",
                     "checkout_url": "TEXT",
@@ -347,6 +402,9 @@ class Store:
                     "receipt_registration": "TEXT",
                 },
             )
+            self._ensure_columns(connection, "birth_profiles", {"deleted_at": "TEXT"})
+            self._ensure_columns(connection, "charts", {"soft_deleted_at": "TEXT"})
+            self._ensure_columns(connection, "magic_links", {"render_request_id": "TEXT"})
             self._ensure_columns(
                 connection,
                 "payment_events",
@@ -394,8 +452,12 @@ class Store:
                 "CREATE INDEX IF NOT EXISTS purchases_active_idx ON purchases(chart_id, product_code, status, created_at)"
             )
             connection.execute(
+                "CREATE INDEX IF NOT EXISTS purchases_email_lookup_idx ON purchases(email_lookup_hmac)"
+            )
+            connection.execute(
                 "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) SELECT id, session_id, created_at FROM charts"
             )
+            self._backfill_purchase_email_hmacs(connection)
 
     @staticmethod
     def _ensure_columns(
@@ -411,6 +473,29 @@ class Store:
     @staticmethod
     def _token_hash(token: str) -> str:
         return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def normalize_email(email: str) -> str:
+        return email.strip().casefold()
+
+    def email_lookup_hmac(self, email: str) -> str:
+        normalized = self.normalize_email(email).encode("utf-8")
+        return hmac.new(self._signing_key, b"email-lookup-v1:" + normalized, hashlib.sha256).hexdigest()
+
+    def _backfill_purchase_email_hmacs(self, connection: sqlite3.Connection) -> None:
+        rows = connection.execute(
+            "SELECT id, email_ciphertext FROM purchases WHERE email_lookup_hmac IS NULL AND email_ciphertext IS NOT NULL"
+        ).fetchall()
+        for row in rows:
+            try:
+                email = str(self._decrypt(row["email_ciphertext"]).get("email") or "")
+            except Exception:
+                continue
+            if email:
+                connection.execute(
+                    "UPDATE purchases SET email_lookup_hmac = ? WHERE id = ?",
+                    (self.email_lookup_hmac(email), row["id"]),
+                )
 
     def record_rate_limit_hit(self, bucket_key: str, limit: int, window_seconds: int) -> int:
         """Atomically record one hit and return retry seconds when the bucket is full."""
@@ -620,22 +705,31 @@ class Store:
     def chart_owned_by(self, chart_id: str, session_id: str) -> bool:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT 1 FROM chart_access WHERE chart_id = ? AND session_id = ?", (chart_id, session_id)
+                """SELECT 1 FROM chart_access
+                   JOIN charts ON charts.id = chart_access.chart_id
+                   WHERE chart_access.chart_id = ? AND chart_access.session_id = ?
+                     AND charts.soft_deleted_at IS NULL""",
+                (chart_id, session_id),
             ).fetchone()
             return row is not None
 
     def grant_chart_access(self, chart_id: str, session_id: str) -> None:
         with self._lock, self._connection() as connection:
-            connection.execute(
-                "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
-                (chart_id, session_id, _iso()),
-            )
+            chart = connection.execute(
+                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+            ).fetchone()
+            if chart:
+                connection.execute(
+                    "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
+                    (chart_id, session_id, _iso()),
+                )
 
     def get_birth(self, chart_id: str) -> BirthInput:
         with self._lock, self._connection() as connection:
             row = connection.execute(
                 """SELECT birth_profiles.encrypted_payload FROM charts
-                   JOIN birth_profiles ON birth_profiles.id = charts.birth_profile_id WHERE charts.id = ?""",
+                   JOIN birth_profiles ON birth_profiles.id = charts.birth_profile_id
+                   WHERE charts.id = ? AND charts.soft_deleted_at IS NULL""",
                 (chart_id,),
             ).fetchone()
         if not row:
@@ -644,7 +738,9 @@ class Store:
 
     def _get_chart_row(self, chart_id: str) -> sqlite3.Row:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT * FROM charts WHERE id = ?", (chart_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+            ).fetchone()
         if not row:
             raise LookupError(chart_id)
         return row
@@ -1089,14 +1185,15 @@ class Store:
                 }
                 connection.execute(
                     """INSERT INTO purchases
-                       (id, chart_id, idempotency_key, email_ciphertext, product_code, provider,
+                       (id, chart_id, idempotency_key, email_ciphertext, email_lookup_hmac, product_code, provider,
                         provider_idempotency_key, provider_payment_id, checkout_url, status,
                         provider_status, amount_minor, paid_amount_minor, refunded_amount_minor,
                         currency, offer_version, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         purchase["id"], chart_id, idempotency_key,
                         self._encrypt({"email": email}) if email else None,
+                        self.email_lookup_hmac(email) if email else None,
                         product_code, selected_provider, purchase["provider_idempotency_key"], None,
                         None, purchase["status"], None, amount_minor, None, 0,
                         purchase["currency"], offer_version, now, now,
@@ -1124,6 +1221,212 @@ class Store:
         if not row["email_ciphertext"]:
             return None
         return self._decrypt(row["email_ciphertext"]).get("email")
+
+    def create_privacy_request(self, request_type: str, email: str) -> str:
+        if request_type not in {"access", "erase", "withdraw"}:
+            raise ValueError("unsupported privacy request type")
+        request_id = self._new_id("privacy")
+        now = _iso()
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """INSERT INTO privacy_requests
+                   (id, request_type, email_lookup_hmac, email_ciphertext, status, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, 'received', ?, ?)""",
+                (
+                    request_id,
+                    request_type,
+                    self.email_lookup_hmac(email),
+                    self._encrypt({"email": self.normalize_email(email)}),
+                    now,
+                    now,
+                ),
+            )
+        return request_id
+
+    def enqueue_access_recovery(self, email: str) -> str:
+        delivery_id = self._new_id("mail")
+        now = _iso()
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """INSERT INTO email_deliveries
+                   (id, purpose, request_key, email_lookup_hmac, status, scheduled_at, created_at, updated_at)
+                   VALUES (?, 'access_recovery', ?, ?, 'queued', ?, ?, ?)""",
+                (
+                    delivery_id,
+                    f"access-recovery:{secrets.token_urlsafe(24)}",
+                    self.email_lookup_hmac(email),
+                    now,
+                    now,
+                    now,
+                ),
+            )
+        return delivery_id
+
+    def enqueue_purchase_ready_email(self, chart_id: str, render_request_id: str) -> str | None:
+        now = _iso()
+        with self._lock, self._connection() as connection:
+            purchase = connection.execute(
+                """SELECT id FROM purchases
+                   WHERE chart_id = ? AND status IN ('succeeded', 'partially_refunded')
+                     AND email_ciphertext IS NOT NULL
+                   ORDER BY paid_at DESC, created_at DESC LIMIT 1""",
+                (chart_id,),
+            ).fetchone()
+            if not purchase:
+                return None
+            delivery_id = self._new_id("mail")
+            cursor = connection.execute(
+                """INSERT OR IGNORE INTO email_deliveries
+                   (id, purpose, request_key, purchase_id, chart_id, render_request_id,
+                    status, scheduled_at, created_at, updated_at)
+                   VALUES (?, 'purchase_ready', ?, ?, ?, ?, 'queued', ?, ?, ?)""",
+                (
+                    delivery_id,
+                    f"purchase-ready:{purchase['id']}",
+                    purchase["id"],
+                    chart_id,
+                    render_request_id,
+                    now,
+                    now,
+                    now,
+                ),
+            )
+            return delivery_id if cursor.rowcount else None
+
+    def claim_next_email_delivery(self) -> dict[str, Any] | None:
+        now = _utc_now()
+        stale = _iso(now - timedelta(minutes=15))
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(
+                    """UPDATE email_deliveries SET status = 'queued', updated_at = ?
+                       WHERE status = 'sending' AND updated_at < ? AND attempts < 3""",
+                    (_iso(now), stale),
+                )
+                row = connection.execute(
+                    """SELECT * FROM email_deliveries
+                       WHERE status = 'queued' AND scheduled_at <= ? AND attempts < 3
+                       ORDER BY created_at, id LIMIT 1""",
+                    (_iso(now),),
+                ).fetchone()
+                if not row:
+                    connection.commit()
+                    return None
+                connection.execute(
+                    """UPDATE email_deliveries
+                       SET status = 'sending', attempts = attempts + 1, updated_at = ? WHERE id = ?""",
+                    (_iso(now), row["id"]),
+                )
+                claimed = connection.execute(
+                    "SELECT * FROM email_deliveries WHERE id = ?", (row["id"],)
+                ).fetchone()
+                connection.commit()
+                return dict(claimed)
+            except Exception:
+                connection.rollback()
+                raise
+
+    def finish_email_delivery(
+        self,
+        delivery_id: str,
+        *,
+        status: str,
+        provider_message_id: str | None = None,
+        error_code: str | None = None,
+        retryable: bool = False,
+    ) -> None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                "SELECT attempts FROM email_deliveries WHERE id = ?", (delivery_id,)
+            ).fetchone()
+            if not row:
+                return
+            attempts = int(row["attempts"])
+            if retryable and attempts < 3:
+                next_status = "queued"
+                scheduled_at = _iso(_utc_now() + timedelta(seconds=min(900, 60 * (2 ** attempts))))
+            else:
+                next_status = status
+                scheduled_at = _iso()
+            connection.execute(
+                """UPDATE email_deliveries
+                   SET status = ?, scheduled_at = ?, provider_message_id = ?, error_code = ?, updated_at = ?
+                   WHERE id = ?""",
+                (
+                    next_status,
+                    scheduled_at,
+                    provider_message_id,
+                    error_code,
+                    _iso(),
+                    delivery_id,
+                ),
+            )
+
+    def recovery_targets(self, email_lookup_hmac: str) -> list[dict[str, Any]]:
+        with self._lock, self._connection() as connection:
+            rows = connection.execute(
+                """SELECT p.id AS purchase_id, p.chart_id, p.email_ciphertext,
+                          r.id AS render_request_id
+                   FROM purchases p
+                   JOIN charts c ON c.id = p.chart_id AND c.soft_deleted_at IS NULL
+                   JOIN entitlements e ON e.chart_id = p.chart_id
+                     AND e.product_code = 'report_full' AND e.revoked_at IS NULL
+                   LEFT JOIN pdf_render_requests r ON r.id = (
+                     SELECT pr.id FROM pdf_render_requests pr
+                     WHERE pr.chart_id = p.chart_id AND pr.status = 'ready' AND pr.path IS NOT NULL
+                     ORDER BY pr.updated_at DESC, pr.created_at DESC LIMIT 1
+                   )
+                   WHERE p.email_lookup_hmac = ?
+                     AND p.status IN ('succeeded', 'partially_refunded')
+                   ORDER BY p.paid_at DESC, p.created_at DESC""",
+                (email_lookup_hmac,),
+            ).fetchall()
+        targets: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for row in rows:
+            chart_id = str(row["chart_id"])
+            if chart_id in seen or not row["email_ciphertext"]:
+                continue
+            seen.add(chart_id)
+            email = str(self._decrypt(row["email_ciphertext"]).get("email") or "")
+            if email:
+                targets.append(
+                    {
+                        "purchase_id": str(row["purchase_id"]),
+                        "chart_id": chart_id,
+                        "email": email,
+                        "render_request_id": str(row["render_request_id"])
+                        if row["render_request_id"]
+                        else None,
+                    }
+                )
+        return targets
+
+    def purchase_ready_target(self, purchase_id: str, render_request_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                """SELECT p.chart_id, p.email_ciphertext
+                   FROM purchases p
+                   JOIN charts c ON c.id = p.chart_id AND c.soft_deleted_at IS NULL
+                   JOIN entitlements e ON e.chart_id = p.chart_id
+                     AND e.product_code = 'report_full' AND e.revoked_at IS NULL
+                   JOIN pdf_render_requests r ON r.id = ? AND r.chart_id = p.chart_id
+                     AND r.status = 'ready' AND r.path IS NOT NULL
+                   WHERE p.id = ? AND p.status IN ('succeeded', 'partially_refunded')""",
+                (render_request_id, purchase_id),
+            ).fetchone()
+        if not row or not row["email_ciphertext"]:
+            return None
+        email = str(self._decrypt(row["email_ciphertext"]).get("email") or "")
+        if not email:
+            return None
+        return {
+            "purchase_id": purchase_id,
+            "chart_id": str(row["chart_id"]),
+            "email": email,
+            "render_request_id": render_request_id,
+        }
 
     def set_provider_payment(
         self,
@@ -1707,36 +2010,93 @@ class Store:
             for row in rows
         ]
 
-    def erase_chart_personal_data(self, chart_id: str) -> dict[str, Any]:
-        """Erase a chart and derived personal data while retaining mandatory payment records."""
+    def erase_chart_personal_data(
+        self,
+        chart_id: str,
+        *,
+        reason: str = "user_request",
+    ) -> dict[str, Any]:
+        """Atomically redact a chart, then finish bounded file deletion from its tombstone."""
         with self._lock, self._connection() as connection:
-            chart = connection.execute(
-                "SELECT id, session_id, birth_profile_id FROM charts WHERE id = ?",
-                (chart_id,),
-            ).fetchone()
-            if not chart:
-                return {"found": False, "chart_id": chart_id}
-            paths = {
-                str(row["path"])
-                for row in connection.execute(
-                    """SELECT path FROM reports WHERE chart_id = ? AND path IS NOT NULL
-                       UNION SELECT path FROM pdf_render_requests WHERE chart_id = ? AND path IS NOT NULL""",
-                    (chart_id, chart_id),
-                ).fetchall()
-            }
-            reports_root = self.reports_dir.resolve()
-            for value in paths:
-                path = Path(value).resolve()
-                if not path.is_relative_to(reports_root):
-                    raise RuntimeError("Refusing to erase a report outside VEDICWAY_DATA_DIR/reports")
-                path.unlink(missing_ok=True)
-
-            retains_financial_records = connection.execute(
-                "SELECT 1 FROM purchases WHERE chart_id = ? LIMIT 1", (chart_id,)
-            ).fetchone() is not None
-            now = _iso()
             connection.execute("BEGIN IMMEDIATE")
             try:
+                chart = connection.execute(
+                    "SELECT id, session_id, birth_profile_id, soft_deleted_at FROM charts WHERE id = ?",
+                    (chart_id,),
+                ).fetchone()
+                if not chart:
+                    connection.commit()
+                    retried = self._finish_tombstone_files(chart_id)
+                    return {"found": False, "chart_id": chart_id, **retried}
+                if chart["soft_deleted_at"]:
+                    connection.commit()
+                    retried = self._finish_tombstone_files(chart_id)
+                    return {
+                        "found": True,
+                        "chart_id": chart_id,
+                        "already_erased": True,
+                        **retried,
+                    }
+                active = connection.execute(
+                    """SELECT 1 FROM jobs WHERE chart_id = ?
+                       AND status IN ('running', 'validating') LIMIT 1""",
+                    (chart_id,),
+                ).fetchone()
+                if active:
+                    raise DomainError(
+                        "ERASURE_JOB_ACTIVE",
+                        "Дождитесь завершения текущего расчёта и повторите удаление.",
+                        recoverable=True,
+                        status_code=409,
+                    )
+                paths = sorted(
+                    {
+                        str(row["path"])
+                        for row in connection.execute(
+                            """SELECT path FROM reports WHERE chart_id = ? AND path IS NOT NULL
+                               UNION SELECT path FROM pdf_render_requests
+                               WHERE chart_id = ? AND path IS NOT NULL""",
+                            (chart_id, chart_id),
+                        ).fetchall()
+                    }
+                )
+                retains_financial_records = connection.execute(
+                    "SELECT 1 FROM purchases WHERE chart_id = ? LIMIT 1",
+                    (chart_id,),
+                ).fetchone() is not None
+                now = _iso()
+                connection.execute(
+                    """INSERT INTO erasure_tombstones
+                       (chart_id, reason, financial_records_retained, report_paths_json,
+                        status, created_at)
+                       VALUES (?, ?, ?, ?, 'pending_files', ?)
+                       ON CONFLICT(chart_id) DO UPDATE SET
+                         reason = excluded.reason,
+                         financial_records_retained = excluded.financial_records_retained,
+                         report_paths_json = excluded.report_paths_json,
+                         status = 'pending_files',
+                         last_error_code = NULL""",
+                    (
+                        chart_id,
+                        reason[:80],
+                        int(retains_financial_records),
+                        _json_dump(paths),
+                        now,
+                    ),
+                )
+                lookup_hashes = [
+                    str(row["email_lookup_hmac"])
+                    for row in connection.execute(
+                        """SELECT DISTINCT email_lookup_hmac FROM purchases
+                           WHERE chart_id = ? AND email_lookup_hmac IS NOT NULL""",
+                        (chart_id,),
+                    ).fetchall()
+                ]
+                connection.execute("DELETE FROM email_deliveries WHERE chart_id = ?", (chart_id,))
+                for lookup_hash in lookup_hashes:
+                    connection.execute(
+                        "DELETE FROM email_deliveries WHERE email_lookup_hmac = ?", (lookup_hash,)
+                    )
                 for table in (
                     "agent_runs",
                     "pdf_render_requests",
@@ -1754,22 +2114,51 @@ class Store:
                            WHERE chart_id = ? AND revoked_at IS NULL""",
                         (now, chart_id),
                     )
+                    purchase_ids = [
+                        str(row["id"])
+                        for row in connection.execute(
+                            "SELECT id FROM purchases WHERE chart_id = ?", (chart_id,)
+                        ).fetchall()
+                    ]
+                    for purchase_id in purchase_ids:
+                        connection.execute(
+                            """UPDATE payment_operations SET source_ip = 'erased', reason_ciphertext = NULL
+                               WHERE purchase_id = ?""",
+                            (purchase_id,),
+                        )
+                        connection.execute(
+                            "UPDATE refunds SET reason_ciphertext = NULL WHERE purchase_id = ?",
+                            (purchase_id,),
+                        )
                     connection.execute(
-                        "UPDATE purchases SET checkout_url = NULL, updated_at = ? WHERE chart_id = ?",
+                        """UPDATE purchases SET email_ciphertext = NULL, email_lookup_hmac = NULL,
+                           checkout_url = NULL, provider_payload_json = NULL, updated_at = ?
+                           WHERE chart_id = ?""",
                         (now, chart_id),
                     )
                     connection.execute(
                         """UPDATE charts SET status = 'erased', birth_public_json = ?, snapshot_json = NULL,
-                           evidence_json = NULL, free_bundle_json = NULL, paid_bundle_json = NULL, updated_at = ?
-                           WHERE id = ?""",
-                        (_json_dump({"erased": True}), now, chart_id),
+                           evidence_json = NULL, free_bundle_json = NULL, paid_bundle_json = NULL,
+                           soft_deleted_at = ?, updated_at = ? WHERE id = ?""",
+                        (_json_dump({"erased": True}), now, now, chart_id),
                     )
                     connection.execute(
-                        "UPDATE birth_profiles SET encrypted_payload = ? WHERE id = ?",
-                        (self._encrypt({"erased": True}), chart["birth_profile_id"]),
+                        """UPDATE birth_profiles SET encrypted_payload = ?, deleted_at = ? WHERE id = ?""",
+                        (self._encrypt({"erased": True}), now, chart["birth_profile_id"]),
                     )
                 else:
+                    purchase_ids = [
+                        str(row["id"])
+                        for row in connection.execute(
+                            "SELECT id FROM purchases WHERE chart_id = ?", (chart_id,)
+                        ).fetchall()
+                    ]
+                    for purchase_id in purchase_ids:
+                        connection.execute("DELETE FROM payment_operations WHERE purchase_id = ?", (purchase_id,))
+                        connection.execute("DELETE FROM payment_incidents WHERE purchase_id = ?", (purchase_id,))
+                        connection.execute("DELETE FROM refunds WHERE purchase_id = ?", (purchase_id,))
                     connection.execute("DELETE FROM entitlements WHERE chart_id = ?", (chart_id,))
+                    connection.execute("DELETE FROM purchases WHERE chart_id = ?", (chart_id,))
                     connection.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
                     connection.execute(
                         """DELETE FROM birth_profiles WHERE id = ?
@@ -1786,12 +2175,51 @@ class Store:
             except Exception:
                 connection.rollback()
                 raise
+        file_result = self._finish_tombstone_files(chart_id)
         return {
             "found": True,
             "chart_id": chart_id,
             "hard_deleted": not retains_financial_records,
             "financial_records_retained": retains_financial_records,
-            "report_files_deleted": len(paths),
+            **file_result,
+        }
+
+    def _finish_tombstone_files(self, chart_id: str) -> dict[str, Any]:
+        with self._lock, self._connection() as connection:
+            tombstone = connection.execute(
+                "SELECT * FROM erasure_tombstones WHERE chart_id = ?", (chart_id,)
+            ).fetchone()
+        if not tombstone:
+            return {"report_files_deleted": 0, "file_cleanup_pending": False}
+        paths = _json_load(tombstone["report_paths_json"], [])
+        reports_root = self.reports_dir.resolve()
+        deleted = 0
+        failures: list[str] = []
+        for value in paths:
+            try:
+                path = Path(str(value)).resolve()
+                if not path.is_relative_to(reports_root):
+                    failures.append("UNSAFE_REPORT_PATH")
+                    continue
+                existed = path.exists()
+                path.unlink(missing_ok=True)
+                deleted += int(existed)
+            except OSError:
+                failures.append("REPORT_UNLINK_FAILED")
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """UPDATE erasure_tombstones
+                   SET status = ?, files_deleted_at = ?, last_error_code = ? WHERE chart_id = ?""",
+                (
+                    "pending_files" if failures else "complete",
+                    None if failures else _iso(),
+                    failures[0] if failures else None,
+                    chart_id,
+                ),
+            )
+        return {
+            "report_files_deleted": deleted,
+            "file_cleanup_pending": bool(failures),
         }
 
     def erase_expired_unpaid_charts(self, *, older_than_days: int = 30) -> int:
@@ -1803,14 +2231,136 @@ class Store:
                 str(row["id"])
                 for row in connection.execute(
                     """SELECT id FROM charts
-                       WHERE created_at < ?
-                       AND NOT EXISTS (SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id)""",
+                       WHERE created_at < ? AND soft_deleted_at IS NULL
+                       AND NOT EXISTS (
+                         SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id
+                         AND purchases.status IN ('succeeded', 'partially_refunded', 'refunded')
+                       )""",
                     (cutoff,),
                 ).fetchall()
             ]
         for expired_chart_id in chart_ids:
-            self.erase_chart_personal_data(expired_chart_id)
+            self.erase_chart_personal_data(expired_chart_id, reason="retention_expired")
         return len(chart_ids)
+
+    def retention_plan(self, *, anonymous_chart_days: int, report_days: int) -> dict[str, Any]:
+        if anonymous_chart_days < 1 or report_days < 1:
+            raise ValueError("retention periods must be positive")
+        chart_cutoff = _iso(_utc_now() - timedelta(days=anonymous_chart_days))
+        report_cutoff = _iso(_utc_now() - timedelta(days=report_days))
+        with self._lock, self._connection() as connection:
+            chart_ids = [
+                str(row["id"])
+                for row in connection.execute(
+                    """SELECT id FROM charts
+                       WHERE created_at < ? AND soft_deleted_at IS NULL
+                       AND NOT EXISTS (
+                         SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id
+                         AND purchases.status IN ('succeeded', 'partially_refunded', 'refunded')
+                       ) ORDER BY created_at, id""",
+                    (chart_cutoff,),
+                ).fetchall()
+            ]
+            report_rows = [
+                dict(row)
+                for row in connection.execute(
+                    """SELECT id, chart_id, path FROM pdf_render_requests
+                       WHERE status = 'ready' AND path IS NOT NULL AND updated_at < ?
+                       ORDER BY updated_at, id""",
+                    (report_cutoff,),
+                ).fetchall()
+            ]
+            pending_tombstones = [
+                str(row["chart_id"])
+                for row in connection.execute(
+                    "SELECT chart_id FROM erasure_tombstones WHERE status = 'pending_files'"
+                ).fetchall()
+            ]
+        return {
+            "chart_cutoff": chart_cutoff,
+            "report_cutoff": report_cutoff,
+            "anonymous_chart_ids": chart_ids,
+            "expired_reports": report_rows,
+            "pending_tombstone_chart_ids": pending_tombstones,
+        }
+
+    def apply_retention_plan(
+        self,
+        plan: dict[str, Any],
+        *,
+        security_log_days: int,
+    ) -> dict[str, Any]:
+        if security_log_days < 1:
+            raise ValueError("security_log_days must be positive")
+        run_id = self._new_id("retention")
+        now = _iso()
+        erased = 0
+        failed = 0
+        expired_reports = 0
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """INSERT INTO retention_runs
+                   (id, mode, cutoff_at, candidates, erased, failed, detail_json, created_at)
+                   VALUES (?, 'apply', ?, ?, 0, 0, ?, ?)""",
+                (
+                    run_id,
+                    str(plan["chart_cutoff"]),
+                    len(plan["anonymous_chart_ids"]),
+                    _json_dump({"report_cutoff": plan["report_cutoff"]}),
+                    now,
+                ),
+            )
+        for chart_id in plan["anonymous_chart_ids"]:
+            try:
+                result = self.erase_chart_personal_data(chart_id, reason="retention_expired")
+                erased += int(bool(result.get("found")))
+            except Exception:
+                failed += 1
+        reports_root = self.reports_dir.resolve()
+        for report in plan["expired_reports"]:
+            try:
+                path = Path(str(report["path"])).resolve()
+                if not path.is_relative_to(reports_root):
+                    failed += 1
+                    continue
+                path.unlink(missing_ok=True)
+                with self._lock, self._connection() as connection:
+                    connection.execute(
+                        """UPDATE pdf_render_requests
+                           SET status = 'failed', path = NULL, checksum = NULL, size_bytes = NULL,
+                               pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ? WHERE id = ?""",
+                        (_iso(), report["id"]),
+                    )
+                    connection.execute(
+                        """UPDATE reports SET status = 'failed', path = NULL, checksum = NULL,
+                           size_bytes = NULL, pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ?
+                           WHERE render_request_id = ?""",
+                        (_iso(), report["id"]),
+                    )
+                expired_reports += 1
+            except OSError:
+                failed += 1
+        for chart_id in plan["pending_tombstone_chart_ids"]:
+            retry = self._finish_tombstone_files(chart_id)
+            failed += int(bool(retry["file_cleanup_pending"]))
+        cutoff_epoch = (_utc_now() - timedelta(days=security_log_days)).timestamp()
+        with self._lock, self._connection() as connection:
+            connection.execute("DELETE FROM rate_limit_events WHERE occurred_at < ?", (cutoff_epoch,))
+            detail = {
+                "expired_reports": expired_reports,
+                "pending_tombstones_retried": len(plan["pending_tombstone_chart_ids"]),
+            }
+            connection.execute(
+                """UPDATE retention_runs SET erased = ?, failed = ?, detail_json = ?, finished_at = ?
+                   WHERE id = ?""",
+                (erased, failed, _json_dump(detail), _iso(), run_id),
+            )
+        return {
+            "run_id": run_id,
+            "erased_anonymous_charts": erased,
+            "expired_reports": expired_reports,
+            "failed": failed,
+        }
 
     def upsert_report(
         self,
@@ -1954,25 +2504,84 @@ class Store:
         except (ValueError, UnicodeDecodeError):
             return False
 
-    def create_magic_link(self, chart_id: str, ttl_hours: int = 24 * 30) -> str:
+    def create_magic_link(
+        self,
+        chart_id: str,
+        ttl_hours: int = 24 * 30,
+        *,
+        scope: str = "read_chart",
+        render_request_id: str | None = None,
+    ) -> str:
+        if scope not in {"read_chart", "download_pdf"}:
+            raise ValueError("unsupported magic-link scope")
+        if scope == "download_pdf" and not render_request_id:
+            raise ValueError("render_request_id is required for download_pdf")
         token = secrets.token_urlsafe(32)
         expires = _utc_now() + timedelta(hours=ttl_hours)
         with self._lock, self._connection() as connection:
+            chart = connection.execute(
+                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+            ).fetchone()
+            if not chart:
+                raise LookupError(chart_id)
+            if render_request_id:
+                rendered = connection.execute(
+                    """SELECT 1 FROM pdf_render_requests
+                       WHERE id = ? AND chart_id = ? AND status = 'ready' AND path IS NOT NULL""",
+                    (render_request_id, chart_id),
+                ).fetchone()
+                if not rendered:
+                    raise LookupError(render_request_id)
             connection.execute(
-                "INSERT INTO magic_links (token_hash, chart_id, scope, expires_at, created_at) VALUES (?, ?, 'read_chart', ?, ?)",
-                (self._token_hash(token), chart_id, _iso(expires), _iso()),
+                """INSERT INTO magic_links
+                   (token_hash, chart_id, scope, render_request_id, expires_at, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    self._token_hash(token),
+                    chart_id,
+                    scope,
+                    render_request_id,
+                    _iso(expires),
+                    _iso(),
+                ),
             )
         return token
 
-    def redeem_magic_link(self, token: str) -> str | None:
+    def consume_magic_link(self, token: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
                 "SELECT * FROM magic_links WHERE token_hash = ?", (self._token_hash(token),)
             ).fetchone()
             if not row or row["used_at"] or datetime.fromisoformat(row["expires_at"]) < _utc_now():
+                connection.commit()
                 return None
-            chart = connection.execute("SELECT id FROM charts WHERE id = ?", (row["chart_id"],)).fetchone()
+            chart = connection.execute(
+                "SELECT id FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (row["chart_id"],)
+            ).fetchone()
             if not chart:
+                connection.commit()
                 return None
             connection.execute("UPDATE magic_links SET used_at = ? WHERE token_hash = ?", (_iso(), row["token_hash"]))
-            return str(chart["id"])
+            connection.commit()
+            return {
+                "chart_id": str(chart["id"]),
+                "scope": str(row["scope"]),
+                "render_request_id": str(row["render_request_id"])
+                if row["render_request_id"]
+                else None,
+            }
+
+    def redeem_magic_link(self, token: str) -> str | None:
+        record = self.consume_magic_link(token)
+        return str(record["chart_id"]) if record else None
+
+    def revoke_magic_links(self, tokens: list[str]) -> None:
+        if not tokens:
+            return
+        hashes = [self._token_hash(token) for token in tokens]
+        placeholders = ",".join("?" for _ in hashes)
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                f"DELETE FROM magic_links WHERE token_hash IN ({placeholders})", hashes
+            )

@@ -29,6 +29,7 @@ from starlette.middleware.cors import CORSMiddleware
 from .admin_api import build_admin_router
 from .calculator import validate_instant_runtime, warm_instant_runtime
 from .content_store import ContentDatabase, fingerprint_hash, production_configuration_errors
+from .email_delivery import production_email_configuration_errors
 from .errors import DomainError
 from .legal_config import LEGAL_DOCUMENT_VERSIONS
 from .observability import Metrics
@@ -36,11 +37,14 @@ from .payment_config import PaymentSettings
 from .payment_security import effective_client_ip, is_yookassa_source
 from .payments import PaymentProvider, PaymentStatus, RefundStatus, payment_provider_from_settings
 from .places import PlaceRegistry
+from .retention import production_retention_configuration_errors
 from .schemas import (
+    AccessRecoveryRequest,
     ChartAccepted,
     ChartCreateRequest,
     PaymentPublicConfig,
     PdfCreateRequest,
+    PrivacyRequestCreate,
     PurchaseRequest,
     PurchaseResponse,
     RefundRequest,
@@ -88,11 +92,18 @@ async def _launch_worker(app: FastAPI) -> None:
         return
     task = getattr(app.state, "worker_task", None)
     if task and not task.done():
+        app.state.worker_requested = True
         return
 
     async def run() -> None:
-        await asyncio.to_thread(app.state.worker.drain, 16)
+        while True:
+            app.state.worker_requested = False
+            handled = await asyncio.to_thread(app.state.worker.drain, 16)
+            if handled >= 16 or app.state.worker_requested:
+                continue
+            return
 
+    app.state.worker_requested = False
     app.state.worker_task = asyncio.create_task(run())
 
 
@@ -112,6 +123,30 @@ async def _enforce_rate_limit(
         settings.trusted_proxy_networks,
     )
     bucket_key = fingerprint_hash(client_ip, f"{scope}-rate-limit")
+    retry_after = await asyncio.to_thread(
+        app.state.store.record_rate_limit_hit,
+        bucket_key,
+        limit,
+        window_seconds,
+    )
+    if retry_after:
+        raise DomainError(
+            "RATE_LIMITED",
+            "Слишком много запросов. Повторите попытку позже.",
+            status_code=429,
+            detail={"retry_after_seconds": retry_after},
+        )
+
+
+async def _enforce_subject_rate_limit(
+    app: FastAPI,
+    scope: str,
+    subject_hmac: str,
+    *,
+    limit: int,
+    window_seconds: int,
+) -> None:
+    bucket_key = hashlib.sha256(f"{scope}:{subject_hmac}".encode()).hexdigest()
     retry_after = await asyncio.to_thread(
         app.state.store.record_rate_limit_hit,
         bucket_key,
@@ -423,7 +458,11 @@ def create_app(
             app.state.store.events_since("health", 0)
         except Exception:
             return JSONResponse(status_code=503, content={"status": "not_ready"})
-        configuration_errors = production_configuration_errors(app.state.content_db)
+        configuration_errors = [
+            *production_configuration_errors(app.state.content_db),
+            *production_email_configuration_errors(require_password=False),
+            *production_retention_configuration_errors(),
+        ]
         if configuration_errors:
             return JSONResponse(
                 status_code=503,
@@ -546,6 +585,51 @@ def create_app(
         )
 
     app.include_router(build_admin_router())
+
+    @app.post("/api/v1/access/recovery", status_code=status.HTTP_202_ACCEPTED)
+    async def request_access_recovery(
+        payload: AccessRecoveryRequest,
+        request: Request,
+    ) -> dict[str, str]:
+        email_hmac = app.state.store.email_lookup_hmac(payload.email)
+        await _enforce_rate_limit(app, request, "access-recovery-ip", limit=5, window_seconds=60 * 60)
+        await _enforce_subject_rate_limit(
+            app,
+            "access-recovery-email",
+            email_hmac,
+            limit=3,
+            window_seconds=60 * 60,
+        )
+        app.state.store.enqueue_access_recovery(payload.email)
+        return {"status": "accepted"}
+
+    @app.post("/api/v1/privacy/requests", status_code=status.HTTP_202_ACCEPTED)
+    async def create_privacy_request(
+        payload: PrivacyRequestCreate,
+        request: Request,
+    ) -> dict[str, str]:
+        email_hmac = app.state.store.email_lookup_hmac(payload.email)
+        await _enforce_rate_limit(app, request, "privacy-request-ip", limit=5, window_seconds=24 * 60 * 60)
+        await _enforce_subject_rate_limit(
+            app,
+            "privacy-request-email",
+            email_hmac,
+            limit=3,
+            window_seconds=24 * 60 * 60,
+        )
+        app.state.store.create_privacy_request(payload.type, payload.email)
+        return {"status": "accepted"}
+
+    @app.delete("/api/v1/charts/{chart_id}", status_code=status.HTTP_204_NO_CONTENT)
+    async def delete_chart(chart_id: str, request: Request) -> Response:
+        current_session = session(request)
+        assert_owned(chart_id, current_session)
+        await asyncio.to_thread(
+            app.state.store.erase_chart_personal_data,
+            chart_id,
+            reason="owned_delete",
+        )
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     @app.get("/api/v1/charts/{chart_id}")
     async def get_chart(chart_id: str, request: Request) -> dict[str, Any]:
@@ -1306,12 +1390,22 @@ def create_app(
 
     @app.get("/api/v1/magic-links/{token}")
     async def redeem_magic_link(token: str) -> RedirectResponse:
-        chart_id = app.state.store.redeem_magic_link(token)
-        if not chart_id:
+        link = app.state.store.consume_magic_link(token)
+        if not link:
             raise DomainError("MAGIC_LINK_INVALID", "Ссылка для возврата устарела", recoverable=False, status_code=401)
+        chart_id = str(link["chart_id"])
         session_id, raw_token = app.state.store.create_session()
         app.state.store.grant_chart_access(chart_id, session_id)
-        response = RedirectResponse(url=f"/chart/{chart_id}", status_code=303)
+        if link["scope"] == "download_pdf" and link["render_request_id"]:
+            location = (
+                f"/api/v1/charts/{chart_id}/reports/pdf"
+                f"?render_request_id={quote(str(link['render_request_id']))}"
+            )
+        else:
+            location = f"/chart/{chart_id}"
+        response = RedirectResponse(url=location, status_code=303)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
         response.set_cookie(
             SESSION_COOKIE,
             raw_token,

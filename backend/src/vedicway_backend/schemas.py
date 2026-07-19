@@ -261,6 +261,35 @@ class PurchaseRequest(BaseModel):
         return normalized
 
 
+class AccessRecoveryRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(min_length=3, max_length=320)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_deliverable_shape(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", normalized):
+            raise ValueError("Укажите корректный email")
+        return normalized
+
+
+class PrivacyRequestCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["access", "erase", "withdraw"]
+    email: str = Field(min_length=3, max_length=320)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_deliverable_shape(cls, value: str) -> str:
+        normalized = value.strip()
+        if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", normalized):
+            raise ValueError("Укажите корректный email")
+        return normalized
+
+
 class PurchaseResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

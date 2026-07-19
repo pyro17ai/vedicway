@@ -33,7 +33,7 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
     paid_result = store.erase_chart_personal_data(paid_chart)
 
     assert paid_result["financial_records_retained"] is True
-    assert store.get_purchase_email(purchase["id"]) == "receipt@example.ru"
+    assert store.get_purchase_email(purchase["id"]) is None
     assert store.chart_owned_by(paid_chart, paid_session) is False
     with store._connection() as connection:
         chart = connection.execute("SELECT * FROM charts WHERE id = ?", (paid_chart,)).fetchone()
@@ -42,5 +42,6 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
             (chart["birth_profile_id"],),
         ).fetchone()
     assert chart["status"] == "erased"
+    assert chart["soft_deleted_at"] is not None
     assert chart["snapshot_json"] is None
     assert store._decrypt(profile["encrypted_payload"]) == {"erased": True}

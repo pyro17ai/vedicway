@@ -90,6 +90,26 @@ const pages = [
     ]
   },
   {
+    output: "access/recovery/index.html",
+    title: "Восстановление доступа | VedicWay",
+    description: "Запрос одноразовой ссылки на оплаченные материалы VedicWay.",
+    canonical: "https://vedicway.ru/access/recovery",
+    image: "https://vedicway.ru/assets/hero-space.png",
+    noindex: true,
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a></nav><h1>Восстановить доступ</h1><p>Укажите email, использованный при оплате. Ответ не раскрывает, связан ли адрес с заказом.</p><form><label>Email<input type="email" autocomplete="email" required></label><button type="submit">Отправить запрос</button></form></main>`,
+    schema: []
+  },
+  {
+    output: "privacy/request/index.html",
+    title: "Запрос по персональным данным | VedicWay",
+    description: "Обращение по доступу, удалению или отзыву согласия на обработку персональных данных.",
+    canonical: "https://vedicway.ru/privacy/request",
+    image: "https://vedicway.ru/assets/hero-space.png",
+    noindex: true,
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a></nav><h1>Запрос по персональным данным</h1><p>Укажите email и предмет обращения. Исполнение начинается после проверки личности заявителя.</p></main>`,
+    schema: []
+  },
+  {
     output: "404.html",
     title: "Страница не найдена | VedicWay",
     description: "Запрошенная страница VedicWay не найдена.",

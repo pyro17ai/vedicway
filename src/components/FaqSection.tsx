@@ -179,6 +179,7 @@ export function FaqSection() {
             <a href="/legal/privacy-policy">Политика обработки персональных данных</a>
             <a href="/legal/personal-data-consent">Согласие на обработку персональных данных</a>
             <a href="/legal/cookies">Политика cookies</a>
+            <a href="/privacy/request">Запрос по персональным данным</a>
             <button type="button" onClick={() => window.dispatchEvent(new Event("vedicway:open-cookie-settings"))}>Настроить cookies</button>
             {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Контакты</a> : <a href="/legal/privacy-policy">Контакты</a>}
           </nav>

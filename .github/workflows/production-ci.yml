@@ -31,7 +31,7 @@ jobs:
         run: npm run build
       - name: Verify prerendered public routes
         run: |
-          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
+          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/access/recovery/index.html && test -s dist/privacy/request/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/index.html
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/guide/index.html
           python scripts/check_nginx_contract.py docker/nginx/nginx.conf
@@ -76,9 +76,9 @@ jobs:
           (cd backend && python -m alembic -c alembic.ini upgrade head)
           python -c "from vedicway_backend.content_store import ContentDatabase; ContentDatabase().ping(require_migrations=True)"
           rm -f /tmp/vedicway-postgres-password
-      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py
+      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py backend/scripts/data_lifecycle.py scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py
       - run: python -m pytest backend/tests
-      - run: python -m py_compile scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py
+      - run: python -m py_compile scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py backend/scripts/data_lifecycle.py
 
   release-config:
     runs-on: ubuntu-latest
@@ -91,7 +91,7 @@ jobs:
           mkdir -p runtime/pyjhora-wheelhouse secrets
           printf '{"places":[{"place_id":"ci","display_name":"CI","country_code":"RU","latitude":0,"longitude":0,"tzid":"UTC"}]}' > runtime/places.json
           touch runtime/pyjhora-wheelhouse/SHA256SUMS
-          for file in postgres_password vedicway_data_key vedicway_signing_key vedicway_operations_token vedicway_metrics_token yookassa_shop_id yookassa_secret_key codex_api_key; do
+          for file in postgres_password vedicway_data_key vedicway_signing_key vedicway_operations_token vedicway_metrics_token yookassa_shop_id yookassa_secret_key codex_api_key smtp_password; do
             printf 'ci-placeholder-not-a-real-secret-00000000000000000000' > "secrets/${file}.txt"
           done
       - name: Validate shell and YAML syntax

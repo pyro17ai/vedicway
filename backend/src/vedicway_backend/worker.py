@@ -40,7 +40,12 @@ class ChartWorker:
 
     _calculation_lock = threading.Lock()
 
-    def __init__(self, store: Store, provider: InterpretationProvider | None = None, metrics: Metrics | None = None) -> None:
+    def __init__(
+        self,
+        store: Store,
+        provider: InterpretationProvider | None = None,
+        metrics: Metrics | None = None,
+    ) -> None:
         self.store = store
         self.provider = provider or provider_from_environment()
         self.pdf_renderer = PdfRenderer(store.reports_dir)
@@ -286,6 +291,7 @@ class ChartWorker:
             preferences_checksum=render_request["preferences_checksum"],
             **report,
         )
+        self.store.enqueue_purchase_ready_email(chart_id, render_request_id)
 
 
 def main() -> None:

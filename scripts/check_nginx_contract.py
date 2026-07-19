@@ -15,6 +15,17 @@ REQUIRED_METRIKA_CSP = (
     "script-src 'self' https://mc.yandex.ru https://mc.yandex.com https://yastatic.net;",
 )
 
+REQUIRED_RECOVERY_GUARD = (
+    '~^/access/recovery/?$ "noindex, nofollow, noarchive";',
+    '~^/privacy/request/?$ "noindex, nofollow, noarchive";',
+    "location = /access/recovery {",
+    "try_files /access/recovery/index.html =404;",
+    "location = /privacy/request {",
+    "try_files /privacy/request/index.html =404;",
+    "location ^~ /api/v1/magic-links/ {",
+    "access_log off;",
+)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate fail-closed Nginx SEO routes")
@@ -32,7 +43,10 @@ def main() -> None:
         raise SystemExit(
             "Metrika external-mode CSP is incomplete: " + ", ".join(missing_csp)
         )
-    print("Nginx article SEO guard contract passed.")
+    missing_recovery = [fragment for fragment in REQUIRED_RECOVERY_GUARD if fragment not in config]
+    if missing_recovery:
+        raise SystemExit(f"Recovery privacy guard is incomplete: {', '.join(missing_recovery)}")
+    print("Nginx SEO and privacy guard contract passed.")
 
 
 if __name__ == "__main__":

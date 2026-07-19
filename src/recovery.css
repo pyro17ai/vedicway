@@ -1,0 +1,141 @@
+.recovery-site {
+  min-height: 100vh;
+  color: #f4eee5;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(207, 91, 31, 0.14), transparent 34rem),
+    linear-gradient(145deg, #08090a 0%, #11100f 58%, #090909 100%);
+}
+
+.recovery-page {
+  width: min(100% - 32px, 760px);
+  margin: 0 auto;
+  padding: 112px 0 72px;
+}
+
+.recovery-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+  border: 0;
+  color: #c8beb2;
+  background: transparent;
+  cursor: pointer;
+}
+
+.recovery-back svg,
+.recovery-kicker svg {
+  width: 18px;
+  height: 18px;
+}
+
+.recovery-card {
+  padding: clamp(28px, 6vw, 56px);
+  border: 1px solid rgba(230, 119, 54, 0.28);
+  border-radius: 24px;
+  background: rgba(12, 12, 12, 0.88);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.recovery-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #ec7a35;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recovery-card h1 {
+  margin: 18px 0 14px;
+  color: #fffaf2;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(2.4rem, 7vw, 4rem);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.recovery-card > p {
+  max-width: 600px;
+  margin: 0 0 30px;
+  color: #bcb4aa;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.recovery-form {
+  display: grid;
+  gap: 18px;
+}
+
+.recovery-form label {
+  display: grid;
+  gap: 8px;
+  color: #eee8df;
+  font-size: 0.9rem;
+}
+
+.recovery-form input,
+.recovery-form select {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: #fff;
+  background: #0a0a0a;
+  font: inherit;
+}
+
+.recovery-form input:focus-visible,
+.recovery-form select:focus-visible {
+  outline: 2px solid #ef7a35;
+  outline-offset: 2px;
+}
+
+.recovery-form button {
+  min-height: 54px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 10px;
+  color: #fffaf4;
+  background: linear-gradient(100deg, #cf591f, #f17b35);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.recovery-form button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.recovery-result,
+.recovery-error {
+  padding: 18px 20px;
+  border-radius: 12px;
+  line-height: 1.55;
+}
+
+.recovery-result {
+  border: 1px solid rgba(238, 123, 55, 0.3);
+  color: #efe6db;
+  background: rgba(226, 103, 39, 0.09);
+}
+
+.recovery-error {
+  margin: 0;
+  color: #ffc4a0;
+  background: rgba(155, 44, 16, 0.18);
+}
+
+@media (max-width: 640px) {
+  .recovery-page {
+    padding-top: 92px;
+  }
+
+  .recovery-card {
+    border-radius: 18px;
+  }
+}

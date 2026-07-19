@@ -12,6 +12,7 @@ describe("FaqSection", () => {
     expect(triggers).toHaveLength(5);
     expect(triggers.every((trigger) => trigger.getAttribute("aria-expanded") === "false")).toBe(true);
     expect(screen.getByTestId("faq-list")).toHaveAttribute("data-open-index", "none");
+    expect(screen.getByRole("link", { name: "Запрос по персональным данным" })).toHaveAttribute("href", "/privacy/request");
   });
 
   it("открывает выбранный ответ и закрывает его повторным нажатием", async () => {

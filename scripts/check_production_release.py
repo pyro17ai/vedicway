@@ -29,6 +29,15 @@ REQUIRED_VALUES = (
     "VEDICWAY_OFFER_URL",
     "VEDICWAY_PRIVACY_URL",
     "YOOKASSA_VAT_CODE",
+    "VEDICWAY_SMTP_HOST",
+    "VEDICWAY_SMTP_PORT",
+    "VEDICWAY_SMTP_USERNAME",
+    "VEDICWAY_SMTP_FROM_EMAIL",
+    "VEDICWAY_RETENTION_ANONYMOUS_CHART_DAYS",
+    "VEDICWAY_RETENTION_REPORT_DAYS",
+    "VEDICWAY_RETENTION_SECURITY_LOG_DAYS",
+    "VEDICWAY_RETENTION_FINANCIAL_RECORD_DAYS",
+    "VEDICWAY_RETENTION_BACKUP_DAYS",
 )
 
 SECRET_PATHS = {
@@ -40,6 +49,7 @@ SECRET_PATHS = {
     "YOOKASSA_SHOP_ID_FILE": 1,
     "YOOKASSA_SECRET_KEY_FILE": 16,
     "OPENAI_API_KEY_FILE": 16,
+    "VEDICWAY_SMTP_PASSWORD_FILE": 8,
 }
 
 
@@ -174,6 +184,38 @@ def main() -> int:
         errors.append("VEDICWAY_LEGAL_OPERATOR_OGRN must contain a 13- or 15-digit OGRN/OGRNIP")
     if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", values.get("VEDICWAY_PRIVACY_EMAIL", "")):
         errors.append("VEDICWAY_PRIVACY_EMAIL must contain an email address")
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", values.get("VEDICWAY_SMTP_FROM_EMAIL", "")):
+        errors.append("VEDICWAY_SMTP_FROM_EMAIL must contain an email address")
+    try:
+        smtp_port = int(values.get("VEDICWAY_SMTP_PORT", ""))
+        if not 1 <= smtp_port <= 65535:
+            raise ValueError
+    except ValueError:
+        errors.append("VEDICWAY_SMTP_PORT must contain a port from 1 to 65535")
+    if values.get("VEDICWAY_SMTP_SSL") not in {"0", "1"}:
+        errors.append("VEDICWAY_SMTP_SSL must equal 0 or 1")
+    if values.get("VEDICWAY_SMTP_STARTTLS") not in {"0", "1"}:
+        errors.append("VEDICWAY_SMTP_STARTTLS must equal 0 or 1")
+    if values.get("VEDICWAY_SMTP_SSL") == values.get("VEDICWAY_SMTP_STARTTLS"):
+        errors.append("exactly one of VEDICWAY_SMTP_SSL or VEDICWAY_SMTP_STARTTLS must equal 1")
+    try:
+        timeout = float(values.get("VEDICWAY_SMTP_TIMEOUT_SECONDS", ""))
+        if timeout <= 0 or timeout > 60:
+            raise ValueError
+    except ValueError:
+        errors.append("VEDICWAY_SMTP_TIMEOUT_SECONDS must be greater than 0 and at most 60")
+    for name in (
+        "VEDICWAY_RETENTION_ANONYMOUS_CHART_DAYS",
+        "VEDICWAY_RETENTION_REPORT_DAYS",
+        "VEDICWAY_RETENTION_SECURITY_LOG_DAYS",
+        "VEDICWAY_RETENTION_FINANCIAL_RECORD_DAYS",
+        "VEDICWAY_RETENTION_BACKUP_DAYS",
+    ):
+        try:
+            if int(values.get(name, "")) < 1:
+                raise ValueError
+        except ValueError:
+            errors.append(f"{name} must contain approved positive days")
 
     secret_values: dict[str, str] = {}
     for name, minimum in SECRET_PATHS.items():

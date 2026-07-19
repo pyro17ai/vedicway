@@ -10,6 +10,7 @@ import { GuidePage } from "./components/GuidePage";
 import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
 import { NotFoundPage } from "./components/NotFoundPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
+import { RecoveryPage } from "./components/RecoveryPage";
 import { SiteHeader } from "./components/SiteHeader";
 import { trackPageView } from "./lib/analytics";
 import { applySeo } from "./lib/seo";
@@ -198,6 +199,8 @@ function App() {
   if (pathname === "/guide/editor") return <GuideEditorRedirect onNavigate={navigate} />;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
+  if (pathname === "/access/recovery") return <RecoveryPage kind="access" onNavigate={navigate} />;
+  if (pathname === "/privacy/request") return <RecoveryPage kind="privacy" onNavigate={navigate} />;
 
   const legalKind = legalRoutes[pathname];
   if (legalKind) return <LegalPage kind={legalKind} onNavigate={navigate} />;

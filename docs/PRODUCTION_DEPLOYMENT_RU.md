@@ -2,9 +2,9 @@
 
 ## Контур
 
-`compose.production.yml` поднимает PostgreSQL, две последовательные цепочки миграций, FastAPI, отдельный durable worker и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, backend и worker от UID 10001; root filesystem у прикладных контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
+`compose.production.yml` поднимает PostgreSQL, две последовательные цепочки миграций, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
 
-Сейчас действует split storage. PostgreSQL предназначен для users, roles, articles и media metadata после объединения admin-ветки. Расчёты, purchases, entitlements и PDF metadata остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно один API и один worker. Масштабирование `backend` или `worker`, rolling update с двумя активными экземплярами и перенос jobs между узлами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
+Сейчас действует split storage. PostgreSQL предназначен для users, roles, articles и media metadata после объединения admin-ветки. Расчёты, purchases, entitlements, PDF metadata и очередь писем остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно по одному API, worker и email-consumer. Масштабирование этих процессов и rolling update с двумя активными экземплярами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
 
 Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. Access log не записывает IP, URL, query, referrer и user-agent; для связи событий остаётся случайный request id. Inter и Cormorant Garamond собираются из локальных `@fontsource` assets: до согласия на cookies браузер не обращается к Google. CSP оставляет прямой поиск городов Open-Meteo, который нужен форме и должен быть раскрыт в политике персональных данных.
 
@@ -16,7 +16,7 @@ Nginx проксирует `/api`, отключает buffering для SSE, за
 
 Нужны Docker Engine с BuildKit и Docker Compose 2.24 или новее. Скопируйте `.env.production.example` в `.env.production` и замените все `REPLACE_*` и `vedicway.example`. Реальный домен обязан работать по HTTPS до активации YooKassa. Создайте secret-файлы по [secrets/README.md](../secrets/README.md), положите лицензированный мировой справочник мест в путь `VEDICWAY_PLACE_DATASET_FILE`, подготовьте Linux wheelhouse по [runtime/README.md](../runtime/README.md).
 
-Никакой secret не запекается в image и не передаётся build argument. Compose монтирует credentials через `/run/secrets`, а backend entrypoint переносит их в process environment без вывода в лог. Файл `codex_api_key.txt` экспортируется только как стандартная переменная `OPENAI_API_KEY`, которую читает Codex CLI; custom-имя ключа readiness не принимает. `CODEX_CLI_VERSION=0.144.6`, Node 22.17.0, Python 3.11.13, Playwright 1.58.2, PostgreSQL 17.5 и Nginx 1.28.0 зафиксированы в release-файлах; base images дополнительно закреплены manifest digest. Перед каждым обновлением версии прогоняйте весь CI и golden-карту.
+Никакой secret не запекается в image и не передаётся build argument. Compose монтирует credentials через `/run/secrets`, а entrypoint выдаёт каждому процессу только его набор: API получает платежи и operations, worker получает `OPENAI_API_KEY`, сервис `email` получает SMTP, lifecycle ограничен ключами runtime. Открытые пароли в `.env.production` запрещены. `CODEX_CLI_VERSION=0.144.6`, Node 22.17.0, Python 3.11.13, Playwright 1.58.2, PostgreSQL 17.5 и Nginx 1.28.0 зафиксированы в release-файлах; base images дополнительно закреплены manifest digest. Перед каждым обновлением версии прогоняйте весь CI и golden-карту.
 
 ## Сборка и запуск
 
@@ -28,7 +28,7 @@ Copy-Item .env.production.example .env.production
 python scripts/check_production_release.py --env-file .env.production
 docker compose --env-file .env.production -f compose.production.yml build --pull
 docker compose --env-file .env.production -f compose.production.yml up -d postgres migrate content-migrate
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker frontend
+docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
 docker compose --env-file .env.production -f compose.production.yml ps
 ```
 
@@ -70,30 +70,30 @@ curl.exe -I https://YOUR_DOMAIN/internal/metrics
 
 ```powershell
 docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm backup
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker
+docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
 docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm runtime-backup
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker frontend
+docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
 ```
 
 Restore PostgreSQL разрушает текущую базу и требует точной фразы подтверждения. Сначала остановите intake, API и worker, затем укажите только имя файла из `backups`:
 
 ```powershell
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker
+docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
 $env:RESTORE_FILE = "vedicway-20260719T010000Z.dump"
 $env:CONFIRM_RESTORE = "restore-vedicway"
 docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm restore
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker frontend
+docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
 Remove-Item Env:RESTORE_FILE, Env:CONFIRM_RESTORE
 ```
 
-Runtime restore выполняется отдельной командой и тоже требует остановленных API/worker. Он заменяет SQLite, reports и media volume одним проверенным архивом:
+Runtime restore выполняется отдельной командой и требует остановленных API, worker и email-consumer. Он заменяет SQLite, reports и media volume одним проверенным архивом:
 
 ```powershell
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker
+docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
 $env:RESTORE_RUNTIME_FILE = "vedicway-runtime-20260719T010000Z.tar.gz"
 $env:CONFIRM_RUNTIME_RESTORE = "restore-runtime"
 docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm runtime-restore
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker frontend
+docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
 Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
 ```
 
@@ -103,6 +103,8 @@ Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
 
 Публичный трафик запрещён, пока владелец не утвердил конкретные сроки хранения карт, контактных данных, consent records, media и резервных копий. Процедура удаления обязана очищать PostgreSQL, SQLite, reports/media и все backup-копии по одному идентификатору субъекта либо подтверждённому отзыву согласия; одно удаление строки из основной базы не закрывает запрос субъекта. Перед релизом проведите проверяемую репетицию удаления в staging, сохраните только обезличенный audit-факт и убедитесь, что удалённые данные не возвращаются после восстановления очередной допустимой резервной копии.
 
+Runtime lifecycle запускается сервисами `retention-dry-run` и `retention-apply` из профиля `ops`. Production-расписание systemd, SMTP-проверка и процедура tombstone recovery описаны в [recovery/retention runbook](RECOVERY_RETENTION_RUNBOOK_RU.md). Зелёная readiness без включённого ежедневного таймера не закрывает lifecycle gate.
+
 ## Release readiness checklist
 
 - [ ] `.env.production` не содержит `.example`, `REPLACE_*`, тестовых payment flags и чужих CIDR; `check_production_release.py` завершился кодом 0.
@@ -110,9 +112,10 @@ Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
 - [ ] `migrate` и `content-migrate` завершились кодом 0; Alembic находится на `head`, users/articles store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
 - [ ] TLS ingress передаёт `X-Forwarded-Proto=https`, порт Compose слушает loopback, `/internal` закрыт, CSP report в браузере пуст, HSTS присутствует на HTTPS-ответе.
 - [ ] Опубликованы актуальные оферта и политика; `VEDICWAY_OFFER_VERSION` совпадает с текстом, YooKassa webhook и возврат проверены из разрешённых сетей без ручного SQL.
+- [ ] SMTP secret смонтирован, SPF/DKIM/DMARC проходят внешний тест, одноразовые chart/PDF ссылки не попадают в access log и не принимают replay.
 - [ ] `/`, `/guide`, legal pages и опубликованные статьи возвращают корректные canonical/robots/schema; sitemap не содержит служебных URL, Yandex Webmaster принял robots и sitemap.
 - [ ] Golden-карта, бесплатное объяснение, полный отчёт, вопросы и PDF прошли end-to-end. p95 расчёта и provider timeout укладываются в утверждённый SLO.
 - [ ] Логи, PostgreSQL, media volume и backup физически размещены по утверждённой схеме локализации; секреты и персональные данные не попадают в logs, CI artifacts и error tracking.
-- [ ] Утверждены сроки хранения по каждому классу данных; запрос удаления проверенно очищает primary storage, отчёты, медиа и backup-копии, а восстановление не возвращает данные с истёкшим сроком.
+- [ ] Утверждены сроки хранения по каждому классу данных; `retention-dry-run` проверен, systemd timer включён, запрос удаления очищает primary storage, отчёты, медиа и backup-копии, а восстановление не возвращает данные с истёкшим сроком.
 
 Жёсткий стоп масштабирования: `backend/src/vedicway_backend/store.py` хранит charts и payments в SQLite. Compose передаёт `DATABASE_URL` и `VEDICWAY_DATABASE_URL` для admin/content adapter, но до переноса chart/payment таблиц допускается только single-node split storage. Если после объединения admin-ветки ни один production component не читает PostgreSQL, уберите `postgres` и `migrate` из запуска: декоративная база создаёт ложное ощущение надёжности. Зелёный `/health/ready` сейчас подтверждает доступ к runtime Store, но не полноценный disaster recovery.
