@@ -12,7 +12,7 @@ export type SeoPage = {
 };
 
 const PRODUCTION_ORIGIN = "https://vedicway.ru";
-const DEFAULT_IMAGE = "/assets/hero-space.png";
+const DEFAULT_IMAGE = "/assets/hero-space-light.png";
 
 export function publicOrigin() {
   const configured = import.meta.env.VITE_PUBLIC_ORIGIN?.trim().replace(/\/$/, "");

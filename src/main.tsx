@@ -19,6 +19,7 @@ import "./guide.css";
 import "./legal.css";
 import "./admin.css";
 import "./recovery.css";
+import "./light-theme.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode><App /><CookieConsentBanner /></StrictMode>,

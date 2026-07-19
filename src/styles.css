@@ -872,9 +872,9 @@ svg {
     linear-gradient(90deg, rgba(4, 5, 6, 0.97) 0, rgba(5, 6, 7, 0.7) 20%, rgba(5, 6, 7, 0.27) 56%, rgba(5, 6, 7, 0.64) 100%),
     linear-gradient(0deg, rgba(4, 5, 6, 0.64), transparent 42%),
     image-set(
-      url("/assets/results-space.avif") type("image/avif") 1x,
-      url("/assets/results-space.webp") type("image/webp") 1x,
-      url("/assets/results-space.png") type("image/png") 1x
+      url("/assets/results-space-light.avif") type("image/avif") 1x,
+      url("/assets/results-space-light.webp") type("image/webp") 1x,
+      url("/assets/results-space-light.png") type("image/png") 1x
     ) center / cover no-repeat,
     #060708;
   --results-panel: rgba(11, 11, 11, 0.83);

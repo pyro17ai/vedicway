@@ -47,7 +47,7 @@ function Ornament({ position }: { position: "top" | "bottom" }) {
   return (
     <div className={`faq-ornament faq-ornament--${position}`} aria-hidden="true">
       <span />
-      <img src="/assets/faq-divider-star.png" alt="" width="256" height="256" />
+      <img src="/assets/faq-divider-star-light.png" alt="" width="256" height="256" />
       <span />
     </div>
   );
@@ -114,7 +114,7 @@ export function FaqSection() {
                     onClick={() => setOpenIndex((current) => (current === index ? null : index))}
                   >
                     <span className="faq-item__star" aria-hidden="true">
-                      <img src="/assets/faq-item-star.png" alt="" width="256" height="256" />
+                      <img src="/assets/faq-item-star-light.png" alt="" width="256" height="256" />
                     </span>
                     <span className="faq-item__question">{item.question}</span>
                     <ChevronDown className="faq-item__chevron" aria-hidden="true" />
@@ -158,7 +158,7 @@ export function FaqSection() {
         <div className="faq-legal-footer__inner">
           <div className="faq-legal-footer__brand">
             <div className="faq-legal-footer__brand-mark">
-              <img src="/assets/brand-mark.png" alt="" width="34" height="34" />
+              <img src="/assets/brand-mark-light.png" alt="" width="34" height="34" />
               <span>VedicWay</span>
             </div>
             <p>Персональные натальные карты и понятные объяснения.</p>

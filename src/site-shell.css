@@ -270,9 +270,9 @@
       linear-gradient(180deg, rgba(4, 5, 6, 0.96) 0%, rgba(4, 5, 6, 0.5) 13%, rgba(4, 5, 6, 0.2) 55%, rgba(4, 5, 6, 0.92) 100%),
       linear-gradient(90deg, rgba(3, 4, 5, 0.89) 0%, rgba(4, 5, 6, 0.42) 35%, rgba(3, 4, 5, 0.7) 100%),
       image-set(
-        url("/assets/results-space-v2.avif") type("image/avif") 1x,
-        url("/assets/results-space-v2.webp") type("image/webp") 1x,
-        url("/assets/results-space-v2.png") type("image/png") 1x
+        url("/assets/results-space-v2-light.avif") type("image/avif") 1x,
+        url("/assets/results-space-v2-light.webp") type("image/webp") 1x,
+        url("/assets/results-space-v2-light.png") type("image/png") 1x
       ) center / cover no-repeat,
       #050607;
   }

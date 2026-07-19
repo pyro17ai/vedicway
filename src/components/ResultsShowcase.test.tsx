@@ -23,9 +23,9 @@ describe("ResultsShowcase", () => {
     render(<ResultsShowcase />);
 
     const expected = [
-      ["Натальная карта", "/assets/results-nav-chart.png"],
-      ["Объяснение", "/assets/results-nav-explanation.png"],
-      ["Вопросы к себе", "/assets/results-nav-questions.png"],
+      ["Натальная карта", "/assets/results-nav-chart-light.png"],
+      ["Объяснение", "/assets/results-nav-explanation-light.png"],
+      ["Вопросы к себе", "/assets/results-nav-questions-light.png"],
     ] as const;
 
     expected.forEach(([name, src], index) => {

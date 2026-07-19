@@ -25,9 +25,9 @@ type ResultTab = "chart" | "explanation" | "questions";
 type DemoMode = "plain" | "expert";
 
 const resultTabs = [
-  { id: "chart", label: "Натальная карта", icon: "/assets/results-nav-chart.png" },
-  { id: "explanation", label: "Объяснение", icon: "/assets/results-nav-explanation.png" },
-  { id: "questions", label: "Вопросы к себе", icon: "/assets/results-nav-questions.png" },
+  { id: "chart", label: "Натальная карта", icon: "/assets/results-nav-chart-light.png" },
+  { id: "explanation", label: "Объяснение", icon: "/assets/results-nav-explanation-light.png" },
+  { id: "questions", label: "Вопросы к себе", icon: "/assets/results-nav-questions-light.png" },
 ] as const;
 
 const demoPlanetPositions: PlanetPosition[] = demoPlanets.map((planet) => ({
