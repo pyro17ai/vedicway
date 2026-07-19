@@ -507,32 +507,99 @@ class ContentDatabase:
     ) -> None:
         subject_hash = fingerprint_hash(subject_reference, "consent-subject")
         with self.session() as database:
-            existing = database.scalar(
-                select(ConsentRecord.id).where(
-                    ConsentRecord.subject_reference_hash == subject_hash,
-                    ConsentRecord.chart_id == chart_id,
-                    ConsentRecord.consent_type == consent_type,
-                    ConsentRecord.document_version == document_version,
-                )
+            self._add_consent_record(
+                database,
+                subject_hash=subject_hash,
+                consent_type=consent_type,
+                document_version=document_version,
+                granted=granted,
+                data_categories=data_categories,
+                chart_id=chart_id,
+                ip=ip,
+                user_agent=user_agent,
             )
-            if existing:
-                return
-            database.add(
-                ConsentRecord(
-                    subject_reference_hash=subject_hash,
-                    chart_id=chart_id,
-                    consent_type=consent_type,
-                    document_version=document_version,
-                    granted=granted,
-                    data_categories=data_categories,
-                    ip_hash=fingerprint_hash(ip, "consent-ip") if ip else None,
-                    user_agent_hash=(
-                        fingerprint_hash(user_agent, "consent-user-agent")
-                        if user_agent
-                        else None
-                    ),
-                )
+
+    def record_chart_acceptances(
+        self,
+        *,
+        subject_reference: str,
+        chart_id: str,
+        personal_data_version: str,
+        terms_version: str,
+        ip: str | None,
+        user_agent: str | None,
+    ) -> None:
+        """Commit the two mandatory chart acceptances in one database transaction."""
+        subject_hash = fingerprint_hash(subject_reference, "consent-subject")
+        with self.session() as database:
+            self._add_consent_record(
+                database,
+                subject_hash=subject_hash,
+                consent_type="personal_data",
+                document_version=personal_data_version,
+                granted=True,
+                data_categories=[
+                    "birth_date",
+                    "birth_time",
+                    "birth_place",
+                    "time_accuracy",
+                    "technical_session",
+                ],
+                chart_id=chart_id,
+                ip=ip,
+                user_agent=user_agent,
             )
+            self._add_consent_record(
+                database,
+                subject_hash=subject_hash,
+                consent_type="terms",
+                document_version=terms_version,
+                granted=True,
+                data_categories=[],
+                chart_id=chart_id,
+                ip=ip,
+                user_agent=user_agent,
+            )
+
+    @staticmethod
+    def _add_consent_record(
+        database: Session,
+        *,
+        subject_hash: str,
+        consent_type: str,
+        document_version: str,
+        granted: bool,
+        data_categories: list[str],
+        chart_id: str | None,
+        ip: str | None,
+        user_agent: str | None,
+    ) -> None:
+        existing = database.scalar(
+            select(ConsentRecord.id).where(
+                ConsentRecord.subject_reference_hash == subject_hash,
+                ConsentRecord.chart_id == chart_id,
+                ConsentRecord.consent_type == consent_type,
+                ConsentRecord.document_version == document_version,
+            )
+        )
+        if existing:
+            return
+        database.add(
+            ConsentRecord(
+                subject_reference_hash=subject_hash,
+                chart_id=chart_id,
+                consent_type=consent_type,
+                document_version=document_version,
+                granted=granted,
+                data_categories=data_categories,
+                ip_hash=fingerprint_hash(ip, "consent-ip") if ip else None,
+                user_agent_hash=(
+                    fingerprint_hash(user_agent, "consent-user-agent")
+                    if user_agent
+                    else None
+                ),
+            )
+        )
 
 
 def production_configuration_errors(database: ContentDatabase) -> list[str]:

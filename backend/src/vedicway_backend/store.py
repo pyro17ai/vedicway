@@ -489,6 +489,8 @@ class Store:
         session_id: str,
         birth: BirthInput,
         idempotency_key: str,
+        *,
+        activate: bool = True,
     ) -> tuple[str, bool]:
         with self._lock, self._connection() as connection:
             existing = connection.execute(
@@ -517,20 +519,103 @@ class Store:
                 connection.execute(
                     """INSERT INTO charts
                     (id, session_id, birth_profile_id, idempotency_key, status, birth_public_json, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, 'accepted', ?, ?, ?)""",
-                    (chart_id, session_id, profile_id, idempotency_key, _json_dump(public_birth), now, now),
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        chart_id,
+                        session_id,
+                        profile_id,
+                        idempotency_key,
+                        "accepted" if activate else "awaiting_consent",
+                        _json_dump(public_birth),
+                        now,
+                        now,
+                    ),
                 )
                 connection.execute(
                     "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
                     (chart_id, session_id, now),
                 )
-                self._enqueue(connection, chart_id, "instant_v1", priority=100)
-                self._emit(connection, chart_id, "chart.accepted", {"chart_id": chart_id, "accepted_at": now})
+                if activate:
+                    self._enqueue(connection, chart_id, "instant_v1", priority=100)
+                    self._emit(
+                        connection,
+                        chart_id,
+                        "chart.accepted",
+                        {"chart_id": chart_id, "accepted_at": now},
+                    )
                 connection.commit()
             except Exception:
                 connection.rollback()
                 raise
         return chart_id, True
+
+    def activate_chart_after_consent(self, chart_id: str) -> bool:
+        """Make a consent-pending chart visible to the calculation queue exactly once."""
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                chart = connection.execute(
+                    "SELECT status FROM charts WHERE id = ?", (chart_id,)
+                ).fetchone()
+                if not chart:
+                    raise RuntimeError("Consent-pending chart no longer exists")
+                existing_job = connection.execute(
+                    "SELECT 1 FROM jobs WHERE chart_id = ? AND job_type = 'instant_v1' LIMIT 1",
+                    (chart_id,),
+                ).fetchone()
+                if chart["status"] == "awaiting_consent":
+                    now = _iso()
+                    connection.execute(
+                        "UPDATE charts SET status = 'accepted', updated_at = ? WHERE id = ?",
+                        (now, chart_id),
+                    )
+                    if not existing_job:
+                        self._enqueue(connection, chart_id, "instant_v1", priority=100)
+                        self._emit(
+                            connection,
+                            chart_id,
+                            "chart.accepted",
+                            {"chart_id": chart_id, "accepted_at": now},
+                        )
+                    connection.commit()
+                    return True
+                connection.commit()
+                return False
+            except Exception:
+                connection.rollback()
+                raise
+
+    def discard_chart_awaiting_consent(
+        self,
+        chart_id: str,
+        session_id: str,
+        idempotency_key: str,
+    ) -> bool:
+        """Remove every runtime artifact for a chart that never passed consent audit."""
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                chart = connection.execute(
+                    """SELECT birth_profile_id FROM charts
+                       WHERE id = ? AND session_id = ? AND idempotency_key = ?
+                         AND status = 'awaiting_consent'""",
+                    (chart_id, session_id, idempotency_key),
+                ).fetchone()
+                if not chart:
+                    connection.rollback()
+                    return False
+                connection.execute("DELETE FROM chart_access WHERE chart_id = ?", (chart_id,))
+                connection.execute("DELETE FROM outbox_events WHERE chart_id = ?", (chart_id,))
+                connection.execute("DELETE FROM jobs WHERE chart_id = ?", (chart_id,))
+                connection.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
+                connection.execute(
+                    "DELETE FROM birth_profiles WHERE id = ?", (chart["birth_profile_id"],)
+                )
+                connection.commit()
+                return True
+            except Exception:
+                connection.rollback()
+                raise
 
     def chart_owned_by(self, chart_id: str, session_id: str) -> bool:
         with self._lock, self._connection() as connection:

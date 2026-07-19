@@ -485,34 +485,36 @@ def create_app(
         if not place:
             raise DomainError("PLACE_NOT_FOUND", "Выберите город из подсказок", status_code=422)
         birth = resolve_birth_input(payload, place)
-        chart_id, created = app.state.store.create_chart(current_session, birth, idempotency_key)
+        chart_id, created = app.state.store.create_chart(
+            current_session,
+            birth,
+            idempotency_key,
+            activate=False,
+        )
         peer_ip = request.client.host if request.client else "unknown"
         client_ip = effective_client_ip(
             peer_ip,
             request.headers.get("X-Forwarded-For"),
             app.state.payment_settings.trusted_proxy_networks,
         )
-        app.state.content_db.record_consent(
-            subject_reference=current_session,
-            consent_type="personal_data",
-            document_version=legal.personal_data_version,
-            granted=True,
-            data_categories=["birth_date", "birth_time", "birth_place", "time_accuracy", "technical_session"],
-            chart_id=chart_id,
-            ip=client_ip,
-            user_agent=request.headers.get("user-agent"),
-        )
-        app.state.content_db.record_consent(
-            subject_reference=current_session,
-            consent_type="terms",
-            document_version=legal.terms_version,
-            granted=True,
-            data_categories=[],
-            chart_id=chart_id,
-            ip=client_ip,
-            user_agent=request.headers.get("user-agent"),
-        )
-        if created:
+        try:
+            app.state.content_db.record_chart_acceptances(
+                subject_reference=current_session,
+                chart_id=chart_id,
+                personal_data_version=legal.personal_data_version,
+                terms_version=legal.terms_version,
+                ip=client_ip,
+                user_agent=request.headers.get("user-agent"),
+            )
+        except Exception:
+            app.state.store.discard_chart_awaiting_consent(
+                chart_id,
+                current_session,
+                idempotency_key,
+            )
+            raise
+        activated = app.state.store.activate_chart_after_consent(chart_id)
+        if created or activated:
             await _launch_worker(app)
         resource = app.state.store.get_chart_resource(chart_id)
         return ChartAccepted(
