@@ -295,6 +295,45 @@ def test_consent_audit_is_versioned_and_idempotent(tmp_path, monkeypatch) -> Non
     assert len(records) == 2
 
 
+def test_consent_audit_failure_removes_pending_chart_and_personal_data(
+    tmp_path, monkeypatch
+) -> None:
+    app, database = _app(tmp_path, monkeypatch)
+    original_add = database._add_consent_record
+
+    def fail_during_terms(database_session, **values):
+        original_add(database_session, **values)
+        if values["consent_type"] == "terms":
+            raise RuntimeError("consent database unavailable")
+
+    monkeypatch.setattr(database, "_add_consent_record", fail_during_terms)
+    payload = {
+        "local_date": "1998-09-15",
+        "local_time": "17:28",
+        "place_id": "ru-moscow-524901",
+        "legal": {
+            "personal_data": True,
+            "personal_data_version": "2026-07-19",
+            "terms": True,
+            "terms_version": "2026-07-19",
+        },
+    }
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        response = client.post(
+            "/api/v1/charts",
+            json=payload,
+            headers={"Idempotency-Key": "consent-storage-failure"},
+        )
+        assert response.status_code == 500
+
+    with database.session() as session:
+        assert list(session.scalars(select(ConsentRecord))) == []
+    with app.state.store._connection() as connection:
+        for table in ("birth_profiles", "charts", "chart_access", "jobs", "outbox_events"):
+            assert connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
+
+
 def test_production_readiness_rejects_placeholders_and_sqlite(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("VEDICWAY_ENV", "development")
     monkeypatch.setenv("VEDICWAY_DATA_KEY", Fernet.generate_key().decode("ascii"))
