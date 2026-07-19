@@ -200,6 +200,7 @@ function App() {
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
   if (pathname === "/access/recovery") return <RecoveryPage kind="access" onNavigate={navigate} />;
+  if (pathname === "/access/confirm") return <RecoveryPage kind="confirm" onNavigate={navigate} />;
   if (pathname === "/privacy/request") return <RecoveryPage kind="privacy" onNavigate={navigate} />;
 
   const legalKind = legalRoutes[pathname];

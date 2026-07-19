@@ -38,6 +38,8 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.orm.exc import StaleDataError
 
+from .legal_config import INTERPRETATION_PROCESSOR_ENV, interpretation_processor_config
+
 PASSWORD_HASH = PasswordHash.recommended()
 DUMMY_PASSWORD_HASH = PASSWORD_HASH.hash(secrets.token_urlsafe(32))
 ADMIN_SESSION_TTL = timedelta(hours=8)
@@ -457,7 +459,6 @@ class ContentDatabase:
             articles = database.scalars(select(Article)).all()
             return any(
                 article.cover_media_id == asset_id
-                or asset_id in (article.body_media_ids or [])
                 or marker in article.content
                 or article.cover_image_url == asset.public_url
                 for article in articles
@@ -480,7 +481,6 @@ class ContentDatabase:
             ).all()
             return any(
                 article.cover_media_id == asset_id
-                or asset_id in (article.body_media_ids or [])
                 or marker in article.content
                 or article.cover_image_url == asset.public_url
                 for article in articles
@@ -621,6 +621,18 @@ def production_configuration_errors(database: ContentDatabase) -> list[str]:
         if not os.environ.get(name, "").strip()
     ]
     errors = [f"missing:{name}" for name in missing]
+    if os.environ.get("VEDICWAY_INTERPRETATION_PROVIDER", "").strip().casefold() == "codex":
+        processor = interpretation_processor_config()
+        for name in INTERPRETATION_PROCESSOR_ENV:
+            if not os.environ.get(name, "").strip():
+                errors.append(f"missing:{name}")
+        if not bool(processor["configured"]):
+            errors.append("legal:interpretation_processor_configuration_required")
+        if os.environ.get("VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER", "").strip() not in {
+            "0",
+            "1",
+        }:
+            errors.append("invalid:VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER")
     fingerprint_secret = os.environ.get("VEDICWAY_PRIVACY_PEPPER") or os.environ.get(
         "VEDICWAY_SIGNING_KEY", ""
     )

@@ -7,6 +7,7 @@ import ipaddress
 import json
 import logging
 import os
+import re
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -14,7 +15,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 from urllib.parse import quote, urlsplit
 
-from fastapi import Body, FastAPI, Header, HTTPException, Query, Request, Response, status
+from fastapi import Body, FastAPI, Form, Header, HTTPException, Query, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import (
     FileResponse,
@@ -56,12 +57,133 @@ from .worker import ChartWorker
 
 LOGGER = logging.getLogger("vedicway.api")
 SESSION_COOKIE = "vw_session"
+MAGIC_CONFIRMATION_TTL_SECONDS = 10 * 60
 ALLOWED_SECTIONS = {"d1", "vargas", "panchanga", "dashas", "strength", "combinations", "interpretation", "questions"}
 ALLOWED_JOB_TYPES = {"instant_v1", "evidence_free_v1", "expert_extended_v1", "interpretation_free_v1", "paid_report_v1", "pdf_v1"}
 
 
 def _trace_id(request: Request) -> str:
     return getattr(request.state, "trace_id", uuid.uuid4().hex)
+
+
+def _safe_route_path(request: Request) -> str:
+    route = request.scope.get("route")
+    route_path = getattr(route, "path", None)
+    if route_path:
+        return str(route_path)
+    if request.url.path.startswith("/api/v1/magic-links/"):
+        return "/api/v1/magic-links/{token}"
+    return request.url.path
+
+
+def _request_validation_message(request: Request) -> str:
+    route_path = _safe_route_path(request)
+    if route_path == "/api/v1/admin/auth/login":
+        return "Проверьте email и пароль администратора"
+    if route_path.startswith("/api/v1/admin/articles"):
+        return "Проверьте поля материала"
+    if route_path == "/api/v1/admin/media":
+        return "Проверьте файл и описание изображения"
+    if route_path == "/api/v1/magic-links/confirm":
+        return "Подтверждение ссылки устарело"
+    if route_path in {"/api/v1/access/recovery", "/api/v1/privacy/requests"}:
+        return "Проверьте email и параметры обращения"
+    if route_path == "/api/v1/charts":
+        return "Проверьте дату, время и выбранный город"
+    return "Проверьте отправленные данные"
+
+
+def _magic_confirmation_cookie_names(production: bool) -> tuple[str, str]:
+    if production:
+        return "__Host-vedicway-magic-preauth", "__Host-vedicway-magic-csrf"
+    return "vw_magic_preauth", "vw_magic_csrf"
+
+
+def _assert_magic_confirmation_origin(request: Request) -> None:
+    origin = request.headers.get("origin", "").rstrip("/")
+    # Chromium serializes a native form Origin as "null" under no-referrer.
+    # Fetch Metadata remains browser-controlled; the Store still requires both
+    # Strict cookies and the one-purpose CSRF hash before it consumes anything.
+    if (
+        origin == "null"
+        and request.headers.get("sec-fetch-site", "").casefold() == "same-origin"
+        and request.headers.get("sec-fetch-mode", "").casefold() == "navigate"
+    ):
+        return
+    if not origin:
+        raise DomainError(
+            "ORIGIN_REQUIRED",
+            "Подтверждение ссылки нужно открыть на сайте VedicWay",
+            recoverable=False,
+            status_code=403,
+        )
+    configured = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "").rstrip("/")
+    allowed = {str(request.base_url).rstrip("/"), configured}
+    production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
+    if not production:
+        allowed.update(
+            {"http://localhost:5173", "http://127.0.0.1:5173", "http://testserver"}
+        )
+    if origin in {value for value in allowed if value}:
+        return
+    parsed = urlsplit(origin)
+    if not production and parsed.scheme == "http" and parsed.hostname in {
+        "localhost",
+        "127.0.0.1",
+    }:
+        return
+    raise DomainError(
+        "ORIGIN_FORBIDDEN",
+        "Источник подтверждения не разрешён",
+        recoverable=False,
+        status_code=403,
+    )
+
+
+def _set_magic_confirmation_cookies(
+    response: Response,
+    *,
+    nonce: str,
+    csrf_token: str,
+    production: bool,
+) -> None:
+    preauth_cookie, csrf_cookie = _magic_confirmation_cookie_names(production)
+    response.set_cookie(
+        preauth_cookie,
+        nonce,
+        httponly=True,
+        secure=production,
+        samesite="strict",
+        max_age=MAGIC_CONFIRMATION_TTL_SECONDS,
+        path="/",
+    )
+    response.set_cookie(
+        csrf_cookie,
+        csrf_token,
+        httponly=False,
+        secure=production,
+        samesite="strict",
+        max_age=MAGIC_CONFIRMATION_TTL_SECONDS,
+        path="/",
+    )
+
+
+def _clear_magic_confirmation_cookies(response: Response, *, production: bool) -> None:
+    preauth_cookie, csrf_cookie = _magic_confirmation_cookie_names(production)
+    response.delete_cookie(
+        preauth_cookie,
+        path="/",
+        secure=production,
+        httponly=True,
+        samesite="strict",
+    )
+    response.delete_cookie(
+        csrf_cookie,
+        path="/",
+        secure=production,
+        httponly=False,
+        samesite="strict",
+    )
 
 
 def _error_response(error: DomainError, trace_id: str) -> JSONResponse:
@@ -237,7 +359,11 @@ def create_app(
         except HTTPException as error:
             response = JSONResponse(status_code=error.status_code, content={"detail": error.detail}, headers={"X-Trace-ID": _trace_id(request)})
         except Exception:
-            LOGGER.exception("unexpected_api_error trace_id=%s path=%s", _trace_id(request), request.url.path)
+            LOGGER.exception(
+                "unexpected_api_error trace_id=%s path=%s",
+                _trace_id(request),
+                _safe_route_path(request),
+            )
             response = _error_response(
                 DomainError("INTERNAL_ERROR", "Сервис временно недоступен", recoverable=True, status_code=500),
                 _trace_id(request),
@@ -245,7 +371,7 @@ def create_app(
         response.headers["X-Trace-ID"] = _trace_id(request)
         response.headers.setdefault("Cache-Control", "no-store")
         response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["Referrer-Policy"] = "same-origin"
+        response.headers.setdefault("Referrer-Policy", "same-origin")
         if production:
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
             response.headers["Content-Security-Policy"] = (
@@ -257,15 +383,21 @@ def create_app(
                 "font-src 'self'; "
                 "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
             )
-        route = request.scope.get("route")
-        route_path = getattr(route, "path", request.url.path)
+        route_path = _safe_route_path(request)
         app.state.metrics.increment("http_requests_total", {"method": request.method, "route": route_path, "status": str(response.status_code)})
         app.state.metrics.observe("http_request_duration_seconds", time.perf_counter() - started, {"method": request.method, "route": route_path})
         return response
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_error(request: Request, _: RequestValidationError) -> JSONResponse:
-        return _error_response(DomainError("REQUEST_INVALID", "Проверьте дату, время и выбранный город", status_code=400), _trace_id(request))
+        return _error_response(
+            DomainError(
+                "REQUEST_INVALID",
+                _request_validation_message(request),
+                status_code=400,
+            ),
+            _trace_id(request),
+        )
 
     def session(request: Request, response: Response | None = None, create: bool = False) -> str:
         token = request.cookies.get(SESSION_COOKIE)
@@ -1389,13 +1521,60 @@ def create_app(
         return FileResponse(path, media_type="application/pdf", filename="vedicway-report.pdf")
 
     @app.get("/api/v1/magic-links/{token}")
-    async def redeem_magic_link(token: str) -> RedirectResponse:
-        link = app.state.store.consume_magic_link(token)
-        if not link:
+    async def begin_magic_link_confirmation(token: str) -> RedirectResponse:
+        if not re.fullmatch(r"[A-Za-z0-9_-]{43}", token):
             raise DomainError("MAGIC_LINK_INVALID", "Ссылка для возврата устарела", recoverable=False, status_code=401)
+        confirmation = app.state.store.begin_magic_link_confirmation(token)
+        if not confirmation:
+            raise DomainError(
+                "MAGIC_LINK_INVALID",
+                "Ссылка для возврата устарела",
+                recoverable=False,
+                status_code=401,
+            )
+        nonce, csrf_token = confirmation
+        response = RedirectResponse(url="/access/confirm", status_code=303)
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        _set_magic_confirmation_cookies(
+            response,
+            nonce=nonce,
+            csrf_token=csrf_token,
+            production=app.state.production,
+        )
+        return response
+
+    @app.post("/api/v1/magic-links/confirm")
+    async def confirm_magic_link(
+        request: Request,
+        csrf_token: str = Form(..., min_length=32, max_length=128),
+    ) -> RedirectResponse:
+        _assert_magic_confirmation_origin(request)
+        preauth_cookie, csrf_cookie = _magic_confirmation_cookie_names(app.state.production)
+        nonce = request.cookies.get(preauth_cookie)
+        cookie_csrf = request.cookies.get(csrf_cookie)
+        if (
+            not nonce
+            or not cookie_csrf
+            or not hmac.compare_digest(cookie_csrf, csrf_token)
+        ):
+            raise DomainError(
+                "MAGIC_CONFIRMATION_INVALID",
+                "Подтверждение ссылки устарело",
+                recoverable=False,
+                status_code=403,
+            )
+        resolved = app.state.store.consume_magic_link_confirmation(nonce, csrf_token)
+        if not resolved:
+            raise DomainError(
+                "MAGIC_CONFIRMATION_INVALID",
+                "Подтверждение ссылки устарело",
+                recoverable=False,
+                status_code=401,
+            )
+        link, raw_token = resolved
         chart_id = str(link["chart_id"])
-        session_id, raw_token = app.state.store.create_session()
-        app.state.store.grant_chart_access(chart_id, session_id)
         if link["scope"] == "download_pdf" and link["render_request_id"]:
             location = (
                 f"/api/v1/charts/{chart_id}/reports/pdf"
@@ -1406,6 +1585,7 @@ def create_app(
         response = RedirectResponse(url=location, status_code=303)
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
+        response.headers["Referrer-Policy"] = "no-referrer"
         response.set_cookie(
             SESSION_COOKIE,
             raw_token,
@@ -1415,6 +1595,7 @@ def create_app(
             max_age=60 * 60 * 24 * 30,
             path="/",
         )
+        _clear_magic_confirmation_cookies(response, production=app.state.production)
         return response
 
     return app

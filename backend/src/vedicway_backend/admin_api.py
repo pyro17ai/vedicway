@@ -232,7 +232,10 @@ def _media_dict(asset: Any) -> dict[str, Any]:
 
 def _article_dict(article: Any, database: ContentDatabase) -> dict[str, Any]:
     cover = database.get_media(article.cover_media_id) if article.cover_media_id else None
-    body = database.list_media(article.body_media_ids or [])
+    body_media_ids = list(
+        dict.fromkeys(re.findall(r"\{\{media:([a-f0-9-]{36})\}\}", article.content))
+    )
+    body = database.list_media(body_media_ids)
     return {
         "id": article.id,
         "title": article.title,
@@ -241,7 +244,7 @@ def _article_dict(article: Any, database: ContentDatabase) -> dict[str, Any]:
         "excerpt": article.excerpt,
         "content": article.content,
         "cover_media_id": article.cover_media_id,
-        "body_media_ids": article.body_media_ids or [],
+        "body_media_ids": body_media_ids,
         "cover_image_url": article.cover_image_url,
         "cover_image_alt": article.cover_image_alt,
         "seo_title": article.seo_title,
@@ -386,9 +389,12 @@ def _if_match_revision(value: str | None) -> int:
 
 def _article_values(payload: ArticlePayload, database: ContentDatabase) -> dict[str, Any]:
     values = payload.model_dump()
+    marker_ids = list(
+        dict.fromkeys(re.findall(r"\{\{media:([a-f0-9-]{36})\}\}", payload.content))
+    )
     referenced_ids = (
         [payload.cover_media_id] if payload.cover_media_id else []
-    ) + payload.body_media_ids
+    ) + marker_ids
     assets = {asset.id: asset for asset in database.list_media(referenced_ids)}
     if any(asset_id not in assets for asset_id in referenced_ids):
         raise DomainError(
@@ -406,20 +412,14 @@ def _article_values(payload: ArticlePayload, database: ContentDatabase) -> dict[
             )
         values["cover_image_url"] = cover.public_url
         values["cover_image_alt"] = payload.cover_image_alt or cover.alt_text
-    for asset_id in payload.body_media_ids:
+    for asset_id in marker_ids:
         if assets[asset_id].purpose != "body":
             raise DomainError(
                 "ARTICLE_BODY_MEDIA_INVALID",
                 "Изображение текста загружено в неверном режиме",
                 status_code=422,
             )
-    marker_ids = set(re.findall(r"\{\{media:([a-f0-9-]{36})\}\}", payload.content))
-    if not marker_ids.issubset(set(payload.body_media_ids)):
-        raise DomainError(
-            "ARTICLE_MEDIA_MARKER_INVALID",
-            "В тексте найдено незарегистрированное изображение",
-            status_code=422,
-        )
+    values["body_media_ids"] = marker_ids
     return values
 
 

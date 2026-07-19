@@ -6,6 +6,8 @@ const imagePath = resolve("public/assets/avatar-01.png");
 
 test("администратор публикует статью с обложкой и изображением внутри текста", async ({ page }) => {
   test.setTimeout(90_000);
+  const runId = Date.now().toString(36);
+  const articleTitle = `Как читать первый дом ведической карты ${runId}`;
   await page.goto("/admin");
   await page.getByLabel("Рабочая почта").fill("editor@vedicway.ru");
   await page.getByLabel("Пароль").fill("playwright-admin-password-2026");
@@ -14,7 +16,7 @@ test("администратор публикует статью с обложк
   await expect(page.getByRole("heading", { name: "Состояние редакции" })).toBeVisible();
   await page.getByRole("button", { name: "Новый материал" }).click();
 
-  await page.getByLabel("Заголовок статьи").fill("Как читать первый дом ведической карты");
+  await page.getByLabel("Заголовок статьи").fill(articleTitle);
   await page.getByLabel(/^Лид/).fill(
     "Практический разбор первого дома помогает увидеть лагну, её управителя и главные опоры характера.",
   );
@@ -40,14 +42,14 @@ test("администратор публикует статью с обложк
   await expect(page.getByRole("status")).toContainText("Материал опубликован в гиде.");
 
   await page.goto("/guide");
-  const card = page.getByRole("heading", { name: "Как читать первый дом ведической карты" });
+  const card = page.getByRole("heading", { name: articleTitle });
   await expect(card).toBeVisible();
   const articleCard = card.locator("xpath=ancestor::article");
   await expect(articleCard.locator("img")).toHaveAttribute("alt", "Южноиндийская натальная карта и знак восходящего дома");
-  await articleCard.getByRole("link", { name: /Как читать первый дом/ }).first().click();
+  await articleCard.getByRole("link", { name: articleTitle }).first().click();
 
-  await expect(page).toHaveURL(/\/guide\/kak-chitat-pervyy-dom-vedicheskoy-karty$/);
-  await expect(page.getByRole("heading", { name: "Как читать первый дом ведической карты" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/guide/kak-chitat-pervyy-dom-vedicheskoy-karty-${runId}$`));
+  await expect(page.getByRole("heading", { name: articleTitle })).toBeVisible();
   await expect(page.getByRole("heading", { name: "С чего начать" })).toBeVisible();
   await expect(page.locator(".article-reading__body img")).toHaveAttribute(
     "alt",

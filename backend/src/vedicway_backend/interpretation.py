@@ -438,9 +438,11 @@ class _BundleValidationFailure(Exception):
 def _normalize_generated_contract(
     bundle: InterpretationBundle,
     facts: list[EvidenceFact],
+    snapshot_id: str,
 ) -> InterpretationBundle:
     """Fill deterministic UI fields that do not require editorial judgment."""
     normalized = bundle.model_copy(deep=True)
+    normalized.snapshot_id = snapshot_id
     valid_ids = {fact.id for fact in facts}
     overview_ids: list[str] = []
     for domain in normalized.domains:
@@ -486,7 +488,7 @@ class CodexExecProvider(InterpretationProvider):
                 json.dumps(codex_output_schema(paid), ensure_ascii=False, separators=(",", ":")),
                 encoding="utf-8",
             )
-            prompt = build_interpretation_prompt(snapshot_id, facts, packets, paid)
+            prompt = build_interpretation_prompt(facts, packets, paid)
             for attempt in range(2):
                 raw_output = self._run_once(prompt, schema_path, output_path, paid, attempt + 1)
                 try:
@@ -505,7 +507,6 @@ class CodexExecProvider(InterpretationProvider):
                             recoverable=True,
                         ) from exc
                     prompt = build_interpretation_prompt(
-                        snapshot_id,
                         facts,
                         packets,
                         paid,
@@ -662,6 +663,10 @@ class CodexExecProvider(InterpretationProvider):
             value = json.loads(raw_output)
         except json.JSONDecodeError as exc:
             raise _BundleValidationFailure([f"JSON parse error: {exc.msg}"], raw_output) from exc
+        if not isinstance(value, dict):
+            raise _BundleValidationFailure(["Response root must be an object"], raw_output)
+        value.pop("snapshot_id", None)
+        value["snapshot_id"] = snapshot_id
         try:
             bundle = InterpretationBundle.model_validate(value)
         except ValidationError as exc:
@@ -670,7 +675,7 @@ class CodexExecProvider(InterpretationProvider):
                 for item in exc.errors(include_url=False)
             ]
             raise _BundleValidationFailure(errors, raw_output) from exc
-        bundle = _normalize_generated_contract(bundle, facts)
+        bundle = _normalize_generated_contract(bundle, facts, snapshot_id)
         try:
             return validate_bundle(bundle, snapshot_id, facts, packets, paid)
         except DomainError as exc:

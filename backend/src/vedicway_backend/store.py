@@ -326,6 +326,16 @@ class Store:
           used_at TEXT,
           created_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS magic_link_confirmations (
+          nonce_hash TEXT PRIMARY KEY,
+          magic_token_hash TEXT NOT NULL REFERENCES magic_links(token_hash) ON DELETE CASCADE,
+          csrf_token_hash TEXT NOT NULL,
+          expires_at TEXT NOT NULL,
+          used_at TEXT,
+          created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS magic_link_confirmations_token_idx
+          ON magic_link_confirmations(magic_token_hash, created_at DESC);
         CREATE TABLE IF NOT EXISTS privacy_requests (
           id TEXT PRIMARY KEY,
           request_type TEXT NOT NULL,
@@ -2540,7 +2550,7 @@ class Store:
     def create_magic_link(
         self,
         chart_id: str,
-        ttl_hours: int = 24 * 30,
+        ttl_hours: int = 1,
         *,
         scope: str = "read_chart",
         render_request_id: str | None = None,
@@ -2580,34 +2590,121 @@ class Store:
             )
         return token
 
-    def consume_magic_link(self, token: str) -> dict[str, Any] | None:
+    def begin_magic_link_confirmation(
+        self,
+        token: str,
+        *,
+        ttl_minutes: int = 10,
+    ) -> tuple[str, str] | None:
+        if ttl_minutes <= 0 or ttl_minutes > 30:
+            raise ValueError("magic-link confirmation TTL must be between 1 and 30 minutes")
+        token_hash = self._token_hash(token)
+        nonce = secrets.token_urlsafe(32)
+        csrf_token = secrets.token_urlsafe(32)
+        now = _utc_now()
+        expires_at = now + timedelta(minutes=ttl_minutes)
         with self._lock, self._connection() as connection:
             connection.execute("BEGIN IMMEDIATE")
             row = connection.execute(
-                "SELECT * FROM magic_links WHERE token_hash = ?", (self._token_hash(token),)
+                "SELECT * FROM magic_links WHERE token_hash = ?", (token_hash,)
             ).fetchone()
-            if not row or row["used_at"] or datetime.fromisoformat(row["expires_at"]) < _utc_now():
+            if not row or row["used_at"] or datetime.fromisoformat(row["expires_at"]) < now:
                 connection.commit()
                 return None
             chart = connection.execute(
-                "SELECT id FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (row["chart_id"],)
+                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL",
+                (row["chart_id"],),
             ).fetchone()
             if not chart:
                 connection.commit()
                 return None
-            connection.execute("UPDATE magic_links SET used_at = ? WHERE token_hash = ?", (_iso(), row["token_hash"]))
+            connection.execute(
+                "DELETE FROM magic_link_confirmations WHERE expires_at < ? OR used_at IS NOT NULL",
+                (_iso(now),),
+            )
+            connection.execute(
+                """INSERT INTO magic_link_confirmations
+                   (nonce_hash, magic_token_hash, csrf_token_hash, expires_at, created_at)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (
+                    self._token_hash(nonce),
+                    token_hash,
+                    self._token_hash(csrf_token),
+                    _iso(expires_at),
+                    _iso(now),
+                ),
+            )
             connection.commit()
-            return {
-                "chart_id": str(chart["id"]),
-                "scope": str(row["scope"]),
-                "render_request_id": str(row["render_request_id"])
-                if row["render_request_id"]
-                else None,
-            }
+        return nonce, csrf_token
 
-    def redeem_magic_link(self, token: str) -> str | None:
-        record = self.consume_magic_link(token)
-        return str(record["chart_id"]) if record else None
+    def consume_magic_link_confirmation(
+        self,
+        nonce: str,
+        csrf_token: str,
+    ) -> tuple[dict[str, Any], str] | None:
+        nonce_hash = self._token_hash(nonce)
+        csrf_hash = self._token_hash(csrf_token)
+        now = _utc_now()
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            confirmation = connection.execute(
+                "SELECT * FROM magic_link_confirmations WHERE nonce_hash = ?",
+                (nonce_hash,),
+            ).fetchone()
+            if (
+                not confirmation
+                or confirmation["used_at"]
+                or datetime.fromisoformat(confirmation["expires_at"]) < now
+                or not hmac.compare_digest(str(confirmation["csrf_token_hash"]), csrf_hash)
+            ):
+                connection.commit()
+                return None
+            link = connection.execute(
+                "SELECT * FROM magic_links WHERE token_hash = ?",
+                (confirmation["magic_token_hash"],),
+            ).fetchone()
+            if not link or link["used_at"] or datetime.fromisoformat(link["expires_at"]) < now:
+                connection.commit()
+                return None
+            chart = connection.execute(
+                "SELECT id FROM charts WHERE id = ? AND soft_deleted_at IS NULL",
+                (link["chart_id"],),
+            ).fetchone()
+            if not chart:
+                connection.commit()
+                return None
+
+            session_id = self._new_id("ses")
+            session_token = secrets.token_urlsafe(32)
+            now_iso = _iso(now)
+            connection.execute(
+                """INSERT INTO anonymous_sessions
+                   (id, token_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)""",
+                (session_id, self._token_hash(session_token), now_iso, now_iso),
+            )
+            connection.execute(
+                "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
+                (chart["id"], session_id, now_iso),
+            )
+            connection.execute(
+                "UPDATE magic_link_confirmations SET used_at = ? WHERE nonce_hash = ?",
+                (now_iso, nonce_hash),
+            )
+            connection.execute(
+                "UPDATE magic_links SET used_at = ? WHERE token_hash = ?",
+                (now_iso, link["token_hash"]),
+            )
+            connection.commit()
+            return (
+                {
+                    "chart_id": str(chart["id"]),
+                    "scope": str(link["scope"]),
+                    "render_request_id": str(link["render_request_id"])
+                    if link["render_request_id"]
+                    else None,
+                },
+                session_token,
+            )
 
     def revoke_magic_links(self, tokens: list[str]) -> None:
         if not tokens:

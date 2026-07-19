@@ -17,7 +17,7 @@ from vedicway_backend.worker import ChartWorker
 PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"))
 LEGAL = {
     "personal_data": True,
-    "personal_data_version": "2026-07-19",
+    "personal_data_version": "2026-07-19-v2",
     "terms": True,
     "terms_version": "2026-07-19",
 }
@@ -153,10 +153,21 @@ def test_magic_link_grants_new_browser_session(tmp_path) -> None:
         assert (
             datetime.fromisoformat(magic_link["expires_at"])
             - datetime.fromisoformat(magic_link["created_at"])
-        ) >= timedelta(days=30)
+        ) >= timedelta(minutes=59)
     with TestClient(app) as visitor:
         response = visitor.get(f"/api/v1/magic-links/{token}", follow_redirects=False)
         assert response.status_code == 303
-        assert response.headers["location"] == f"/chart/{chart_id}"
+        assert response.headers["location"] == "/access/confirm"
+        assert visitor.cookies.get("vw_session") is None
+        csrf = visitor.cookies.get("vw_magic_csrf")
+        assert csrf
+        confirmed = visitor.post(
+            "/api/v1/magic-links/confirm",
+            data={"csrf_token": csrf},
+            headers={"Origin": "http://testserver"},
+            follow_redirects=False,
+        )
+        assert confirmed.status_code == 303
+        assert confirmed.headers["location"] == f"/chart/{chart_id}"
         assert visitor.cookies.get("vw_session")
         assert visitor.get(f"/api/v1/charts/{chart_id}").status_code == 200

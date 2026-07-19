@@ -111,6 +111,17 @@ const pages = [
     schema: []
   },
   {
+    output: "access/confirm/index.html",
+    title: "Подтверждение доступа | VedicWay",
+    description: "Подтверждение одноразовой ссылки на материалы VedicWay.",
+    canonical: "https://vedicway.ru/access/confirm",
+    image: "https://vedicway.ru/assets/hero-space.png",
+    noindex: true,
+    referrerPolicy: "no-referrer",
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a></nav><h1>Подтвердить доступ</h1><p>Нажмите кнопку, чтобы открыть материалы в этом браузере.</p><form action="/api/v1/magic-links/confirm" method="post"><button type="submit">Открыть материалы</button></form></main>`,
+    schema: []
+  },
+  {
     output: "privacy/request/index.html",
     title: "Запрос по персональным данным | VedicWay",
     description: "Обращение по доступу, удалению или отзыву согласия на обработку персональных данных.",
@@ -170,6 +181,12 @@ await rewritePublicOrigin("llms.txt");
 
 function renderPage(page) {
   let html = template;
+  if (page.referrerPolicy) {
+    html = html.replace(
+      /<\/head>/i,
+      `<meta name="referrer" content="${escapeHtml(page.referrerPolicy)}">\n  </head>`,
+    );
+  }
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(page.title)}</title>`);
   html = replaceMeta(html, "name", "description", page.description);
   html = replaceMeta(html, "name", "robots", page.noindex ? "noindex, nofollow, noarchive" : "index, follow, max-image-preview:large");

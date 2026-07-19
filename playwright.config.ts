@@ -6,7 +6,11 @@ const backendPort = 8015;
 const frontendPort = 5183;
 const frontendOrigin = `http://127.0.0.1:${frontendPort}`;
 const python = process.env.VEDICWAY_E2E_PYTHON ?? "python";
-const dataDir = join(tmpdir(), `vedicway-yookassa-e2e-${process.pid}`);
+const dataDir = process.env.VEDICWAY_E2E_DATA_DIR
+  ?? join(tmpdir(), `vedicway-yookassa-e2e-${process.pid}`);
+process.env.VEDICWAY_E2E_PYTHON = python;
+process.env.VEDICWAY_E2E_DATA_DIR = dataDir;
+process.env.VEDICWAY_E2E_BACKEND_ORIGIN = `http://127.0.0.1:${backendPort}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",

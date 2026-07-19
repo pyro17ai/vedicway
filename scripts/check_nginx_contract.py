@@ -17,13 +17,17 @@ REQUIRED_METRIKA_CSP = (
 
 REQUIRED_RECOVERY_GUARD = (
     '~^/access/recovery/?$ "noindex, nofollow, noarchive";',
+    '~^/access/confirm/?$ "noindex, nofollow, noarchive";',
     '~^/privacy/request/?$ "noindex, nofollow, noarchive";',
     "location = /access/recovery {",
     "try_files /access/recovery/index.html =404;",
+    "location = /access/confirm {",
+    "try_files /access/confirm/index.html =404;",
     "location = /privacy/request {",
     "try_files /privacy/request/index.html =404;",
     "location ^~ /api/v1/magic-links/ {",
     "access_log off;",
+    '~^/access/confirm/?$ "no-referrer";',
 )
 
 REQUIRED_LEGAL_GUARD = tuple(

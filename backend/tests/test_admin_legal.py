@@ -250,6 +250,100 @@ def test_admin_auth_rbac_article_and_media_flow(tmp_path, monkeypatch) -> None:
         assert reader.get("/api/v1/admin/me").status_code == 403
 
 
+def test_admin_validation_errors_name_the_actual_surface(tmp_path, monkeypatch) -> None:
+    app, _ = _app(tmp_path, monkeypatch)
+    with TestClient(app) as client:
+        invalid_login = client.post(
+            "/api/v1/admin/auth/login",
+            json={"email": "not-an-email", "password": "short"},
+            headers=ORIGIN_HEADERS,
+        )
+        assert invalid_login.status_code == 400
+        assert invalid_login.json()["error"]["message"] == "Проверьте email и пароль администратора"
+
+        invalid_article = client.post(
+            "/api/v1/admin/articles",
+            json={"title": "", "slug": "Плохой адрес", "category": ""},
+            headers=ORIGIN_HEADERS,
+        )
+        assert invalid_article.status_code == 400
+        assert invalid_article.json()["error"]["message"] == "Проверьте поля материала"
+
+def test_published_body_media_requires_an_actual_content_marker(tmp_path, monkeypatch) -> None:
+    app, _ = _app(tmp_path, monkeypatch)
+    source = Image.new("RGB", (1200, 630), (29, 15, 8))
+    buffer = io.BytesIO()
+    source.save(buffer, "PNG")
+
+    with TestClient(app) as client:
+        csrf = _login(client)
+
+        def upload(purpose: str, alt: str) -> dict[str, object]:
+            response = client.post(
+                "/api/v1/admin/media",
+                files={"file": (f"{purpose}.png", buffer.getvalue(), "image/png")},
+                data={"purpose": purpose, "alt": alt, "title": "", "caption": ""},
+                headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+            )
+            assert response.status_code == 201
+            return response.json()["asset"]
+
+        cover = upload("cover", "Обложка")
+        body = upload("body", "Иллюстрация")
+        payload = _article(
+            cover=str(cover["url"]), cover_id=str(cover["id"]), status="published"
+        )
+        payload["body_media_ids"] = [body["id"]]
+
+        published = client.post(
+            "/api/v1/admin/articles",
+            json=payload,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert published.status_code == 201
+        assert published.json()["body_media_ids"] == []
+        assert published.json()["bodyMedia"] == []
+        assert client.get(str(body["url"])).status_code == 404
+
+        with_marker = dict(payload)
+        with_marker["slug"] = "kak-chitat-vtoroy-dom"
+        with_marker["canonical_url"] = "https://vedicway.ru/guide/kak-chitat-vtoroy-dom"
+        with_marker["content"] = f"{payload['content']}\n\n{{{{media:{body['id']}}}}}"
+        marked = client.post(
+            "/api/v1/admin/articles",
+            json=with_marker,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert marked.status_code == 201
+        assert marked.json()["body_media_ids"] == [body["id"]]
+        assert [item["id"] for item in marked.json()["bodyMedia"]] == [body["id"]]
+        assert client.get(str(body["url"])).status_code == 200
+
+        marker_removed = dict(with_marker)
+        marker_removed["content"] = payload["content"]
+        removed = client.put(
+            f"/api/v1/admin/articles/{marked.json()['id']}",
+            json=marker_removed,
+            headers=_edit_headers(csrf, marked.json()["revision"]),
+        )
+        assert removed.status_code == 200
+        assert removed.json()["body_media_ids"] == []
+        assert removed.json()["bodyMedia"] == []
+        assert client.get(str(body["url"])).status_code == 404
+
+        unknown = dict(payload)
+        unknown["slug"] = "kak-chitat-tretiy-dom"
+        unknown["canonical_url"] = "https://vedicway.ru/guide/kak-chitat-tretiy-dom"
+        unknown["content"] = f"{payload['content']}\n\n{{{{media:00000000-0000-0000-0000-000000000000}}}}"
+        rejected = client.post(
+            "/api/v1/admin/articles",
+            json=unknown,
+            headers={"Origin": "http://testserver", "X-CSRF-Token": csrf},
+        )
+        assert rejected.status_code == 422
+        assert rejected.json()["error"]["code"] == "ARTICLE_MEDIA_NOT_FOUND"
+
+
 def test_chart_requires_separate_versioned_consents(tmp_path, monkeypatch) -> None:
     app, _ = _app(tmp_path, monkeypatch)
     with TestClient(app) as client:
@@ -274,7 +368,7 @@ def test_consent_audit_is_versioned_and_idempotent(tmp_path, monkeypatch) -> Non
         "place_id": "ru-moscow-524901",
         "legal": {
             "personal_data": True,
-            "personal_data_version": "2026-07-19",
+            "personal_data_version": "2026-07-19-v2",
             "terms": True,
             "terms_version": "2026-07-19",
         },
@@ -313,7 +407,7 @@ def test_consent_audit_failure_removes_pending_chart_and_personal_data(
         "place_id": "ru-moscow-524901",
         "legal": {
             "personal_data": True,
-            "personal_data_version": "2026-07-19",
+            "personal_data_version": "2026-07-19-v2",
             "terms": True,
             "terms_version": "2026-07-19",
         },

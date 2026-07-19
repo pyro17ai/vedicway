@@ -83,16 +83,20 @@ def _evidence() -> tuple[list[EvidenceFact], list[DomainEvidencePacket]]:
 
 def test_prompt_and_schema_keep_personal_data_out_of_runner_contract() -> None:
     facts, packets = _evidence()
-    prompt = build_interpretation_prompt("snapshot_public", facts, packets, paid=False)
+    prompt = build_interpretation_prompt(facts, packets, paid=False)
     schema = codex_output_schema(paid=False)
+    payload = json.loads(prompt.split("\n\nEVIDENCE_PAYLOAD\n", 1)[1])
     assert PROMPT_VERSION in prompt
-    assert "snapshot_public" in prompt
+    assert "snapshot_public" not in prompt
+    assert "snapshot_id" not in payload
     assert "D10" in prompt and "D9" in prompt
     assert all(limitation in prompt for limitation in GLOBAL_LIMITATIONS)
     assert "Григорий" not in prompt and "grisha@example.com" not in prompt and "Москва, Россия" not in prompt
     assert schema["properties"]["questions"]["minItems"] == 6
     assert schema["properties"]["questions"]["maxItems"] == 6
     assert schema["properties"]["synthesis"]["maxItems"] == 0
+    assert "snapshot_id" not in schema["properties"]
+    assert "snapshot_id" not in schema["required"]
     required = schema["$defs"]["DomainInterpretation"]["required"]
     assert "paragraphs" in required and "manifestations" in required and "reflection_prompts" in required
 
@@ -192,12 +196,16 @@ def test_codex_provider_uses_native_executable_and_repairs_invalid_output(
         calls.append({"command": command, **kwargs})
         output_path = Path(command[command.index("--output-last-message") + 1])
         value = {"invalid": True} if len(calls) == 1 else valid.model_dump(mode="json")
+        value.pop("snapshot_id", None)
         output_path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout='{"type":"thread.completed"}\n', stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
     result = CodexExecProvider(settings).generate("snapshot_live", facts, packets, paid=False)
     assert result.schema_version == "interpretation.free.v1"
+    assert result.snapshot_id == "snapshot_live"
+    assert "snapshot_live" not in str(calls[0]["input"])
+    assert "snapshot_live" not in str(calls[1]["input"])
     assert len(calls) == 2
     first_command = calls[0]["command"]
     assert first_command[0] == str(executable)
@@ -237,7 +245,9 @@ def test_codex_provider_derives_overview_citations_and_fixed_limitations(
         nonlocal calls
         calls += 1
         output_path = Path(command[command.index("--output-last-message") + 1])
-        output_path.write_text(json.dumps(generated.model_dump(mode="json"), ensure_ascii=False), encoding="utf-8")
+        value = generated.model_dump(mode="json")
+        value.pop("snapshot_id", None)
+        output_path.write_text(json.dumps(value, ensure_ascii=False), encoding="utf-8")
         return subprocess.CompletedProcess(command, 0, stdout='{"type":"thread.completed"}\n', stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)

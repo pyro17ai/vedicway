@@ -95,6 +95,10 @@ def codex_output_schema(paid: bool) -> dict[str, Any]:
         "type": "string",
         "const": "interpretation.paid.v1" if paid else "interpretation.free.v1",
     }
+    # The snapshot identifier belongs to the persistence boundary, not the model
+    # contract. The worker inserts it after parsing the schema-constrained response.
+    properties.pop("snapshot_id", None)
+    schema["required"] = [name for name in schema["required"] if name != "snapshot_id"]
     properties["questions"]["minItems"] = 12 if paid else 6
     properties["questions"]["maxItems"] = 12 if paid else 6
     properties["global_limitations"]["minItems"] = 2
@@ -127,7 +131,6 @@ def _public_fact(fact: EvidenceFact) -> dict[str, Any]:
 
 
 def build_interpretation_prompt(
-    snapshot_id: str,
     facts: list[EvidenceFact],
     packets: list[DomainEvidencePacket],
     paid: bool,
@@ -171,7 +174,6 @@ def build_interpretation_prompt(
         overview_coverage = Coverage.INSUFFICIENT
     payload: dict[str, Any] = {
         "prompt_version": PROMPT_VERSION,
-        "snapshot_id": snapshot_id,
         "locale": "ru-RU",
         "overview_contract": {
             "slug": DomainSlug.CHARACTER.value,
