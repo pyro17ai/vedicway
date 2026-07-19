@@ -30,7 +30,7 @@ VEDICWAY_OFFER_URL=https://vedicway.ru/legal/user-agreement
 VEDICWAY_PRIVACY_URL=https://vedicway.ru/legal/privacy-policy
 ```
 
-Frontend получает `VITE_YANDEX_METRIKA_ID` во время production-сборки. Без согласия посетителя скрипт Метрики не загружается. Вебвизор выключен.
+Frontend получает `VITE_YANDEX_METRIKA_ID` во время production-сборки. Пререндер сохраняет публичный ID в meta-теге главной страницы и гида; meta-тег не загружает Метрику и нужен для строгой сверки release contract. Без согласия посетителя скрипт Метрики не загружается. Вебвизор выключен. CSP разрешает `yastatic.net` только в `script-src`, как требует внешний режим загрузки Метрики.
 
 Reverse proxy должен отдавать `/sitemap.xml` из backend endpoint, потому что он включает только опубликованные статьи и обновляет `lastmod`. Файл `public/sitemap.xml` служит безопасным запасным вариантом для главной страницы и гида, но не заменяет динамическую карту сайта после публикации материалов.
 
