@@ -8,6 +8,8 @@
 
 Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. Access log не записывает IP, URL, query, referrer и user-agent; для связи событий остаётся случайный request id. Inter и Cormorant Garamond собираются из локальных `@fontsource` assets: до согласия на cookies браузер не обращается к Google. CSP оставляет прямой поиск городов Open-Meteo, который нужен форме и должен быть раскрыт в политике персональных данных.
 
+Служебные payment/metrics endpoints доступны только через профиль `ops`: `ops-gateway` слушает loopback `127.0.0.1:8081` и подключён к отдельной internal-сети. Оператор открывает SSH tunnel или входит через VPN bastion; публичный TLS ingress этот порт не публикует. API не получает Codex key, worker не получает YooKassa, operations и metrics tokens. Раздельные `api-egress` и `worker-egress` сети позволяют хостовому firewall либо egress proxy независимо ограничить исходящий трафик. Сам Docker Compose не фильтрует HTTPS по домену: API разрешается только `api.yookassa.ru`, worker получает доступ только к утверждённым OpenAI/Codex endpoints.
+
 `/sitemap.xml` запрашивает `/api/v1/seo/sitemap.xml`. Backend должен включать в ответ только опубликованные статьи. При 404/502/503/504 Nginx отдаёт статический `public/sitemap.xml`, в котором остаются главная и `/guide`. Draft, admin, chart, checkout и API URL запрещены в sitemap и уже закрыты в `robots.txt`.
 
 Запрос `/guide/<slug>` проходит через серверный HTML endpoint. Опубликованная статья уже в первом ответе содержит собственные title, description, canonical, полный текст и Article JSON-LD, после загрузки стабильных `seo-entry` aliases React заменяет исходную разметку обычным интерфейсом. Неизвестный slug и черновик возвращают статический 404 без SPA fallback; frontend image проверяет Nginx через `nginx -t` при сборке.
@@ -66,38 +68,19 @@ curl.exe -I https://YOUR_DOMAIN/internal/metrics
 
 ## Backup и restore PostgreSQL
 
-Нужны два backup: PostgreSQL и runtime archive. PostgreSQL backup создаёт custom-format dump, runtime backup использует SQLite Online Backup API, добавляет reports/media и сохраняет соседний SHA-256. Перед первым запуском на Linux создайте каталог `install -d -m 0700 -o 10001 -g 10001 backups`. Каталог содержит персональные данные: храните его на российской инфраструктуре, шифруйте внешним KMS/backup-сервисом и ограничьте срок хранения утверждённой политикой.
+`production_state.py` останавливает frontend, API и worker до первого снимка, присваивает PostgreSQL и runtime один `BACKUP_SET_ID`, проверяет оба SHA-256 и упаковывает их в аутентифицированный AES-256-GCM bundle. Открытые `.dump` и `.tar.gz` удаляются сразу после успешного шифрования. Перед первым запуском на Linux создайте каталог `install -d -m 0700 -o 10001 -g 10001 backups`; храните `.vwb` и ключ на раздельной российской инфраструктуре с утверждённым сроком хранения.
 
 ```powershell
-docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm backup
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
-docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm runtime-backup
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
+python scripts/production_state.py backup --env-file .env.production
 ```
 
-Restore PostgreSQL разрушает текущую базу и требует точной фразы подтверждения. Сначала остановите intake, API и worker, затем укажите только имя файла из `backups`:
+Restore расшифровывает bundle во временный каталог, проверяет manifest и готовит отдельную PostgreSQL database вместе со скрытыми runtime directories. Текущие данные остаются на месте до общей commit-фазы. При сбое обе части возвращаются в предыдущее состояние; предыдущая database и runtime directories удаляются после успешного commit обеих частей.
 
 ```powershell
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
-$env:RESTORE_FILE = "vedicway-20260719T010000Z.dump"
-$env:CONFIRM_RESTORE = "restore-vedicway"
-docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm restore
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
-Remove-Item Env:RESTORE_FILE, Env:CONFIRM_RESTORE
+python scripts/production_state.py restore --env-file .env.production --bundle "vedicway-pair-20260719T010000Z-deadbeef.vwb"
 ```
 
-Runtime restore выполняется отдельной командой и требует остановленных API, worker и email-consumer. Он заменяет SQLite, reports и media volume одним проверенным архивом:
-
-```powershell
-docker compose --env-file .env.production -f compose.production.yml stop frontend backend worker email
-$env:RESTORE_RUNTIME_FILE = "vedicway-runtime-20260719T010000Z.tar.gz"
-$env:CONFIRM_RUNTIME_RESTORE = "restore-runtime"
-docker compose --env-file .env.production -f compose.production.yml --profile ops run --rm runtime-restore
-docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
-Remove-Item Env:RESTORE_RUNTIME_FILE, Env:CONFIRM_RUNTIME_RESTORE
-```
-
-Раз в квартал восстанавливайте свежий dump в изолированном staging и проверяйте число charts, purchases, entitlements, articles и media references. Runtime archive читается только с тем же `VEDICWAY_DATA_KEY`; signing key отдельно сохраняется в secret manager для действующих ссылок. Backup без проверенного restore не считается резервной копией.
+Раз в квартал восстанавливайте свежий bundle в изолированном staging и проверяйте число charts, purchases, entitlements, articles и media references. Runtime archive читается только с тем же `VEDICWAY_DATA_KEY`, а `.vwb` требует отдельного `VEDICWAY_BACKUP_KEY_FILE`; signing key хранится в secret manager для действующих ссылок. Backup без проверенного restore не считается резервной копией.
 
 ## Срок хранения и удаление
 

@@ -69,6 +69,16 @@ REQUIRED_RECOVERY_ENV = {
 }
 
 
+def _secret_sources(service: dict[str, object]) -> set[str]:
+    sources: set[str] = set()
+    for item in service.get("secrets", []):
+        if isinstance(item, str):
+            sources.add(item)
+        elif isinstance(item, dict) and item.get("source"):
+            sources.add(str(item["source"]))
+    return sources
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate resolved production Compose contract")
     parser.add_argument("config", type=Path)
@@ -85,6 +95,8 @@ def main() -> None:
         "frontend",
         "retention-dry-run",
         "retention-apply",
+        "ops-gateway",
+        "backup-bundle",
     }
     missing = required.difference(services)
     if missing:
@@ -125,6 +137,23 @@ def main() -> None:
         if int(service.get("deploy", {}).get("replicas", 1)) != 1:
             raise SystemExit(f"{service_name} must have exactly one replica")
 
+    api_secrets = _secret_sources(services["backend"])
+    worker_secrets = _secret_sources(services["worker"])
+    if "codex_api_key" in api_secrets:
+        raise SystemExit("backend API must not mount the Codex key")
+    forbidden_worker = {"vedicway_operations_token", "vedicway_metrics_token", "yookassa_shop_id", "yookassa_secret_key"}
+    if worker_secrets.intersection(forbidden_worker):
+        raise SystemExit("worker mounts API-only operations or payment secrets")
+    if worker_secrets != {"postgres_password", "vedicway_data_key", "vedicway_signing_key", "codex_api_key"}:
+        raise SystemExit("worker secret mount set is not least-privilege")
+
+    worker_networks = set(services["worker"].get("networks", {}))
+    backend_networks = set(services["backend"].get("networks", {}))
+    if "edge" in worker_networks or "api-egress" in worker_networks or "worker-egress" not in worker_networks:
+        raise SystemExit("worker must use only its dedicated egress contour plus data")
+    if "worker-egress" in backend_networks or not {"edge", "data", "api-egress", "ops"}.issubset(backend_networks):
+        raise SystemExit("backend API network separation is incomplete")
+
     dependencies = services["backend"].get("depends_on", {})
     if "content-migrate" not in dependencies:
         raise SystemExit("backend must wait for content-migrate")
@@ -132,11 +161,21 @@ def main() -> None:
     published_hosts = {str(item.get("host_ip", "")) for item in ports if isinstance(item, dict)}
     if not published_hosts or not published_hosts.issubset({"127.0.0.1", "::1"}):
         raise SystemExit("frontend production port must bind only to loopback")
+    ops_ports = services["ops-gateway"].get("ports", [])
+    ops_hosts = {str(item.get("host_ip", "")) for item in ops_ports if isinstance(item, dict)}
+    if not ops_hosts or not ops_hosts.issubset({"127.0.0.1", "::1"}):
+        raise SystemExit("ops gateway must bind only to loopback")
+    if set(services["ops-gateway"].get("networks", {})) != {"ops"}:
+        raise SystemExit("ops gateway must live only on the isolated ops network")
+    if services["backup-bundle"].get("network_mode") != "none":
+        raise SystemExit("backup bundle service must have networking disabled")
+    if _secret_sources(services["backup-bundle"]) != {"backup_encryption_key"}:
+        raise SystemExit("backup bundle service must mount only the backup encryption key")
 
     entrypoint = (Path(__file__).resolve().parents[1] / "docker/backend/entrypoint.sh").read_text(
         encoding="utf-8"
     )
-    if "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
+    if '"$profile" = "worker"' not in entrypoint or "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
         raise SystemExit("backend entrypoint must export the Codex secret as OPENAI_API_KEY")
     if 'if [ "$profile" = "email" ]' not in entrypoint:
         raise SystemExit("backend entrypoint must isolate the email secret profile")

@@ -14,8 +14,9 @@ port="${POSTGRES_PORT:-5432}"
 database="${POSTGRES_DB:-vedicway}"
 user="${POSTGRES_USER:-vedicway}"
 backup_dir="${BACKUP_DIR:-/backups}"
-timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
-target="$backup_dir/${database}-${timestamp}.dump"
+backup_set_id="${BACKUP_SET_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
+case "$backup_set_id" in *[!A-Za-z0-9._-]*|"") echo "Invalid BACKUP_SET_ID" >&2; exit 64 ;; esac
+target="$backup_dir/${database}-${backup_set_id}.dump"
 
 mkdir -p "$backup_dir"
 pg_dump -h "$host" -p "$port" -U "$user" -d "$database" --format=custom --compress=9 --no-owner --no-privileges --file="$target"

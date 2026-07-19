@@ -50,6 +50,8 @@ class Store:
     boundaries and lets the complete BFF flow run locally without a service dependency.
     """
 
+    _PUBLIC_BIRTH_PREFIX = "fernet:v1:"
+
     def __init__(self, data_dir: str | Path | None = None) -> None:
         default_dir = Path(__file__).resolve().parents[2] / ".data"
         self.data_dir = Path(data_dir or os.environ.get("VEDICWAY_DATA_DIR", default_dir)).resolve()
@@ -458,6 +460,7 @@ class Store:
                 "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) SELECT id, session_id, created_at FROM charts"
             )
             self._backfill_purchase_email_hmacs(connection)
+            self._migrate_public_birth_payloads(connection)
 
     @staticmethod
     def _ensure_columns(
@@ -540,6 +543,36 @@ class Store:
         raw = value.encode("utf-8") if isinstance(value, str) else value
         return json.loads(self._fernet.decrypt(raw).decode("utf-8"))
 
+    def _encode_public_birth(self, value: Any) -> str:
+        return self._PUBLIC_BIRTH_PREFIX + self._encrypt(value).decode("ascii")
+
+    def _decode_public_birth(self, value: str | None) -> Any:
+        if not value:
+            return {}
+        if value.startswith(self._PUBLIC_BIRTH_PREFIX):
+            return self._decrypt(value.removeprefix(self._PUBLIC_BIRTH_PREFIX))
+        # Compatibility path for databases created before public birth fields
+        # were encrypted. Startup rewrites every such row in one transaction.
+        return _json_load(value, {})
+
+    def _migrate_public_birth_payloads(self, connection: sqlite3.Connection) -> None:
+        rows = connection.execute("SELECT id, birth_public_json FROM charts").fetchall()
+        legacy = [row for row in rows if not str(row["birth_public_json"]).startswith(self._PUBLIC_BIRTH_PREFIX)]
+        if not legacy:
+            return
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            for row in legacy:
+                payload = _json_load(str(row["birth_public_json"]), {})
+                connection.execute(
+                    "UPDATE charts SET birth_public_json = ? WHERE id = ?",
+                    (self._encode_public_birth(payload), row["id"]),
+                )
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+
     def create_session(self) -> tuple[str, str]:
         session_id = self._new_id("ses")
         token = secrets.token_urlsafe(32)
@@ -611,7 +644,7 @@ class Store:
                         profile_id,
                         idempotency_key,
                         "accepted" if activate else "awaiting_consent",
-                        _json_dump(public_birth),
+                        self._encode_public_birth(public_birth),
                         now,
                         now,
                     ),
@@ -883,7 +916,7 @@ class Store:
         return {
             "chart_id": chart_id,
             "status": row["status"],
-            "birth": _json_load(row["birth_public_json"], {}),
+            "birth": self._decode_public_birth(row["birth_public_json"]),
             "snapshot_id": snapshot.get("snapshot_id") if snapshot else None,
             "sections": section_statuses,
             "interpretation": bundle,
@@ -2140,7 +2173,7 @@ class Store:
                         """UPDATE charts SET status = 'erased', birth_public_json = ?, snapshot_json = NULL,
                            evidence_json = NULL, free_bundle_json = NULL, paid_bundle_json = NULL,
                            soft_deleted_at = ?, updated_at = ? WHERE id = ?""",
-                        (_json_dump({"erased": True}), now, now, chart_id),
+                        (self._encode_public_birth({"erased": True}), now, now, chart_id),
                     )
                     connection.execute(
                         """UPDATE birth_profiles SET encrypted_payload = ?, deleted_at = ? WHERE id = ?""",

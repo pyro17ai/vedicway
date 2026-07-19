@@ -15,10 +15,15 @@ COPY public ./public
 COPY scripts ./scripts
 COPY src ./src
 
-RUN npm run build \
+RUN test -n "$VITE_PUBLIC_ORIGIN" \
+    && npm run build \
     && node scripts/prerender-seo.mjs \
     && test -s dist/index.html \
     && test -s dist/guide/index.html \
+    && test -s dist/legal/user-agreement/index.html \
+    && test -s dist/legal/privacy-policy/index.html \
+    && test -s dist/legal/personal-data-consent/index.html \
+    && test -s dist/legal/cookies/index.html \
     && test -s dist/404.html \
     && test -s dist/assets/seo-entry.js \
     && test -s dist/assets/seo-entry.css \

@@ -10,7 +10,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
-    PATH=/opt/venv/bin:/usr/local/bin:${PATH}
+    PATH=/opt/venv/bin:/usr/local/bin:${PATH} \
+    VIRTUAL_ENV=/opt/venv
 
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -21,17 +22,19 @@ WORKDIR /opt/vedicway
 
 COPY docker/backend/package.json docker/backend/package-lock.json ./
 RUN npm ci --no-audit --no-fund \
-    && npm install --global --no-audit --no-fund "@openai/codex@${CODEX_CLI_VERSION}" \
+    && test "$(node -p "require('./node_modules/@openai/codex/package.json').version")" = "${CODEX_CLI_VERSION}" \
+    && ln -s /opt/vedicway/node_modules/.bin/codex /usr/local/bin/codex \
     && npx playwright install --with-deps chromium \
     && rm -rf /root/.cache /var/lib/apt/lists/*
 
 COPY backend ./backend
+COPY scripts/wheelhouse_contract.py ./scripts/wheelhouse_contract.py
 COPY --from=pyjhora . /tmp/pyjhora-wheelhouse
 RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install ./backend \
-    && test -s /tmp/pyjhora-wheelhouse/SHA256SUMS \
-    && cd /tmp/pyjhora-wheelhouse \
-    && sha256sum -c SHA256SUMS \
+    && /opt/venv/bin/pip install "uv==0.11.6" \
+    && cd /opt/vedicway/backend \
+    && uv sync --frozen --no-dev --active --no-editable \
+    && python /opt/vedicway/scripts/wheelhouse_contract.py /tmp/pyjhora-wheelhouse \
     && /opt/venv/bin/pip install --no-index --find-links=/tmp/pyjhora-wheelhouse pyjhora-mcp==0.1.0 \
     && cd /opt/vedicway \
     && rm -rf /tmp/pyjhora-wheelhouse \

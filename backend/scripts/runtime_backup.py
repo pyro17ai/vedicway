@@ -30,7 +30,7 @@ def _guard_runtime_target(path: Path, expected_name: str) -> Path:
     return resolved
 
 
-def backup(data_dir: Path, media_dir: Path, backup_dir: Path) -> Path:
+def backup(data_dir: Path, media_dir: Path, backup_dir: Path, backup_set_id: str | None = None) -> Path:
     data_dir = _guard_runtime_target(data_dir, "data")
     media_dir = _guard_runtime_target(media_dir, "media")
     source_db = data_dir / "vedicway.sqlite3"
@@ -38,8 +38,10 @@ def backup(data_dir: Path, media_dir: Path, backup_dir: Path) -> Path:
         raise SystemExit(f"SQLite database is missing: {source_db}")
 
     backup_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    target = backup_dir / f"vedicway-runtime-{timestamp}.tar.gz"
+    backup_set_id = backup_set_id or os.environ.get("BACKUP_SET_ID") or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    if not backup_set_id.replace("-", "").replace("_", "").replace(".", "").isalnum():
+        raise SystemExit("Invalid BACKUP_SET_ID")
+    target = backup_dir / f"vedicway-runtime-{backup_set_id}.tar.gz"
     temporary_target = target.with_suffix(target.suffix + ".tmp")
 
     with tempfile.TemporaryDirectory(prefix="vedicway-runtime-") as temporary:
@@ -53,6 +55,7 @@ def backup(data_dir: Path, media_dir: Path, backup_dir: Path) -> Path:
                     raise SystemExit("SQLite integrity_check failed during backup")
 
         manifest = {
+            "backup_set_id": backup_set_id,
             "created_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
             "database": "data/vedicway.sqlite3",
             "database_sha256": _sha256(staged_db),
@@ -89,7 +92,26 @@ def _safe_extract(archive: tarfile.TarFile, target: Path) -> None:
     archive.extractall(target)
 
 
-def restore(data_dir: Path, media_dir: Path, backup_dir: Path, filename: str, confirmation: str) -> None:
+def _restore_paths(data_dir: Path, media_dir: Path, pair_id: str) -> tuple[Path, Path, Path, Path, Path]:
+    if not pair_id or not pair_id.replace("-", "").replace("_", "").replace(".", "").isalnum():
+        raise SystemExit("RESTORE_SET_ID is invalid")
+    return (
+        data_dir / f".restore-stage-{pair_id}",
+        data_dir / f".restore-previous-{pair_id}",
+        media_dir / f".restore-stage-{pair_id}",
+        media_dir / f".restore-previous-{pair_id}",
+        data_dir / f".restore-state-{pair_id}.json",
+    )
+
+
+def prepare_restore(
+    data_dir: Path,
+    media_dir: Path,
+    backup_dir: Path,
+    filename: str,
+    confirmation: str,
+    pair_id: str,
+) -> None:
     data_dir = _guard_runtime_target(data_dir, "data")
     media_dir = _guard_runtime_target(media_dir, "media")
     if confirmation != "restore-runtime":
@@ -122,40 +144,142 @@ def restore(data_dir: Path, media_dir: Path, backup_dir: Path, filename: str, co
 
         data_dir.mkdir(parents=True, exist_ok=True)
         media_dir.mkdir(parents=True, exist_ok=True)
-        for name in ("vedicway.sqlite3", "vedicway.sqlite3-wal", "vedicway.sqlite3-shm"):
-            (data_dir / name).unlink(missing_ok=True)
-        reports = data_dir / "reports"
-        if reports.exists():
-            shutil.rmtree(reports)
-        for item in media_dir.iterdir():
-            shutil.rmtree(item) if item.is_dir() else item.unlink()
-
-        shutil.copy2(staged_db, data_dir / "vedicway.sqlite3")
+        stage_data, previous_data, stage_media, previous_media, state_path = _restore_paths(data_dir, media_dir, pair_id)
+        if any(path.exists() for path in (stage_data, previous_data, stage_media, previous_media, state_path)):
+            raise SystemExit("Runtime restore staging already exists; rollback or finalize it first")
+        stage_data.mkdir()
+        stage_media.mkdir()
+        shutil.copy2(staged_db, stage_data / "vedicway.sqlite3")
         staged_reports = stage / "data" / "reports"
         if staged_reports.is_dir():
-            shutil.copytree(staged_reports, reports)
+            shutil.copytree(staged_reports, stage_data / "reports")
         staged_media = stage / "media"
         if staged_media.is_dir():
             for item in staged_media.iterdir():
-                destination = media_dir / item.name
+                destination = stage_media / item.name
                 shutil.copytree(item, destination) if item.is_dir() else shutil.copy2(item, destination)
+
+        state = {
+            "pair_id": pair_id,
+            "phase": "prepared",
+            "original_data": [name for name in ("vedicway.sqlite3", "vedicway.sqlite3-wal", "vedicway.sqlite3-shm", "reports") if (data_dir / name).exists()],
+            "new_data": [item.name for item in stage_data.iterdir()],
+            "original_media": [item.name for item in media_dir.iterdir() if not item.name.startswith(".restore-")],
+            "new_media": [item.name for item in stage_media.iterdir()],
+        }
+        state_path.write_text(json.dumps(state, sort_keys=True), encoding="utf-8")
+
+    print(f"Runtime restore prepared: {filename} ({pair_id})")
+
+
+def commit_restore(data_dir: Path, media_dir: Path, pair_id: str, confirmation: str) -> None:
+    data_dir = _guard_runtime_target(data_dir, "data")
+    media_dir = _guard_runtime_target(media_dir, "media")
+    if confirmation != "restore-runtime":
+        raise SystemExit("Set CONFIRM_RUNTIME_RESTORE=restore-runtime")
+    stage_data, previous_data, stage_media, previous_media, state_path = _restore_paths(data_dir, media_dir, pair_id)
+    if not state_path.is_file() or not stage_data.is_dir() or not stage_media.is_dir():
+        raise SystemExit("Prepared runtime restore is missing")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    previous_data.mkdir()
+    previous_media.mkdir()
+    try:
+        for name in state["original_data"]:
+            os.replace(data_dir / name, previous_data / name)
+        for name in state["original_media"]:
+            os.replace(media_dir / name, previous_media / name)
+        for name in state["new_data"]:
+            os.replace(stage_data / name, data_dir / name)
+        for name in state["new_media"]:
+            os.replace(stage_media / name, media_dir / name)
+        state["phase"] = "committed"
+        state_path.write_text(json.dumps(state, sort_keys=True), encoding="utf-8")
+    except Exception:
+        rollback_restore(data_dir, media_dir, pair_id, confirmation)
+        raise
+
+
+def rollback_restore(data_dir: Path, media_dir: Path, pair_id: str, confirmation: str) -> None:
+    data_dir = _guard_runtime_target(data_dir, "data")
+    media_dir = _guard_runtime_target(media_dir, "media")
+    if confirmation != "restore-runtime":
+        raise SystemExit("Set CONFIRM_RUNTIME_RESTORE=restore-runtime")
+    stage_data, previous_data, stage_media, previous_media, state_path = _restore_paths(data_dir, media_dir, pair_id)
+    if not state_path.is_file():
+        return
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    for name in state["new_data"]:
+        target = data_dir / name
+        replaces_original = name in state["original_data"]
+        if target.exists() and (not replaces_original or (previous_data / name).exists()):
+            shutil.rmtree(target) if target.is_dir() else target.unlink()
+    for name in state["new_media"]:
+        target = media_dir / name
+        replaces_original = name in state["original_media"]
+        if target.exists() and (not replaces_original or (previous_media / name).exists()):
+            shutil.rmtree(target) if target.is_dir() else target.unlink()
+    if previous_data.is_dir():
+        for item in list(previous_data.iterdir()):
+            os.replace(item, data_dir / item.name)
+    if previous_media.is_dir():
+        for item in list(previous_media.iterdir()):
+            os.replace(item, media_dir / item.name)
+    for path in (stage_data, previous_data, stage_media, previous_media):
+        shutil.rmtree(path, ignore_errors=True)
+    state_path.unlink(missing_ok=True)
+
+
+def finalize_restore(data_dir: Path, media_dir: Path, pair_id: str, confirmation: str) -> None:
+    data_dir = _guard_runtime_target(data_dir, "data")
+    media_dir = _guard_runtime_target(media_dir, "media")
+    if confirmation != "restore-runtime":
+        raise SystemExit("Set CONFIRM_RUNTIME_RESTORE=restore-runtime")
+    stage_data, previous_data, stage_media, previous_media, state_path = _restore_paths(data_dir, media_dir, pair_id)
+    for path in (stage_data, previous_data, stage_media, previous_media):
+        shutil.rmtree(path, ignore_errors=True)
+    state_path.unlink(missing_ok=True)
+
+
+def restore(data_dir: Path, media_dir: Path, backup_dir: Path, filename: str, confirmation: str) -> None:
+    source = backup_dir / filename
+    with tarfile.open(source, "r:gz") as archive:
+        manifest_file = archive.extractfile("manifest.json")
+        if manifest_file is None:
+            raise SystemExit("Runtime manifest is missing")
+        pair_id = str(json.load(manifest_file).get("backup_set_id") or "legacy-restore")
+    prepare_restore(data_dir, media_dir, backup_dir, filename, confirmation, pair_id)
+    try:
+        commit_restore(data_dir, media_dir, pair_id, confirmation)
+    except Exception:
+        rollback_restore(data_dir, media_dir, pair_id, confirmation)
+        raise
+    finalize_restore(data_dir, media_dir, pair_id, confirmation)
 
     print(f"Runtime restore completed: {filename}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="VedicWay SQLite/reports/media backup")
-    parser.add_argument("action", choices=("backup", "restore"))
+    parser.add_argument("action", choices=("backup", "restore", "prepare", "commit", "rollback", "finalize"))
     parser.add_argument("--data-dir", type=Path, default=RUNTIME_ROOT / "data")
     parser.add_argument("--media-dir", type=Path, default=RUNTIME_ROOT / "media")
-    parser.add_argument("--backup-dir", type=Path, default=Path("/backups"))
+    parser.add_argument("--backup-dir", type=Path, default=Path(os.environ.get("BACKUP_DIR", "/backups")))
     parser.add_argument("--file", default=os.environ.get("RESTORE_RUNTIME_FILE", ""))
     parser.add_argument("--confirm", default=os.environ.get("CONFIRM_RUNTIME_RESTORE", ""))
+    parser.add_argument("--pair-id", default=os.environ.get("RESTORE_SET_ID", ""))
     args = parser.parse_args()
     if args.action == "backup":
-        backup(args.data_dir, args.media_dir, args.backup_dir)
-    else:
+        backup(args.data_dir, args.media_dir, args.backup_dir, os.environ.get("BACKUP_SET_ID"))
+    elif args.action == "restore":
         restore(args.data_dir, args.media_dir, args.backup_dir, args.file, args.confirm)
+    elif args.action == "prepare":
+        prepare_restore(args.data_dir, args.media_dir, args.backup_dir, args.file, args.confirm, args.pair_id)
+    elif args.action == "commit":
+        commit_restore(args.data_dir, args.media_dir, args.pair_id, args.confirm)
+    elif args.action == "rollback":
+        rollback_restore(args.data_dir, args.media_dir, args.pair_id, args.confirm)
+    else:
+        finalize_restore(args.data_dir, args.media_dir, args.pair_id, args.confirm)
 
 
 if __name__ == "__main__":

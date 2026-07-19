@@ -2,6 +2,17 @@ import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const DIST = resolve("dist");
+const configuredOrigin = process.env.VITE_PUBLIC_ORIGIN || process.env.VEDICWAY_PUBLIC_ORIGIN;
+if (!configuredOrigin && process.env.CI) {
+  throw new Error("VITE_PUBLIC_ORIGIN is required for deterministic SEO prerendering");
+}
+const publicOrigin = configuredOrigin || "http://localhost:5173";
+const originUrl = new URL(publicOrigin);
+const localDevelopmentOrigin = originUrl.protocol === "http:" && originUrl.hostname === "localhost";
+if ((!localDevelopmentOrigin && originUrl.protocol !== "https:") || originUrl.pathname !== "/" || originUrl.search || originUrl.hash) {
+  throw new Error("VITE_PUBLIC_ORIGIN must be an HTTPS origin without a path, query, or fragment");
+}
+const ORIGIN = originUrl.origin;
 const template = await readFile(resolve(DIST, "index.html"), "utf8");
 const metrikaCounterId = String(process.env.VITE_YANDEX_METRIKA_ID ?? "").trim();
 
@@ -121,11 +132,41 @@ const pages = [
   }
 ];
 
+const legalPages = [
+  ["user-agreement", "Пользовательское соглашение", "Условия использования сервиса VedicWay, расчёта натальной карты и получения платного отчёта."],
+  ["privacy-policy", "Политика обработки персональных данных", "Правила обработки и защиты персональных данных пользователей VedicWay."],
+  ["personal-data-consent", "Согласие на обработку персональных данных", "Текст отдельного согласия пользователя на обработку данных для расчёта натальной карты."],
+  ["cookies", "Политика использования cookies", "Правила использования обязательных и аналитических cookies на сайте VedicWay."]
+];
+
+for (const [slug, title, description] of legalPages) {
+  pages.push({
+    output: `legal/${slug}/index.html`,
+    title: `${title} | VedicWay`,
+    description,
+    canonical: `${ORIGIN}/legal/${slug}`,
+    image: `${ORIGIN}/assets/hero-space.png`,
+    body: legalBody(title, description),
+    schema: [{
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: title,
+      url: `${ORIGIN}/legal/${slug}`,
+      description,
+      inLanguage: "ru-RU"
+    }]
+  });
+}
+
 for (const page of pages) {
   const target = resolve(DIST, page.output);
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, renderPage(page), "utf8");
 }
+
+await rewritePublicOrigin("robots.txt");
+await rewritePublicOrigin("sitemap.xml");
+await rewritePublicOrigin("llms.txt");
 
 function renderPage(page) {
   let html = template;
@@ -149,7 +190,7 @@ function renderPage(page) {
   const jsonLd = page.schema.map((value) => `<script type="application/ld+json" data-vedicway-seo-schema="prerender">${safeJson(value)}</script>`).join("\n    ");
   html = html.replace("</head>", `    ${jsonLd}\n  </head>`);
   html = html.replace('<div id="root"></div>', `<div id="root">${preludeStyle}${page.body}</div>`);
-  return html;
+  return html.replaceAll("https://vedicway.ru", ORIGIN);
 }
 
 function replaceMeta(html, attribute, key, content) {
@@ -186,6 +227,25 @@ function guideBody() {
     <section data-yandex-proof="guide-topics" aria-label="Темы гида"><h2>Материалы о натальной карте</h2><p>Планеты, знаки, дома, аспекты и последовательное чтение карты.</p></section>
     <a data-yandex-action="guide-calculate-link" href="/">Рассчитать карту</a>
   </main>`;
+}
+
+function legalBody(title, description) {
+  return `<main class="seo-prerender" data-legal-prerender>
+    <nav aria-label="Хлебные крошки"><a href="/">Главная</a><span>${escapeHtml(title)}</span></nav>
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(description)}</p>
+    <p>Полный актуальный текст документа, реквизиты оператора и дата редакции доступны на этой странице после загрузки приложения.</p>
+  </main>`;
+}
+
+async function rewritePublicOrigin(filename) {
+  const path = resolve(DIST, filename);
+  let content = await readFile(path, "utf8");
+  content = content.replaceAll("https://vedicway.ru", ORIGIN);
+  if (filename === "robots.txt") {
+    content = content.replace(/^Host:\s*.*$/m, `Host: ${originUrl.hostname}`);
+  }
+  await writeFile(path, content, "utf8");
 }
 
 function safeJson(value) {

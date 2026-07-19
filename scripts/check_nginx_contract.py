@@ -26,6 +26,11 @@ REQUIRED_RECOVERY_GUARD = (
     "access_log off;",
 )
 
+REQUIRED_LEGAL_GUARD = tuple(
+    f"location = /legal/{slug} {{ try_files /legal/{slug}/index.html =404; expires -1; }}"
+    for slug in ("user-agreement", "privacy-policy", "personal-data-consent", "cookies")
+) + ("location ^~ /legal/ { return 404; }",)
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate fail-closed Nginx SEO routes")
@@ -46,7 +51,12 @@ def main() -> None:
     missing_recovery = [fragment for fragment in REQUIRED_RECOVERY_GUARD if fragment not in config]
     if missing_recovery:
         raise SystemExit(f"Recovery privacy guard is incomplete: {', '.join(missing_recovery)}")
-    print("Nginx SEO and privacy guard contract passed.")
+    missing_legal = [fragment for fragment in REQUIRED_LEGAL_GUARD if fragment not in config]
+    if missing_legal:
+        raise SystemExit(f"Legal SEO routing is incomplete: {', '.join(missing_legal)}")
+    if "try_files $uri $uri/index.html /index.html" in config:
+        raise SystemExit("Legal SPA fallback still returns a soft 404")
+    print("Nginx SEO, legal and privacy guard contract passed.")
 
 
 if __name__ == "__main__":

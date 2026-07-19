@@ -52,7 +52,7 @@ if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
   database_url="postgresql+psycopg://${encoded_user}:${encoded_password}@${POSTGRES_HOST:-postgres}:${POSTGRES_PORT:-5432}/${encoded_database}"
   export DATABASE_URL="${DATABASE_URL:-$database_url}"
   export VEDICWAY_DATABASE_URL="${VEDICWAY_DATABASE_URL:-$database_url}"
-  unset postgres_password encoded_password encoded_user encoded_database database_url
+  unset postgres_password encoded_password encoded_user encoded_database database_url profile
 fi
 
 exec "$@"

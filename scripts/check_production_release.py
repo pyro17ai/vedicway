@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import base64
-import hashlib
 import ipaddress
 import json
 import os
@@ -10,6 +9,8 @@ import re
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
+
+from wheelhouse_contract import validate_wheelhouse
 
 REQUIRED_VALUES = (
     "RELEASE_TAG",
@@ -50,6 +51,7 @@ SECRET_PATHS = {
     "YOOKASSA_SECRET_KEY_FILE": 16,
     "OPENAI_API_KEY_FILE": 16,
     "VEDICWAY_SMTP_PASSWORD_FILE": 8,
+    "VEDICWAY_BACKUP_KEY_FILE": 40,
 }
 
 
@@ -83,36 +85,8 @@ def check_url(name: str, value: str, errors: list[str]) -> None:
         errors.append(f"{name} must be an absolute public HTTPS URL without credentials")
 
 
-def file_sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def check_wheelhouse(path: Path, errors: list[str]) -> None:
-    manifest = path / "SHA256SUMS"
-    if not manifest.is_file():
-        errors.append(f"wheelhouse manifest is missing: {manifest}")
-        return
-    entries = 0
-    for raw in manifest.read_text(encoding="utf-8").splitlines():
-        match = re.fullmatch(r"([0-9a-fA-F]{64})\s+\*?([^/\\]+)", raw.strip())
-        if not match:
-            errors.append("SHA256SUMS contains an invalid line")
-            continue
-        expected, filename = match.groups()
-        wheel = path / filename
-        if not wheel.is_file():
-            errors.append(f"wheel listed in SHA256SUMS is missing: {filename}")
-            continue
-        actual = file_sha256(wheel)
-        if actual.casefold() != expected.casefold():
-            errors.append(f"wheel checksum mismatch: {filename}")
-        entries += 1
-    if not entries or not any(path.glob("pyjhora_mcp-0.1.0-*.whl")):
-        errors.append("wheelhouse must contain pyjhora_mcp 0.1.0 and checksums")
+    errors.extend(validate_wheelhouse(path))
 
 
 def main() -> int:
@@ -240,6 +214,12 @@ def main() -> int:
             raise ValueError
     except (ValueError, UnicodeEncodeError):
         errors.append("VEDICWAY_DATA_KEY_FILE does not contain a Fernet key")
+    backup_key = secret_values.get("VEDICWAY_BACKUP_KEY_FILE", "")
+    try:
+        if len(base64.urlsafe_b64decode(backup_key.encode("ascii"))) != 32:
+            raise ValueError
+    except (ValueError, UnicodeEncodeError):
+        errors.append("VEDICWAY_BACKUP_KEY_FILE must contain a URL-safe base64 encoded 32-byte key")
     if secret_values.get("YOOKASSA_SHOP_ID_FILE") and not secret_values["YOOKASSA_SHOP_ID_FILE"].isdigit():
         errors.append("YOOKASSA_SHOP_ID_FILE must contain a numeric shop id")
 

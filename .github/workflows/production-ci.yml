@@ -17,6 +17,8 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      VITE_PUBLIC_ORIGIN: https://ci.vedicway.example
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,12 +33,12 @@ jobs:
         run: npm run build
       - name: Verify prerendered public routes
         run: |
-          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/access/recovery/index.html && test -s dist/privacy/request/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
+          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/access/recovery/index.html && test -s dist/privacy/request/index.html && test -s dist/legal/user-agreement/index.html && test -s dist/legal/privacy-policy/index.html && test -s dist/legal/personal-data-consent/index.html && test -s dist/legal/cookies/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/index.html
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/guide/index.html
           python scripts/check_nginx_contract.py docker/nginx/nginx.conf
       - name: Build non-root frontend image
-        run: docker build --file docker/frontend/Dockerfile --tag vedicway-frontend:ci .
+        run: docker build --build-arg VITE_PUBLIC_ORIGIN="$VITE_PUBLIC_ORIGIN" --file docker/frontend/Dockerfile --tag vedicway-frontend:ci .
 
   backend:
     runs-on: ubuntu-latest
@@ -106,5 +108,5 @@ jobs:
           python scripts/check_nginx_contract.py docker/nginx/nginx.conf
       - name: Static Dockerfile checks
         run: |
-          docker buildx build --check --file docker/frontend/Dockerfile .
+          docker buildx build --check --build-arg VITE_PUBLIC_ORIGIN=https://ci.vedicway.example --file docker/frontend/Dockerfile .
           docker buildx build --check --build-context pyjhora=runtime/pyjhora-wheelhouse --file docker/backend/Dockerfile .

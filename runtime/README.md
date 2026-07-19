@@ -15,4 +15,4 @@ docker run --rm \
   sh -ec 'python -m pip install --no-cache-dir build && python -m pip wheel --wheel-dir /wheelhouse /src && cd /wheelhouse && sha256sum *.whl > SHA256SUMS'
 ```
 
-Архивируйте wheelhouse вместе с commit SHA исходников и SHA256 manifest в release evidence. Wheelhouse, собранный на Windows, для Linux image не подходит.
+Архивируйте wheelhouse вместе с commit SHA исходников и SHA256 manifest в release evidence. В каталоге разрешены только файлы, перечисленные в `SHA256SUMS`; лишний wheel или подкаталог останавливает release checker и Docker build. Сам `pyjhora_mcp-0.1.0-*.whl` обязан входить в manifest. Wheelhouse, собранный на Windows, для Linux image не подходит.

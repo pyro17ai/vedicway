@@ -33,8 +33,9 @@ x-backend-common: &backend-common
     POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     VEDICWAY_DATA_KEY_FILE: /run/secrets/vedicway_data_key
     VEDICWAY_SIGNING_KEY_FILE: /run/secrets/vedicway_signing_key
-    FORWARDED_ALLOW_IPS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
-    VEDICWAY_TRUSTED_PROXY_CIDRS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24}
+    FORWARDED_ALLOW_IPS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24,172.30.0.0/28}
+    VEDICWAY_TRUSTED_PROXY_CIDRS: ${VEDICWAY_TRUSTED_PROXY_CIDRS:-172.29.0.0/24,172.30.0.0/28}
+    VEDICWAY_OPERATIONS_CIDRS: ${VEDICWAY_OPERATIONS_CIDRS:-127.0.0.1/32},${VEDICWAY_OPS_DOCKER_SUBNET:-172.30.0.0/28}
   configs:
     - source: places
       target: /run/config/places.json
@@ -42,9 +43,6 @@ x-backend-common: &backend-common
   volumes: &backend-volumes
     - runtime_data:/var/lib/vedicway/data
     - media_data:/var/lib/vedicway/media
-  networks:
-    - edge
-    - data
   read_only: true
   tmpfs:
     - /tmp:rw,noexec,nosuid,nodev,size=512m,uid=10001,gid=10001,mode=1770
@@ -211,6 +209,11 @@ services:
       - vedicway_metrics_token
       - yookassa_shop_id
       - yookassa_secret_key
+    networks:
+      - edge
+      - data
+      - api-egress
+      - ops
     depends_on:
       content-migrate:
         condition: service_completed_successfully
@@ -220,8 +223,8 @@ services:
     command: ["python", "-m", "vedicway_backend.worker"]
     environment:
       <<: *backend-environment
-      VEDICWAY_INLINE_WORKER: "0"
       VEDICWAY_SECRET_PROFILE: worker
+      VEDICWAY_INLINE_WORKER: "0"
       OPENAI_API_KEY_FILE: /run/secrets/codex_api_key
     secrets:
       - postgres_password
@@ -229,6 +232,9 @@ services:
       - vedicway_signing_key
       - codex_api_key
     volumes: *backend-volumes
+    networks:
+      - data
+      - worker-egress
     healthcheck:
       disable: true
     depends_on:
@@ -294,6 +300,30 @@ services:
     restart: unless-stopped
     stop_grace_period: 20s
 
+  # Starts only for an authenticated support session. The loopback binding is
+  # reached through an SSH/VPN bastion; no public reverse proxy routes here.
+  ops-gateway:
+    image: ${FRONTEND_IMAGE:-vedicway-frontend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    ports:
+      - "${OPS_HTTP_BIND:-127.0.0.1}:${OPS_HTTP_PORT:-8081}:8081"
+    volumes:
+      - ./docker/nginx/ops.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ops
+    depends_on:
+      backend:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m,uid=101,gid=101,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 64
+    restart: "no"
+
   backup:
     image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
     profiles: ["ops"]
@@ -306,6 +336,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-vedicway}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       BACKUP_DIR: /backups
+      BACKUP_SET_ID: ${BACKUP_SET_ID:-}
     secrets:
       - postgres_password
     volumes:
@@ -333,9 +364,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-vedicway}
       POSTGRES_USER: ${POSTGRES_USER:-vedicway}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      BACKUP_DIR: /backups
+      BACKUP_DIR: ${RESTORE_BACKUP_DIR:-/backups}
       RESTORE_FILE: ${RESTORE_FILE:-}
       CONFIRM_RESTORE: ${CONFIRM_RESTORE:-}
+      RESTORE_SET_ID: ${RESTORE_SET_ID:-}
+      RESTORE_PHASE: ${RESTORE_PHASE:-prepare}
     secrets:
       - postgres_password
     volumes:
@@ -358,9 +391,36 @@ services:
     entrypoint: ["python", "/opt/vedicway/backend/scripts/runtime_backup.py"]
     command: ["backup"]
     user: "10001:10001"
+    environment:
+      BACKUP_SET_ID: ${BACKUP_SET_ID:-}
     volumes:
       - runtime_data:/var/lib/vedicway/data:ro
       - media_data:/var/lib/vedicway/media:ro
+      - ./backups:/backups
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
+  backup-bundle:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    entrypoint: ["python", "/opt/vedicway/backend/scripts/backup_bundle.py"]
+    user: "10001:10001"
+    environment:
+      BACKUP_DIR: /backups
+      BACKUP_SET_ID: ${BACKUP_SET_ID:-}
+      BACKUP_BUNDLE_FILE: ${BACKUP_BUNDLE_FILE:-}
+      BACKUP_KEY_FILE: /run/secrets/backup_encryption_key
+      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
+    secrets:
+      - backup_encryption_key
+    volumes:
       - ./backups:/backups
     network_mode: none
     read_only: true
@@ -379,8 +439,10 @@ services:
     command: ["restore"]
     user: "10001:10001"
     environment:
+      BACKUP_DIR: ${RESTORE_BACKUP_DIR:-/backups}
       RESTORE_RUNTIME_FILE: ${RESTORE_RUNTIME_FILE:-}
       CONFIRM_RUNTIME_RESTORE: ${CONFIRM_RUNTIME_RESTORE:-}
+      RESTORE_SET_ID: ${RESTORE_SET_ID:-}
     volumes:
       - runtime_data:/var/lib/vedicway/data
       - media_data:/var/lib/vedicway/media
@@ -397,12 +459,22 @@ services:
 
 networks:
   edge:
+    internal: true
     ipam:
       config:
         - subnet: ${VEDICWAY_DOCKER_SUBNET:-172.29.0.0/24}
   data:
     internal: true
   email-egress:
+  ops:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${VEDICWAY_OPS_DOCKER_SUBNET:-172.30.0.0/28}
+  # Docker Compose cannot enforce an HTTPS hostname allowlist. These networks
+  # separate API and worker egress so the host firewall/proxy can police them.
+  api-egress:
+  worker-egress:
 
 volumes:
   postgres_data:
@@ -432,6 +504,8 @@ secrets:
     file: ${OPENAI_API_KEY_FILE:-./secrets/codex_api_key.txt}
   smtp_password:
     file: ${VEDICWAY_SMTP_PASSWORD_FILE:-./secrets/smtp_password.txt}
+  backup_encryption_key:
+    file: ${VEDICWAY_BACKUP_KEY_FILE:-./secrets/backup_encryption_key.txt}
   admin_bootstrap_email:
     file: ${VEDICWAY_BOOTSTRAP_ADMIN_EMAIL_FILE:-./secrets/admin_bootstrap_email.txt}
   admin_bootstrap_password:
