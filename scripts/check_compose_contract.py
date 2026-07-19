@@ -45,6 +45,12 @@ def main() -> None:
     published_hosts = {str(item.get("host_ip", "")) for item in ports if isinstance(item, dict)}
     if not published_hosts or not published_hosts.issubset({"127.0.0.1", "::1"}):
         raise SystemExit("frontend production port must bind only to loopback")
+
+    entrypoint = (Path(__file__).resolve().parents[1] / "docker/backend/entrypoint.sh").read_text(
+        encoding="utf-8"
+    )
+    if "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
+        raise SystemExit("backend entrypoint must export the Codex secret as OPENAI_API_KEY")
     print("Resolved production Compose contract passed.")
 
 
