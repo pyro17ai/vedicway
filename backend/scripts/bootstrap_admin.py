@@ -42,7 +42,9 @@ def main() -> None:
         VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD=password,
     )
     try:
-        created = ContentDatabase().bootstrap_admin_from_environment()
+        content_database = ContentDatabase()
+        content_database.ping(require_migrations=True)
+        created = content_database.bootstrap_admin_from_environment()
     finally:
         for name in (
             "VEDICWAY_BOOTSTRAP_ADMIN_EMAIL",

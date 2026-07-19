@@ -9,15 +9,16 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 
 import App from "./App";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import "./styles.css";
 import "./results-showcase.css";
 import "./faq-section.css";
 import "./chart-workspace.css";
 import "./site-shell.css";
 import "./guide.css";
+import "./legal.css";
+import "./admin.css";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+  <StrictMode><App /><CookieConsentBanner /></StrictMode>,
 );

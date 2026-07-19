@@ -37,18 +37,24 @@ describe("BirthChartForm", () => {
     vi.useRealTimers();
   });
 
-  it("показывает постоянные подписи и нативные поля даты и времени", () => {
+  it("показывает постоянные подписи, нативные поля и требует отдельные согласия", () => {
     render(<BirthChartForm />);
 
     expect(screen.getByLabelText("Имя")).toBeInTheDocument();
     expect(screen.getByLabelText("Дата рождения")).toHaveAttribute("type", "date");
     expect(screen.getByLabelText("Время рождения")).toHaveAttribute("type", "time");
     expect(screen.getByRole("combobox", { name: "Место рождения" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /рассчитать карту/i })).toBeEnabled();
+    const submit = screen.getByRole("button", { name: /рассчитать карту/i });
+    expect(submit).toBeDisabled();
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
+    expect(submit).toBeEnabled();
   });
 
   it("объясняет ошибки после отправки и переводит фокус к первому полю", () => {
     render(<BirthChartForm />);
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
     fireEvent.click(screen.getByRole("button", { name: /рассчитать карту/i }));
 
     expect(screen.getByText("Введите имя")).toBeInTheDocument();
@@ -74,6 +80,9 @@ describe("BirthChartForm", () => {
 
     fireEvent.keyDown(combobox, { key: "ArrowDown" });
     fireEvent.keyDown(combobox, { key: "Enter" });
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
     expect(combobox).toHaveValue(city.label);
   });
 
@@ -93,6 +102,8 @@ describe("BirthChartForm", () => {
     fireEvent.keyDown(combobox, { key: "ArrowDown" });
     fireEvent.keyDown(combobox, { key: "Enter" });
 
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
     fireEvent.click(screen.getByRole("button", { name: /рассчитать карту/i }));
     await act(async () => {
       await Promise.resolve();
@@ -110,6 +121,8 @@ describe("BirthChartForm", () => {
         timezone: city.timezone,
       },
       timeAccuracy: "exact",
+      personalDataConsent: true,
+      termsAccepted: true,
     });
     expect(onChartCreated).toHaveBeenCalledWith("chart-test-1");
     expect(screen.getByRole("status")).toHaveTextContent("Карта принята. Переходим к расчёту.");

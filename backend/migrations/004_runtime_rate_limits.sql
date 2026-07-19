@@ -5,4 +5,3 @@ CREATE TABLE IF NOT EXISTS rate_limit_events (
 );
 CREATE INDEX IF NOT EXISTS rate_limit_events_bucket_idx
   ON rate_limit_events(bucket_key, occurred_at);
-

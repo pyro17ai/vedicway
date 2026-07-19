@@ -2,6 +2,8 @@ node_modules/
 dist/
 .playwright-cli/
 backend/.data/
+backend/.venv/
+*.egg-info/
 artifacts/
 test-results/
 *.tsbuildinfo

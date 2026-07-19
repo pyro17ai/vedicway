@@ -78,6 +78,15 @@ class BirthInput(BaseModel):
     time_accuracy: TimeAccuracy
 
 
+class LegalAcceptance(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    personal_data: bool
+    personal_data_version: str = Field(min_length=1, max_length=40)
+    terms: bool
+    terms_version: str = Field(min_length=1, max_length=40)
+
+
 class ChartCreateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -87,6 +96,7 @@ class ChartCreateRequest(BaseModel):
     place: Place | None = None
     time_accuracy: TimeAccuracy = TimeAccuracy.EXACT
     fold: int | None = Field(default=None, ge=0, le=1)
+    legal: LegalAcceptance | None = None
 
     @field_validator("local_date")
     @classmethod

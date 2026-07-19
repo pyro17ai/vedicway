@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 
 import { AstrologyWheel } from "./components/AstrologyWheel";
-import { ArticleEditor } from "./components/ArticleEditor";
+import { AdminPage } from "./components/AdminPage";
 import { ArticlePage } from "./components/ArticlePage";
 import { BirthChartForm } from "./components/BirthChartForm";
 import { ChartWorkspace } from "./components/ChartWorkspace";
 import { FaqSection } from "./components/FaqSection";
 import { GuidePage } from "./components/GuidePage";
+import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
+import { NotFoundPage } from "./components/NotFoundPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
 import { SiteHeader } from "./components/SiteHeader";
+import { trackPageView } from "./lib/analytics";
+import { applySeo } from "./lib/seo";
 
 const avatars = [
   "/assets/avatar-01.png",
@@ -22,6 +26,30 @@ type LandingScreenProps = {
   onNavigate: (path: string) => void;
 };
 
+type ChartScreenProps = {
+  chartId: string;
+  onNavigate: (path: string) => void;
+};
+
+function ChartScreen({ chartId, onNavigate }: ChartScreenProps) {
+  useEffect(() => applySeo({
+    title: "Натальная карта | VedicWay",
+    description: "Персональная ведическая натальная карта и её объяснение.",
+    path: `/chart/${encodeURIComponent(chartId)}`,
+    noindex: true,
+  }), [chartId]);
+
+  return <ChartWorkspace chartId={chartId} onBackToLanding={() => onNavigate("/")} />;
+}
+
+function GuideEditorRedirect({ onNavigate }: { onNavigate: (path: string) => void }) {
+  useEffect(() => {
+    window.history.replaceState({}, "", "/admin");
+  }, []);
+
+  return <AdminPage onNavigate={onNavigate} />;
+}
+
 function LandingSeam({ label }: { label?: string }) {
   return (
     <div className="landing-seam" aria-hidden="true">
@@ -33,16 +61,17 @@ function LandingSeam({ label }: { label?: string }) {
 }
 
 function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
-  useEffect(() => {
-    document.title = "VedicWay - натальная карта";
-    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-    if (!canonical) {
-      canonical = document.createElement("link");
-      canonical.rel = "canonical";
-      document.head.append(canonical);
-    }
-    canonical.href = window.location.origin;
-  }, []);
+  useEffect(() => applySeo({
+    title: "Ведическая натальная карта онлайн | VedicWay",
+    description: "Рассчитайте ведическую натальную карту по дате, точному времени и месту рождения. Получите карту, объяснения и вопросы для самонаблюдения.",
+    path: "/",
+    structuredData: [{
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "VedicWay",
+      url: "https://vedicway.ru/",
+    }],
+  }), []);
 
   return (
     <>
@@ -131,6 +160,13 @@ function guideSlugFromPath(pathname: string) {
   return decodeURIComponent(matched[1]);
 }
 
+const legalRoutes: Record<string, LegalDocumentKind> = {
+  "/legal/user-agreement": "terms",
+  "/legal/privacy-policy": "privacy",
+  "/legal/personal-data-consent": "consent",
+  "/legal/cookies": "cookies",
+};
+
 function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
@@ -139,6 +175,10 @@ function App() {
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
+
+  useEffect(() => {
+    trackPageView(pathname);
+  }, [pathname]);
 
   const navigate = (path: string) => {
     if (window.location.pathname === path) {
@@ -152,16 +192,20 @@ function App() {
 
   const chartId = chartIdFromPath(pathname);
   if (chartId) {
-    return <ChartWorkspace chartId={chartId} onBackToLanding={() => {
-      navigate("/");
-    }} />;
+    return <ChartScreen chartId={chartId} onNavigate={navigate} />;
   }
 
-  if (pathname === "/guide/editor") return <ArticleEditor onNavigate={navigate} />;
+  if (pathname === "/guide/editor") return <GuideEditorRedirect onNavigate={navigate} />;
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
+
+  const legalKind = legalRoutes[pathname];
+  if (legalKind) return <LegalPage kind={legalKind} onNavigate={navigate} />;
 
   const guideSlug = guideSlugFromPath(pathname);
   if (guideSlug) return <ArticlePage slug={guideSlug} onNavigate={navigate} />;
+
+  if (pathname !== "/") return <NotFoundPage onNavigate={navigate} />;
 
   return <LandingScreen onNavigate={navigate} onChartCreated={(createdChartId) => {
     window.history.pushState({}, "", `/chart/${encodeURIComponent(createdChartId)}?tab=chart&varga=D1&mode=plain`);

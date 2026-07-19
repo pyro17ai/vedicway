@@ -511,6 +511,34 @@ svg {
   transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
+.legal-acceptance {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.legal-acceptance label {
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  color: #99928c;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.legal-acceptance input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--ember);
+}
+
+.legal-acceptance a {
+  color: #d98a4e;
+  text-underline-offset: 2px;
+}
+
 .submit-button > span:first-child {
   display: flex;
   align-items: center;
@@ -554,7 +582,7 @@ svg {
 }
 
 .submit-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   filter: saturate(0.72) brightness(0.84);
 }
 
