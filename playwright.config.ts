@@ -29,8 +29,8 @@ export default defineConfig({
         VEDICWAY_TEST_PAYMENTS: "1",
         VEDICWAY_PUBLIC_BASE_URL: frontendOrigin,
         VEDICWAY_OFFER_VERSION: "development",
-        VEDICWAY_OFFER_URL: `${frontendOrigin}/legal/offer`,
-        VEDICWAY_PRIVACY_URL: `${frontendOrigin}/legal/privacy`,
+        VEDICWAY_OFFER_URL: `${frontendOrigin}/legal/user-agreement`,
+        VEDICWAY_PRIVACY_URL: `${frontendOrigin}/legal/privacy-policy`,
       },
     },
     {

@@ -32,28 +32,17 @@ test("desktop-компоновка помещает форму и все три 
   }
 });
 
-test("гид начинает пустым, а редактор публикует полноценную статью", async ({ page }) => {
+test("публичный гид не открывает редактор, а админка требует вход", async ({ page }) => {
   await page.setViewportSize({ width: 1569, height: 920 });
   await page.goto("/guide");
 
   await expect(page.getByRole("heading", { name: "Гид по астрологии" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Первые материалы готовятся" })).toBeVisible();
-  await page.getByRole("button", { name: "Редактор статей" }).click();
-  await expect(page).toHaveURL(/\/guide\/editor$/);
+  await expect(page.getByRole("button", { name: "Редактор статей" })).toHaveCount(0);
 
-  await page.getByLabel("Заголовок статьи").fill("Как читать первый дом натальной карты");
-  await page.getByLabel("Лид").fill("Разбираем первый дом как отправную точку карты и связываем его знак с повседневными наблюдениями.");
-  await page.getByLabel("Текст статьи").fill("Первый дом задаёт точку отсчёта всей натальной карты и описывает способ, которым человек проявляет себя в мире. Его чтение начинается со знака на восходе и продолжается через положение управителя.\n\n## С чего начать\n\nСначала найдите восходящий знак, затем посмотрите, где расположен его управитель. Сопоставьте эти два положения и только после этого переходите к отдельным деталям.");
-  await page.getByLabel("Метаописание").fill("Пошаговое объяснение первого дома натальной карты: восходящий знак, управитель дома и порядок чтения основных показателей.");
-  await page.getByRole("button", { name: /Опубликовать/ }).click();
-
-  await expect(page.getByRole("status")).toHaveText("Статья опубликована и появилась в гиде.");
-  await page.getByRole("button", { name: "Гид" }).click();
-  await expect(page.getByRole("heading", { name: "Как читать первый дом натальной карты" })).toBeVisible();
-  await page.getByRole("button", { name: /Читать: Как читать первый дом/ }).click();
-
-  await expect(page).toHaveURL(/\/guide\/kak-chitat-pervyy-dom-natalnoy-karty$/);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/guide\/kak-chitat-pervyy-dom-natalnoy-karty$/);
-  const structuredData = await page.locator("#vedicway-article-jsonld").evaluate((element) => element.textContent ?? "");
-  expect(structuredData).toContain('"@type":"Article"');
+  await page.goto("/admin");
+  await expect(page.getByRole("heading", { name: "Вход в редакцию" })).toBeVisible();
+  await expect(page.getByLabel("Рабочая почта")).toBeVisible();
+  await expect(page.getByLabel("Пароль")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Войти" })).toBeVisible();
 });

@@ -7,6 +7,9 @@ export async function createMoscowChart(page: Page) {
   await page.getByLabel("Время рождения").fill("13:30");
   await page.getByRole("combobox", { name: "Место рождения" }).fill("Москва");
   await page.getByRole("option", { name: "Москва, Россия" }).click();
+  for (const checkbox of await page.locator(".legal-acceptance input[type=checkbox]").all()) {
+    await checkbox.check();
+  }
   await page.getByRole("button", { name: /рассчитать карту/i }).click();
 
   await expect(page).toHaveURL(/\/chart\/chart_[A-Za-z0-9_-]+\?tab=chart&varga=D1&mode=plain/);
