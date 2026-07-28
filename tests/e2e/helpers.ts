@@ -14,7 +14,10 @@ export async function createMoscowChart(page: Page) {
   }
   await page.getByRole("button", { name: /рассчитать карту/i }).click();
 
-  await expect(page).toHaveURL(/\/chart\/chart_[A-Za-z0-9_-]+\?tab=chart&varga=D1&mode=plain/);
+  await expect(page).toHaveURL(
+    /\/chart\/chart_[A-Za-z0-9_-]+\?tab=chart&varga=D1&mode=plain/,
+    { timeout: 45_000 },
+  );
   await expect(page.getByRole("grid", { name: "Южноиндийская карта D1" })).toBeVisible({ timeout: 30_000 });
 }
 

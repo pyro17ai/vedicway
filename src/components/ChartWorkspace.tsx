@@ -83,9 +83,11 @@ type SavedQuestionState = {
 };
 
 type PaymentRecovery = {
-  state: "checking" | "timeout" | "cancelled" | "failed";
+  state: "checking" | "preparing" | "timeout" | "cancelled" | "failed";
   message: string;
 };
+
+type PaidAccessState = "locked" | "preparing" | "ready";
 
 const reflectionStatusLabels: Record<ReflectionStatus, string> = {
   saved: "Сохранено",
@@ -144,9 +146,23 @@ function statusText(resource: ChartResource | null, connection: "live" | "reconn
   if (!resource) return "Проверяем данные";
   if (resource.sections.d1 !== "ready") return "Строим основную карту";
   if (!resource.interpretation) return "Карта готова. Готовим объяснение";
+  if (resource.entitlement.report_full && !resource.entitlement.report_ready) {
+    return "Оплата подтверждена. Готовим полный отчёт";
+  }
   if (resource.interpretation.schema_version === "interpretation.free.v1") return "Карта и первое чтение готовы";
   if (resource.pdf.status === "generating") return "Открываем подробные разделы. PDF готовится";
   return "Полный отчёт готов";
+}
+
+function paidAccessState(resource: ChartResource | null): PaidAccessState {
+  if (!resource?.entitlement.report_full) return "locked";
+  if (
+    resource.entitlement.report_ready
+    && resource.interpretation?.schema_version === "interpretation.paid.v1"
+  ) {
+    return "ready";
+  }
+  return "preparing";
 }
 
 function byteSize(value?: number | null) {
@@ -246,7 +262,7 @@ function EvidenceChips({ evidenceIds, facts }: { evidenceIds: string[]; facts: M
   );
 }
 
-function DomainCardView({ domain, facts, locked, onOpen }: { domain: DomainCard; facts: Map<string, EvidenceFact>; locked: boolean; onOpen: () => void }) {
+function DomainCardView({ domain, facts, access, onOpen }: { domain: DomainCard; facts: Map<string, EvidenceFact>; access: PaidAccessState; onOpen: () => void }) {
   const coverageCopy = domain.coverage === "multiple_factors" ? "Подтверждено несколькими положениями" : domain.coverage === "single_factor" ? "Один расчётный ориентир" : "Нужно больше расчётных данных";
   return (
     <article className={`domain-card domain-card--${domain.coverage}`}>
@@ -255,8 +271,12 @@ function DomainCardView({ domain, facts, locked, onOpen }: { domain: DomainCard;
       <p>{domain.summary}</p>
       {domain.limitations.length > 0 && <p className="domain-card__limit">{domain.limitations[0]}</p>}
       <EvidenceChips evidenceIds={domain.evidence_ids} facts={facts} />
-      <button type="button" className="text-action" onClick={onOpen} disabled={domain.coverage === "insufficient"}>
-        {locked ? <><LockKeyhole aria-hidden="true" /> Подробнее</> : <>Читать полностью <ChevronRight aria-hidden="true" /></>}
+      <button type="button" className="text-action" onClick={onOpen} disabled={domain.coverage === "insufficient" || access === "preparing"}>
+        {access === "locked"
+          ? <><LockKeyhole aria-hidden="true" /> Подробнее</>
+          : access === "preparing"
+            ? <><Sparkles aria-hidden="true" /> Готовим полный текст</>
+            : <>Читать полностью <ChevronRight aria-hidden="true" /></>}
       </button>
     </article>
   );
@@ -359,25 +379,46 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     if (signal.aborted || result.outcome === "aborted") return;
     if (result.outcome === "succeeded") {
       trackWorkspaceEvent("payment_server_confirmed");
+      let accessConfirmed = false;
       for (let attempt = 0; attempt < 60 && !signal.aborted; attempt += 1) {
         const next = await refresh();
         if (next?.entitlement.report_full) {
-          clearPaymentReturnState(window.sessionStorage);
-          setPaymentRecovery(null);
-          if (saved.domain) {
+          if (!accessConfirmed) {
+            accessConfirmed = true;
             setPaywallDomain(null);
-            setDetailDomain(saved.domain);
-            updateRoute({ tab: "explanation", domain: saved.domain, detail: true }, true);
-          } else {
-            clearReturnLocation();
+            setDetailDomain(null);
+            if (saved.domain) {
+              updateRoute({ tab: "explanation", domain: saved.domain, detail: true }, true);
+            } else {
+              clearReturnLocation();
+            }
           }
-          return;
+          if (
+            next.entitlement.report_ready
+            && next.interpretation?.schema_version === "interpretation.paid.v1"
+          ) {
+            clearPaymentReturnState(window.sessionStorage);
+            setPaymentRecovery(null);
+            if (saved.domain) setDetailDomain(saved.domain);
+            return;
+          }
+          setPaymentRecovery({
+            state: "preparing",
+            message: "Оплата подтверждена. Готовим полный отчёт. Он откроется автоматически.",
+          });
         }
         await new Promise<void>((resolve) => window.setTimeout(resolve, 500));
       }
+      if (accessConfirmed) {
+        setPaymentRecovery({
+          state: "preparing",
+          message: "Оплата подтверждена. Готовим полный отчёт. Он откроется автоматически.",
+        });
+        return;
+      }
       setPaymentRecovery({
         state: "timeout",
-        message: "Платёж подтверждён. Подробный отчёт ещё формируется, проверку можно продолжить.",
+        message: "Платёж подтверждён, но доступ ещё не появился. Проверку можно продолжить.",
       });
       return;
     }
@@ -486,14 +527,38 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     if (!resource?.interpretation || !route.domain || !route.detail) return;
     const domain = resource.interpretation.domains.find((item) => item.slug === route.domain);
     if (!domain) return;
-    if (resource.entitlement.report_full && domain.paragraphs.length) {
+    const access = paidAccessState(resource);
+    if (access === "ready" && domain.paragraphs.length) {
       setPaywallDomain(null);
       setDetailDomain(domain.slug);
+      clearPaymentReturnState(window.sessionStorage);
+      setPaymentRecovery((current) => (
+        current?.state === "checking" || current?.state === "preparing" ? null : current
+      ));
+    } else if (access === "preparing") {
+      setPaywallDomain(null);
+      setDetailDomain(null);
+      setPaymentRecovery((current) => (
+        current?.state === "preparing"
+          ? current
+          : {
+              state: "preparing",
+              message: "Оплата подтверждена. Готовим полный отчёт. Он откроется автоматически.",
+            }
+      ));
     } else {
       setDetailDomain(null);
       setPaywallDomain(domain.slug);
     }
   }, [resource, route.detail, route.domain]);
+
+  useEffect(() => {
+    if (paidAccessState(resource) !== "ready") return;
+    clearPaymentReturnState(window.sessionStorage);
+    setPaymentRecovery((current) => (
+      current?.state === "checking" || current?.state === "preparing" ? null : current
+    ));
+  }, [resource]);
 
   useGSAP(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -503,6 +568,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   const bundle = resource?.interpretation ?? null;
   const facts = useMemo(() => new Map((resource?.evidence?.facts ?? []).map((fact) => [fact.id, fact])), [resource?.evidence?.facts]);
   const domains = bundle?.domains ?? [];
+  const accessState = paidAccessState(resource);
   const currentDomain = route.domain ? domains.find((domain) => domain.slug === route.domain) ?? null : null;
   const selectedDetail = detailDomain ? domains.find((domain) => domain.slug === detailDomain) ?? null : null;
   const selectedPaywall = paywallDomain ? domains.find((domain) => domain.slug === paywallDomain) ?? null : null;
@@ -527,14 +593,21 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
 
   const openDomain = (domain: DomainCard) => {
     updateRoute({ tab: "explanation", domain: domain.slug, detail: true });
-    if (resource?.entitlement.report_full && domain.paragraphs.length) {
+    if (accessState === "ready" && domain.paragraphs.length) {
       setPaywallDomain(null);
       setDetailDomain(domain.slug);
+    } else if (accessState === "preparing") {
+      setPaywallDomain(null);
+      setDetailDomain(null);
+      setPaymentRecovery({
+        state: "preparing",
+        message: "Оплата подтверждена. Готовим полный отчёт. Он откроется автоматически.",
+      });
     } else {
       setDetailDomain(null);
       setPaywallDomain(domain.slug);
     }
-    trackWorkspaceEvent("domain_detail_requested", { domain: domain.slug, access: resource?.entitlement.report_full ? "paid" : "free" });
+    trackWorkspaceEvent("domain_detail_requested", { domain: domain.slug, access: accessState });
   };
 
   const buyFullReport = async (email: string) => {
@@ -652,9 +725,9 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     return <div className="workspace-panel workspace-explanation-panel" role="tabpanel" id="workspace-panel-explanation" aria-labelledby="workspace-tab-explanation">
       <WorkspaceHeader resource={resource} title="Объяснение карты" kicker="Первое чтение" controls={<div className="domain-filter"><button type="button" className={!route.domain ? "is-active" : ""} onClick={() => updateRoute({ domain: null })}>Все темы</button>{domains.map((domain) => <button type="button" key={domain.slug} className={route.domain === domain.slug ? "is-active" : ""} onClick={() => updateRoute({ domain: domain.slug })}>{domain.section_label}</button>)}</div>} />
       {bundle ? <>
-        <section className="overview-card"><div><span className="overview-card__eyebrow">Главный рисунок</span><h2>{bundle.overview.title}</h2><p>{bundle.overview.summary}</p></div><button type="button" className="text-action" onClick={() => domains[0] && openDomain(domains[0])}>{resource?.entitlement.report_full ? "Открыть синтез" : "Продолжить чтение"} <ChevronRight aria-hidden="true" /></button></section>
-        <section className="domain-grid" aria-label="Восемь жизненных тем">{filtered.map((domain) => <DomainCardView key={domain.slug} domain={domain} facts={facts} locked={!resource?.entitlement.report_full} onOpen={() => openDomain(domain)} />)}</section>
-        {!route.domain && <div className="compact-offer"><span>Полный отчёт объединяет все восемь тем · 990 ₽</span><button type="button" onClick={() => domains[0] && setPaywallDomain(domains[0].slug)}>Посмотреть состав</button></div>}
+        <section className="overview-card"><div><span className="overview-card__eyebrow">Главный рисунок</span><h2>{bundle.overview.title}</h2><p>{bundle.overview.summary}</p></div><button type="button" className="text-action" onClick={() => domains[0] && openDomain(domains[0])} disabled={accessState === "preparing"}>{accessState === "locked" ? "Продолжить чтение" : accessState === "preparing" ? "Готовим полный отчёт" : "Открыть синтез"} <ChevronRight aria-hidden="true" /></button></section>
+        <section className="domain-grid" aria-label="Восемь жизненных тем">{filtered.map((domain) => <DomainCardView key={domain.slug} domain={domain} facts={facts} access={accessState} onOpen={() => openDomain(domain)} />)}</section>
+        {!route.domain && accessState === "locked" && <div className="compact-offer"><span>Полный отчёт объединяет все восемь тем · 990 ₽</span><button type="button" onClick={() => domains[0] && setPaywallDomain(domains[0].slug)}>Посмотреть состав</button></div>}
       </> : <section className="domain-grid domain-grid--skeleton" aria-label="Готовим объяснение">{Array.from({ length: 8 }).map((_, index) => <div className="domain-card" key={index}><div className="lines-skeleton" /><p>Связываем факты карты</p></div>)}</section>}
     </div>;
   };
@@ -691,7 +764,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       {paymentRecovery && (
         <div
           className={`workspace-notice ${paymentRecovery.state === "failed" ? "workspace-notice--error" : paymentRecovery.state === "cancelled" ? "workspace-notice--warning" : ""}`}
-          role={paymentRecovery.state === "checking" ? "status" : "alert"}
+          role={paymentRecovery.state === "checking" || paymentRecovery.state === "preparing" ? "status" : "alert"}
         >
           <span>{paymentRecovery.message}</span>
           {paymentRecovery.state === "timeout" && (
@@ -708,7 +781,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       <p className="workspace-disclaimer">Материал предназначен для самонаблюдения и знакомства с астрологической традицией. Он не заменяет медицинскую, юридическую, финансовую или психологическую помощь.</p>
     </section>
     {selectedDetail && <DomainDetail domain={selectedDetail} facts={facts} index={detailIndex} total={domains.length} onClose={() => { setDetailDomain(null); updateRoute({ detail: false }, true); }} onPrevious={() => moveDetail(-1)} onNext={() => moveDetail(1)} />}
-    {selectedPaywall && paymentConfig && (
+    {selectedPaywall && paymentConfig && accessState === "locked" && (
       <PaymentPaywall
         title={selectedPaywall.title}
         summary={selectedPaywall.summary}

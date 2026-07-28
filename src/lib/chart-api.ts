@@ -114,7 +114,10 @@ export type ChartResource = {
   sections: Record<string, SectionStatus>;
   interpretation: InterpretationBundle | null;
   evidence?: { facts: EvidenceFact[]; packets: unknown[] } | null;
-  entitlement: { report_full: boolean };
+  entitlement: {
+    report_full: boolean;
+    report_ready: boolean;
+  };
   pdf: {
     status: "locked" | "generating" | "ready" | "failed";
     pages?: number | null;

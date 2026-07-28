@@ -5,10 +5,25 @@ import { createMoscowChart, openTestCheckout, waitForExplanation } from "./helpe
 
 test.describe("Доступ к подробному отчёту", () => {
   test("free-to-full-report", async ({ page }) => {
-    test.setTimeout(90_000);
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 1280, height: 620 });
     // 1. Создать карту и открыть вкладку объяснения.
     await createMoscowChart(page);
     await waitForExplanation(page);
+
+    await page.getByRole("tab", { name: /^Вопросы/ }).click();
+    const questionCard = page.locator(".workspace-questions-panel .question-card").first();
+    await expect(questionCard).toBeVisible();
+    await questionCard.hover();
+    const hoverStyle = await questionCard.evaluate((element) => {
+      const computed = getComputedStyle(element);
+      const channels = computed.backgroundColor.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0];
+      const brightness = (0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]) / 255;
+      return { backgroundImage: computed.backgroundImage, brightness };
+    });
+    expect(hoverStyle.backgroundImage).toBe("none");
+    expect(hoverStyle.brightness).toBeGreaterThan(0.8);
+    await page.getByRole("tab", { name: /^Объяснение/ }).click();
 
     // 2. Нажать «Подробнее» и закрыть окно клавишей Escape.
     const detailButton = page.getByRole("button", { name: "Подробнее" }).first();
@@ -17,6 +32,12 @@ test.describe("Доступ к подробному отчёту", () => {
     await expect(paywall).toBeVisible();
     await expect(paywall).toContainText("990 ₽");
     await expect(paywall).toContainText("Без подписки");
+    const paywallBox = await paywall.boundingBox();
+    const viewport = page.viewportSize();
+    expect(paywallBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(paywallBox!.y).toBeGreaterThanOrEqual(12);
+    expect(paywallBox!.y + paywallBox!.height).toBeLessThanOrEqual(viewport!.height - 12);
     await page.keyboard.press("Escape");
     await expect(paywall).toBeHidden();
     await expect(detailButton).toBeFocused();

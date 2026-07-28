@@ -48,6 +48,13 @@ describe("SouthIndianChart", () => {
     expect(onSelectSign).toHaveBeenCalledWith(1);
   });
 
+  it("объясняет выбранную лагну одним коротким предложением", () => {
+    render(<SouthIndianChart section={readySection} varga="D1" mode="plain" selectedSign={7} onSelectSign={vi.fn()} />);
+
+    expect(screen.getByText("Лагной называют восходящий в момент рождения знак, от которого отсчитываются дома натальной карты.")).toBeInTheDocument();
+    expect(screen.queryByText(/профессиональном режиме/i)).not.toBeInTheDocument();
+  });
+
   it("показывает карту-скелет до готовности D1", () => {
     render(<SouthIndianChart section={{ section: "d1", status: "queued" }} varga="D1" mode="plain" selectedSign={null} onSelectSign={vi.fn()} />);
     expect(screen.getByRole("status")).toHaveTextContent("Строим основную карту");

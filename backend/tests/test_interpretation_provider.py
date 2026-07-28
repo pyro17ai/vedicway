@@ -85,7 +85,8 @@ def test_prompt_and_schema_keep_personal_data_out_of_runner_contract() -> None:
     facts, packets = _evidence()
     prompt = build_interpretation_prompt(facts, packets, paid=False)
     schema = codex_output_schema(paid=False)
-    payload = json.loads(prompt.split("\n\nEVIDENCE_PAYLOAD\n", 1)[1])
+    payload_text = prompt.split("\n\nEVIDENCE_PAYLOAD\n", 1)[1]
+    payload = json.loads(payload_text.split("\n\n<!-- answering format -->", 1)[0])
     assert PROMPT_VERSION in prompt
     assert "snapshot_public" not in prompt
     assert "snapshot_id" not in payload
@@ -99,6 +100,19 @@ def test_prompt_and_schema_keep_personal_data_out_of_runner_contract() -> None:
     assert "snapshot_id" not in schema["required"]
     required = schema["$defs"]["DomainInterpretation"]["required"]
     assert "paragraphs" in required and "manifestations" in required and "reflection_prompts" in required
+
+
+@pytest.mark.parametrize("paid", [False, True])
+def test_prompt_ends_with_requested_russian_answering_format(paid: bool) -> None:
+    facts, packets = _evidence()
+    prompt = build_interpretation_prompt(facts, packets, paid=paid)
+
+    assert PROMPT_VERSION == "interpretation-editor-ru.v3"
+    assert "\n\n<!-- answering format -->\n" in prompt
+    assert "Отвечай мне всегда естественным публицистическим русским языком" in prompt
+    assert "Не пиши заключительный абзац" in prompt
+    assert "Каждое предложение должно сообщать факт" in prompt
+    assert prompt.endswith("<!-- answering format -->")
 
 
 def test_explicit_contract_stub_is_valid_but_never_selected_implicitly(monkeypatch: pytest.MonkeyPatch) -> None:

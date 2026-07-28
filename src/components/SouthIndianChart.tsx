@@ -112,6 +112,9 @@ export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectS
               <span className="south-chart__selection-kicker">Выбранный знак · дом {selectedCell.house_number}</span>
               <strong>{selectedCell.sign_label}{selectedCell.is_lagna ? " · Лагна" : ""}</strong>
             </div>
+            {selectedCell.is_lagna && (
+              <p>Лагной называют восходящий в момент рождения знак, от которого отсчитываются дома натальной карты.</p>
+            )}
             {selectedCell.planets.length ? (
               <ul>
                 {selectedCell.planets.map((planet) => (
@@ -120,7 +123,7 @@ export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectS
                   </li>
                 ))}
               </ul>
-            ) : <p>В этом знаке нет планет. В профессиональном режиме его можно сравнить с соседними домами.</p>}
+            ) : !selectedCell.is_lagna && <p>В этом доме нет планет.</p>}
           </>
         ) : <p>Выберите знак, чтобы прочитать положения и точные координаты.</p>}
       </div>

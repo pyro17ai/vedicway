@@ -85,6 +85,7 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
             lambda item: item["interpretation"] is not None and item["interpretation"]["schema_version"] == "interpretation.paid.v1" and item["pdf"]["status"] == "ready",
         )
         assert resource["entitlement"]["report_full"] is True
+        assert resource["entitlement"]["report_ready"] is True
         assert len(resource["interpretation"]["questions"]) == 12
         assert resource["interpretation"]["domains"][0]["paragraphs"]
         requested = client.post(

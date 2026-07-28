@@ -158,6 +158,10 @@ def test_success_transition_is_idempotent_and_grants_one_entitlement(tmp_path) -
     assert saved is not None and saved["status"] == "succeeded"
     assert saved["paid_amount_minor"] == 99_000
     assert store.has_entitlement(str(purchase["chart_id"])) is True
+    assert store.get_chart_resource(str(purchase["chart_id"]), include_paid=True)["entitlement"] == {
+        "report_full": True,
+        "report_ready": False,
+    }
     assert len(events) == 1
 
 

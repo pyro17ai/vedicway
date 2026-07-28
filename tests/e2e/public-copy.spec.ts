@@ -12,8 +12,8 @@ test.describe("Публичные тексты демонстрации", () => 
     await expect(showcase.getByText("Скорпион · Лагна")).toBeVisible();
 
     await showcase.getByRole("tab", { name: "Объяснение" }).click();
-    await showcase.getByRole("button", { name: "Подробнее" }).first().click();
-    await expect(showcase.getByText(/готовый отчёт раскрывает тему через положение карты/i)).toBeVisible();
+    await expect(showcase.getByRole("button", { name: "Подробнее" })).toHaveCount(0);
+    await expect(showcase.getByText(/готовый отчёт раскрывает тему через положение карты/i)).toHaveCount(0);
     await expect(showcase.getByText("Лагна · Скорпион · дом 1")).toBeVisible();
 
     await showcase.getByRole("tab", { name: "Вопросы к себе" }).click();

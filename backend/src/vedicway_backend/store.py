@@ -913,7 +913,8 @@ class Store:
         snapshot = _json_load(row["snapshot_json"], None)
         sections = snapshot.get("sections", {}) if snapshot else {}
         entitled = self.has_entitlement(chart_id)
-        paid_bundle = _json_load(row["paid_bundle_json"], None) if include_paid and entitled else None
+        report_ready = entitled and bool(row["paid_bundle_json"])
+        paid_bundle = _json_load(row["paid_bundle_json"], None) if include_paid and report_ready else None
         bundle = paid_bundle or _json_load(row["free_bundle_json"], None)
         report = self.get_report(chart_id)
         evidence = _json_load(row["evidence_json"], None)
@@ -931,7 +932,7 @@ class Store:
             "sections": section_statuses,
             "interpretation": bundle,
             "evidence": evidence,
-            "entitlement": {"report_full": entitled},
+            "entitlement": {"report_full": entitled, "report_ready": report_ready},
             "pdf": report,
         }
 

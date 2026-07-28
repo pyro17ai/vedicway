@@ -236,7 +236,6 @@ function ChartResult({ onOpenExplanation }: { onOpenExplanation: () => void }) {
 
 function ExplanationResult({ onReturnToChart }: { onReturnToChart: () => void }) {
   const [activeDomain, setActiveDomain] = useState<string | null>(null);
-  const [openedDomain, setOpenedDomain] = useState<string | null>(null);
   const visibleDomains = activeDomain ? demoDomains.filter((domain) => domain.id === activeDomain) : demoDomains;
 
   return (
@@ -279,9 +278,7 @@ function ExplanationResult({ onReturnToChart }: { onReturnToChart: () => void })
       </section>
 
       <section className="domain-grid" aria-label="Темы готового отчёта">
-        {visibleDomains.map((domain) => {
-          const isOpened = openedDomain === domain.id;
-          return (
+        {visibleDomains.map((domain) => (
             <article className={`domain-card${domain.state === "pending" ? " domain-card--insufficient" : ""}`} key={domain.id}>
               <div className="domain-card__topline">
                 <span>{domain.sectionLabel}</span>
@@ -293,23 +290,8 @@ function ExplanationResult({ onReturnToChart }: { onReturnToChart: () => void })
               <div className="evidence-chips">
                 <span className="result-evidence-chip">{domain.evidence}</span>
               </div>
-              <button
-                type="button"
-                className="text-action"
-                aria-expanded={isOpened}
-                aria-controls={`demo-domain-detail-${domain.id}`}
-                onClick={() => setOpenedDomain(isOpened ? null : domain.id)}
-              >
-                {isOpened ? "Свернуть" : "Подробнее"} <ChevronRight aria-hidden="true" />
-              </button>
-              {isOpened && (
-                <p className="result-domain-detail" id={`demo-domain-detail-${domain.id}`}>
-                  Этот фрагмент показывает, как готовый отчёт раскрывает тему через положение карты, а не через общий текст без основания.
-                </p>
-              )}
             </article>
-          );
-        })}
+        ))}
       </section>
     </div>
   );

@@ -71,14 +71,14 @@ describe("ResultsShowcase", () => {
     expect(screen.getAllByText("Нептун").length).toBeGreaterThan(0);
   });
 
-  it("раскрывает тему объяснения и возвращает пользователя к карте", async () => {
+  it("оставляет демонстрационные объяснения некликабельными и возвращает пользователя к карте", async () => {
     const user = userEvent.setup();
     render(<ResultsShowcase />);
 
     await user.click(screen.getByRole("tab", { name: "Объяснение" }));
-    await user.click(screen.getAllByRole("button", { name: /Подробнее/ })[0]);
 
-    expect(screen.getByText(/Этот фрагмент показывает, как готовый отчёт раскрывает тему/)).toBeInTheDocument();
+    expect(screen.queryAllByRole("button", { name: /Подробнее/ })).toHaveLength(0);
+    expect(screen.queryByText(/Этот фрагмент показывает, как готовый отчёт раскрывает тему/)).not.toBeInTheDocument();
     expect(screen.getByText("Лагна · Скорпион · дом 1")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Вернуться к карте" }));
