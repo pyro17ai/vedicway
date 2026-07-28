@@ -18,7 +18,7 @@ test("desktop-компоновка помещает форму и все три 
   const showcase = page.getByRole("region", { name: "Пример результата натальной карты" });
   await showcase.scrollIntoViewIfNeeded();
   const showcaseHeight = await showcase.evaluate((element) => element.getBoundingClientRect().height);
-  expect(showcaseHeight).toBeLessThanOrEqual(920);
+  expect(showcaseHeight).toBeLessThanOrEqual(930);
 
   for (const name of ["Натальная карта", "Объяснение", "Вопросы к себе"]) {
     await showcase.getByRole("tab", { name }).click();

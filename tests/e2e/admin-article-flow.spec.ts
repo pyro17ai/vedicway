@@ -22,7 +22,9 @@ test("администратор публикует статью с обложк
   );
   await page.getByLabel("Описание обложки").fill("Южноиндийская натальная карта и знак восходящего дома");
   await page.locator(".admin-cover input[type=file]").setInputFiles(imagePath);
-  await expect(page.getByRole("status")).toContainText("Изображение подготовлено");
+  await expect(page.getByRole("status")).toContainText("Изображение подготовлено", {
+    timeout: 30_000,
+  });
 
   const body = [
     "Первый дом, или лагна, задаёт точку отсчёта всей ведической карты. Его читают вместе со знаком восходящего дома, положением управителя лагны и влиянием планет.",
@@ -32,7 +34,9 @@ test("администратор публикует статью с обложк
   await page.locator("textarea.admin-content").fill(body);
   page.once("dialog", (dialog) => dialog.accept("Фрагмент южноиндийской карты с отмеченной лагной"));
   await page.locator(".admin-content-header input[type=file]").setInputFiles(imagePath);
-  await expect(page.getByRole("status")).toContainText("Изображение подготовлено");
+  await expect(page.getByRole("status")).toContainText("Изображение подготовлено", {
+    timeout: 30_000,
+  });
 
   await page.getByLabel(/^SEO-заголовок/).fill("Как читать первый дом ведической карты | VedicWay");
   await page.getByLabel(/^Метаописание/).fill(

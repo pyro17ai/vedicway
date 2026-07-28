@@ -120,7 +120,8 @@ test.describe("Восстановление доступа и обращения
     const baseline = magicState(token, chartId);
 
     const scannerContext = await browser.newContext({
-      baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:5183",
+      baseURL: process.env.PLAYWRIGHT_BASE_URL
+        ?? `http://127.0.0.1:${process.env.VEDICWAY_E2E_FRONTEND_PORT ?? "5183"}`,
     });
     const scannerPage = await scannerContext.newPage();
     await scannerPage.goto(magicPath);

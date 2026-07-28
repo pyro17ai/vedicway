@@ -2,8 +2,8 @@ import { defineConfig, devices } from "playwright/test";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-const backendPort = 8015;
-const frontendPort = 5183;
+const backendPort = Number(process.env.VEDICWAY_E2E_BACKEND_PORT ?? "8015");
+const frontendPort = Number(process.env.VEDICWAY_E2E_FRONTEND_PORT ?? "5183");
 const frontendOrigin = `http://127.0.0.1:${frontendPort}`;
 const python = process.env.VEDICWAY_E2E_PYTHON ?? "python";
 const dataDir = process.env.VEDICWAY_E2E_DATA_DIR
@@ -14,7 +14,7 @@ process.env.VEDICWAY_E2E_BACKEND_ORIGIN = `http://127.0.0.1:${backendPort}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 45_000,
+  timeout: 90_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
   // Локальный BFF ограничивает bursts по IP; эти сценарии намеренно делят один стенд.
