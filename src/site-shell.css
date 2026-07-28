@@ -292,9 +292,9 @@
   }
 
   .results-demo-window {
-    height: clamp(760px, calc(100svh - 100px), 820px);
-    min-height: 760px;
-    max-height: 820px;
+    height: auto;
+    min-height: clamp(760px, calc(100svh - 100px), 820px);
+    max-height: none;
     margin: 70px clamp(16px, 2vw, 32px) 0;
     border-radius: 20px;
   }
@@ -339,10 +339,10 @@
   }
 
   .results-demo-window .results-stage {
-    height: 100%;
-    min-height: 0;
+    height: auto;
+    min-height: clamp(760px, calc(100svh - 100px), 820px);
     margin-left: 210px;
-    overflow: hidden;
+    overflow: visible;
     padding: 27px 28px 21px 34px;
   }
 

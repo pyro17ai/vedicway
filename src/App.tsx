@@ -53,7 +53,10 @@ function GuideEditorRedirect({ onNavigate }: { onNavigate: (path: string) => voi
 
 function LandingSeam({ label }: { label?: string }) {
   return (
-    <div className="landing-seam" aria-hidden="true">
+    <div
+      className={`landing-seam ${label ? "landing-seam--labelled" : "landing-seam--ornament"}`}
+      aria-hidden="true"
+    >
       <span />
       {label && <b>{label}</b>}
       <span />

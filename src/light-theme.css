@@ -78,7 +78,7 @@ body {
 }
 
 .site-header--overlay {
-  border-bottom-color: rgba(106, 68, 38, 0.13);
+  border-bottom-color: rgba(106, 68, 38, 0.04);
   background: rgba(251, 246, 238, 0.76);
   box-shadow: none;
   backdrop-filter: blur(12px) saturate(1.06);
@@ -147,10 +147,26 @@ body {
   filter: saturate(0.86) contrast(0.97) brightness(1.01);
 }
 
+@media (min-width: 861px) {
+  .hero-scene__background {
+    width: 117.75%;
+  }
+}
+
 .astrology-wheel-shell {
   color: rgba(151, 55, 20, 0.62);
   opacity: 0.72;
   mix-blend-mode: multiply;
+}
+
+@media (min-width: 1101px) {
+  .astrology-wheel-shell {
+    left: 36.25%;
+  }
+
+  .chart-card {
+    top: 82px;
+  }
 }
 
 .hero-copy h1 {
@@ -292,20 +308,48 @@ body {
 }
 
 .landing-seam {
-  background: rgba(251, 246, 238, 0.92);
+  background: transparent;
 }
 
 .landing-seam > span {
-  background: linear-gradient(90deg, transparent, rgba(151, 85, 40, 0.26));
+  background: linear-gradient(90deg, transparent, rgba(151, 85, 40, 0.34));
 }
 
 .landing-seam > span:last-child {
-  background: linear-gradient(90deg, rgba(151, 85, 40, 0.26), transparent);
+  background: linear-gradient(90deg, rgba(151, 85, 40, 0.34), transparent);
 }
 
 .landing-seam b {
   color: var(--ember-deep);
-  text-shadow: none;
+  text-shadow: 0 1px 12px rgba(255, 253, 248, 0.96);
+}
+
+.landing-seam--labelled::before {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 20px;
+  content: "";
+  background: rgba(251, 246, 238, 0.82);
+  box-shadow: inset 0 1px rgba(151, 85, 40, 0.08), inset 0 -1px rgba(151, 85, 40, 0.08);
+  transform: translateY(-50%);
+}
+
+.landing-seam--labelled > span,
+.landing-seam--labelled b {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-seam--labelled b {
+  padding: 2px 12px;
+  background: transparent;
+}
+
+.landing-seam--ornament > span {
+  opacity: 0;
 }
 
 /* Landing result demonstration */
@@ -337,6 +381,12 @@ body {
 
 .results-showcase::after {
   background: linear-gradient(180deg, rgba(251, 246, 238, 0.52), transparent 13%, transparent 82%, rgba(251, 246, 238, 0.64));
+}
+
+@media (min-width: 1121px) {
+  .results-showcase {
+    padding-bottom: 34px;
+  }
 }
 
 .results-transition {
@@ -395,11 +445,28 @@ body {
 
 .results-download button,
 .result-edit-button,
-.result-back-button,
-.result-demo-edit {
+.result-back-button {
   border-color: var(--line);
   color: var(--ink-secondary);
   background: rgba(255, 253, 248, 0.72);
+}
+
+.results-download,
+.results-download:hover {
+  border-color: rgba(143, 101, 65, 0.12);
+  color: var(--ink-secondary);
+  background: rgba(238, 222, 199, 0.74);
+}
+
+.results-download button {
+  background: rgba(255, 251, 244, 0.88);
+}
+
+.result-demo-edit {
+  border-color: transparent;
+  color: var(--ink-secondary);
+  background: transparent;
+  box-shadow: none;
 }
 
 .results-download p,
@@ -415,6 +482,11 @@ body {
   color: var(--ink);
 }
 
+.results-demo-window #results-active-panel {
+  background: linear-gradient(180deg, rgba(238, 223, 202, 0.96), rgba(211, 181, 147, 0.93));
+  box-shadow: inset 0 0 0 1px rgba(142, 94, 54, 0.1);
+}
+
 .results-demo-window {
   border-color: rgba(98, 67, 43, 0.22);
   background: rgba(255, 253, 248, 0.84);
@@ -423,6 +495,9 @@ body {
 
 .results-demo-window::before {
   border-color: rgba(255, 255, 255, 0.7);
+  background:
+    radial-gradient(circle at 53% 18%, rgba(201, 113, 57, 0.12), transparent 34%),
+    linear-gradient(180deg, rgba(238, 219, 194, 0.24), rgba(188, 142, 102, 0.18));
 }
 
 .result-view-heading h2,
@@ -720,6 +795,10 @@ body {
   background: rgba(251, 246, 238, 0.18);
 }
 
+.faq-shell > .faq-ornament:first-child {
+  transform: translateY(-24px);
+}
+
 .faq-heading h2 {
   color: var(--ink);
 }
@@ -802,13 +881,7 @@ body {
 }
 
 .guide-site {
-  background:
-    image-set(
-      url("/assets/faq-space-light.avif") type("image/avif") 1x,
-      url("/assets/faq-space-light.webp") type("image/webp") 1x,
-      url("/assets/faq-space-light.png") type("image/png") 1x
-    ) center top / cover fixed no-repeat,
-    var(--paper);
+  background: var(--paper);
 }
 
 .guide-hero::before {
@@ -982,7 +1055,6 @@ body {
   background: var(--paper);
 }
 
-.legal-site,
 .recovery-site {
   background:
     image-set(
@@ -991,6 +1063,10 @@ body {
       url("/assets/faq-space-light.png") type("image/png") 1x
     ) center top / cover fixed no-repeat,
     var(--paper);
+}
+
+.legal-site {
+  background: var(--paper);
 }
 
 .legal-back,
@@ -1044,6 +1120,26 @@ body {
   color: var(--ink-secondary);
   background: rgba(255, 253, 248, 0.94);
   box-shadow: var(--paper-shadow-soft);
+}
+
+.legal-document {
+  width: calc(100% + 64px);
+  margin-left: -32px;
+  padding: 20px 32px 0;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.legal-document section {
+  background: transparent;
+  box-shadow: none;
+}
+
+.legal-document section:last-child {
+  border-bottom: 0;
 }
 
 .cookie-consent {
@@ -1180,6 +1276,13 @@ body {
 }
 
 @media (max-width: 600px) {
+  .legal-document {
+    width: calc(100% + 16px);
+    margin-left: -8px;
+    padding: 16px 8px 0;
+    border-radius: 10px;
+  }
+
   .guide-hero__orb {
     display: none;
   }
