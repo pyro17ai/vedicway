@@ -270,9 +270,9 @@
       linear-gradient(180deg, rgba(4, 5, 6, 0.96) 0%, rgba(4, 5, 6, 0.5) 13%, rgba(4, 5, 6, 0.2) 55%, rgba(4, 5, 6, 0.92) 100%),
       linear-gradient(90deg, rgba(3, 4, 5, 0.89) 0%, rgba(4, 5, 6, 0.42) 35%, rgba(3, 4, 5, 0.7) 100%),
       image-set(
-        url("/assets/results-space-v2.avif") type("image/avif") 1x,
-        url("/assets/results-space-v2.webp") type("image/webp") 1x,
-        url("/assets/results-space-v2.png") type("image/png") 1x
+        url("/assets/results-space-v2-light.avif") type("image/avif") 1x,
+        url("/assets/results-space-v2-light.webp") type("image/webp") 1x,
+        url("/assets/results-space-v2-light.png") type("image/png") 1x
       ) center / cover no-repeat,
       #050607;
   }
@@ -292,9 +292,9 @@
   }
 
   .results-demo-window {
-    height: clamp(760px, calc(100svh - 100px), 820px);
-    min-height: 760px;
-    max-height: 820px;
+    height: auto;
+    min-height: clamp(760px, calc(100svh - 100px), 820px);
+    max-height: none;
     margin: 70px clamp(16px, 2vw, 32px) 0;
     border-radius: 20px;
   }
@@ -339,10 +339,10 @@
   }
 
   .results-demo-window .results-stage {
-    height: 100%;
-    min-height: 0;
+    height: auto;
+    min-height: clamp(760px, calc(100svh - 100px), 820px);
     margin-left: 210px;
-    overflow: hidden;
+    overflow: visible;
     padding: 27px 28px 21px 34px;
   }
 

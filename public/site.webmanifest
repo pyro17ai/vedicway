@@ -10,7 +10,7 @@
   "theme_color": "#050505",
   "icons": [
     {
-      "src": "/assets/brand-mark.png",
+      "src": "/assets/brand-mark-light.png",
       "sizes": "320x320",
       "type": "image/png",
       "purpose": "any"

@@ -16,10 +16,10 @@ import { trackPageView } from "./lib/analytics";
 import { applySeo } from "./lib/seo";
 
 const avatars = [
-  "/assets/avatar-01.png",
-  "/assets/avatar-02.png",
-  "/assets/avatar-03.png",
-  "/assets/avatar-04.png",
+  "/assets/avatar-01-light.png",
+  "/assets/avatar-02-light.png",
+  "/assets/avatar-03-light.png",
+  "/assets/avatar-04-light.png",
 ];
 
 type LandingScreenProps = {
@@ -53,7 +53,10 @@ function GuideEditorRedirect({ onNavigate }: { onNavigate: (path: string) => voi
 
 function LandingSeam({ label }: { label?: string }) {
   return (
-    <div className="landing-seam" aria-hidden="true">
+    <div
+      className={`landing-seam ${label ? "landing-seam--labelled" : "landing-seam--ornament"}`}
+      aria-hidden="true"
+    >
       <span />
       {label && <b>{label}</b>}
       <span />
@@ -81,11 +84,11 @@ function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
         <section className="hero" data-od-id="hero-screen">
         <div className="hero-scene" aria-hidden="true">
           <picture>
-            <source srcSet="/assets/hero-space.avif" type="image/avif" />
-            <source srcSet="/assets/hero-space.webp" type="image/webp" />
+            <source srcSet="/assets/hero-space-light.avif" type="image/avif" />
+            <source srcSet="/assets/hero-space-light.webp" type="image/webp" />
             <img
               className="hero-scene__background"
-              src="/assets/hero-space.png"
+              src="/assets/hero-space-light.png"
               alt=""
               fetchPriority="high"
             />
@@ -105,7 +108,7 @@ function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
           </p>
 
           <div className="wisdom-note">
-            <img src="/assets/celestial-star.png" alt="" />
+            <img src="/assets/celestial-star-light.png" alt="" />
             <p>
               Древняя мудрость. Современные технологии.
               <br />

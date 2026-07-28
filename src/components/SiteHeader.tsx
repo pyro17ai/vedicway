@@ -25,7 +25,7 @@ export function SiteHeader({ active, onNavigate, variant = "solid" }: SiteHeader
     <header className={`site-header site-header--${variant}`} data-od-id="site-header">
       <div className="site-header__inner">
         <a className="site-header__brand" href="/" onClick={(event) => follow(event, "/")} aria-label="VedicWay, главная">
-          <img className="site-header__brand-mark" src="/assets/brand-mark.png" alt="" width="40" height="40" />
+          <img className="site-header__brand-mark" src="/assets/brand-mark-light.png" alt="" width="40" height="40" />
           <span>VedicWay</span>
         </a>
 

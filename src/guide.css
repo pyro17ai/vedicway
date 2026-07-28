@@ -5,9 +5,9 @@
     linear-gradient(180deg, rgba(4, 5, 6, 0.34), #050607 720px),
     linear-gradient(90deg, rgba(4, 5, 6, 0.92), rgba(5, 6, 7, 0.44) 54%, rgba(4, 5, 6, 0.86)),
     image-set(
-      url("/assets/faq-space.avif") type("image/avif") 1x,
-      url("/assets/faq-space.webp") type("image/webp") 1x,
-      url("/assets/faq-space.png") type("image/png") 1x
+      url("/assets/faq-space-light.avif") type("image/avif") 1x,
+      url("/assets/faq-space-light.webp") type("image/webp") 1x,
+      url("/assets/faq-space-light.png") type("image/png") 1x
     ) center top / cover no-repeat fixed,
     #050607;
 }

@@ -1,7 +1,7 @@
 .legal-site {
   min-height: 100svh;
   color: #e9e1d8;
-  background: linear-gradient(180deg, rgba(5, 6, 7, 0.35), #050607 680px), url("/assets/faq-space.png") center top / cover fixed, #050607;
+  background: url("/assets/faq-space-light.png") center top / cover fixed, #fbf6ee;
 }
 
 .legal-page {

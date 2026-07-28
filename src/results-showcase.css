@@ -19,9 +19,9 @@
     linear-gradient(90deg, rgba(3, 4, 5, 0.97) 0%, rgba(5, 6, 7, 0.72) 21%, rgba(5, 6, 7, 0.3) 60%, rgba(4, 5, 6, 0.75) 100%),
     linear-gradient(0deg, rgba(3, 4, 5, 0.82), transparent 42%),
     image-set(
-      url("/assets/results-space.avif") type("image/avif") 1x,
-      url("/assets/results-space.webp") type("image/webp") 1x,
-      url("/assets/results-space.png") type("image/png") 1x
+      url("/assets/results-space-light.avif") type("image/avif") 1x,
+      url("/assets/results-space-light.webp") type("image/webp") 1x,
+      url("/assets/results-space-light.png") type("image/png") 1x
     ) center / cover no-repeat,
     #050607;
 }
@@ -1930,9 +1930,9 @@
     linear-gradient(180deg, rgba(4, 5, 6, 0.96) 0%, rgba(4, 5, 6, 0.53) 12%, rgba(4, 5, 6, 0.2) 27%, rgba(4, 5, 6, 0.74) 100%),
     linear-gradient(90deg, rgba(3, 4, 5, 0.9) 0%, rgba(4, 5, 6, 0.45) 35%, rgba(3, 4, 5, 0.72) 100%),
     image-set(
-      url("/assets/results-space-v2.avif") type("image/avif") 1x,
-      url("/assets/results-space-v2.webp") type("image/webp") 1x,
-      url("/assets/results-space-v2.png") type("image/png") 1x
+      url("/assets/results-space-v2-light.avif") type("image/avif") 1x,
+      url("/assets/results-space-v2-light.webp") type("image/webp") 1x,
+      url("/assets/results-space-v2-light.png") type("image/png") 1x
     ) center / cover no-repeat,
     #050607;
 }

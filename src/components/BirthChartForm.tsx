@@ -248,7 +248,7 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
           Получите вашу{" "}
           <span>натальную карту</span>
         </h2>
-        <img className="chart-card__star" src="/assets/celestial-star.png" alt="" />
+        <img className="chart-card__star" src="/assets/celestial-star-light.png" alt="" />
       </header>
 
       <form className="chart-form" onSubmit={handleSubmit} noValidate>
@@ -465,7 +465,7 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
         <button className="submit-button" type="submit" disabled={isSubmitting || !personalDataConsent || !termsAccepted}>
           <span>{isSubmitting ? "РАССЧИТЫВАЕМ..." : "РАССЧИТАТЬ КАРТУ"}</span>
           <span className="submit-button__star" aria-hidden="true">
-            <img src="/assets/celestial-star.png" alt="" />
+            <img src="/assets/celestial-star-light.png" alt="" />
           </span>
         </button>
 
