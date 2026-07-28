@@ -6,6 +6,7 @@ const backendPort = Number(process.env.VEDICWAY_E2E_BACKEND_PORT ?? "8015");
 const frontendPort = Number(process.env.VEDICWAY_E2E_FRONTEND_PORT ?? "5183");
 const frontendOrigin = `http://127.0.0.1:${frontendPort}`;
 const python = process.env.VEDICWAY_E2E_PYTHON ?? "python";
+const chromeExecutable = process.env.VEDICWAY_E2E_CHROME;
 const dataDir = process.env.VEDICWAY_E2E_DATA_DIR
   ?? join(tmpdir(), `vedicway-yookassa-e2e-${process.pid}`);
 process.env.VEDICWAY_E2E_PYTHON = python;
@@ -52,6 +53,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? frontendOrigin,
+    launchOptions: chromeExecutable ? { executablePath: chromeExecutable } : undefined,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

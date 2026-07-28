@@ -25,6 +25,7 @@ const avatars = [
 type LandingScreenProps = {
   onChartCreated: (chartId: string) => void;
   onNavigate: (path: string) => void;
+  initialFormMode?: "calculate" | "recovery";
 };
 
 type ChartScreenProps = {
@@ -64,18 +65,23 @@ function LandingSeam({ label }: { label?: string }) {
   );
 }
 
-function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
+function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculate" }: LandingScreenProps) {
   useEffect(() => applySeo({
-    title: "Ведическая натальная карта онлайн | VedicWay",
-    description: "Рассчитайте ведическую натальную карту по дате, точному времени и месту рождения. Получите карту, объяснения и вопросы для самонаблюдения.",
-    path: "/",
+    title: initialFormMode === "recovery"
+      ? "Восстановить оплаченный разбор | VedicWay"
+      : "Ведическая натальная карта онлайн | VedicWay",
+    description: initialFormMode === "recovery"
+      ? "Получите одноразовую ссылку на оплаченную натальную карту."
+      : "Рассчитайте ведическую натальную карту по дате, точному времени и месту рождения. Получите карту, объяснения и вопросы для самонаблюдения.",
+    path: initialFormMode === "recovery" ? "/access/recovery" : "/",
+    noindex: initialFormMode === "recovery",
     structuredData: [{
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: "VedicWay",
       url: "https://vedicway.ru/",
     }],
-  }), []);
+  }), [initialFormMode]);
 
   return (
     <>
@@ -141,7 +147,7 @@ function LandingScreen({ onChartCreated, onNavigate }: LandingScreenProps) {
           </div>
           </div>
 
-          <BirthChartForm onChartCreated={onChartCreated} />
+          <BirthChartForm onChartCreated={onChartCreated} initialMode={initialFormMode} />
         </section>
 
         <LandingSeam label="Пример готового результата" />
@@ -194,6 +200,11 @@ function App() {
     window.scrollTo({ top: 0 });
   };
 
+  const openChart = (createdChartId: string) => {
+    window.history.pushState({}, "", `/chart/${encodeURIComponent(createdChartId)}?tab=chart&varga=D1&mode=plain`);
+    setPathname(`/chart/${createdChartId}`);
+  };
+
   const chartId = chartIdFromPath(pathname);
   if (chartId) {
     return <ChartScreen chartId={chartId} onNavigate={navigate} />;
@@ -202,7 +213,9 @@ function App() {
   if (pathname === "/guide/editor") return <GuideEditorRedirect onNavigate={navigate} />;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
-  if (pathname === "/access/recovery") return <RecoveryPage kind="access" onNavigate={navigate} />;
+  if (pathname === "/access/recovery") {
+    return <LandingScreen onNavigate={navigate} onChartCreated={openChart} initialFormMode="recovery" />;
+  }
   if (pathname === "/access/confirm") return <RecoveryPage kind="confirm" onNavigate={navigate} />;
   if (pathname === "/privacy/request") return <RecoveryPage kind="privacy" onNavigate={navigate} />;
 
@@ -214,10 +227,7 @@ function App() {
 
   if (pathname !== "/") return <NotFoundPage onNavigate={navigate} />;
 
-  return <LandingScreen onNavigate={navigate} onChartCreated={(createdChartId) => {
-    window.history.pushState({}, "", `/chart/${encodeURIComponent(createdChartId)}?tab=chart&varga=D1&mode=plain`);
-    setPathname(`/chart/${createdChartId}`);
-  }} />;
+  return <LandingScreen onNavigate={navigate} onChartCreated={openChart} />;
 }
 
 export default App;

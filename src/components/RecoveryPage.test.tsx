@@ -10,31 +10,6 @@ describe("RecoveryPage", () => {
     document.cookie = "vw_magic_csrf=; Max-Age=0; Path=/";
   });
 
-  it("отправляет email и показывает одинаковый нейтральный результат", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify({ status: "accepted" }), { status: 202 }),
-    );
-    vi.stubGlobal("fetch", fetchMock);
-    const user = userEvent.setup();
-
-    render(<RecoveryPage kind="access" onNavigate={vi.fn()} />);
-    await user.type(screen.getByRole("textbox", { name: "Email" }), "buyer@example.com");
-    await user.click(screen.getByRole("button", { name: "Отправить запрос" }));
-
-    expect(await screen.findByRole("status")).toHaveTextContent("Если заказ найден");
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/v1/access/recovery",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({ email: "buyer@example.com" }),
-      }),
-    );
-    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
-      "content",
-      "noindex, nofollow, noarchive",
-    );
-  });
-
   it("отправляет отдельный запрос на удаление персональных данных", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ status: "accepted" }), { status: 202 }),

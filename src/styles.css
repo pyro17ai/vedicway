@@ -322,6 +322,94 @@ svg {
   gap: 0;
 }
 
+.chart-card--recovery {
+  min-height: 560px;
+}
+
+.chart-form--recovery {
+  min-height: 370px;
+}
+
+.chart-form__recovery-copy {
+  margin: 0 0 32px;
+  color: #aaa39d;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.chart-form--recovery .submit-button > span:first-child {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.chart-form__recovery-result {
+  padding: 20px;
+  border: 1px solid rgba(181, 105, 54, 0.38);
+  border-radius: 10px;
+  color: #ded6ce;
+  background: rgba(181, 105, 54, 0.09);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.chart-form__recovery-error {
+  margin: 13px 0 0;
+  color: var(--error);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.chart-form__back {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  margin-top: 25px;
+  padding: 6px;
+  color: #aaa39d;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.chart-form__back svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chart-form__back:hover {
+  color: #f0e9e2;
+}
+
+.chart-form__switch {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  color: #777371;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.chart-form__switch button {
+  padding: 4px;
+  color: #c67c49;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.chart-form__back:focus-visible,
+.chart-form__switch button:focus-visible {
+  outline: 2px solid #ffc89f;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .field {
   position: relative;
 }

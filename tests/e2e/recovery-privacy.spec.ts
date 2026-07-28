@@ -69,11 +69,11 @@ test.describe("Восстановление доступа и обращения
       await route.fulfill({ status: 202, contentType: "application/json", body: ACCEPTED_RESPONSE });
     });
 
-    await page.goto("/access/recovery");
+    await page.goto("/");
     await page.getByRole("button", { name: "Отклонить необязательные cookies" }).click();
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow, noarchive");
-    await page.getByRole("textbox", { name: "Email" }).fill(TEST_EMAIL);
-    await page.getByRole("button", { name: "Отправить запрос" }).click();
+    await page.getByRole("button", { name: "Восстановить оплаченный разбор" }).click();
+    await page.getByRole("textbox", { name: "Email оплаты" }).fill(TEST_EMAIL);
+    await page.getByRole("button", { name: "Отправить одноразовую ссылку" }).click();
     await expect(page.getByRole("status")).toContainText("Если заказ найден");
     await assertEmailStayedOutOfBrowserState(page, consoleMessages);
 

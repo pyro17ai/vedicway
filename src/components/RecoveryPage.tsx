@@ -1,11 +1,11 @@
 import { type FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { applySeo } from "../lib/seo";
 import { SiteHeader } from "./SiteHeader";
 
 type RecoveryPageProps = {
-  kind: "access" | "privacy" | "confirm";
+  kind: "privacy" | "confirm";
   onNavigate: (path: string) => void;
 };
 
@@ -29,18 +29,15 @@ export function RecoveryPage({ kind, onNavigate }: RecoveryPageProps) {
   const [privacyType, setPrivacyType] = useState<PrivacyRequestType>("access");
   const [state, setState] = useState<"idle" | "sending" | "accepted" | "error">("idle");
 
-  const access = kind === "access";
   const confirmation = kind === "confirm";
   useEffect(() => applySeo({
-    title: `${confirmation ? "Подтверждение доступа" : access ? "Восстановление доступа" : "Запрос по персональным данным"} | VedicWay`,
+    title: `${confirmation ? "Подтверждение доступа" : "Запрос по персональным данным"} | VedicWay`,
     description: confirmation
       ? "Подтверждение одноразовой ссылки на материалы VedicWay."
-      : access
-      ? "Запрос одноразовой ссылки на оплаченные материалы VedicWay."
       : "Обращение по доступу, удалению или отзыву согласия на обработку персональных данных.",
-    path: confirmation ? "/access/confirm" : access ? "/access/recovery" : "/privacy/request",
+    path: confirmation ? "/access/confirm" : "/privacy/request",
     noindex: true,
-  }), [access, confirmation]);
+  }), [confirmation]);
 
   useEffect(() => {
     if (!confirmation) return undefined;
@@ -63,15 +60,12 @@ export function RecoveryPage({ kind, onNavigate }: RecoveryPageProps) {
     event.preventDefault();
     setState("sending");
     try {
-      const response = await fetch(
-        access ? "/api/v1/access/recovery" : "/api/v1/privacy/requests",
-        {
+      const response = await fetch("/api/v1/privacy/requests", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(access ? { email } : { type: privacyType, email }),
-        },
-      );
+          body: JSON.stringify({ type: privacyType, email }),
+        });
       if (!response.ok) throw new Error("request failed");
       setState("accepted");
     } catch {
@@ -88,17 +82,15 @@ export function RecoveryPage({ kind, onNavigate }: RecoveryPageProps) {
         </button>
         <section className="recovery-card" aria-labelledby="recovery-title">
           <span className="recovery-kicker">
-            {access ? <Mail aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}
-            {confirmation ? "Одноразовая ссылка" : access ? "Оплаченные материалы" : "Персональные данные"}
+            <ShieldCheck aria-hidden="true" />
+            {confirmation ? "Одноразовая ссылка" : "Персональные данные"}
           </span>
           <h1 id="recovery-title">
-            {confirmation ? "Подтвердить доступ" : access ? "Восстановить доступ" : "Отправить обращение"}
+            {confirmation ? "Подтвердить доступ" : "Отправить обращение"}
           </h1>
           <p>
             {confirmation
               ? "Ссылка проверена. Нажмите кнопку, чтобы открыть материалы в этом браузере."
-              : access
-              ? "Укажите email, использованный при оплате. Если с ним связан готовый разбор, мы отправим одноразовые ссылки на карту и PDF."
               : "Укажите email и предмет обращения. Сотрудник сверит право на данные перед исполнением запроса."}
           </p>
 
@@ -109,25 +101,21 @@ export function RecoveryPage({ kind, onNavigate }: RecoveryPageProps) {
             </form>
           ) : state === "accepted" ? (
             <div className="recovery-result" role="status">
-              {access
-                ? "Если заказ найден, письмо придёт на указанный адрес. Проверьте также папку со спамом."
-                : "Обращение принято. Ответ придёт на указанный адрес после проверки личности заявителя."}
+              Обращение принято. Ответ придёт на указанный адрес после проверки личности заявителя.
             </div>
           ) : (
             <form className="recovery-form" onSubmit={submit}>
-              {!access && (
-                <label>
-                  Предмет обращения
-                  <select
-                    value={privacyType}
-                    onChange={(event) => setPrivacyType(event.target.value as PrivacyRequestType)}
-                  >
-                    <option value="access">Получить сведения о данных</option>
-                    <option value="erase">Удалить персональные данные</option>
-                    <option value="withdraw">Отозвать согласие</option>
-                  </select>
-                </label>
-              )}
+              <label>
+                Предмет обращения
+                <select
+                  value={privacyType}
+                  onChange={(event) => setPrivacyType(event.target.value as PrivacyRequestType)}
+                >
+                  <option value="access">Получить сведения о данных</option>
+                  <option value="erase">Удалить персональные данные</option>
+                  <option value="withdraw">Отозвать согласие</option>
+                </select>
+              </label>
               <label>
                 Email
                 <input

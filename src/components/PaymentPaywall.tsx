@@ -195,9 +195,6 @@ export function PaymentPaywall({
             {offerError && <p id="paywall-offer-error" className="paywall-field__error">{offerError}</p>}
 
             <p className="paywall-security"><LockKeyhole aria-hidden="true" /> Реквизиты карты вводятся только на стороне YooKassa.</p>
-            <a className="paywall-recovery-link" href="/access/recovery">
-              Восстановить доступ к оплаченным материалам
-            </a>
             {message && (
               <p
                 className={state === "error" ? "workspace-notice workspace-notice--error" : "paywall__status"}

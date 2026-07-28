@@ -50,12 +50,12 @@ describe("PaymentPaywall", () => {
     expect(screen.getByText(/проверьте адрес email/i)).toBeInTheDocument();
   });
 
-  it("links to the current offer and privacy policy in separate tabs", () => {
+  it("links to legal documents but keeps access recovery outside the paywall", () => {
     renderPaywall();
     expect(screen.getByRole("link", { name: /условия оферты/i })).toHaveAttribute("href", config.offer_url);
     expect(screen.getByRole("link", { name: /политикой обработки данных/i })).toHaveAttribute("href", config.privacy_url);
     expect(screen.getByRole("link", { name: /условия оферты/i })).toHaveAttribute("target", "_blank");
-    expect(screen.getByRole("link", { name: /восстановить доступ/i })).toHaveAttribute("href", "/access/recovery");
+    expect(screen.queryByRole("link", { name: /восстановить доступ/i })).not.toBeInTheDocument();
   });
 
   it("locks double submission while checkout is being created", async () => {

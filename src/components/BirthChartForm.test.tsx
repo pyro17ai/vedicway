@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createChart } from "../lib/chart-api";
@@ -30,20 +31,23 @@ describe("BirthChartForm", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.mocked(searchCities).mockResolvedValue([city]);
+    window.sessionStorage.clear();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 
-  it("показывает постоянные подписи, нативные поля и требует отдельные согласия", () => {
+  it("показывает расчёт без имени и переносит восстановление в hero-карточку", () => {
     render(<BirthChartForm />);
 
-    expect(screen.getByLabelText("Имя")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Имя")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Дата рождения")).toHaveAttribute("type", "date");
     expect(screen.getByLabelText("Время рождения")).toHaveAttribute("type", "time");
     expect(screen.getByRole("combobox", { name: "Место рождения" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Восстановить оплаченный разбор" })).toBeVisible();
     const submit = screen.getByRole("button", { name: /рассчитать карту/i });
     expect(submit).toBeDisabled();
     fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
@@ -51,17 +55,16 @@ describe("BirthChartForm", () => {
     expect(submit).toBeEnabled();
   });
 
-  it("объясняет ошибки после отправки и переводит фокус к первому полю", () => {
+  it("объясняет ошибки после отправки и переводит фокус к дате рождения", () => {
     render(<BirthChartForm />);
     fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
     fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
     fireEvent.click(screen.getByRole("button", { name: /рассчитать карту/i }));
 
-    expect(screen.getByText("Введите имя")).toBeInTheDocument();
     expect(screen.getByText("Укажите дату рождения")).toBeInTheDocument();
     expect(screen.getByText("Укажите время рождения")).toBeInTheDocument();
     expect(screen.getByText("Выберите город из списка")).toBeInTheDocument();
-    expect(screen.getByLabelText("Имя")).toHaveFocus();
+    expect(screen.getByLabelText("Дата рождения")).toHaveFocus();
   });
 
   it("откладывает поиск и выбирает город с клавиатуры", async () => {
@@ -91,7 +94,6 @@ describe("BirthChartForm", () => {
     vi.mocked(createChart).mockResolvedValueOnce({ chart_id: "chart-test-1" });
     render(<BirthChartForm onChartCreated={onChartCreated} />);
 
-    fireEvent.change(screen.getByLabelText("Имя"), { target: { value: "Анна" } });
     fireEvent.change(screen.getByLabelText("Дата рождения"), { target: { value: "1991-04-12" } });
     fireEvent.change(screen.getByLabelText("Время рождения"), { target: { value: "14:25" } });
     const combobox = screen.getByRole("combobox", { name: "Место рождения" });
@@ -126,6 +128,32 @@ describe("BirthChartForm", () => {
     });
     expect(onChartCreated).toHaveBeenCalledWith("chart-test-1");
     expect(screen.getByRole("status")).toHaveTextContent("Карта принята. Переходим к расчёту.");
-    expect(screen.getByLabelText("Имя")).toHaveValue("Анна");
+    expect(
+      Object.keys(window.sessionStorage).some((key) => key.startsWith("vedicway:profile:")),
+    ).toBe(false);
+  });
+
+  it("отправляет восстановление из той же hero-карточки и не сохраняет email в браузере", async () => {
+    vi.useRealTimers();
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ status: "accepted" }), { status: 202 }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<BirthChartForm />);
+
+    await user.click(screen.getByRole("button", { name: "Восстановить оплаченный разбор" }));
+    await user.type(screen.getByRole("textbox", { name: "Email оплаты" }), "buyer@example.com");
+    await user.click(screen.getByRole("button", { name: "Отправить одноразовую ссылку" }));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/access/recovery",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ email: "buyer@example.com" }),
+      }),
+    );
+    expect(await screen.findByRole("status")).toHaveTextContent("Если заказ найден");
+    expect(JSON.stringify({ ...window.sessionStorage })).not.toContain("buyer@example.com");
   });
 });

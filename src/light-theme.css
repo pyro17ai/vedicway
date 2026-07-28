@@ -224,6 +224,26 @@ body {
   color: var(--ember-deep);
 }
 
+.chart-form__recovery-copy,
+.chart-form__back,
+.chart-form__switch {
+  color: var(--ink-muted);
+}
+
+.chart-form__back:hover {
+  color: var(--ink);
+}
+
+.chart-form__switch button {
+  color: var(--ember-deep);
+}
+
+.chart-form__recovery-result {
+  border-color: rgba(169, 76, 34, 0.22);
+  color: var(--ink);
+  background: rgba(200, 93, 40, 0.07);
+}
+
 .input-shell {
   border-color: rgba(98, 67, 43, 0.22);
   background: rgba(255, 252, 246, 0.76);

@@ -7,10 +7,12 @@ import {
   useState,
 } from "react";
 import {
+  ArrowLeft,
   CalendarDays,
   Clock3,
   LoaderCircle,
   LockKeyhole,
+  Mail,
   MapPin,
 } from "lucide-react";
 
@@ -18,10 +20,9 @@ import { ApiError, createChart } from "../lib/chart-api";
 import { trackWorkspaceEvent } from "../lib/analytics";
 import { searchCities, type CityOption } from "../lib/city-search";
 
-type FieldName = "name" | "birthDate" | "birthTime" | "birthPlace";
+type FieldName = "birthDate" | "birthTime" | "birthPlace";
 
 type FormValues = {
-  name: string;
   birthDate: string;
   birthTime: string;
 };
@@ -31,20 +32,21 @@ type SearchState = "idle" | "loading" | "ready" | "empty" | "error";
 
 type BirthChartFormProps = {
   onChartCreated?: (chartId: string) => void;
+  initialMode?: "calculate" | "recovery";
 };
 
 const initialValues: FormValues = {
-  name: "",
   birthDate: "",
   birthTime: "",
 };
+
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function errorForField(
   field: FieldName,
   values: FormValues,
   selectedCity: CityOption | null,
 ) {
-  if (field === "name" && !values.name.trim()) return "Введите имя";
   if (field === "birthDate" && !values.birthDate) return "Укажите дату рождения";
   if (field === "birthDate" && values.birthDate > new Date().toISOString().slice(0, 10)) {
     return "Дата рождения должна быть в прошлом";
@@ -54,8 +56,9 @@ function errorForField(
   return "";
 }
 
-export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
+export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: BirthChartFormProps) {
   const [values, setValues] = useState(initialValues);
+  const [mode, setMode] = useState(initialMode);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>({});
   const [cityQuery, setCityQuery] = useState("");
@@ -70,13 +73,22 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
   const [timeAccuracy, setTimeAccuracy] = useState<"exact" | "approximate_15m" | "approximate_hour" | "unknown">("exact");
   const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoveryState, setRecoveryState] = useState<"idle" | "sending" | "accepted" | "error">("idle");
+  const [recoveryError, setRecoveryError] = useState("");
 
-  const nameRef = useRef<HTMLInputElement>(null);
   const birthDateRef = useRef<HTMLInputElement>(null);
   const birthTimeRef = useRef<HTMLInputElement>(null);
   const birthPlaceRef = useRef<HTMLInputElement>(null);
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  useEffect(() => {
+    for (let index = window.sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = window.sessionStorage.key(index);
+      if (key?.startsWith("vedicway:profile:")) window.sessionStorage.removeItem(key);
+    }
+  }, []);
 
   useEffect(() => {
     const normalizedQuery = cityQuery.trim();
@@ -118,7 +130,6 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
   }, [cityQuery, retryNonce, selectedCity]);
 
   const refs: Record<FieldName, React.RefObject<HTMLInputElement | null>> = {
-    name: nameRef,
     birthDate: birthDateRef,
     birthTime: birthTimeRef,
     birthPlace: birthPlaceRef,
@@ -187,14 +198,14 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
     event.preventDefault();
     setSubmitMessage("");
 
-    const fields: FieldName[] = ["name", "birthDate", "birthTime", "birthPlace"];
+    const fields: FieldName[] = ["birthDate", "birthTime", "birthPlace"];
     const nextErrors = fields.reduce<Errors>((result, field) => {
       const message = errorForField(field, values, selectedCity);
       if (message) result[field] = message;
       return result;
     }, {});
 
-    setTouched({ name: true, birthDate: true, birthTime: true, birthPlace: true });
+    setTouched({ birthDate: true, birthTime: true, birthPlace: true });
     setErrors(nextErrors);
 
     const firstInvalid = fields.find((field) => nextErrors[field]);
@@ -226,7 +237,6 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
         personalDataConsent,
         termsAccepted,
       });
-      window.sessionStorage.setItem(`vedicway:profile:${result.chart_id}`, JSON.stringify({ name: values.name.trim() }));
       trackWorkspaceEvent("chart_create_accepted", { time_accuracy: timeAccuracy });
       setSubmitMessage("Карта принята. Переходим к расчёту.");
       onChartCreated?.(result.chart_id);
@@ -237,45 +247,138 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
     }
   }
 
+  async function handleRecoverySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (recoveryState === "sending") return;
+    const normalizedEmail = recoveryEmail.trim();
+    if (!normalizedEmail || !EMAIL_SHAPE.test(normalizedEmail)) {
+      setRecoveryError("Проверьте адрес email");
+      return;
+    }
+    setRecoveryError("");
+    setRecoveryState("sending");
+    try {
+      const response = await fetch("/api/v1/access/recovery", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      });
+      if (!response.ok) throw new Error("request failed");
+      setRecoveryEmail("");
+      setRecoveryState("accepted");
+      trackWorkspaceEvent("access_recovery_requested");
+    } catch {
+      setRecoveryState("error");
+    }
+  }
+
+  function showRecovery() {
+    setMode("recovery");
+    setRecoveryState("idle");
+    setRecoveryError("");
+    setSubmitMessage("");
+  }
+
+  function showCalculation() {
+    setMode("calculate");
+    setRecoveryEmail("");
+    setRecoveryState("idle");
+    setRecoveryError("");
+  }
+
   return (
     <aside
-      className="chart-card"
+      className={`chart-card${mode === "recovery" ? " chart-card--recovery" : ""}`}
       aria-labelledby="chart-form-title"
       data-od-id="birth-chart-form"
     >
       <header className="chart-card__header">
         <h2 id="chart-form-title">
-          Получите вашу{" "}
-          <span>натальную карту</span>
+          {mode === "recovery" ? (
+            <>Восстановить <span>оплаченный разбор</span></>
+          ) : (
+            <>Получите вашу <span>натальную карту</span></>
+          )}
         </h2>
         <img className="chart-card__star" src="/assets/celestial-star-light.png" alt="" />
       </header>
 
-      <form className="chart-form" onSubmit={handleSubmit} noValidate>
-        <div className="field" data-invalid={Boolean(errors.name) || undefined}>
-          <label htmlFor="name">Имя</label>
-          <div className="input-shell">
-            <input
-              ref={nameRef}
-              id="name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              placeholder="Введите ваше имя"
-              value={values.name}
-              onChange={(event) => updateValue("name", event.target.value)}
-              onBlur={() => handleBlur("name")}
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "name-error" : undefined}
-              required
-            />
-          </div>
-          {errors.name && (
-            <span id="name-error" className="field-error" role="alert">
-              {errors.name}
-            </span>
+      {mode === "recovery" ? (
+        <form className="chart-form chart-form--recovery" onSubmit={handleRecoverySubmit} noValidate>
+          <p className="chart-form__recovery-copy">
+            Введите email, который использовали при оплате. Если по нему найден готовый разбор,
+            мы отправим одноразовые ссылки на карту и PDF.
+          </p>
+
+          {recoveryState === "accepted" ? (
+            <div className="chart-form__recovery-result" role="status">
+              Если заказ найден, письмо с одноразовой ссылкой придёт на указанный адрес.
+              Проверьте также папку со спамом.
+            </div>
+          ) : (
+            <>
+              <div className="field" data-invalid={Boolean(recoveryError) || undefined}>
+                <label htmlFor="recoveryEmail">Email оплаты</label>
+                <div className="input-shell input-shell--icon">
+                  <input
+                    id="recoveryEmail"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    maxLength={320}
+                    placeholder="name@example.ru"
+                    value={recoveryEmail}
+                    onChange={(event) => {
+                      setRecoveryEmail(event.target.value);
+                      if (recoveryError) setRecoveryError("");
+                    }}
+                    aria-invalid={Boolean(recoveryError)}
+                    aria-describedby={recoveryError ? "recovery-email-error" : undefined}
+                    required
+                  />
+                  <Mail aria-hidden="true" />
+                </div>
+                {recoveryError && (
+                  <span id="recovery-email-error" className="field-error" role="alert">
+                    {recoveryError}
+                  </span>
+                )}
+              </div>
+
+              <button
+                className="submit-button"
+                type="submit"
+                aria-label="Отправить одноразовую ссылку"
+                disabled={recoveryState === "sending"}
+              >
+                <span>{recoveryState === "sending" ? "ОТПРАВЛЯЕМ..." : "ОТПРАВИТЬ ОДНОРАЗОВУЮ ССЫЛКУ"}</span>
+                <span className="submit-button__star" aria-hidden="true">
+                  <img src="/assets/celestial-star-light.png" alt="" />
+                </span>
+              </button>
+            </>
           )}
-        </div>
+
+          {recoveryState === "error" && (
+            <p className="chart-form__recovery-error" role="alert">
+              Не удалось отправить запрос. Проверьте соединение и повторите.
+            </p>
+          )}
+
+          <button className="chart-form__back" type="button" onClick={showCalculation}>
+            <ArrowLeft aria-hidden="true" />
+            Вернуться к расчёту
+          </button>
+
+          <div className="privacy-note">
+            <LockKeyhole aria-hidden="true" />
+            <span>Email не сохраняется в браузере и используется только для поиска оплаченного заказа</span>
+          </div>
+        </form>
+      ) : (
+      <form className="chart-form" onSubmit={handleSubmit} noValidate>
 
         <div className="field" data-invalid={Boolean(errors.birthDate) || undefined}>
           <label htmlFor="birthDate">Дата рождения</label>
@@ -477,7 +580,15 @@ export function BirthChartForm({ onChartCreated }: BirthChartFormProps) {
         <div className="submit-status" role="status" aria-live="polite">
           {submitMessage}
         </div>
+
+        <div className="chart-form__switch">
+          <span>Уже оплатили и хотите вернуться к готовой карте?</span>
+          <button type="button" onClick={showRecovery}>
+            Восстановить оплаченный разбор
+          </button>
+        </div>
       </form>
+      )}
     </aside>
   );
 }

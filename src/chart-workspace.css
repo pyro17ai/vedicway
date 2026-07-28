@@ -276,9 +276,6 @@
 .paywall-consent a { color: var(--vw-accent-light); text-underline-offset: 3px; }
 .paywall-security { display: flex; align-items: center; gap: 7px; margin: 17px 0 0 !important; color: var(--vw-fg-dim) !important; font-size: 11px !important; line-height: 1.45 !important; }
 .paywall-security svg { width: 14px; height: 14px; color: var(--vw-accent-light); }
-.paywall-recovery-link { display: inline-block; margin-top: 9px; color: var(--vw-fg-dim); font-size: 11px; text-underline-offset: 3px; transition: color 150ms ease; }
-.paywall-recovery-link:hover { color: var(--vw-accent-light); }
-.paywall-recovery-link:focus-visible { outline: 2px solid var(--vw-accent-light); outline-offset: 3px; border-radius: 2px; }
 .workspace-modal__footer--purchase { align-items: stretch; flex-direction: column; }
 .workspace-modal__footer--purchase > span { color: var(--vw-fg-dim); font-size: 11px; text-align: center; }
 .primary-button { width: 100%; border-color: rgba(231, 120, 50, .65); color: #fff8ef; background: linear-gradient(100deg, #bf581f, #e77832); box-shadow: 0 8px 26px rgba(178, 70, 20, .26); }

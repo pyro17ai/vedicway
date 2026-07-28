@@ -1,9 +1,13 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import App from "./App";
 
 describe("App", () => {
+  afterEach(() => {
+    window.history.replaceState({}, "", "/");
+  });
+
   it("собирает первый экран по продуктовому контракту", () => {
     const { container } = render(<App />);
 
@@ -20,5 +24,14 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Часто задаваемые вопросы" })).toBeInTheDocument();
     expect(container.textContent).not.toMatch(/Hermes|Codex|PyJHora|MCP|искусственн/i);
+  });
+
+  it("открывает старый адрес восстановления внутри главной hero-формы", () => {
+    window.history.replaceState({}, "", "/access/recovery");
+    render(<App />);
+
+    expect(screen.getByText("ПОЗНАЙ СЕБЯ")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Восстановить оплаченный разбор" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Email оплаты" })).toBeInTheDocument();
   });
 });

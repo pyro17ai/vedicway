@@ -560,6 +560,10 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     ));
   }, [resource]);
 
+  useEffect(() => {
+    window.sessionStorage.removeItem(`vedicway:profile:${chartId}`);
+  }, [chartId]);
+
   useGSAP(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     gsap.fromTo(".workspace-panel", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.24, ease: "power3.out", clearProps: "transform" });
@@ -572,9 +576,6 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   const currentDomain = route.domain ? domains.find((domain) => domain.slug === route.domain) ?? null : null;
   const selectedDetail = detailDomain ? domains.find((domain) => domain.slug === detailDomain) ?? null : null;
   const selectedPaywall = paywallDomain ? domains.find((domain) => domain.slug === paywallDomain) ?? null : null;
-  const profileName = useMemo(() => {
-    try { return JSON.parse(window.sessionStorage.getItem(`vedicway:profile:${chartId}`) ?? "{}").name || "Без имени"; } catch { return "Без имени"; }
-  }, [chartId]);
 
   const applyTab = (tab: TabId) => {
     updateRoute({ tab, detail: false, question: null });
@@ -756,7 +757,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     <a className="workspace-skip-link" href="#workspace-content">Перейти к содержанию результата</a>
     <aside className="workspace-rail">
       <button type="button" className="back-link" onClick={onBackToLanding}><ArrowLeft aria-hidden="true" /> Назад к вводу</button>
-      <div className="rail-profile"><span>ВАША КАРТА</span><strong>{profileName}</strong>{resource ? <p>{russianDate(resource.birth.local_date)} · {resource.birth.local_time}<br />{resource.birth.place} · {utcOffset(resource.birth.utc_offset_seconds)}</p> : <p>Проверяем исходные данные</p>}<button type="button" className="rail-edit" onClick={onBackToLanding}>Исправить данные</button></div>
+      <div className="rail-profile"><span>ВАША КАРТА</span><strong>Натальная карта</strong>{resource ? <p>{russianDate(resource.birth.local_date)} · {resource.birth.local_time}<br />{resource.birth.place} · {utcOffset(resource.birth.utc_offset_seconds)}</p> : <p>Проверяем исходные данные</p>}<button type="button" className="rail-edit" onClick={onBackToLanding}>Исправить данные</button></div>
       <nav className="workspace-tabs" role="tablist" aria-label="Разделы результата">{tabConfig.map(({ id, label, compactLabel, Icon }) => <button ref={(node) => { tabs.current[id] = node ?? undefined; }} key={id} id={`workspace-tab-${id}`} type="button" role="tab" aria-selected={route.tab === id} aria-controls={`workspace-panel-${id}`} tabIndex={route.tab === id ? 0 : -1} className={route.tab === id ? "is-active" : ""} onClick={() => applyTab(id)} onKeyDown={(event) => handleTabKeyDown(event, id)}><Icon aria-hidden="true" /><span className="workspace-tabs__label"><span className="workspace-tabs__label-full">{label}</span><span className="workspace-tabs__label-compact">{compactLabel}</span></span><i aria-label={resource?.sections[id === "chart" ? "d1" : id === "explanation" ? "interpretation" : "questions"] === "ready" ? "Раздел готов" : "Раздел готовится"} /></button>)}</nav>
       <div className="rail-bottom"><p className="rail-status" aria-live="polite"><Sparkles aria-hidden="true" /> {statusText(resource, networkState)}</p><button type="button" className="rail-pdf" onClick={() => void downloadPdf()} disabled={resource?.pdf.status === "generating"}><Download aria-hidden="true" /> <span>{resource?.pdf.status === "generating" ? "PDF готовится" : "Скачать PDF"}</span>{!resource?.entitlement.report_full && <LockKeyhole aria-label="Входит в полный отчёт" />}</button><small>{resource?.pdf.status === "ready" ? `PDF · ${resource.pdf.pages ?? ""} стр. · ${byteSize(resource.pdf.size_bytes) ?? ""}` : resource?.entitlement.report_full ? "PDF войдёт в полный отчёт" : "Входит в полный отчёт"}</small></div>
     </aside>
