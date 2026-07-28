@@ -34,4 +34,15 @@ describe("App", () => {
     expect(screen.getByRole("heading", { name: "Восстановить оплаченный разбор" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Email оплаты" })).toBeInTheDocument();
   });
+
+  it.each([
+    ["/legal/offer", "Публичная оферта и пользовательское соглашение"],
+    ["/legal/privacy", "Политика обработки персональных данных"],
+  ])("открывает платёжный legal-маршрут %s вместо 404", (path, heading) => {
+    window.history.replaceState({}, "", path);
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Страница не найдена" })).not.toBeInTheDocument();
+  });
 });

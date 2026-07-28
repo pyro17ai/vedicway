@@ -20,6 +20,8 @@ RUN test -n "$VITE_PUBLIC_ORIGIN" \
     && node scripts/prerender-seo.mjs \
     && test -s dist/index.html \
     && test -s dist/guide/index.html \
+    && test -s dist/legal/offer/index.html \
+    && test -s dist/legal/privacy/index.html \
     && test -s dist/legal/user-agreement/index.html \
     && test -s dist/legal/privacy-policy/index.html \
     && test -s dist/legal/personal-data-consent/index.html \

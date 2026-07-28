@@ -148,7 +148,7 @@ export function FaqSection() {
           <footer className="faq-footer">
             <Ornament position="bottom" />
             <p>
-              Не нашли ответ? {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Свяжитесь с нами <span aria-hidden="true">→</span></a> : <a href="/legal/privacy-policy">Контакты оператора <span aria-hidden="true">→</span></a>}
+              Не нашли ответ? {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Свяжитесь с нами <span aria-hidden="true">→</span></a> : <a href="/legal/privacy">Контакты оператора <span aria-hidden="true">→</span></a>}
             </p>
           </footer>
         </div>
@@ -175,13 +175,13 @@ export function FaqSection() {
           </div>
 
           <nav className="faq-legal-footer__links" aria-label="Правовая информация">
-            <a href="/legal/user-agreement">Пользовательское соглашение</a>
-            <a href="/legal/privacy-policy">Политика обработки персональных данных</a>
+            <a href="/legal/offer">Публичная оферта</a>
+            <a href="/legal/privacy">Политика обработки персональных данных</a>
             <a href="/legal/personal-data-consent">Согласие на обработку персональных данных</a>
             <a href="/legal/cookies">Политика cookies</a>
             <a href="/privacy/request">Запрос по персональным данным</a>
             <button type="button" onClick={() => window.dispatchEvent(new Event("vedicway:open-cookie-settings"))}>Настроить cookies</button>
-            {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Контакты</a> : <a href="/legal/privacy-policy">Контакты</a>}
+            {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Контакты</a> : <a href="/legal/privacy">Контакты</a>}
           </nav>
 
           <p className="faq-legal-footer__copyright">© 2026 VedicWay · Материал предназначен для самонаблюдения и знакомства с астрологической традицией.</p>

@@ -33,6 +33,18 @@ function mockLegalConfig() {
 }
 
 describe("LegalPage interpretation processor disclosure", () => {
+  it("публикует оферту с порядком акцепта и законными правами потребителя", async () => {
+    mockLegalConfig();
+    render(<LegalPage kind="terms" onNavigate={() => undefined} />);
+
+    expect(await screen.findByText(/Акцептом оферты для платной услуги/)).toBeInTheDocument();
+    expect(screen.getByRole("heading", {
+      name: "Публичная оферта и пользовательское соглашение",
+    })).toBeInTheDocument();
+    expect(screen.getByText(/фактически понесённых расходов/)).toBeInTheDocument();
+    expect(screen.getByText(/десятидневный срок/)).toBeInTheDocument();
+  });
+
   it("называет обработчика, цель, категории и трансграничную передачу в политике", async () => {
     mockLegalConfig();
     render(<LegalPage kind="privacy" onNavigate={() => undefined} />);
@@ -53,6 +65,14 @@ describe("LegalPage interpretation processor disclosure", () => {
 
     const heading = await screen.findByRole("heading", { name: "Разрешённые действия" });
     expect(heading.closest("section")).toHaveTextContent("Example Processor LLC");
-    expect(screen.getByText("Редакция от 2026-07-19-v2")).toBeInTheDocument();
+    expect(screen.getByText("Редакция от 2026-07-28")).toBeInTheDocument();
+  });
+
+  it("не заявляет обработку имени, которого больше нет в форме и хранилище", async () => {
+    mockLegalConfig();
+    const { container } = render(<LegalPage kind="privacy" onNavigate={() => undefined} />);
+
+    await screen.findByRole("heading", { name: "2. Какие данные обрабатываются" });
+    expect(container).not.toHaveTextContent("имя для подписи результата");
   });
 });

@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from typing import Literal
 from urllib.parse import urlsplit
 
+from .legal_config import LEGAL_DOCUMENT_VERSIONS
+
 OFFICIAL_YOOKASSA_API_BASE_URL = "https://api.yookassa.ru/v3"
 
 
@@ -147,6 +149,10 @@ class PaymentSettings:
         privacy_url = _absolute_url("VEDICWAY_PRIVACY_URL", privacy_url, require_https=production)
         if not offer_version:
             raise PaymentConfigurationError("VEDICWAY_OFFER_VERSION is required")
+        if production and offer_version != LEGAL_DOCUMENT_VERSIONS["terms"]:
+            raise PaymentConfigurationError(
+                "VEDICWAY_OFFER_VERSION must match the published offer version"
+            )
 
         operations_token = os.getenv("VEDICWAY_OPERATIONS_TOKEN", "").strip() or None
         operations_networks = _networks(

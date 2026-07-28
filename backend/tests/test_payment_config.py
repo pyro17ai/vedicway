@@ -38,7 +38,7 @@ def _production(monkeypatch: pytest.MonkeyPatch) -> None:
         "VEDICWAY_ENV": "production",
         "VEDICWAY_PAYMENT_PROVIDER": "yookassa",
         "VEDICWAY_PUBLIC_BASE_URL": "https://vedicway.example",
-        "VEDICWAY_OFFER_VERSION": "2026-07-18",
+        "VEDICWAY_OFFER_VERSION": "2026-07-28",
         "VEDICWAY_OFFER_URL": "https://vedicway.example/legal/offer",
         "VEDICWAY_PRIVACY_URL": "https://vedicway.example/legal/privacy",
         "VEDICWAY_OPERATIONS_TOKEN": "ops_" + "x" * 48,
@@ -148,6 +148,16 @@ def test_production_forbids_custom_yookassa_origin(monkeypatch: pytest.MonkeyPat
     monkeypatch.setenv("YOOKASSA_API_BASE_URL", "https://payments.example/v3")
 
     with pytest.raises(PaymentConfigurationError, match="YOOKASSA_API_BASE_URL"):
+        PaymentSettings.from_environment()
+
+
+def test_production_rejects_offer_version_that_is_not_published(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _production(monkeypatch)
+    monkeypatch.setenv("VEDICWAY_OFFER_VERSION", "2026-07-19")
+
+    with pytest.raises(PaymentConfigurationError, match="VEDICWAY_OFFER_VERSION"):
         PaymentSettings.from_environment()
 
 

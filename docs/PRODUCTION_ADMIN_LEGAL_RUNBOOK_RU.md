@@ -33,8 +33,8 @@ VEDICWAY_INTERPRETATION_PROCESSOR_PURPOSE=<утверждённая цель п�
 VEDICWAY_INTERPRETATION_PROCESSOR_DATA_CATEGORIES=<категории через символ |>
 VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER=<0 или 1>
 VEDICWAY_OFFER_VERSION=<версия опубликованного пользовательского соглашения>
-VEDICWAY_OFFER_URL=https://vedicway.ru/legal/user-agreement
-VEDICWAY_PRIVACY_URL=https://vedicway.ru/legal/privacy-policy
+VEDICWAY_OFFER_URL=https://vedicway.ru/legal/offer
+VEDICWAY_PRIVACY_URL=https://vedicway.ru/legal/privacy
 ```
 
 Frontend получает `VITE_YANDEX_METRIKA_ID` во время production-сборки. Пререндер сохраняет публичный ID в meta-теге главной страницы и гида; meta-тег не загружает Метрику и нужен для строгой сверки release contract. Без согласия посетителя скрипт Метрики не загружается. Вебвизор выключен. CSP разрешает `yastatic.net` только в `script-src`, как требует внешний режим загрузки Метрики.

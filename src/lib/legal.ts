@@ -1,7 +1,7 @@
 export const LEGAL_DOCUMENT_VERSIONS = {
-  terms: "2026-07-19",
-  privacy: "2026-07-19-v2",
-  personalDataConsent: "2026-07-19-v2",
+  terms: "2026-07-28",
+  privacy: "2026-07-28",
+  personalDataConsent: "2026-07-28",
   cookies: "2026-07-19",
 } as const;
 
@@ -110,6 +110,8 @@ function safePagePath(value: unknown) {
   if ([
     "/",
     "/guide",
+    "/legal/offer",
+    "/legal/privacy",
     "/legal/user-agreement",
     "/legal/privacy-policy",
     "/legal/personal-data-consent",

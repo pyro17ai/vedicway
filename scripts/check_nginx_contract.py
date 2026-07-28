@@ -38,7 +38,14 @@ REQUIRED_RECOVERY_GUARD = (
 
 REQUIRED_LEGAL_GUARD = tuple(
     f"location = /legal/{slug} {{ try_files /legal/{slug}/index.html =404; expires -1; }}"
-    for slug in ("user-agreement", "privacy-policy", "personal-data-consent", "cookies")
+    for slug in (
+        "offer",
+        "privacy",
+        "user-agreement",
+        "privacy-policy",
+        "personal-data-consent",
+        "cookies",
+    )
 ) + ("location ^~ /legal/ { return 404; }",)
 
 

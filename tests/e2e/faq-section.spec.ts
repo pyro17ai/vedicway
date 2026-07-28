@@ -55,7 +55,7 @@ test("FAQ повторяет референс и не меняет высоту 
   await page.locator(".faq-section").screenshot({ path: "artifacts/faq-desktop-1672x941.png" });
   await expectStableFaqHeight(page);
   await expect(page.locator(".faq-legal-footer")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Политика обработки персональных данных" })).toHaveAttribute("href", "/legal/privacy-policy");
+  await expect(page.getByRole("link", { name: "Политика обработки персональных данных" })).toHaveAttribute("href", "/legal/privacy");
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);

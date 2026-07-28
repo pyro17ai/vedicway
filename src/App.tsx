@@ -171,6 +171,8 @@ function guideSlugFromPath(pathname: string) {
 }
 
 const legalRoutes: Record<string, LegalDocumentKind> = {
+  "/legal/offer": "terms",
+  "/legal/privacy": "privacy",
   "/legal/user-agreement": "terms",
   "/legal/privacy-policy": "privacy",
   "/legal/personal-data-consent": "consent",

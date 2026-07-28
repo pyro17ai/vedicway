@@ -561,7 +561,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
           </label>
           <label>
             <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
-            <span>Принимаю <a href="/legal/user-agreement" target="_blank" rel="noreferrer">пользовательское соглашение</a></span>
+            <span>Принимаю <a href="/legal/offer" target="_blank" rel="noreferrer">публичную оферту и пользовательское соглашение</a></span>
           </label>
         </div>
 
