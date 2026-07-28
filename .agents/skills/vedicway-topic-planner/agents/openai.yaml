@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Topic Planner"
+  short_description: "Cluster Yandex demand into prioritized article topics"
+  default_prompt: "Use $vedicway-topic-planner to select the next VedicWay article topic."

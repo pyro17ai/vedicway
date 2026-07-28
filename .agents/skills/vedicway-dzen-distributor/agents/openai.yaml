@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Dzen Distributor"
+  short_description: "Verify the Dzen RSS distribution contract"
+  default_prompt: "Use $vedicway-dzen-distributor to validate Dzen delivery for this article."

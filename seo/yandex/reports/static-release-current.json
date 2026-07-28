@@ -1,0 +1,13 @@
+{
+  "site_dir": "dist",
+  "contract": "seo\\yandex\\yandex-release-contract.json",
+  "errors": 1,
+  "warnings": 0,
+  "findings": [
+    {
+      "level": "ERROR",
+      "location": "site.metrika.counter_id",
+      "message": "Нужен настоящий положительный ID счётчика."
+    }
+  ]
+}

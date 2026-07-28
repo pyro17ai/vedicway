@@ -199,6 +199,7 @@ services:
       VEDICWAY_SECRET_PROFILE: api
       VEDICWAY_OPERATIONS_TOKEN_FILE: /run/secrets/vedicway_operations_token
       VEDICWAY_METRICS_TOKEN_FILE: /run/secrets/vedicway_metrics_token
+      VEDICWAY_SEO_AGENT_TOKEN_FILE: /run/secrets/vedicway_seo_agent_token
       YOOKASSA_SHOP_ID_FILE: /run/secrets/yookassa_shop_id
       YOOKASSA_SECRET_KEY_FILE: /run/secrets/yookassa_secret_key
     secrets:
@@ -207,6 +208,7 @@ services:
       - vedicway_signing_key
       - vedicway_operations_token
       - vedicway_metrics_token
+      - vedicway_seo_agent_token
       - yookassa_shop_id
       - yookassa_secret_key
     networks:
@@ -240,6 +242,73 @@ services:
     depends_on:
       content-migrate:
         condition: service_completed_successfully
+
+  seo-agent:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["seo"]
+    command: ["python", "-m", "seo_agent.scheduler", "daemon"]
+    working_dir: /opt/vedicway
+    user: "10001:10001"
+    env_file:
+      - .env.production
+    environment:
+      VEDICWAY_ENV: production
+      VEDICWAY_SECRET_PROFILE: seo-agent
+      VEDICWAY_SEO_AGENT_ENABLED: ${VEDICWAY_SEO_AGENT_ENABLED:-0}
+      VEDICWAY_SEO_AGENT_BASE_URL: http://backend:8000
+      VEDICWAY_SEO_DATA_DIR: /var/lib/vedicway/seo-agent
+      VEDICWAY_SEO_DB: /var/lib/vedicway/seo-agent/vedicway_seo_agent.sqlite3
+      VEDICWAY_SEO_AGENT_WORKDIR: /opt/vedicway
+      VEDICWAY_CODEX_EXECUTABLE: /usr/local/bin/codex
+      VEDICWAY_CODEX_SERVICE_TIER: ${VEDICWAY_CODEX_SERVICE_TIER:-fast}
+      VEDICWAY_SEO_JOB_TIMEOUT_SECONDS: ${VEDICWAY_SEO_JOB_TIMEOUT_SECONDS:-3600}
+      VEDICWAY_SEO_MIN_ARTICLE_CHARS: ${VEDICWAY_SEO_MIN_ARTICLE_CHARS:-4500}
+      VEDICWAY_PUBLIC_ORIGIN: ${VEDICWAY_PUBLIC_ORIGIN}
+      VEDICWAY_DZEN_PUBLICATION_MODE: ${VEDICWAY_DZEN_PUBLICATION_MODE:-native-draft}
+      VEDICWAY_YANDEX_HOST_ID: ${VEDICWAY_YANDEX_HOST_ID:-}
+      VEDICWAY_METRIKA_COUNTER_ID: ${VEDICWAY_METRIKA_COUNTER_ID:-}
+      VEDICWAY_SEO_CODEX_HOME: /var/lib/vedicway/seo-codex-home
+      OPENAI_API_KEY_FILE: /run/secrets/codex_api_key
+      VEDICWAY_SEO_AGENT_TOKEN_FILE: /run/secrets/vedicway_seo_agent_token
+      VEDICWAY_YANDEX_SEARCH_API_KEY_FILE: /run/secrets/yandex_search_api_key
+      VEDICWAY_YANDEX_FOLDER_ID_FILE: /run/secrets/yandex_folder_id
+      VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE: /run/secrets/yandex_webmaster_token
+      VEDICWAY_YANDEX_METRIKA_TOKEN_FILE: /run/secrets/yandex_metrika_token
+      CODEX_HOME: /var/lib/vedicway/seo-codex-home
+      HOME: /var/lib/vedicway/seo-codex-home
+      PYTHONPATH: /opt/vedicway:/opt/vedicway/backend/src
+    secrets:
+      - codex_api_key
+      - vedicway_seo_agent_token
+      - yandex_search_api_key
+      - yandex_folder_id
+      - yandex_webmaster_token
+      - yandex_metrika_token
+    volumes:
+      - seo_agent_data:/var/lib/vedicway/seo-agent
+      - seo_codex_home:/var/lib/vedicway/seo-codex-home
+    networks:
+      - edge
+      - seo-egress
+    depends_on:
+      backend:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-m", "seo_agent.cli", "health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
 
   email:
     <<: *backend-common
@@ -407,6 +476,31 @@ services:
       - ALL
     restart: "no"
 
+  seo-agent-backup:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    entrypoint: ["python", "-m", "seo_agent.backup"]
+    command: ["backup"]
+    user: "10001:10001"
+    environment:
+      VEDICWAY_SEO_DATA_DIR: /var/lib/vedicway/seo-agent
+      VEDICWAY_SEO_DB: /var/lib/vedicway/seo-agent/vedicway_seo_agent.sqlite3
+      BACKUP_DIR: /backups
+      BACKUP_SET_ID: ${BACKUP_SET_ID:-}
+      PYTHONPATH: /opt/vedicway
+    volumes:
+      - seo_agent_data:/var/lib/vedicway/seo-agent
+      - ./backups:/backups
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
   backup-bundle:
     image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
     profiles: ["ops"]
@@ -457,6 +551,33 @@ services:
       - ALL
     restart: "no"
 
+  seo-agent-restore:
+    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
+    profiles: ["ops"]
+    entrypoint: ["python", "-m", "seo_agent.backup"]
+    command: ["restore"]
+    user: "10001:10001"
+    environment:
+      VEDICWAY_SEO_DATA_DIR: /var/lib/vedicway/seo-agent
+      VEDICWAY_SEO_DB: /var/lib/vedicway/seo-agent/vedicway_seo_agent.sqlite3
+      BACKUP_DIR: ${RESTORE_BACKUP_DIR:-/backups}
+      RESTORE_SEO_FILE: ${RESTORE_SEO_FILE:-}
+      RESTORE_SET_ID: ${RESTORE_SET_ID:-}
+      CONFIRM_SEO_RESTORE: ${CONFIRM_SEO_RESTORE:-}
+      PYTHONPATH: /opt/vedicway
+    volumes:
+      - seo_agent_data:/var/lib/vedicway/seo-agent
+      - ./backups:/backups:ro
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m,uid=10001,gid=10001,mode=1770
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: "no"
+
 networks:
   edge:
     internal: true
@@ -475,11 +596,14 @@ networks:
   # separate API and worker egress so the host firewall/proxy can police them.
   api-egress:
   worker-egress:
+  seo-egress:
 
 volumes:
   postgres_data:
   runtime_data:
   media_data:
+  seo_agent_data:
+  seo_codex_home:
 
 configs:
   places:
@@ -496,6 +620,16 @@ secrets:
     file: ${VEDICWAY_OPERATIONS_TOKEN_FILE:-./secrets/vedicway_operations_token.txt}
   vedicway_metrics_token:
     file: ${VEDICWAY_METRICS_TOKEN_FILE:-./secrets/vedicway_metrics_token.txt}
+  vedicway_seo_agent_token:
+    file: ${VEDICWAY_SEO_AGENT_TOKEN_FILE:-./secrets/vedicway_seo_agent_token.txt}
+  yandex_search_api_key:
+    file: ${VEDICWAY_YANDEX_SEARCH_API_KEY_FILE:-./secrets/vedicway_yandex_search_api_key.txt}
+  yandex_folder_id:
+    file: ${VEDICWAY_YANDEX_FOLDER_ID_FILE:-./secrets/vedicway_yandex_folder_id.txt}
+  yandex_webmaster_token:
+    file: ${VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE:-./secrets/vedicway_yandex_webmaster_token.txt}
+  yandex_metrika_token:
+    file: ${VEDICWAY_YANDEX_METRIKA_TOKEN_FILE:-./secrets/vedicway_yandex_metrika_token.txt}
   yookassa_shop_id:
     file: ${YOOKASSA_SHOP_ID_FILE:-./secrets/yookassa_shop_id.txt}
   yookassa_secret_key:

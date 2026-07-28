@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay SEO Ledger"
+  short_description: "Use the isolated SEO ledger and durable run contracts"
+  default_prompt: "Use $vedicway-seo-ledger to record this SEO run safely."

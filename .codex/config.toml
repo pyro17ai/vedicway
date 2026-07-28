@@ -1,0 +1,27 @@
+[mcp_servers.vedicway-yandex-search]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "search"]
+env_vars = ["VEDICWAY_YANDEX_SEARCH_API_KEY", "VEDICWAY_YANDEX_FOLDER_ID"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.vedicway-yandex-wordstat]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "wordstat"]
+env_vars = ["VEDICWAY_YANDEX_SEARCH_API_KEY", "VEDICWAY_YANDEX_FOLDER_ID"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.vedicway-yandex-webmaster]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "webmaster"]
+env_vars = ["VEDICWAY_YANDEX_WEBMASTER_TOKEN"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.vedicway-yandex-metrika]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "metrika"]
+env_vars = ["VEDICWAY_YANDEX_METRIKA_TOKEN"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120

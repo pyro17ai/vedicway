@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Article Quality Gate"
+  short_description: "Block thin risky or unverifiable astrology articles"
+  default_prompt: "Use $vedicway-article-quality-gate to audit the article before publishing."

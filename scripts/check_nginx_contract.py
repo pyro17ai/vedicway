@@ -11,6 +11,12 @@ REQUIRED_ARTICLE_GUARD = (
     "location = /assets/seo-entry.css {",
 )
 
+REQUIRED_DZEN_GUARD = (
+    "location = /feed/dzen.xml {",
+    "proxy_pass http://vedicway_backend/api/v1/seo/dzen.xml;",
+    "error_page 502 503 504 =503 /50x.html;",
+)
+
 REQUIRED_METRIKA_CSP = (
     "script-src 'self' https://mc.yandex.ru https://mc.yandex.com https://yastatic.net;",
 )
@@ -47,6 +53,9 @@ def main() -> None:
         raise SystemExit(f"Article SEO proxy is incomplete: {', '.join(missing)}")
     if "location ~ ^/guide/[^/]+/?$" in config:
         raise SystemExit("Legacy guide SPA fallback still returns 200 for unknown article slugs")
+    missing_dzen = [fragment for fragment in REQUIRED_DZEN_GUARD if fragment not in config]
+    if missing_dzen:
+        raise SystemExit(f"Dzen RSS proxy is incomplete: {', '.join(missing_dzen)}")
     missing_csp = [fragment for fragment in REQUIRED_METRIKA_CSP if fragment not in config]
     if missing_csp:
         raise SystemExit(

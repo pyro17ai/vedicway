@@ -20,6 +20,17 @@ read_secret() {
 
 if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
   profile="${VEDICWAY_SECRET_PROFILE:-api}"
+
+  if [ "$profile" = "seo-agent" ]; then
+    read_secret OPENAI_API_KEY "${OPENAI_API_KEY_FILE:-/run/secrets/codex_api_key}"
+    read_secret VEDICWAY_SEO_AGENT_TOKEN "${VEDICWAY_SEO_AGENT_TOKEN_FILE:-/run/secrets/vedicway_seo_agent_token}"
+    read_secret VEDICWAY_YANDEX_SEARCH_API_KEY "${VEDICWAY_YANDEX_SEARCH_API_KEY_FILE:-/run/secrets/yandex_search_api_key}"
+    read_secret VEDICWAY_YANDEX_FOLDER_ID "${VEDICWAY_YANDEX_FOLDER_ID_FILE:-/run/secrets/yandex_folder_id}"
+    read_secret VEDICWAY_YANDEX_WEBMASTER_TOKEN "${VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE:-/run/secrets/yandex_webmaster_token}"
+    read_secret VEDICWAY_YANDEX_METRIKA_TOKEN "${VEDICWAY_YANDEX_METRIKA_TOKEN_FILE:-/run/secrets/yandex_metrika_token}"
+    exec "$@"
+  fi
+
   read_secret VEDICWAY_DATA_KEY "${VEDICWAY_DATA_KEY_FILE:-/run/secrets/vedicway_data_key}"
   read_secret VEDICWAY_SIGNING_KEY "${VEDICWAY_SIGNING_KEY_FILE:-/run/secrets/vedicway_signing_key}"
 
@@ -37,6 +48,7 @@ if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
     read_secret VEDICWAY_METRICS_TOKEN "${VEDICWAY_METRICS_TOKEN_FILE:-/run/secrets/vedicway_metrics_token}"
     read_secret YOOKASSA_SHOP_ID "${YOOKASSA_SHOP_ID_FILE:-/run/secrets/yookassa_shop_id}"
     read_secret YOOKASSA_SECRET_KEY "${YOOKASSA_SECRET_KEY_FILE:-/run/secrets/yookassa_secret_key}"
+    read_secret VEDICWAY_SEO_AGENT_TOKEN "${VEDICWAY_SEO_AGENT_TOKEN_FILE:-/run/secrets/vedicway_seo_agent_token}"
   elif [ "$profile" = "worker" ]; then
     read_secret OPENAI_API_KEY "${OPENAI_API_KEY_FILE:-/run/secrets/codex_api_key}"
   else

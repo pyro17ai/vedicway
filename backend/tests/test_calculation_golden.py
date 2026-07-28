@@ -16,7 +16,7 @@ from vedicway_backend.places import PlaceRegistry
 from vedicway_backend.schemas import ChartCreateRequest, ChartSnapshot
 from vedicway_backend.time_normalization import resolve_birth_input
 
-PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"))
+PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src"))
 
 
 @pytest.mark.skipif(not PYJHORA_SOURCE.exists(), reason="own PyJHora source is required")

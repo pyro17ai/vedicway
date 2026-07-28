@@ -364,6 +364,10 @@ class ContentDatabase:
         with self.session() as database:
             return database.get(Article, article_id)
 
+    def get_article_by_slug(self, slug: str) -> Article | None:
+        with self.session() as database:
+            return database.scalar(select(Article).where(Article.slug == slug))
+
     def get_published_article_by_slug(self, slug: str) -> Article | None:
         with self.session() as database:
             return database.scalar(
@@ -380,7 +384,7 @@ class ContentDatabase:
     def save_article(
         self,
         values: dict[str, Any],
-        author_id: str,
+        author_id: str | None,
         article_id: str | None = None,
         expected_revision: int | None = None,
     ) -> Article:
@@ -430,7 +434,7 @@ class ContentDatabase:
             database.delete(article)
             return True
 
-    def add_media(self, values: dict[str, Any], user_id: str) -> MediaAsset:
+    def add_media(self, values: dict[str, Any], user_id: str | None) -> MediaAsset:
         with self.session() as database:
             asset = MediaAsset(**values, uploaded_by=user_id)
             database.add(asset)
@@ -617,6 +621,7 @@ def production_configuration_errors(database: ContentDatabase) -> list[str]:
             "VEDICWAY_DATA_DIR",
             "VEDICWAY_MEDIA_DIR",
             "VEDICWAY_SIGNING_KEY",
+            "VEDICWAY_SEO_AGENT_TOKEN",
         )
         if not os.environ.get(name, "").strip()
     ]

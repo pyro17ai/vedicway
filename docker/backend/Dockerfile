@@ -27,7 +27,26 @@ RUN npm ci --no-audit --no-fund \
     && npx playwright install --with-deps chromium \
     && rm -rf /root/.cache /var/lib/apt/lists/*
 
+COPY seo_agent/mcp/package.json seo_agent/mcp/package-lock.json ./seo_agent/mcp/
+RUN npm ci --prefix /opt/vedicway/seo_agent/mcp --omit=dev --no-audit --no-fund
+
 COPY backend ./backend
+COPY seo_agent ./seo_agent
+COPY seo/yandex/keyword-demand.csv seo/yandex/serp-evidence.md ./seo/yandex/
+COPY .agents/skills/vedic-astrology ./.agents/skills/vedic-astrology
+COPY .agents/skills/vedicway-seo-ledger ./.agents/skills/vedicway-seo-ledger
+COPY .agents/skills/vedicway-yandex-signals ./.agents/skills/vedicway-yandex-signals
+COPY .agents/skills/vedicway-topic-planner ./.agents/skills/vedicway-topic-planner
+COPY .agents/skills/vedicway-content-brief ./.agents/skills/vedicway-content-brief
+COPY .agents/skills/vedicway-article-writer ./.agents/skills/vedicway-article-writer
+COPY .agents/skills/vedicway-article-editor-ru ./.agents/skills/vedicway-article-editor-ru
+COPY .agents/skills/vedicway-article-quality-gate ./.agents/skills/vedicway-article-quality-gate
+COPY .agents/skills/vedicway-article-media ./.agents/skills/vedicway-article-media
+COPY .agents/skills/vedicway-article-optimizer ./.agents/skills/vedicway-article-optimizer
+COPY .agents/skills/vedicway-site-publisher ./.agents/skills/vedicway-site-publisher
+COPY .agents/skills/vedicway-dzen-distributor ./.agents/skills/vedicway-dzen-distributor
+COPY .agents/skills/vedicway-lifecycle-review ./.agents/skills/vedicway-lifecycle-review
+COPY .codex ./.codex
 COPY scripts/wheelhouse_contract.py ./scripts/wheelhouse_contract.py
 COPY --from=pyjhora . /tmp/pyjhora-wheelhouse
 RUN python -m venv /opt/venv \
@@ -40,7 +59,7 @@ RUN python -m venv /opt/venv \
     && rm -rf /tmp/pyjhora-wheelhouse \
     && groupadd --gid 10001 vedicway \
     && useradd --uid 10001 --gid 10001 --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin vedicway \
-    && mkdir -p /var/lib/vedicway/data /var/lib/vedicway/media /var/lib/vedicway/codex-home /var/lib/vedicway/agent-workdir \
+    && mkdir -p /var/lib/vedicway/data /var/lib/vedicway/media /var/lib/vedicway/codex-home /var/lib/vedicway/agent-workdir /var/lib/vedicway/seo-agent /var/lib/vedicway/seo-codex-home \
     && chown -R 10001:10001 /var/lib/vedicway /ms-playwright /opt/vedicway/backend
 
 COPY docker/backend/entrypoint.sh /usr/local/bin/vedicway-entrypoint

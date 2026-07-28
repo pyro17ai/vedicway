@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Content Brief"
+  short_description: "Build evidence-backed briefs for astrology articles"
+  default_prompt: "Use $vedicway-content-brief to prepare an approved article brief."

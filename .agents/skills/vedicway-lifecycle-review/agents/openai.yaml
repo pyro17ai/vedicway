@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Lifecycle Review"
+  short_description: "Turn Yandex performance data into measured updates"
+  default_prompt: "Use $vedicway-lifecycle-review to review published article performance."

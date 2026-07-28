@@ -1,0 +1,4 @@
+interface:
+  display_name: "Оптимизатор SEO-статей VedicWay"
+  short_description: "Исполняет доказанные lifecycle-задачи под тем же URL"
+  default_prompt: "Возьми одну optimization action VedicWay, обнови статью под тем же slug, проведи quality gate и опубликуй проверенную ревизию."

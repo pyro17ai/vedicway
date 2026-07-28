@@ -14,7 +14,7 @@ from vedicway_backend.schemas import PdfRenderPreferences
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
-PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"))
+PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src"))
 LEGAL = {
     "personal_data": True,
     "personal_data_version": "2026-07-19-v2",

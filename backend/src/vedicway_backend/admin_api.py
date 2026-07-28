@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import hmac
 import io
 import json
@@ -8,6 +9,8 @@ import os
 import re
 import shutil
 import uuid
+from datetime import UTC, datetime, timedelta
+from email.utils import format_datetime
 from html import escape
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -271,26 +274,66 @@ def _absolute_public_url(origin: str, value: str | None) -> str | None:
     return value if parsed.scheme in {"http", "https"} and parsed.netloc else None
 
 
-def _article_content_html(content: str) -> str:
+def _inline_article_html(value: str, origin: str) -> str:
     rendered: list[str] = []
-    for block in re.split(r"\n{2,}", content.strip()):
-        block = re.sub(r"\{\{media:[a-f0-9-]{36}\}\}", "", block).strip()
-        if not block:
-            continue
-        if block.startswith("### "):
-            rendered.append(f"<h3>{escape(block[4:].strip())}</h3>")
-        elif block.startswith("## "):
-            rendered.append(f"<h2>{escape(block[3:].strip())}</h2>")
+    cursor = 0
+    for match in re.finditer(r"\[([^\]\n]{1,240})\]\(([^\s)]+)\)", value):
+        rendered.append(escape(value[cursor : match.start()]))
+        label, url = match.group(1), match.group(2)
+        parsed = urlsplit(url)
+        if url.startswith("/") or (parsed.scheme in {"http", "https"} and parsed.netloc):
+            absolute = f"{origin}{url}" if url.startswith("/") else url
+            relation = "" if absolute.startswith(f"{origin}/") else ' rel="nofollow noopener noreferrer"'
+            rendered.append(f'<a href="{escape(absolute)}"{relation}>{escape(label)}</a>')
         else:
-            rendered.append(f"<p>{'<br />'.join(escape(line) for line in block.splitlines())}</p>")
+            rendered.append(escape(match.group(0)))
+        cursor = match.end()
+    rendered.append(escape(value[cursor:]))
     return "".join(rendered)
 
 
-def _article_seo_html(article: Any) -> str:
+def _article_content_html(content: str, database: ContentDatabase, origin: str) -> str:
+    rendered: list[str] = []
+    for block in re.split(r"\n{2,}", content.strip()):
+        block = block.strip()
+        if not block:
+            continue
+        media_match = re.fullmatch(r"\{\{media:([a-f0-9-]{36})\}\}", block)
+        if media_match:
+            asset = database.get_media(media_match.group(1))
+            if asset:
+                url = _absolute_public_url(origin, asset.public_url)
+                if url:
+                    caption = f"<figcaption>{escape(asset.caption)}</figcaption>" if asset.caption else ""
+                    rendered.append(
+                        f'<figure><img src="{escape(url)}" alt="{escape(asset.alt_text)}" '
+                        f'width="{asset.width}" height="{asset.height}" loading="lazy" />{caption}</figure>'
+                    )
+            continue
+        if block.startswith("### "):
+            rendered.append(f"<h3>{_inline_article_html(block[4:].strip(), origin)}</h3>")
+        elif block.startswith("## "):
+            rendered.append(f"<h2>{_inline_article_html(block[3:].strip(), origin)}</h2>")
+        elif all(line.startswith("- ") for line in block.splitlines() if line.strip()):
+            items = "".join(
+                f"<li>{_inline_article_html(line[2:].strip(), origin)}</li>"
+                for line in block.splitlines()
+                if line.strip()
+            )
+            rendered.append(f"<ul>{items}</ul>")
+        else:
+            rendered.append(
+                f"<p>{'<br />'.join(_inline_article_html(line, origin) for line in block.splitlines())}</p>"
+            )
+    return "".join(rendered)
+
+
+def _article_seo_html(article: Any, database: ContentDatabase) -> str:
     origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru").rstrip("/")
     canonical = article.canonical_url or f"{origin}/guide/{article.slug}"
     title = article.seo_title or article.title
     description = article.meta_description or article.excerpt
+    request_hash = _article_payload_hash(_stored_article_payload(article))
     cover = _absolute_public_url(origin, article.cover_image_url)
     schema: dict[str, Any] = {
         "@context": "https://schema.org",
@@ -327,6 +370,7 @@ def _article_seo_html(article: Any) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="description" content="{escape(description)}" />
+    <meta name="vedicway-article-request-sha256" content="{request_hash}" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:type" content="article" />
     <meta property="og:site_name" content="VedicWay" />
@@ -347,7 +391,7 @@ def _article_seo_html(article: Any) -> str:
         <article itemscope itemtype="https://schema.org/Article">
           <header><span>{escape(article.category)}</span><h1 itemprop="headline">{escape(article.title)}</h1><p>{escape(article.excerpt)}</p></header>
           {cover_html}
-          <section itemprop="articleBody">{_article_content_html(article.content)}</section>
+          <section itemprop="articleBody">{_article_content_html(article.content, database, origin)}</section>
         </article>
       </main>
     </div>
@@ -433,6 +477,195 @@ def _media_directory() -> Path:
     return root.resolve()
 
 
+def _assert_seo_agent(authorization: str | None) -> None:
+    expected = os.environ.get("VEDICWAY_SEO_AGENT_TOKEN", "")
+    if not expected or (_production() and len(expected.encode("utf-8")) < 32):
+        raise DomainError(
+            "SEO_AGENT_NOT_CONFIGURED",
+            "Контур публикации SEO-агента не настроен",
+            recoverable=True,
+            status_code=503,
+        )
+    supplied = authorization.removeprefix("Bearer ") if authorization else ""
+    if not supplied or not hmac.compare_digest(supplied, expected):
+        raise DomainError(
+            "SEO_AGENT_AUTH_REQUIRED",
+            "Доступ SEO-агента отклонен",
+            recoverable=False,
+            status_code=401,
+        )
+
+
+def _assert_idempotency_key(value: str | None) -> str:
+    if not value or not re.fullmatch(r"[A-Za-z0-9._:-]{16,160}", value):
+        raise DomainError(
+            "IDEMPOTENCY_KEY_INVALID",
+            "Нужен стабильный Idempotency-Key длиной от 16 до 160 символов",
+            recoverable=False,
+            status_code=400,
+        )
+    return value
+
+
+def _article_payload_hash(payload: ArticlePayload) -> str:
+    raw = json.dumps(payload.model_dump(mode="json"), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _stored_article_payload(article: Any) -> ArticlePayload:
+    return ArticlePayload.model_validate(
+        {
+            "title": article.title,
+            "slug": article.slug,
+            "category": article.category,
+            "excerpt": article.excerpt,
+            "content": article.content,
+            "cover_media_id": article.cover_media_id,
+            "body_media_ids": article.body_media_ids,
+            "cover_image_url": article.cover_image_url,
+            "cover_image_alt": article.cover_image_alt,
+            "seo_title": article.seo_title,
+            "meta_description": article.meta_description,
+            "focus_keyphrase": article.focus_keyphrase,
+            "canonical_url": article.canonical_url,
+            "author_name": article.author_name,
+            "status": article.status,
+        }
+    )
+
+
+def _media_payload_hash(
+    content_sha256: str,
+    purpose: str,
+    alt: str,
+    title: str,
+    caption: str,
+) -> str:
+    raw = json.dumps(
+        {
+            "content_sha256": content_sha256.casefold(),
+            "purpose": purpose,
+            "alt": alt.strip(),
+            "title": title.strip(),
+            "caption": caption.strip(),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _article_matches(article: Any, values: dict[str, Any]) -> bool:
+    fields = (
+        "title", "slug", "category", "excerpt", "content", "cover_media_id",
+        "body_media_ids", "cover_image_url", "cover_image_alt", "seo_title",
+        "meta_description", "focus_keyphrase", "canonical_url", "author_name", "status",
+    )
+    return all(getattr(article, field) == values.get(field) for field in fields)
+
+
+def _dzen_full_text(article: Any, database: ContentDatabase, origin: str) -> str:
+    cover = _absolute_public_url(origin, article.cover_image_url)
+    cover_html = (
+        f'<figure><img src="{escape(cover)}" alt="{escape(article.cover_image_alt or article.title)}" /></figure>'
+        if cover
+        else ""
+    )
+    request_hash = _article_payload_hash(_stored_article_payload(article))
+    return (
+        f"<!--vedicway-request-sha256:{request_hash}-->"
+        f"<h1>{escape(article.title)}</h1><p>{escape(article.excerpt)}</p>"
+        f"{cover_html}{_article_content_html(article.content, database, origin)}"
+    )
+
+
+def _cdata(value: str) -> str:
+    safe = value.replace("]]>", "]]]]><![CDATA[>")
+    return f"<![CDATA[{safe}]]>"
+
+
+def _store_article_media(
+    raw: bytes,
+    *,
+    purpose: Literal["cover", "body"],
+    alt: str,
+    title: str,
+    caption: str,
+    database: ContentDatabase,
+    uploaded_by: str | None,
+    asset_id: str | None = None,
+) -> Any:
+    if len(raw) > MAX_MEDIA_BYTES:
+        raise DomainError("MEDIA_TOO_LARGE", "Изображение должно быть не больше 12 МБ", status_code=413)
+    try:
+        source = Image.open(io.BytesIO(raw))
+        if source.width * source.height > 40_000_000:
+            raise DomainError(
+                "MEDIA_DIMENSIONS_INVALID",
+                "Разрешение изображения превышает 40 миллионов пикселей",
+                status_code=422,
+            )
+        source.load()
+    except DomainError:
+        raise
+    except (Image.DecompressionBombError, UnidentifiedImageError, OSError) as exc:
+        raise DomainError("MEDIA_INVALID", "Загрузите JPEG, PNG, WebP или AVIF", status_code=422) from exc
+    if source.format not in ALLOWED_IMAGE_FORMATS:
+        raise DomainError("MEDIA_INVALID", "Загрузите JPEG, PNG, WebP или AVIF", status_code=422)
+    image = source.convert("RGB")
+    image.thumbnail((2400, 2400), Image.Resampling.LANCZOS)
+    if purpose == "cover" and image.width < 700:
+        raise DomainError(
+            "MEDIA_COVER_TOO_NARROW",
+            "Обложка должна быть шириной не меньше 700 пикселей для сайта и Дзена",
+            status_code=422,
+        )
+    resolved_id = asset_id or str(uuid.uuid4())
+    existing = database.get_media(resolved_id)
+    if existing:
+        return existing
+    asset_directory = _media_directory() / "articles" / resolved_id
+    asset_directory.mkdir(parents=True, exist_ok=False)
+    original = asset_directory / "original.webp"
+    image.save(original, "WEBP", quality=90, method=6)
+    variant_widths = sorted({min(image.width, width) for width in (640, 960, 1280, 1600)})
+    sources: list[dict[str, Any]] = []
+    for width in variant_widths:
+        height = max(1, round(image.height * width / image.width))
+        variant = image if width == image.width else image.resize((width, height), Image.Resampling.LANCZOS)
+        variant_path = asset_directory / f"{width}.webp"
+        variant.save(variant_path, "WEBP", quality=88, method=6)
+        sources.append(
+            {
+                "url": f"/media/articles/{resolved_id}/{width}.webp",
+                "width": width,
+                "mimeType": "image/webp",
+            }
+        )
+    primary = sources[-1]
+    destination = asset_directory / f"{primary['width']}.webp"
+    values = {
+        "id": resolved_id,
+        "storage_key": f"articles/{resolved_id}/original.webp",
+        "public_url": primary["url"],
+        "sources": sources,
+        "purpose": purpose,
+        "mime_type": "image/webp",
+        "width": int(primary["width"]),
+        "height": max(1, round(image.height * int(primary["width"]) / image.width)),
+        "size_bytes": destination.stat().st_size,
+        "alt_text": alt.strip(),
+        "title": title.strip(),
+        "caption": caption.strip(),
+    }
+    try:
+        return database.add_media(values, uploaded_by)
+    except Exception:
+        shutil.rmtree(asset_directory, ignore_errors=True)
+        raise
+
+
 def build_admin_router() -> APIRouter:
     router = APIRouter()
 
@@ -460,6 +693,189 @@ def build_admin_router() -> APIRouter:
             )
         return _article_dict(article, database)
 
+    @router.get("/api/v1/seo/dzen/status", include_in_schema=False)
+    async def dzen_status(request: Request) -> dict[str, Any]:
+        articles = _database(request).list_articles(include_drafts=False)
+        now = datetime.now(UTC)
+        recent = sum(
+            1
+            for article in articles
+            if article.published_at
+            and (article.published_at if article.published_at.tzinfo else article.published_at.replace(tzinfo=UTC))
+            >= now - timedelta(days=30)
+        )
+        return {
+            "article_count": len(articles),
+            "published_last_30_days": recent,
+            "rss_ready": len(articles) >= 10 and recent >= 3,
+            "publication_mode": os.environ.get("VEDICWAY_DZEN_PUBLICATION_MODE", "native-draft"),
+        }
+
+    async def dzen_feed(request: Request) -> Response:
+        database = _database(request)
+        origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru").rstrip("/")
+        mode = os.environ.get("VEDICWAY_DZEN_PUBLICATION_MODE", "native-draft")
+        if mode not in {"native-draft", "publish"}:
+            mode = "native-draft"
+        items: list[str] = []
+        for article in database.list_articles(include_drafts=False)[:500]:
+            canonical = article.canonical_url or f"{origin}/guide/{article.slug}"
+            published_at = article.published_at
+            if published_at is None:
+                continue
+            if published_at.tzinfo is None:
+                published_at = published_at.replace(tzinfo=UTC)
+            cover = _absolute_public_url(origin, article.cover_image_url)
+            enclosure = (
+                f'<enclosure url="{escape(cover, quote=True)}" type="image/webp" />'
+                if cover
+                else ""
+            )
+            categories = "<category>format-article</category><category>index</category>"
+            if mode == "native-draft":
+                categories += "<category>native-draft</category>"
+            items.append(
+                "<item>"
+                f"<title>{escape(article.title)}</title>"
+                f"<link>{escape(canonical)}</link>"
+                f'<guid isPermaLink="true">{escape(canonical)}</guid>'
+                f"<pubDate>{format_datetime(published_at)}</pubDate>"
+                f"<description>{_cdata(article.excerpt)}</description>"
+                f"<yandex:full-text>{_cdata(_dzen_full_text(article, database, origin))}</yandex:full-text>"
+                f"{enclosure}{categories}</item>"
+            )
+        body = (
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<rss version="2.0" xmlns:yandex="http://news.yandex.ru">'
+            "<channel><title>VedicWay: Гид по астрологии</title>"
+            f"<link>{escape(origin)}/guide</link>"
+            "<description>Практический гид по натальной карте и ведической астрологии</description>"
+            "<language>ru</language>"
+            + "".join(items)
+            + "</channel></rss>"
+        )
+        return Response(
+            content=body,
+            media_type="application/rss+xml; charset=utf-8",
+            headers={"Cache-Control": "public, max-age=300"},
+        )
+
+    router.add_api_route(
+        "/api/v1/seo/dzen.xml", dzen_feed, methods=["GET"], include_in_schema=False
+    )
+    router.add_api_route("/feed/dzen.xml", dzen_feed, methods=["GET"], include_in_schema=False)
+
+    @router.get("/internal/seo-agent/health", include_in_schema=False)
+    async def seo_agent_health(
+        authorization: Annotated[str | None, Header()] = None,
+    ) -> dict[str, str]:
+        _assert_seo_agent(authorization)
+        return {"status": "ready", "database_boundary": "content-api-only"}
+
+    @router.post("/internal/seo-agent/media", status_code=201, include_in_schema=False)
+    async def seo_agent_media(
+        request: Request,
+        file: Annotated[UploadFile, File()],
+        purpose: Annotated[Literal["cover", "body"], Form()],
+        alt: Annotated[str, Form(min_length=1, max_length=300)],
+        title: Annotated[str, Form(max_length=240)] = "",
+        caption: Annotated[str, Form(max_length=500)] = "",
+        authorization: Annotated[str | None, Header()] = None,
+        idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+        x_content_sha256: Annotated[str | None, Header(alias="X-Content-SHA256")] = None,
+    ) -> dict[str, Any]:
+        _assert_seo_agent(authorization)
+        key = _assert_idempotency_key(idempotency_key)
+        raw = await file.read(MAX_MEDIA_BYTES + 1)
+        actual_hash = hashlib.sha256(raw).hexdigest()
+        if not x_content_sha256 or not hmac.compare_digest(x_content_sha256.casefold(), actual_hash):
+            raise DomainError(
+                "CONTENT_HASH_MISMATCH",
+                "Контрольная сумма изображения не совпала",
+                recoverable=False,
+                status_code=400,
+            )
+        media_request_hash = _media_payload_hash(
+            actual_hash, purpose, alt, title, caption
+        )
+        if not hmac.compare_digest(key.rsplit(":", 1)[-1], media_request_hash[:32]):
+            raise DomainError(
+                "IDEMPOTENCY_KEY_CONTENT_MISMATCH",
+                "Idempotency-Key не связан с контрольной суммой изображения",
+                recoverable=False,
+                status_code=400,
+            )
+        asset_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"vedicway-seo:{key}:{actual_hash}"))
+        existing = _database(request).get_media(asset_id)
+        asset = existing or _store_article_media(
+            raw,
+            purpose=purpose,
+            alt=alt,
+            title=title,
+            caption=caption,
+            database=_database(request),
+            uploaded_by=None,
+            asset_id=asset_id,
+        )
+        return {"asset": _media_dict(asset), "idempotent_replay": existing is not None}
+
+    @router.put("/internal/seo-agent/articles/{slug}", include_in_schema=False)
+    async def seo_agent_article(
+        slug: str,
+        payload: ArticlePayload,
+        request: Request,
+        authorization: Annotated[str | None, Header()] = None,
+        idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+        x_content_sha256: Annotated[str | None, Header(alias="X-Content-SHA256")] = None,
+        if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+    ) -> dict[str, Any]:
+        _assert_seo_agent(authorization)
+        key = _assert_idempotency_key(idempotency_key)
+        if slug != payload.slug:
+            raise DomainError("ARTICLE_SLUG_MISMATCH", "Slug в адресе и теле запроса различается", status_code=400)
+        if payload.status != "published":
+            raise DomainError("ARTICLE_STATUS_INVALID", "SEO-агент передает на сайт только одобренные публикации", status_code=422)
+        minimum = max(2000, min(30_000, int(os.environ.get("VEDICWAY_SEO_MIN_ARTICLE_CHARS", "4500"))))
+        if len(payload.content) < minimum:
+            raise DomainError(
+                "ARTICLE_TOO_SHORT",
+                f"Текст SEO-статьи короче технического порога {minimum} символов",
+                status_code=422,
+            )
+        actual_hash = _article_payload_hash(payload)
+        if not x_content_sha256 or not hmac.compare_digest(x_content_sha256.casefold(), actual_hash):
+            raise DomainError("CONTENT_HASH_MISMATCH", "Контрольная сумма статьи не совпала", status_code=400)
+        if not hmac.compare_digest(key.rsplit(":", 1)[-1], actual_hash[:32]):
+            raise DomainError(
+                "IDEMPOTENCY_KEY_CONTENT_MISMATCH",
+                "Idempotency-Key не связан с контрольной суммой статьи",
+                recoverable=False,
+                status_code=400,
+            )
+        _validate_publish(payload)
+        database = _database(request)
+        values = _article_values(payload, database)
+        existing = database.get_article_by_slug(slug)
+        if existing and _article_matches(existing, values):
+            return {"article": _article_dict(existing, database), "idempotent_replay": True}
+        try:
+            if existing:
+                if existing.published_at is not None and existing.slug != payload.slug:
+                    raise DomainError("ARTICLE_SLUG_IMMUTABLE", "Адрес опубликованной статьи нельзя изменить", status_code=409)
+                article = database.save_article(
+                    values,
+                    None,
+                    article_id=existing.id,
+                    expected_revision=_if_match_revision(if_match),
+                )
+            else:
+                if if_match:
+                    raise DomainError("ARTICLE_REVISION_INVALID", "If-Match нельзя передавать при создании статьи", status_code=400)
+                article = database.save_article(values, None)
+        except ArticleRevisionConflict as exc:
+            raise DomainError("ARTICLE_REVISION_CONFLICT", "Статья изменилась после начала публикации", status_code=409) from exc
+        return {"article": _article_dict(article, database), "idempotent_replay": False}
+
     @router.get(
         "/internal/seo/articles/{slug}/page",
         response_class=HTMLResponse,
@@ -472,7 +888,7 @@ def build_admin_router() -> APIRouter:
                 "ARTICLE_NOT_FOUND", "Материал не найден", recoverable=False, status_code=404
             )
         return HTMLResponse(
-            _article_seo_html(article),
+            _article_seo_html(article, _database(request)),
             headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=300"},
         )
 

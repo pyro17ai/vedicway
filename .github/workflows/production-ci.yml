@@ -26,6 +26,10 @@ jobs:
           node-version: 22.17.0
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Install and verify the pinned Yandex MCP runtime
+        run: |
+          npm ci --prefix seo_agent/mcp --omit=dev --no-audit --no-fund
+          node -e "const p=require('./seo_agent/mcp/package-lock.json').packages; for (const [n,v] of Object.entries({'yandex-search-mcp':'1.3.0','yandex-wordstat-mcp':'2.0.0','yandex-webmaster-mcp':'1.1.0','yandex-metrika-mcp':'1.1.0'})) { if (p['node_modules/'+n].version !== v) process.exit(1) }"
       - run: npm run test:run
       - name: Build prerendered frontend with a diagnostic Metrika id
         env:
@@ -78,9 +82,10 @@ jobs:
           (cd backend && python -m alembic -c alembic.ini upgrade head)
           python -c "from vedicway_backend.content_store import ContentDatabase; ContentDatabase().ping(require_migrations=True)"
           rm -f /tmp/vedicway-postgres-password
-      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py backend/scripts/data_lifecycle.py scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py
-      - run: python -m pytest backend/tests
-      - run: python -m py_compile scripts/check_production_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py backend/scripts/runtime_backup.py backend/scripts/bootstrap_admin.py backend/scripts/data_lifecycle.py
+      - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts seo_agent scripts/check_production_release.py scripts/check_seo_agent_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py scripts/production_state.py
+      - run: python -m pytest backend/tests seo_agent/tests
+      - run: python -m compileall -q backend/src backend/scripts seo_agent scripts
+      - run: python scripts/check_seo_agent_release.py --static-only --env-file .env.production.example
 
   release-config:
     runs-on: ubuntu-latest
@@ -93,9 +98,16 @@ jobs:
           mkdir -p runtime/pyjhora-wheelhouse secrets
           printf '{"places":[{"place_id":"ci","display_name":"CI","country_code":"RU","latitude":0,"longitude":0,"tzid":"UTC"}]}' > runtime/places.json
           touch runtime/pyjhora-wheelhouse/SHA256SUMS
-          for file in postgres_password vedicway_data_key vedicway_signing_key vedicway_operations_token vedicway_metrics_token yookassa_shop_id yookassa_secret_key codex_api_key smtp_password; do
+          for file in postgres_password vedicway_data_key vedicway_signing_key vedicway_operations_token vedicway_metrics_token vedicway_seo_agent_token yookassa_shop_id yookassa_secret_key codex_api_key smtp_password vedicway_yandex_search_api_key vedicway_yandex_folder_id vedicway_yandex_webmaster_token vedicway_yandex_metrika_token; do
             printf 'ci-placeholder-not-a-real-secret-00000000000000000000' > "secrets/${file}.txt"
           done
+      - name: Exercise the fail-closed SEO release guard
+        run: |
+          sed -i 's/^VEDICWAY_SEO_AGENT_ENABLED=.*/VEDICWAY_SEO_AGENT_ENABLED=1/' .env.production
+          sed -i 's/^VEDICWAY_YANDEX_HOST_ID=.*/VEDICWAY_YANDEX_HOST_ID=https:vedicway.example:443/' .env.production
+          sed -i 's/^VEDICWAY_METRIKA_COUNTER_ID=.*/VEDICWAY_METRIKA_COUNTER_ID=12345678/' .env.production
+          sed -i 's/^VITE_YANDEX_METRIKA_ID=.*/VITE_YANDEX_METRIKA_ID=12345678/' .env.production
+          python scripts/check_seo_agent_release.py --env-file .env.production
       - name: Validate shell and YAML syntax
         run: |
           sh -n docker/backend/entrypoint.sh

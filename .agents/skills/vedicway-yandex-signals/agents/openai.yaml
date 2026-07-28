@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Yandex Signals"
+  short_description: "Collect verified Yandex demand and performance signals"
+  default_prompt: "Use $vedicway-yandex-signals to collect VedicWay search evidence."

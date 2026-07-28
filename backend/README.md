@@ -21,10 +21,10 @@
 Укажите путь к исходникам собственного PyJHora MCP и используйте Python 3.11 из его виртуального окружения:
 
 ```powershell
-$env:PYTHONPATH = "D:\CODEX_WORK\VedicWay\backend\src"
-$env:VEDICWAY_PYJHORA_SOURCE = "C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src"
+$env:PYTHONPATH = "D:\VedicWay\backend\src"
+$env:VEDICWAY_PYJHORA_SOURCE = "C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src"
 $env:VEDICWAY_TEST_PAYMENTS = "1"
-C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\.venv311\Scripts\python.exe -m uvicorn vedicway_backend.main:app --host 127.0.0.1 --port 8000
+C:\Users\Huawei\.codex\mcp\pyjhora-mcp\.venv\Scripts\python.exe -m uvicorn vedicway_backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 `VEDICWAY_TEST_PAYMENTS=1` открывает только локальный тестовый провайдер. Production-процесс принимает реальный payment adapter по конфигурации и не подтверждает оплату браузерным query-параметром.

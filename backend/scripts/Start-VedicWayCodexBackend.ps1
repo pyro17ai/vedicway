@@ -2,8 +2,8 @@
 param(
     [ValidateRange(1024, 65535)]
     [int]$Port = 8015,
-    [string]$Python = "C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\.venv311\Scripts\python.exe",
-    [string]$PyJhoraSource = "C:\Users\Grisha\Documents\Codex\2026-07-08\pyjhora-mcp\src",
+    [string]$Python = "C:\Users\Huawei\.codex\mcp\pyjhora-mcp\.venv\Scripts\python.exe",
+    [string]$PyJhoraSource = "C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src",
     [string]$RuntimeRoot = (Join-Path $env:LOCALAPPDATA "VedicWay\codex-runner"),
     [string]$FreeModel = "gpt-5.6-luna",
     [string]$PaidModel = "gpt-5.6-terra",

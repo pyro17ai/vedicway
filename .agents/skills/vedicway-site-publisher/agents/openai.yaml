@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Site Publisher"
+  short_description: "Publish verified articles through the internal API"
+  default_prompt: "Use $vedicway-site-publisher to publish and verify the approved article."

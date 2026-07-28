@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Russian Editor"
+  short_description: "Edit Russian astrology copy into natural expert prose"
+  default_prompt: "Use $vedicway-article-editor-ru to edit this VedicWay article."

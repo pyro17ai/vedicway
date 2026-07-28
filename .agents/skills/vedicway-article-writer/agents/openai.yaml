@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Article Writer"
+  short_description: "Draft useful Russian astrology guide articles"
+  default_prompt: "Use $vedicway-article-writer to draft the approved VedicWay article."

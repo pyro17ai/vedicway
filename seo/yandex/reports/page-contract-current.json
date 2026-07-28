@@ -1,0 +1,12 @@
+{
+  "contract": "seo\\yandex\\yandex-page-contract.json",
+  "errors": 1,
+  "warnings": 0,
+  "findings": [
+    {
+      "level": "ERROR",
+      "location": "site.counter_id",
+      "message": "Укажите настоящий положительный ID счётчика Метрики."
+    }
+  ]
+}

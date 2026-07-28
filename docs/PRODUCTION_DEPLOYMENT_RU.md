@@ -1,5 +1,7 @@
 # Production deployment VedicWay
 
+SEO-agent запускается отдельным Compose profile `seo` и не получает PostgreSQL credentials. Его полный deployment, backup и activation runbook находится в [SEO_AGENT_PRODUCTION_RU.md](SEO_AGENT_PRODUCTION_RU.md). Начиная с этой ревизии `production_state.py` включает `seo-agent.sqlite3` в общий зашифрованный backup bundle; перед backup/restore активный SEO-сервис останавливается вместе с API и worker.
+
 ## Контур
 
 `compose.production.yml` поднимает PostgreSQL, две последовательные цепочки миграций, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.

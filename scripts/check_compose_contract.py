@@ -13,6 +13,7 @@ ROLE_CONTRACTS = {
             "vedicway_signing_key",
             "vedicway_operations_token",
             "vedicway_metrics_token",
+            "vedicway_seo_agent_token",
             "yookassa_shop_id",
             "yookassa_secret_key",
         },
@@ -22,6 +23,7 @@ ROLE_CONTRACTS = {
             "VEDICWAY_SIGNING_KEY_FILE": "/run/secrets/vedicway_signing_key",
             "VEDICWAY_OPERATIONS_TOKEN_FILE": "/run/secrets/vedicway_operations_token",
             "VEDICWAY_METRICS_TOKEN_FILE": "/run/secrets/vedicway_metrics_token",
+            "VEDICWAY_SEO_AGENT_TOKEN_FILE": "/run/secrets/vedicway_seo_agent_token",
             "YOOKASSA_SHOP_ID_FILE": "/run/secrets/yookassa_shop_id",
             "YOOKASSA_SECRET_KEY_FILE": "/run/secrets/yookassa_secret_key",
         },
@@ -48,6 +50,25 @@ ROLE_CONTRACTS = {
             "VEDICWAY_DATA_KEY_FILE": "/run/secrets/vedicway_data_key",
             "VEDICWAY_SIGNING_KEY_FILE": "/run/secrets/vedicway_signing_key",
             "VEDICWAY_SMTP_PASSWORD_FILE": "/run/secrets/smtp_password",
+        },
+    },
+    "seo-agent": {
+        "profile": "seo-agent",
+        "secrets": {
+            "codex_api_key",
+            "vedicway_seo_agent_token",
+            "yandex_search_api_key",
+            "yandex_folder_id",
+            "yandex_webmaster_token",
+            "yandex_metrika_token",
+        },
+        "files": {
+            "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
+            "VEDICWAY_SEO_AGENT_TOKEN_FILE": "/run/secrets/vedicway_seo_agent_token",
+            "VEDICWAY_YANDEX_SEARCH_API_KEY_FILE": "/run/secrets/yandex_search_api_key",
+            "VEDICWAY_YANDEX_FOLDER_ID_FILE": "/run/secrets/yandex_folder_id",
+            "VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE": "/run/secrets/yandex_webmaster_token",
+            "VEDICWAY_YANDEX_METRIKA_TOKEN_FILE": "/run/secrets/yandex_metrika_token",
         },
     },
 }
@@ -97,6 +118,9 @@ def main() -> None:
         "retention-apply",
         "ops-gateway",
         "backup-bundle",
+        "seo-agent",
+        "seo-agent-backup",
+        "seo-agent-restore",
     }
     missing = required.difference(services)
     if missing:
@@ -141,11 +165,28 @@ def main() -> None:
     worker_secrets = _secret_sources(services["worker"])
     if "codex_api_key" in api_secrets:
         raise SystemExit("backend API must not mount the Codex key")
-    forbidden_worker = {"vedicway_operations_token", "vedicway_metrics_token", "yookassa_shop_id", "yookassa_secret_key"}
+    forbidden_worker = {"vedicway_operations_token", "vedicway_metrics_token", "vedicway_seo_agent_token", "yookassa_shop_id", "yookassa_secret_key"}
     if worker_secrets.intersection(forbidden_worker):
         raise SystemExit("worker mounts API-only operations or payment secrets")
     if worker_secrets != {"postgres_password", "vedicway_data_key", "vedicway_signing_key", "codex_api_key"}:
         raise SystemExit("worker secret mount set is not least-privilege")
+
+    seo = services["seo-agent"]
+    if set(seo.get("networks", {})) != {"edge", "seo-egress"}:
+        raise SystemExit("SEO agent must use only the internal edge and dedicated SEO egress networks")
+    if "data" in seo.get("networks", {}) or "POSTGRES_PASSWORD_FILE" in seo.get("environment", {}):
+        raise SystemExit("SEO agent must not receive the PostgreSQL network or credentials")
+    if "seo" not in seo.get("profiles", []):
+        raise SystemExit("SEO agent must stay behind the explicit seo Compose profile")
+    if "seo_agent.scheduler" not in " ".join(seo.get("command", [])):
+        raise SystemExit("SEO agent must run its dedicated scheduler")
+    seo_environment = seo.get("environment", {})
+    if (
+        seo_environment.get("CODEX_HOME") != "/var/lib/vedicway/seo-codex-home"
+        or seo_environment.get("VEDICWAY_SEO_CODEX_HOME")
+        != "/var/lib/vedicway/seo-codex-home"
+    ):
+        raise SystemExit("SEO agent must use its dedicated Codex home")
 
     worker_networks = set(services["worker"].get("networks", {}))
     backend_networks = set(services["backend"].get("networks", {}))
@@ -181,6 +222,10 @@ def main() -> None:
         raise SystemExit("backend entrypoint must isolate the email secret profile")
     if "read_secret VEDICWAY_SMTP_PASSWORD" not in entrypoint:
         raise SystemExit("backend entrypoint must load the SMTP password from a mounted secret")
+    if 'if [ "$profile" = "seo-agent" ]' not in entrypoint:
+        raise SystemExit("backend entrypoint must isolate the SEO agent secret profile")
+    if "read_secret VEDICWAY_SEO_AGENT_TOKEN" not in entrypoint:
+        raise SystemExit("backend entrypoint must load the internal SEO bearer token from a secret")
 
     email = services["email"]
     if "vedicway_backend.email_worker" not in " ".join(email.get("command", [])):
@@ -205,6 +250,11 @@ def main() -> None:
         }
         if mounted_secrets != {"vedicway_data_key", "vedicway_signing_key"}:
             raise SystemExit(f"{service_name} must mount only runtime encryption secrets")
+    for service_name in ("seo-agent-backup", "seo-agent-restore"):
+        if services[service_name].get("network_mode") != "none":
+            raise SystemExit(f"{service_name} must not have network access")
+        if _secret_sources(services[service_name]):
+            raise SystemExit(f"{service_name} must not mount application secrets")
     print("Resolved production Compose contract passed.")
 
 

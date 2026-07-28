@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "jobs": [
+    {
+      "name": "article_intelligence_refresh",
+      "interval_minutes": 10080,
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "medium",
+      "skills": ["vedicway-yandex-signals", "vedicway-topic-planner", "vedicway-seo-ledger"],
+      "prompt": "Обнови спрос и поисковую выдачу по теме VedicWay, собери только подтвержденные Yandex-сигналы, пересобери кластеры и запиши один job_result. Не используй host_id или counter_id, пока они не совпали с VEDICWAY_YANDEX_HOST_ID и VEDICWAY_METRIKA_COUNTER_ID."
+    },
+    {
+      "name": "article_content_production",
+      "interval_minutes": 2880,
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "medium",
+      "skills": ["vedicway-content-brief", "vedicway-article-writer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "vedicway-article-media", "vedicway-seo-ledger"],
+      "prompt": "Забери один приоритетный кластер атомарной арендой, подготовь доказательный бриф, статью и медиапакет, проведи редактуру и quality gate. Публикацию не начинай. Заверши run одной записью job_result."
+    },
+    {
+      "name": "article_optimization",
+      "interval_minutes": 1440,
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "medium",
+      "skills": ["vedicway-article-optimizer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "vedicway-article-media", "vedicway-site-publisher", "vedicway-seo-ledger"],
+      "prompt": "Забери одну доказанную optimization action. Для контентного действия обнови существующий draft под тем же slug, заново проведи редактуру, quality gate и site publication с optimistic revision; затем закрой action только по совпавшему публичному evidence. Recrawl и hold исполни по их отдельному контракту. Заверши run одной записью job_result."
+    },
+    {
+      "name": "article_site_publish",
+      "interval_minutes": 60,
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "medium",
+      "skills": ["vedicway-site-publisher", "vedicway-dzen-distributor", "vedicway-seo-ledger"],
+      "prompt": "Забери один одобренный материал атомарной арендой, опубликуй его через внутренний API, проверь публичный HTML, canonical, Article JSON-LD, изображение, sitemap и Dzen RSS. Запиши publication evidence и одну итоговую запись job_result."
+    },
+    {
+      "name": "article_lifecycle_review",
+      "interval_minutes": 10080,
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "medium",
+      "skills": ["vedicway-lifecycle-review", "vedicway-seo-ledger"],
+      "prompt": "Проверь опубликованные статьи по Webmaster и Metrika только для точных VedicWay host_id и counter_id, создай измеримые optimization_actions и запиши одну итоговую запись job_result."
+    }
+  ]
+}

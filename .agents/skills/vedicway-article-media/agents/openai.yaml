@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Article Media"
+  short_description: "Prepare owned article covers and body media"
+  default_prompt: "Use $vedicway-article-media to prepare compliant article images."
