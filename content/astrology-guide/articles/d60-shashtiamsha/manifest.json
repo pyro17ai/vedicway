@@ -68,7 +68,7 @@
     "/guide/okruglennoe-vremya-rozhdeniya",
     "/guide/algoritm-chteniya-natalnoy-karty",
     "/guide/karta-bez-vremeni-rozhdeniya",
-    "/chart"
+    "/#natal-chart-form"
   ],
   "prohibited_claims": [
     "D60 точно восстанавливает время рождения или доказывает правильность ректификации.",

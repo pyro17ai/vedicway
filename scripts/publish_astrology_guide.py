@@ -42,6 +42,66 @@ class CorpusArticle:
     cover_path: Path
 
 
+MOJIBAKE_MARKERS = (
+    "Рљ",
+    "Р°",
+    "Рµ",
+    "РЅ",
+    "Рѕ",
+    "Рё",
+    "С‚",
+    "СЃ",
+    "СЏ",
+    "СЂ",
+)
+ALLOWED_CONTENT_ROUTES = {
+    "/",
+    "/#natal-chart-form",
+    "/guide",
+    "/blog",
+    "/about",
+    "/methodology",
+    "/editorial-policy",
+}
+
+
+def _assert_article_quality(
+    slug: str,
+    content_html: str,
+    catalog_slugs: set[str],
+) -> None:
+    mojibake_hits = sum(content_html.count(marker) for marker in MOJIBAKE_MARKERS)
+    if mojibake_hits >= 3:
+        raise ValueError(f"{slug}: article.html содержит признаки битой кодировки")
+
+    internal_routes = re.findall(r'href=["\'](?P<route>/[^"\']*)', content_html, flags=re.I)
+    if not internal_routes:
+        raise ValueError(f"{slug}: article.html не содержит внутренних ссылок")
+    for route in internal_routes:
+        clean_route = route.split("?", 1)[0]
+        if clean_route.startswith("/guide/"):
+            target = clean_route.removeprefix("/guide/").split("#", 1)[0].rstrip("/")
+            if target not in catalog_slugs:
+                raise ValueError(
+                    f"{slug}: внутренняя ссылка ведёт на неизвестный {target}"
+                )
+            continue
+        if clean_route not in ALLOWED_CONTENT_ROUTES:
+            raise ValueError(f"{slug}: неизвестный внутренний маршрут {route}")
+
+    plain = re.sub(r"\s+", " ", _plain_text(content_html)).strip()
+    sentences = [
+        sentence.strip().casefold()
+        for sentence in re.split(r"(?<=[.!?])\s+", plain)
+        if len(sentence.strip()) >= 60
+    ]
+    repeated = Counter(sentences)
+    if repeated and max(repeated.values()) >= 10:
+        raise ValueError(
+            f"{slug}: одно предложение повторяется в статье не менее десяти раз"
+        )
+
+
 def _json_read(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
@@ -160,15 +220,7 @@ def load_corpus(article_root: Path) -> list[CorpusArticle]:
             raise ValueError(f"{slot.slug}: article.html содержит меньше трёх H2")
         if re.search(r"\b(?:будущ\w*|планируем\w*)\s+стать", content_html, flags=re.I):
             raise ValueError(f"{slot.slug}: article.html ссылается на будущую статью")
-        for target in re.findall(
-            r'href=["\']/guide/(?P<slug>[^"\'#?/<>\s]+)',
-            content_html,
-            flags=re.I,
-        ):
-            if target not in catalog_slugs:
-                raise ValueError(
-                    f"{slot.slug}: внутренняя ссылка ведёт на неизвестный {target}"
-                )
+        _assert_article_quality(slot.slug, content_html, catalog_slugs)
 
         seo = manifest.get("seo")
         if not isinstance(seo, dict):

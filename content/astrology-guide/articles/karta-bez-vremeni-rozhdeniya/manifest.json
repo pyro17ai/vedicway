@@ -63,7 +63,7 @@
     "excerpt": "Практический способ построить карту с условным временем, проверить Луну и отделить устойчивые положения от лагны, домов и других показателей, зависящих от часа."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/lagna-i-ascendent",
     "/guide/pervyy-prohod-po-karte",
     "/guide/lagna-na-granice-znaka"

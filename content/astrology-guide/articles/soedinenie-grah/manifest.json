@@ -49,7 +49,7 @@
   },
   "internal_links": [
     {
-      "url": "/chart",
+      "url": "/#natal-chart-form",
       "anchor": "расчёт натальной карты",
       "reason": "Переход от текста к проверке положения грах"
     },

@@ -33,7 +33,7 @@ const faqEntries = [
   ["Что такое натальная карта и как работает сервис VedicWay?", "Натальная карта показывает положение небесных тел в момент рождения. VedicWay сопоставляет дату, точное время и координаты места с астрономическими эфемеридами, а затем строит карту и её объяснение."],
   ["Какие данные нужны для расчёта?", "Нужны дата, максимально точное время и город рождения. По городу сервис определяет координаты и исторический часовой пояс."],
   ["Можно ли получить натальную карту без времени рождения?", "Можно получить ограниченный результат, но без времени нельзя надёжно определить лагну, дома и показатели, чувствительные к минутам."],
-  ["Чем ведическая астрология отличается от западной?", "VedicWay использует сидерический зодиак, айанамшу Lahiri, накшатры и дома от лагны."],
+  ["Чем ведическая астрология отличается от западной?", "VedicWay использует сидерический зодиак, аянамшу Лахири, накшатры и дома от лагны."],
   ["Насколько точен разбор?", "Положения небесных тел рассчитываются по эфемеридам, а надёжность домов зависит от точности времени рождения."]
 ];
 
@@ -52,26 +52,20 @@ const pages = [
       {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": "https://vedicway.ru/about#organization",
         name: "VedicWay",
-        url: "https://vedicway.ru/",
+        url: "https://vedicway.ru/about",
         logo: "https://vedicway.ru/assets/brand-mark.png",
         email: "vedicway-ru@yandex.ru"
       },
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": "https://vedicway.ru/#website",
         name: "VedicWay",
         url: "https://vedicway.ru/",
-        inLanguage: "ru-RU"
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: faqEntries.map(([name, text]) => ({
-          "@type": "Question",
-          name,
-          acceptedAnswer: { "@type": "Answer", text }
-        }))
+        inLanguage: "ru-RU",
+        publisher: { "@id": "https://vedicway.ru/about#organization" }
       }
     ]
   },
@@ -179,6 +173,60 @@ const legalPages = [
   ["cookies", "Политика использования cookies", "Правила использования обязательных и аналитических cookies на сайте VedicWay."]
 ];
 
+const trustPages = [
+  {
+    slug: "about",
+    title: "О сервисе VedicWay",
+    description: "Кто создаёт VedicWay, как устроен сервис ведической натальной карты и где проходит граница между расчётом и интерпретацией.",
+    lead: "VedicWay рассчитывает сидерическую натальную карту и помогает читать её на русском языке. За материалами и продуктовой логикой стоит редакция VedicWay.",
+    sections: [
+      ["Что делает сервис", "Расчёт использует дату, местное время и координаты рождения. Материалы объясняют астрологические понятия в культурном и образовательном контексте."],
+      ["Кто отвечает за материалы", "Редакция VedicWay проверяет структуру статьи, внутренние ссылки, источники и соответствие видимого текста структурированным данным."]
+    ]
+  },
+  {
+    slug: "methodology",
+    title: "Метод расчёта натальной карты",
+    description: "Методология VedicWay: сидерический зодиак, аянамша Лахири, дома от лагны, точность времени рождения и границы интерпретации.",
+    lead: "VedicWay фиксирует расчётные настройки рядом с результатом, чтобы одну карту можно было повторно проверить при тех же исходных данных.",
+    sections: [
+      ["Расчётные настройки", "Основная карта строится в сидерическом зодиаке с аянамшей Лахири. Дома отсчитываются от лагны, а интерфейс показывает карту в южноиндийском стиле."],
+      ["Точность исходных данных", "Ошибка во времени рождения способна изменить лагну, дома и дробные карты. Исходные данные нужно сверять до трактовки показателей, чувствительных к минутам."]
+    ]
+  },
+  {
+    slug: "editorial-policy",
+    title: "Редакционная политика VedicWay",
+    description: "Как редакция VedicWay отбирает источники, проверяет статьи о джйотиш, исправляет ошибки и отделяет факты от трактовки.",
+    lead: "Каждая статья проходит автоматическую проверку разметки и ручную редактуру до публикации.",
+    sections: [
+      ["Источники", "Редакция указывает внешние источники в видимом блоке статьи. Ссылки из этого блока совпадают с полем citation в Schema.org."],
+      ["Контроль качества", "Материал с битой кодировкой, неизвестной внутренней ссылкой, повторяющимся предложением или пустым списком источников блокируется."]
+    ]
+  }
+];
+
+for (const page of trustPages) {
+  pages.push({
+    output: `${page.slug}/index.html`,
+    title: `${page.title} | VedicWay`,
+    description: page.description,
+    canonical: `${ORIGIN}/${page.slug}`,
+    image: `${ORIGIN}/assets/hero-space-light.png`,
+    body: trustBody(page),
+    schema: [{
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      "@id": `${ORIGIN}/${page.slug}#page`,
+      name: page.title,
+      url: `${ORIGIN}/${page.slug}`,
+      description: page.description,
+      inLanguage: "ru-RU",
+      about: { "@id": `${ORIGIN}/about#organization` }
+    }]
+  });
+}
+
 for (const [slug, title, description] of legalPages) {
   pages.push({
     output: `legal/${slug}/index.html`,
@@ -255,11 +303,11 @@ function homeBody() {
   return `<main class="seo-prerender" data-yandex-first-screen>
     <section>
       <nav aria-label="Основная навигация"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a><a href="/blog">Блог</a></nav>
-      <h1>ПОЗНАЙ СЕБЯ ЧЕРЕЗ КОСМОС</h1>
-      <p>Натальная карта раскрывает ваш уникальный рисунок судьбы. Узнайте своё предназначение и скрытые ресурсы.</p>
+      <h1>Ведическая натальная карта онлайн</h1>
+      <p>Рассчитайте сидерическую карту по дате, времени и месту рождения. Сервис покажет положения планет и объяснит их в рамках традиции джйотиш.</p>
       <p data-yandex-proof="calculation-inputs">Для расчёта нужны дата, точное время и место рождения.</p>
       <p data-yandex-proof="result-preview">До расчёта можно посмотреть интерактивный пример готовой карты, объяснений и вопросов к себе.</p>
-      <form data-yandex-form="natal-chart-form" action="/api/v1/charts" method="post">
+      <form id="natal-chart-form" data-yandex-form="natal-chart-form" action="/api/v1/charts" method="post">
         <label>Дата рождения <input name="birth_date" type="date" /></label>
         <label>Время рождения <input name="birth_time" type="time" /></label>
         <label>Место рождения <input name="birth_place" /></label>
@@ -306,6 +354,17 @@ function legalBody(title, description) {
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(description)}</p>
     <p>Полный актуальный текст документа, реквизиты оператора и дата редакции доступны на этой странице после загрузки приложения.</p>
+  </main>`;
+}
+
+function trustBody(page) {
+  return `<main class="seo-prerender" data-yandex-first-screen>
+    <nav aria-label="Хлебные крошки"><a href="/">Главная</a><span>${escapeHtml(page.title)}</span></nav>
+    <article>
+      <header><span>Прозрачность VedicWay</span><h1>${escapeHtml(page.title)}</h1><p>${escapeHtml(page.lead)}</p></header>
+      ${page.sections.map(([title, text]) => `<section><h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p></section>`).join("")}
+      <nav aria-label="Дополнительная информация"><a href="/about">О сервисе</a><a href="/methodology">Метод расчёта</a><a href="/editorial-policy">Редакционная политика</a></nav>
+    </article>
   </main>`;
 }
 

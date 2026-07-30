@@ -648,9 +648,15 @@ def _article_schema(article: Any, database: ContentDatabase) -> dict[str, Any]:
         "keywords": keywords,
         "wordCount": word_count,
         "isAccessibleForFree": True,
-        "author": {"@type": "Organization", "name": article.author_name},
+        "author": {
+            "@type": "Organization",
+            "@id": f"{_public_origin()}/about#organization",
+            "name": article.author_name,
+            "url": f"{_public_origin()}/about",
+        },
         "publisher": {
             "@type": "Organization",
+            "@id": f"{_public_origin()}/about#organization",
             "name": "VedicWay",
             "url": _public_origin(),
             "logo": {
@@ -754,6 +760,7 @@ def _site_header_html(active: ContentSection) -> str:
         '<a href="/">Главная</a>'
         f'<a href="/guide"{guide_active}>Гид по астрологии</a>'
         f'<a href="/blog"{blog_active}>Блог</a>'
+        '<a href="/methodology">Метод</a>'
         "</nav></div></header>"
     )
 
@@ -853,6 +860,15 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
     }
     schema_json = json.dumps(
         schema,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).replace("<", "\\u003c")
+    bootstrap_json = json.dumps(
+        {
+            "kind": "hub",
+            "section": section,
+            "articles": [_article_summary(article, database) for article in articles],
+        },
         ensure_ascii=False,
         separators=(",", ":"),
     ).replace("<", "\\u003c")
@@ -1065,6 +1081,7 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
         </main>
       </div>
     </div>
+    <script id="vedicway-seo-bootstrap" type="application/json">{bootstrap_json}</script>
     <script type="module" crossorigin src="/assets/seo-entry.js"></script>
   </body>
 </html>"""
@@ -1072,7 +1089,8 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
 
 def _article_seo_html(article: Any, database: ContentDatabase) -> str:
     canonical = _canonical_url(article)
-    title = article.seo_title or article.title
+    raw_title = article.seo_title or article.title
+    title = raw_title if "VedicWay" in raw_title else f"{raw_title} | VedicWay"
     description = article.meta_description or article.excerpt
     schema_json = json.dumps(
         _article_schema(article, database),
@@ -1094,6 +1112,28 @@ def _article_seo_html(article: Any, database: ContentDatabase) -> str:
         for index, item in enumerate(related, start=1)
     )
     comments = database.list_comments(article.id)
+    bootstrap_json = json.dumps(
+        {
+            "kind": "article",
+            "section": article.section,
+            "slug": article.slug,
+            "article": _article_dict(article, database),
+            "comments": [_comment_dict(comment) for comment in comments],
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ).replace("<", "\\u003c")
+    citations = [
+        value
+        for value in (article.schema_extra or {}).get("citation", [])
+        if isinstance(value, str) and value.startswith(("https://", "http://"))
+    ]
+    citations_html = "".join(
+        "<li>"
+        f'<a href="{escape(value, quote=True)}" target="_blank" rel="noopener noreferrer">'
+        f"{escape(urlsplit(value).hostname or value)}</a></li>"
+        for value in citations
+    )
     comments_html = "".join(
         "<li>"
         f"<div><span>{escape(comment.display_name[:1])}</span><div>"
@@ -1153,7 +1193,7 @@ def _article_seo_html(article: Any, database: ContentDatabase) -> str:
               <h1 itemprop="headline">{escape(article.title)}</h1>
               <p>{escape(article.excerpt)}</p>
               <div class="article-reading__byline">
-                <span>{escape(article.author_name)}</span>
+                <a href="/about">{escape(article.author_name)}</a>
                 <time datetime="{published.isoformat()}">{published.date().isoformat()}</time>
                 <span>{reading_minutes} мин</span>
               </div>
@@ -1169,6 +1209,14 @@ def _article_seo_html(article: Any, database: ContentDatabase) -> str:
               </div>
             </div>
           </article>
+          <section class="article-sources" aria-labelledby="article-sources-title">
+            <header><span>Проверяемость материала</span>
+              <h2 id="article-sources-title">Источники и редакция</h2>
+              <p>Редакция отделяет расчётные данные от трактовки и указывает внешние материалы, на которых основана статья.</p>
+            </header>
+            {f"<ol>{citations_html}</ol>" if citations_html else "<p>Внешние источники для этой редакции ещё не указаны.</p>"}
+            <a class="article-sources__policy" href="/editorial-policy">Как редакция проверяет материалы</a>
+          </section>
           <section class="article-related" aria-labelledby="related-title">
             <header><span>Продолжить чтение</span><h2 id="related-title">Читать далее</h2></header>
             {f'<div class="article-related__grid">{related_html}</div>' if related_html else '<p class="article-related__empty">Следующие материалы появятся после публикации.</p>'}
@@ -1182,6 +1230,7 @@ def _article_seo_html(article: Any, database: ContentDatabase) -> str:
         </main>
       </div>
     </div>
+    <script id="vedicway-seo-bootstrap" type="application/json">{bootstrap_json}</script>
     <script type="module" crossorigin src="/assets/seo-entry.js"></script>
   </body>
 </html>"""
@@ -1825,6 +1874,9 @@ def build_content_router() -> APIRouter:
             f"<url><loc>{escape(origin)}/</loc></url>",
             f"<url><loc>{escape(origin)}/guide</loc></url>",
             f"<url><loc>{escape(origin)}/blog</loc></url>",
+            f"<url><loc>{escape(origin)}/about</loc></url>",
+            f"<url><loc>{escape(origin)}/methodology</loc></url>",
+            f"<url><loc>{escape(origin)}/editorial-policy</loc></url>",
         ]
         for article in _database(request).list_articles(include_drafts=False):
             if not _is_catalogued_article(article):

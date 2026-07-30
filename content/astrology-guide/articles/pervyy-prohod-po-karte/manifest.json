@@ -58,7 +58,7 @@
     "excerpt": "Первый проход по карте начинается с проверки расчёта и трёх опор: лагны, Луны и управителя лагны."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/algoritm-chteniya-natalnoy-karty"
   ],
   "prohibited_claims": [

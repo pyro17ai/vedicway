@@ -39,6 +39,7 @@ export type NavigateHandler = (path: string) => void;
 type ContentHubPageProps = {
   section: ContentSection;
   onNavigate: NavigateHandler;
+  initialArticles?: ContentArticleSummary[];
 };
 
 type LevelFilter = "all" | ArticleDifficulty;
@@ -163,11 +164,14 @@ function articleMatches(
 export function ContentHubPage({
   section,
   onNavigate,
+  initialArticles,
 }: ContentHubPageProps) {
   const root = useRef<HTMLDivElement>(null);
   const contentLibrary = useRef<HTMLElement>(null);
-  const [articles, setArticles] = useState<ContentArticleSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [articles, setArticles] = useState<ContentArticleSummary[]>(
+    () => initialArticles ?? [],
+  );
+  const [loading, setLoading] = useState(() => !initialArticles);
   const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState("");
   const [level, setLevel] = useState<LevelFilter>("all");
@@ -176,7 +180,8 @@ export function ContentHubPage({
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    const hasServerSnapshot = Boolean(initialArticles);
+    setLoading(!hasServerSnapshot);
     setFailed(false);
     setQuery("");
     setLevel("all");
@@ -187,8 +192,10 @@ export function ContentHubPage({
       })
       .catch(() => {
         if (active) {
-          setArticles([]);
-          setFailed(true);
+          if (!hasServerSnapshot) {
+            setArticles([]);
+            setFailed(true);
+          }
         }
       })
       .finally(() => {
@@ -197,7 +204,7 @@ export function ContentHubPage({
     return () => {
       active = false;
     };
-  }, [section]);
+  }, [initialArticles, section]);
 
   useEffect(
     () => {

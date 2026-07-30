@@ -67,7 +67,7 @@
     "excerpt": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/algoritm-chteniya-natalnoy-karty",
     "/guide/ayanamsha-lahiri-raman-true-chitra",
     "/guide"

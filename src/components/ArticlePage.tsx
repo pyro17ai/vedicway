@@ -34,6 +34,8 @@ type ArticlePageProps = {
   section: ContentSection;
   slug: string;
   onNavigate: (path: string) => void;
+  initialArticle?: ContentArticle;
+  initialComments?: ContentComment[];
 };
 
 function plainLeftClick(event: MouseEvent<HTMLAnchorElement>) {
@@ -56,6 +58,23 @@ function formatDate(value: string) {
 function absoluteImage(article: ContentArticle) {
   const source = article.coverImage?.url || article.cover_image_url;
   return source ? new URL(source, publicOrigin()).href : undefined;
+}
+
+function articleCitations(article: ContentArticle) {
+  const value = article.schema_extra.citation;
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (citation): citation is string =>
+      typeof citation === "string" && /^https?:\/\//i.test(citation),
+  );
+}
+
+function citationLabel(value: string) {
+  try {
+    return new URL(value).hostname.replace(/^www\./, "");
+  } catch {
+    return value;
+  }
 }
 
 function CalculateChartCta({
@@ -119,11 +138,17 @@ export function ArticlePage({
   section,
   slug,
   onNavigate,
+  initialArticle,
+  initialComments,
 }: ArticlePageProps) {
   const root = useRef<HTMLDivElement>(null);
-  const [article, setArticle] = useState<ContentArticle | null>(null);
-  const [comments, setComments] = useState<ContentComment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [article, setArticle] = useState<ContentArticle | null>(
+    () => initialArticle ?? null,
+  );
+  const [comments, setComments] = useState<ContentComment[]>(
+    () => initialComments ?? [],
+  );
+  const [loading, setLoading] = useState(() => !initialArticle);
   const [progress, setProgress] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [commentBody, setCommentBody] = useState("");
@@ -137,7 +162,8 @@ export function ArticlePage({
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
+    const hasServerSnapshot = Boolean(initialArticle);
+    setLoading(!hasServerSnapshot);
     Promise.all([
       publicArticle(section, slug),
       publicComments(section, slug).catch(() => ({ items: [] })),
@@ -148,7 +174,7 @@ export function ArticlePage({
         setComments(commentList.items);
       })
       .catch(() => {
-        if (active) {
+        if (active && !hasServerSnapshot) {
           setArticle(null);
           setComments([]);
         }
@@ -159,7 +185,7 @@ export function ArticlePage({
     return () => {
       active = false;
     };
-  }, [section, slug]);
+  }, [initialArticle, section, slug]);
 
   useEffect(() => {
     if (loading) return;
@@ -174,8 +200,9 @@ export function ArticlePage({
     const canonical =
       article.canonical_url || `${publicOrigin()}${articlePath}`;
     const articleType = section === "blog" ? "BlogPosting" : "Article";
+    const rawTitle = article.seo_title || article.title;
     return applySeo({
-      title: `${article.seo_title || article.title} | VedicWay`,
+      title: rawTitle.includes("VedicWay") ? rawTitle : `${rawTitle} | VedicWay`,
       description: article.meta_description || article.excerpt,
       path: articlePath,
       canonicalUrl: canonical,
@@ -206,10 +233,13 @@ export function ArticlePage({
               isAccessibleForFree: true,
               author: {
                 "@type": "Organization",
+                "@id": `${publicOrigin()}/about#organization`,
                 name: article.author_name,
+                url: `${publicOrigin()}/about`,
               },
               publisher: {
                 "@type": "Organization",
+                "@id": `${publicOrigin()}/about#organization`,
                 name: "VedicWay",
                 url: publicOrigin(),
                 logo: {
@@ -420,7 +450,12 @@ export function ArticlePage({
                 <h1>{article.title}</h1>
                 <p>{article.excerpt}</p>
                 <div className="article-reading__byline">
-                  <span>{article.author_name}</span>
+                  <a
+                    href="/about"
+                    onClick={(event) => follow(event, "/about")}
+                  >
+                    {article.author_name}
+                  </a>
                   <time
                     dateTime={article.published_at ?? article.updated_at}
                   >
@@ -490,6 +525,42 @@ export function ArticlePage({
                 </div>
               </div>
             </article>
+
+            <section
+              className="article-sources"
+              aria-labelledby="article-sources-title"
+            >
+              <header>
+                <span>Проверяемость материала</span>
+                <h2 id="article-sources-title">Источники и редакция</h2>
+                <p>
+                  Редакция отделяет расчётные данные от трактовки и указывает
+                  внешние материалы, на которых основана статья.
+                </p>
+              </header>
+              {articleCitations(article).length > 0 ? (
+                <ol>
+                  {articleCitations(article).map((citation) => (
+                    <li key={citation}>
+                      <a href={citation} target="_blank" rel="noopener noreferrer">
+                        {citationLabel(citation)}
+                        <ArrowUpRight aria-hidden="true" />
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p>Внешние источники для этой редакции ещё не указаны.</p>
+              )}
+              <a
+                className="article-sources__policy"
+                href="/editorial-policy"
+                onClick={(event) => follow(event, "/editorial-policy")}
+              >
+                Как редакция проверяет материалы
+                <ArrowUpRight aria-hidden="true" />
+              </a>
+            </section>
 
             <section
               className="article-related"

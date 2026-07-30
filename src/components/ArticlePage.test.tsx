@@ -68,7 +68,9 @@ const article: ContentArticle = {
   meta_description:
     "Практический порядок проверки прогноза по периодам, транзитам и событиям.",
   focus_keyphrase: "проверка астрологического прогноза",
-  schema_extra: {},
+  schema_extra: {
+    citation: ["https://example.org/source"],
+  },
   status: "published",
   revision: 1,
   created_at: "2026-07-28T10:00:00Z",
@@ -121,6 +123,13 @@ describe("страница статьи", () => {
       screen.getAllByRole("link", { name: /Связанный материал/ }),
     ).toHaveLength(3);
     expect(screen.getAllByText("Эксперт").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByRole("heading", { name: "Источники и редакция" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /example\.org/ })).toHaveAttribute(
+      "href",
+      "https://example.org/source",
+    );
     const relatedImages = document.querySelectorAll(
       ".article-related__media img",
     );
@@ -146,6 +155,35 @@ describe("страница статьи", () => {
       isAccessibleForFree: true,
       commentCount: 0,
     });
+  });
+
+  it("сохраняет серверный снимок статьи при сбое повторного запроса", async () => {
+    vi.mocked(publicArticle).mockRejectedValueOnce(new Error("offline"));
+    vi.mocked(publicComments).mockRejectedValueOnce(new Error("offline"));
+
+    render(
+      <ArticlePage
+        section="blog"
+        slug="kak-proveryat-prognoz"
+        onNavigate={vi.fn()}
+        initialArticle={article}
+        initialComments={[]}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Как проверять астрологический прогноз",
+      }),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(publicArticle).toHaveBeenCalled());
+    expect(
+      screen.queryByRole("heading", { name: "Материал не найден" }),
+    ).not.toBeInTheDocument();
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      expect.stringContaining("index"),
+    );
   });
 
   it("даёт любому читателю добавить комментарий", async () => {

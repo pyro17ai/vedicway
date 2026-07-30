@@ -54,7 +54,7 @@
     "excerpt": "Пошагово сверяем часовой пояс, координаты, лагну, Луну, систему домов и сидерический режим перед интерпретацией натальной карты."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/algoritm-chteniya-natalnoy-karty",
     "/guide/lagna-i-ascendent",
     "/guide/ayanamsha-lahiri-raman-true-chitra"

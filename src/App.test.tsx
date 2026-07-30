@@ -11,13 +11,14 @@ describe("App", () => {
   it("собирает первый экран по продуктовому контракту", () => {
     const { container } = render(<App />);
 
-    expect(screen.getByText("ПОЗНАЙ СЕБЯ")).toBeInTheDocument();
-    expect(screen.getByText("ЧЕРЕЗ КОСМОС")).toBeInTheDocument();
+    expect(screen.getByText("ВЕДИЧЕСКАЯ НАТАЛЬНАЯ КАРТА")).toBeInTheDocument();
+    expect(screen.getByText("ОНЛАЙН")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /получите вашу натальную карту/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Главная" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Гид по астрологии" })).toHaveAttribute("href", "/guide");
     expect(screen.getByText("Пример готового результата")).toBeInTheDocument();
-    expect(container.querySelectorAll("[data-avatar]")).toHaveLength(4);
+    expect(screen.getByText("Проверяемый расчёт")).toBeInTheDocument();
+    expect(container.querySelector("#natal-chart-form")).toBeInTheDocument();
     expect(container.querySelectorAll("main")).toHaveLength(1);
     expect(
       screen.getByRole("region", { name: "Пример результата натальной карты" }),
@@ -30,7 +31,7 @@ describe("App", () => {
     window.history.replaceState({}, "", "/access/recovery");
     render(<App />);
 
-    expect(screen.getByText("ПОЗНАЙ СЕБЯ")).toBeInTheDocument();
+    expect(screen.getByText("ВЕДИЧЕСКАЯ НАТАЛЬНАЯ КАРТА")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Восстановить оплаченный разбор" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Email оплаты" })).toBeInTheDocument();
   });
@@ -44,5 +45,15 @@ describe("App", () => {
 
     expect(screen.getByRole("heading", { name: heading })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Страница не найдена" })).not.toBeInTheDocument();
+  });
+
+  it("открывает локальную страницу методологии", () => {
+    window.history.replaceState({}, "", "/methodology");
+    render(<App />);
+
+    expect(
+      screen.getByRole("heading", { name: "Метод расчёта натальной карты" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/PyJHora 4\.7\.0/)).toBeInTheDocument();
   });
 });

@@ -5,9 +5,6 @@ Disallow: /chart/
 Disallow: /chart
 Disallow: /checkout/
 Disallow: /payment/
-Disallow: /access/recovery
-Disallow: /privacy/request
-
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&from
 Sitemap: https://vedicway.ru/sitemap.xml
 Host: vedicway.ru

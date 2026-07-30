@@ -342,6 +342,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
 
   return (
     <aside
+      id="natal-chart-form"
       className={`chart-card${mode === "recovery" ? " chart-card--recovery" : ""}`}
       aria-labelledby="chart-form-title"
       data-od-id="birth-chart-form"
