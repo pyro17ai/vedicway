@@ -110,6 +110,46 @@ def test_recovery_response_does_not_enumerate_known_email(tmp_path) -> None:
     assert known.json() == unknown.json() == {"status": "accepted"}
 
 
+def test_rectification_access_recovery_returns_to_paid_flow(tmp_path) -> None:
+    store = Store(tmp_path / "runtime")
+    session_id, _ = store.create_session()
+    chart_id, _ = store.create_chart(session_id, _birth(), "rectification-recovery")
+    purchase, _ = store.create_purchase(
+        chart_id,
+        "rectification-purchase",
+        "buyer@example.com",
+        product_code="birth_time_rectification_v1",
+        amount_minor=30_000,
+    )
+    assert store.confirm_purchase(str(purchase["id"]), "rectification-paid") == chart_id
+    provider = RecordingEmailProvider()
+    dispatcher = EmailDispatcher(store, settings=_email_settings(), provider=provider)
+
+    store.enqueue_access_recovery("buyer@example.com")
+    assert dispatcher.process_once()
+    link = re.search(
+        r'href="([^"]+/api/v1/magic-links/[^"]+)"',
+        provider.messages[0]["html"],
+    )
+    assert link is not None
+
+    app = create_app(store=store, worker=NoopWorker())
+    with TestClient(app) as visitor:
+        started = visitor.get(urlsplit(link.group(1)).path, follow_redirects=False)
+        assert started.status_code == 303
+        csrf = visitor.cookies.get("vw_magic_csrf")
+        assert csrf
+        confirmed = visitor.post(
+            "/api/v1/magic-links/confirm",
+            data={"csrf_token": csrf},
+            headers={"Origin": "http://testserver"},
+            follow_redirects=False,
+        )
+
+    assert confirmed.status_code == 303
+    assert confirmed.headers["location"] == f"/rectification/{chart_id}"
+
+
 def test_store_exposes_no_direct_magic_link_redemption_bypass() -> None:
     assert not hasattr(Store, "consume_magic_link")
     assert not hasattr(Store, "redeem_magic_link")

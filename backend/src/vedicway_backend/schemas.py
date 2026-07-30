@@ -9,6 +9,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .constants import DOMAIN_ORDER, VARGA_ALLOWLIST, DomainSlug
 
+ProductCode = Literal["full_report_v1", "birth_time_rectification_v1"]
+
 
 class TimeAccuracy(StrEnum):
     EXACT = "exact"
@@ -247,7 +249,7 @@ class InterpretationBundle(BaseModel):
 class PurchaseRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    product_code: Literal["full_report_v1"] = "full_report_v1"
+    product_code: ProductCode = "full_report_v1"
     email: str = Field(min_length=3, max_length=320)
     offer_accepted: Literal[True]
     offer_version: str = Field(min_length=1, max_length=64)
@@ -295,7 +297,7 @@ class PurchaseResponse(BaseModel):
 
     purchase_id: str
     chart_id: str
-    product_code: Literal["full_report_v1"] = "full_report_v1"
+    product_code: ProductCode = "full_report_v1"
     status: str
     checkout_url: str | None = None
     price_minor: int
@@ -306,13 +308,75 @@ class PurchaseResponse(BaseModel):
 class PaymentPublicConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    product_code: Literal["full_report_v1"] = "full_report_v1"
+    product_code: ProductCode = "full_report_v1"
     title: str
     price_minor: int
     currency: str
     offer_version: str
     offer_url: str
     privacy_url: str
+
+
+class RectificationEventInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    event_type: Literal[
+        "education",
+        "career",
+        "marriage",
+        "childbirth",
+        "relocation",
+        "property",
+        "accident",
+    ]
+    year: int = Field(ge=1900, le=2100)
+    month: int | None = Field(default=None, ge=1, le=12)
+
+
+class RectificationSubmitRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    time_window: Literal["unknown", "night", "morning", "day", "evening"]
+    events: list[RectificationEventInput] = Field(min_length=3, max_length=7)
+
+    @field_validator("events")
+    @classmethod
+    def event_types_must_be_unique(
+        cls, events: list[RectificationEventInput]
+    ) -> list[RectificationEventInput]:
+        event_types = [event.event_type for event in events]
+        if len(event_types) != len(set(event_types)):
+            raise ValueError("Каждый тип события можно указать только один раз")
+        return events
+
+
+class RectificationResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    selected_time: str
+    confidence: Literal["low", "medium", "high"]
+    uncertainty_minutes: int
+    score_percent: int
+    candidate_count_expected: int
+    candidate_count_scored: int
+    fit_event_count: int
+    holdout_event_count: int
+    holdout_supported: bool
+    lagna: str
+    alternatives: list[dict[str, Any]]
+    algorithm_version: Literal["rectification.v1"] = "rectification.v1"
+    disclaimer: str
+
+
+class RectificationResource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    chart_id: str
+    status: Literal["awaiting_answers", "queued", "running", "ready", "failed"]
+    birth_date: date
+    birth_place: str
+    result: RectificationResult | None = None
+    error: str | None = None
 
 
 class RefundRequest(BaseModel):

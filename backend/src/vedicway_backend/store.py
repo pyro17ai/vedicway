@@ -26,6 +26,18 @@ from .schemas import (
     JobStatus,
 )
 
+_ENTITLEMENT_BY_PRODUCT = {
+    "full_report_v1": "report_full",
+    "birth_time_rectification_v1": "birth_time_rectification",
+}
+
+
+def _entitlement_for_product(product_code: str) -> str:
+    try:
+        return _ENTITLEMENT_BY_PRODUCT[product_code]
+    except KeyError:
+        raise ValueError(f"unsupported product code: {product_code}") from None
+
 
 def _utc_now() -> datetime:
     return datetime.now(UTC).replace(microsecond=0)
@@ -234,6 +246,15 @@ class Store:
           revoked_at TEXT,
           revocation_reason TEXT,
           UNIQUE(chart_id, product_code)
+        );
+        CREATE TABLE IF NOT EXISTS rectifications (
+          chart_id TEXT PRIMARY KEY REFERENCES charts(id),
+          status TEXT NOT NULL,
+          answers_ciphertext BLOB,
+          result_ciphertext BLOB,
+          error_code TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS refunds (
           id TEXT PRIMARY KEY,
@@ -1411,11 +1432,14 @@ class Store:
         with self._lock, self._connection() as connection:
             rows = connection.execute(
                 """SELECT p.id AS purchase_id, p.chart_id, p.email_ciphertext,
-                          r.id AS render_request_id
+                          e.product_code AS entitlement_code,
+                          CASE WHEN e.product_code = 'report_full' THEN r.id END AS render_request_id
                    FROM purchases p
                    JOIN charts c ON c.id = p.chart_id AND c.soft_deleted_at IS NULL
                    JOIN entitlements e ON e.chart_id = p.chart_id
-                     AND e.product_code = 'report_full' AND e.revoked_at IS NULL
+                     AND e.purchase_id = p.id
+                     AND e.product_code IN ('report_full', 'birth_time_rectification')
+                     AND e.revoked_at IS NULL
                    LEFT JOIN pdf_render_requests r ON r.id = (
                      SELECT pr.id FROM pdf_render_requests pr
                      WHERE pr.chart_id = p.chart_id AND pr.status = 'ready' AND pr.path IS NOT NULL
@@ -1427,12 +1451,14 @@ class Store:
                 (email_lookup_hmac,),
             ).fetchall()
         targets: list[dict[str, Any]] = []
-        seen: set[str] = set()
+        seen: set[tuple[str, str]] = set()
         for row in rows:
             chart_id = str(row["chart_id"])
-            if chart_id in seen or not row["email_ciphertext"]:
+            entitlement_code = str(row["entitlement_code"])
+            target_key = (chart_id, entitlement_code)
+            if target_key in seen or not row["email_ciphertext"]:
                 continue
-            seen.add(chart_id)
+            seen.add(target_key)
             email = str(self._decrypt(row["email_ciphertext"]).get("email") or "")
             if email:
                 targets.append(
@@ -1440,6 +1466,9 @@ class Store:
                         "purchase_id": str(row["purchase_id"]),
                         "chart_id": chart_id,
                         "email": email,
+                        "scope": "read_rectification"
+                        if entitlement_code == "birth_time_rectification"
+                        else "read_chart",
                         "render_request_id": str(row["render_request_id"])
                         if row["render_request_id"]
                         else None,
@@ -1673,25 +1702,52 @@ class Store:
                             receipt_registration, now, purchase_id,
                         ),
                     )
+                    entitlement_code = _entitlement_for_product(str(purchase["product_code"]))
                     entitlement = connection.execute(
                         """SELECT * FROM entitlements
-                           WHERE chart_id = ? AND product_code = 'report_full'""",
-                        (purchase["chart_id"],),
+                           WHERE chart_id = ? AND product_code = ?""",
+                        (purchase["chart_id"], entitlement_code),
                     ).fetchone()
                     if not entitlement or entitlement["revoked_at"] is not None:
                         connection.execute(
                             """INSERT INTO entitlements
                                (id, chart_id, product_code, purchase_id, granted_at, revoked_at, revocation_reason)
-                               VALUES (?, ?, 'report_full', ?, ?, NULL, NULL)
+                               VALUES (?, ?, ?, ?, ?, NULL, NULL)
                                ON CONFLICT(chart_id, product_code) DO UPDATE SET
                                  purchase_id = excluded.purchase_id,
                                  granted_at = excluded.granted_at,
                                  revoked_at = NULL,
                                  revocation_reason = NULL""",
-                            (self._new_id("ent"), purchase["chart_id"], purchase_id, now),
+                            (
+                                self._new_id("ent"),
+                                purchase["chart_id"],
+                                entitlement_code,
+                                purchase_id,
+                                now,
+                            ),
                         )
-                        self._emit(connection, purchase["chart_id"], "entitlement.granted", {"product": "report_full"})
-                        self._enqueue(connection, purchase["chart_id"], "paid_report_v1", priority=90)
+                        self._emit(
+                            connection,
+                            purchase["chart_id"],
+                            "entitlement.granted",
+                            {"product": entitlement_code},
+                        )
+                        if entitlement_code == "report_full":
+                            self._enqueue(connection, purchase["chart_id"], "paid_report_v1", priority=90)
+                        else:
+                            connection.execute(
+                                """INSERT INTO rectifications
+                                   (chart_id, status, created_at, updated_at)
+                                   VALUES (?, 'awaiting_answers', ?, ?)
+                                   ON CONFLICT(chart_id) DO UPDATE SET
+                                     status = CASE
+                                       WHEN rectifications.status = 'failed' THEN 'awaiting_answers'
+                                       ELSE rectifications.status
+                                     END,
+                                     error_code = NULL,
+                                     updated_at = excluded.updated_at""",
+                                (purchase["chart_id"], now, now),
+                            )
                         entitlement_changed = True
                 elif normalized == "cancelled" and current_status not in {"succeeded", "partially_refunded", "refunded"}:
                     connection.execute(
@@ -1887,9 +1943,10 @@ class Store:
             try:
                 row = connection.execute(
                     """SELECT refunds.*, purchases.chart_id, purchases.provider,
-                              purchases.provider_payment_id, purchases.paid_amount_minor,
-                              purchases.amount_minor AS purchase_amount_minor,
-                              purchases.currency AS purchase_currency
+                               purchases.provider_payment_id, purchases.paid_amount_minor,
+                               purchases.amount_minor AS purchase_amount_minor,
+                               purchases.currency AS purchase_currency,
+                               purchases.product_code AS purchase_product_code
                        FROM refunds JOIN purchases ON purchases.id = refunds.purchase_id
                        WHERE refunds.id = ?""",
                     (refund_id,),
@@ -1948,10 +2005,13 @@ class Store:
                         (purchase_status, refunded_total, now, row["purchase_id"]),
                     )
                     if purchase_status == "refunded":
+                        entitlement_code = _entitlement_for_product(
+                            str(row["purchase_product_code"])
+                        )
                         active = connection.execute(
-                            """SELECT id FROM entitlements WHERE chart_id = ? AND product_code = 'report_full'
+                            """SELECT id FROM entitlements WHERE chart_id = ? AND product_code = ?
                                AND revoked_at IS NULL""",
-                            (row["chart_id"],),
+                            (row["chart_id"], entitlement_code),
                         ).fetchone()
                         if active:
                             connection.execute(
@@ -1963,7 +2023,7 @@ class Store:
                                 connection,
                                 row["chart_id"],
                                 "entitlement.revoked",
-                                {"product": "report_full", "reason": "full_refund"},
+                                {"product": entitlement_code, "reason": "full_refund"},
                             )
                             entitlement_changed = True
                 connection.commit()
@@ -2023,13 +2083,102 @@ class Store:
             for row in rows
         ]
 
-    def has_entitlement(self, chart_id: str) -> bool:
+    def has_entitlement(self, chart_id: str, product_code: str = "report_full") -> bool:
         with self._lock, self._connection() as connection:
             return connection.execute(
-                """SELECT 1 FROM entitlements WHERE chart_id = ? AND product_code = 'report_full'
+                """SELECT 1 FROM entitlements WHERE chart_id = ? AND product_code = ?
                    AND revoked_at IS NULL""",
-                (chart_id,),
+                (chart_id, product_code),
             ).fetchone() is not None
+
+    def get_rectification(self, chart_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                "SELECT * FROM rectifications WHERE chart_id = ?",
+                (chart_id,),
+            ).fetchone()
+        if not row:
+            return None
+        return {
+            **dict(row),
+            "answers": self._decrypt(row["answers_ciphertext"])
+            if row["answers_ciphertext"]
+            else None,
+            "result": self._decrypt(row["result_ciphertext"])
+            if row["result_ciphertext"]
+            else None,
+        }
+
+    def submit_rectification(self, chart_id: str, answers: dict[str, Any]) -> str:
+        now = _iso()
+        with self._lock, self._connection() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                row = connection.execute(
+                    "SELECT status FROM rectifications WHERE chart_id = ?",
+                    (chart_id,),
+                ).fetchone()
+                if not row:
+                    raise LookupError(chart_id)
+                if row["status"] == "ready":
+                    connection.commit()
+                    return ""
+                if row["status"] in {"queued", "running"}:
+                    existing = connection.execute(
+                        """SELECT id FROM jobs WHERE chart_id = ? AND job_type = 'rectification_v1'
+                           AND status IN ('queued', 'running', 'validating')
+                           ORDER BY created_at DESC LIMIT 1""",
+                        (chart_id,),
+                    ).fetchone()
+                    connection.commit()
+                    return str(existing["id"]) if existing else ""
+                connection.execute(
+                    """UPDATE rectifications
+                       SET status = 'queued', answers_ciphertext = ?, result_ciphertext = NULL,
+                           error_code = NULL, updated_at = ? WHERE chart_id = ?""",
+                    (self._encrypt(answers), now, chart_id),
+                )
+                job_id = self._enqueue(connection, chart_id, "rectification_v1", priority=85)
+                self._emit(connection, chart_id, "rectification.queued", {"job_id": job_id})
+                connection.commit()
+                return job_id
+            except Exception:
+                connection.rollback()
+                raise
+
+    def mark_rectification_running(self, chart_id: str) -> None:
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                "UPDATE rectifications SET status = 'running', updated_at = ? WHERE chart_id = ?",
+                (_iso(), chart_id),
+            )
+            self._emit(connection, chart_id, "rectification.started", {})
+
+    def complete_rectification(self, chart_id: str, result: dict[str, Any]) -> None:
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """UPDATE rectifications
+                   SET status = 'ready', result_ciphertext = ?, error_code = NULL, updated_at = ?
+                   WHERE chart_id = ?""",
+                (self._encrypt(result), _iso(), chart_id),
+            )
+            self._emit(
+                connection,
+                chart_id,
+                "rectification.ready",
+                {
+                    "selected_time": result["selected_time"],
+                    "confidence": result["confidence"],
+                },
+            )
+
+    def fail_rectification(self, chart_id: str, error_code: str) -> None:
+        with self._lock, self._connection() as connection:
+            connection.execute(
+                """UPDATE rectifications
+                   SET status = 'failed', error_code = ?, updated_at = ? WHERE chart_id = ?""",
+                (error_code, _iso(), chart_id),
+            )
 
     def save_question(self, chart_id: str, question_id: str, saved: bool, note: str | None, reflection_status: str = "saved") -> None:
         with self._lock, self._connection() as connection:
@@ -2146,6 +2295,7 @@ class Store:
                     "pdf_render_requests",
                     "reports",
                     "saved_questions",
+                    "rectifications",
                     "magic_links",
                     "outbox_events",
                     "chart_access",
@@ -2556,7 +2706,7 @@ class Store:
         scope: str = "read_chart",
         render_request_id: str | None = None,
     ) -> str:
-        if scope not in {"read_chart", "download_pdf"}:
+        if scope not in {"read_chart", "read_rectification", "download_pdf"}:
             raise ValueError("unsupported magic-link scope")
         if scope == "download_pdf" and not render_request_id:
             raise ValueError("render_request_id is required for download_pdf")

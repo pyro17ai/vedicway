@@ -192,8 +192,14 @@ class YooKassaPaymentProvider(PaymentProvider):
             status_code=503,
         ) from last_transport_error
 
-    def _receipt(self, email: str, amount_minor: int, currency: str) -> dict[str, Any]:
-        product = self.settings.catalog.full_report
+    def _receipt(
+        self,
+        email: str,
+        product_code: str,
+        amount_minor: int,
+        currency: str,
+    ) -> dict[str, Any]:
+        product = self.settings.catalog.get(product_code)
         receipt: dict[str, Any] = {
             "customer": {"email": email},
             "items": [
@@ -314,14 +320,14 @@ class YooKassaPaymentProvider(PaymentProvider):
             "amount": {"value": _money(amount_minor), "currency": currency},
             "capture": True,
             "confirmation": {"type": "redirect", "return_url": return_url},
-            "description": self.settings.payment_description,
+            "description": product.receipt_description,
             "metadata": {
                 "purchase_id": purchase_id,
                 "chart_id": chart_id,
                 "product_code": product_code,
                 "environment": self.settings.environment,
             },
-            "receipt": self._receipt(email, amount_minor, currency),
+            "receipt": self._receipt(email, product_code, amount_minor, currency),
         }
         response = await self._request("POST", "payments", payload=payload, idempotency_key=idempotency_key)
         return self._parse_payment(response)
@@ -342,6 +348,7 @@ class YooKassaPaymentProvider(PaymentProvider):
         currency: str,
         email: str,
         reason: str,
+        product_code: str = "full_report_v1",
     ) -> RefundIntent:
         payment_id = self._validate_object_id(provider_payment_id)
         if amount_minor < 100 or amount_minor > original_amount_minor:
@@ -366,7 +373,7 @@ class YooKassaPaymentProvider(PaymentProvider):
             "metadata": {"purchase_id": purchase_id},
         }
         if amount_minor != original_amount_minor:
-            payload["receipt"] = self._receipt(email, amount_minor, currency)
+            payload["receipt"] = self._receipt(email, product_code, amount_minor, currency)
         response = await self._request("POST", "refunds", payload=payload, idempotency_key=idempotency_key)
         return self._parse_refund(response)
 

@@ -12,6 +12,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import quote, urlsplit
 
@@ -46,8 +47,11 @@ from .schemas import (
     PaymentPublicConfig,
     PdfCreateRequest,
     PrivacyRequestCreate,
+    ProductCode,
     PurchaseRequest,
     PurchaseResponse,
+    RectificationResource,
+    RectificationSubmitRequest,
     RefundRequest,
     RefundResponse,
 )
@@ -74,6 +78,7 @@ ALLOWED_JOB_TYPES = {
     "expert_extended_v1",
     "interpretation_free_v1",
     "paid_report_v1",
+    "rectification_v1",
     "pdf_v1",
 }
 
@@ -485,7 +490,7 @@ def create_app(
         return PurchaseResponse(
             purchase_id=str(purchase["id"]),
             chart_id=str(purchase["chart_id"]),
-            product_code="full_report_v1",
+            product_code=str(purchase["product_code"]),
             status=status_value,
             checkout_url=purchase.get("checkout_url"),
             price_minor=int(purchase["amount_minor"]),
@@ -689,9 +694,11 @@ def create_app(
         return {"items": [place.model_dump(mode="json") for place in app.state.places.search(q)]}
 
     @app.get("/api/v1/payments/config", response_model=PaymentPublicConfig)
-    async def payment_public_config() -> PaymentPublicConfig:
+    async def payment_public_config(
+        product_code: ProductCode = Query(default="full_report_v1"),
+    ) -> PaymentPublicConfig:
         settings: PaymentSettings = app.state.payment_settings
-        product = settings.catalog.full_report
+        product = settings.catalog.get(product_code)
         return PaymentPublicConfig(
             product_code=product.code,
             title=product.title,
@@ -968,14 +975,27 @@ def create_app(
                 status_code=400,
             )
         await _enforce_rate_limit(app, request, "purchase", limit=5, window_seconds=60 * 60)
-        if app.state.store.get_snapshot(chart_id) is None:
+        if (
+            payload.product_code == "full_report_v1"
+            and app.state.store.get_snapshot(chart_id) is None
+        ):
             raise DomainError(
                 "SNAPSHOT_MISSING", "Сначала дождитесь основной карты", status_code=409
             )
-        if app.state.store.has_entitlement(chart_id):
+        entitlement_code = (
+            "report_full"
+            if payload.product_code == "full_report_v1"
+            else "birth_time_rectification"
+        )
+        already_entitled = (
+            app.state.store.has_entitlement(chart_id)
+            if entitlement_code == "report_full"
+            else app.state.store.has_entitlement(chart_id, entitlement_code)
+        )
+        if already_entitled:
             raise DomainError(
                 "ALREADY_ENTITLED",
-                "Полный отчёт для этой карты уже доступен",
+                "Эта услуга для введённых данных уже оплачена",
                 recoverable=False,
                 status_code=409,
             )
@@ -1006,11 +1026,23 @@ def create_app(
             amount_minor=product.amount_minor,
             currency=product.currency,
         )
+        if purchase["product_code"] != product.code:
+            raise DomainError(
+                "IDEMPOTENCY_KEY_REUSED",
+                "Ключ повтора уже использован для другой услуги",
+                recoverable=False,
+                status_code=409,
+            )
         if purchase.get("provider_payment_id") or purchase["status"] not in {"created", "unknown"}:
             return public_purchase(purchase)
 
+        return_path = (
+            f"/chart/{quote(chart_id, safe='')}"
+            if product.code == "full_report_v1"
+            else f"/rectification/{quote(chart_id, safe='')}"
+        )
         return_url = (
-            f"{settings.public_base_url}/chart/{quote(chart_id, safe='')}?payment_return="
+            f"{settings.public_base_url}{return_path}?payment_return="
             f"{quote(str(purchase['id']), safe='')}"
         )
         try:
@@ -1178,6 +1210,83 @@ def create_app(
             purchase = app.state.store.get_purchase(purchase_id) or purchase
         return public_purchase(purchase)
 
+    def rectification_resource(chart_id: str) -> RectificationResource:
+        case = app.state.store.get_rectification(chart_id)
+        if not case:
+            raise DomainError(
+                "RECTIFICATION_NOT_READY",
+                "Доступ к опросу ещё не подготовлен",
+                recoverable=True,
+                status_code=409,
+            )
+        birth = app.state.store.get_birth(chart_id)
+        error = (
+            "Расчёт прервался. Ответы сохранены, его можно запустить повторно."
+            if case["status"] == "failed"
+            else None
+        )
+        return RectificationResource(
+            chart_id=chart_id,
+            status=str(case["status"]),
+            birth_date=birth.local_datetime.date(),
+            birth_place=birth.place.display_name,
+            result=case.get("result"),
+            error=error,
+        )
+
+    @app.get(
+        "/api/v1/charts/{chart_id}/rectification",
+        response_model=RectificationResource,
+    )
+    async def get_rectification(chart_id: str, request: Request) -> RectificationResource:
+        current_session = session(request)
+        assert_owned(chart_id, current_session)
+        if not app.state.store.has_entitlement(chart_id, "birth_time_rectification"):
+            raise DomainError(
+                "RECTIFICATION_PAYMENT_REQUIRED",
+                "Опрос откроется после подтверждения оплаты",
+                recoverable=False,
+                status_code=402,
+            )
+        return rectification_resource(chart_id)
+
+    @app.post(
+        "/api/v1/charts/{chart_id}/rectification",
+        response_model=RectificationResource,
+        status_code=status.HTTP_202_ACCEPTED,
+    )
+    async def submit_rectification(
+        chart_id: str,
+        payload: RectificationSubmitRequest,
+        request: Request,
+    ) -> RectificationResource:
+        current_session = session(request)
+        assert_owned(chart_id, current_session)
+        if not app.state.store.has_entitlement(chart_id, "birth_time_rectification"):
+            raise DomainError(
+                "RECTIFICATION_PAYMENT_REQUIRED",
+                "Расчёт доступен после подтверждения оплаты",
+                recoverable=False,
+                status_code=402,
+            )
+        birth = app.state.store.get_birth(chart_id)
+        if any(
+            event.year < birth.local_datetime.year or event.year > datetime.now(UTC).year
+            for event in payload.events
+        ):
+            raise DomainError(
+                "RECTIFICATION_EVENT_DATE_INVALID",
+                "Год события должен находиться между рождением и текущим годом",
+                recoverable=False,
+                status_code=422,
+            )
+        app.state.store.submit_rectification(
+            chart_id,
+            payload.model_dump(mode="json"),
+        )
+        await _launch_worker(app)
+        return rectification_resource(chart_id)
+
     @app.post("/internal/payments/{purchase_id}/reconcile", response_model=PurchaseResponse)
     async def reconcile_payment_operation(purchase_id: str, request: Request) -> PurchaseResponse:
         actor_fingerprint, source_ip = authorize_operations(request)
@@ -1295,6 +1404,7 @@ def create_app(
                 currency=str(refund["currency"]),
                 email=app.state.store.get_purchase_email(purchase_id) or "",
                 reason=app.state.store.get_refund_reason(str(refund["id"])) or payload.reason,
+                product_code=str(purchase["product_code"]),
             )
             if intent.provider_payment_id != purchase["provider_payment_id"]:
                 raise DomainError(
@@ -1402,7 +1512,7 @@ def create_app(
             "button{width:100%;min-height:52px;border:0;border-radius:10px;background:#df6c2b;color:white;font-weight:700;cursor:pointer}</style>"
             "</head><body><main class='card'><small>ЛОКАЛЬНЫЙ СИМУЛЯТОР</small>"
             "<h1>Тестовая оплата YooKassa</h1><p>Реальные деньги и банковские реквизиты не используются.</p>"
-            "<p class='price'>990 ₽</p>"
+            f"<p class='price'>{int(purchase['amount_minor']) // 100} ₽</p>"
             f"<form method='post' action='{action}'><button type='submit'>Оплатить тестовый заказ</button></form>"
             "</main></body></html>",
             headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow"},
@@ -1445,8 +1555,13 @@ def create_app(
             task.add_done_callback(app.state.payment_tasks.discard)
         else:
             await confirm_after_delay()
+        return_path = (
+            f"/chart/{quote(chart_id, safe='')}"
+            if purchase["product_code"] == "full_report_v1"
+            else f"/rectification/{quote(chart_id, safe='')}"
+        )
         return_url = (
-            f"{app.state.payment_settings.public_base_url}/chart/{quote(chart_id, safe='')}"
+            f"{app.state.payment_settings.public_base_url}{return_path}"
             f"?payment_return={quote(purchase_id, safe='')}"
         )
         return RedirectResponse(return_url, status_code=303)
@@ -1818,6 +1933,8 @@ def create_app(
                 f"/api/v1/charts/{chart_id}/reports/pdf"
                 f"?render_request_id={quote(str(link['render_request_id']))}"
             )
+        elif link["scope"] == "read_rectification":
+            location = f"/rectification/{chart_id}"
         else:
             location = f"/chart/{chart_id}"
         response = RedirectResponse(url=location, status_code=303)

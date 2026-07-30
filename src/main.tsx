@@ -18,6 +18,7 @@ import "./site-shell.css";
 import "./guide.css";
 import "./legal.css";
 import "./recovery.css";
+import "./rectification.css";
 import "./light-theme.css";
 
 createRoot(document.getElementById("root")!).render(

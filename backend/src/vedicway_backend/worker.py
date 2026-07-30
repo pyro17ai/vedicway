@@ -21,6 +21,7 @@ from .evidence import compile_evidence
 from .interpretation import InterpretationProvider, provider_from_environment, validate_bundle
 from .observability import Metrics
 from .pdf import PdfRenderer
+from .rectification import calculate_rectification
 from .schemas import ChartSnapshot, JobStatus, PdfRenderPreferences, SectionStatus, section_model
 from .store import Store
 
@@ -69,6 +70,8 @@ class ChartWorker:
             self.store.update_job_status(job["id"], status, {"code": exc.code, "message": exc.message, "recoverable": retryable})
             if job["job_type"] == "instant_v1":
                 self.store.mark_chart_status(job["chart_id"], "failed")
+            if job["job_type"] == "rectification_v1":
+                self.store.fail_rectification(str(job["chart_id"]), exc.code)
             self.store.emit(
                 job["chart_id"],
                 "job.failed",
@@ -85,6 +88,11 @@ class ChartWorker:
                 job["chart_id"], "job.failed",
                 {"job_type": job["job_type"], "code": "UNEXPECTED_WORKER_FAILURE", "recoverable": True},
             )
+            if job["job_type"] == "rectification_v1":
+                self.store.fail_rectification(
+                    str(job["chart_id"]),
+                    "UNEXPECTED_WORKER_FAILURE",
+                )
             if self.metrics:
                 self.metrics.increment("job_failure_total", {"job_type": str(job["job_type"]), "code": "UNEXPECTED_WORKER_FAILURE"})
         return WorkerOutcome(job_id=str(job["id"]), handled=True)
@@ -105,6 +113,7 @@ class ChartWorker:
             "expert_extended_v1": self._expert_extended,
             "interpretation_free_v1": self._free_interpretation,
             "paid_report_v1": self._paid_report,
+            "rectification_v1": self._rectification,
             "pdf_v1": self._pdf,
         }
         handler = handlers.get(str(job["job_type"]))
@@ -230,6 +239,28 @@ class ChartWorker:
         events.append(("report.ready", {"report_version": validated.schema_version}))
         self.store.commit_bundle_events(chart_id, validated, paid=True, events=events)
         self.store.enqueue_pdf_job(chart_id, PdfRenderPreferences().model_dump(mode="json"), priority=60)
+
+    def _rectification(self, job: dict[str, Any]) -> None:
+        chart_id = str(job["chart_id"])
+        if not self.store.has_entitlement(chart_id, "birth_time_rectification"):
+            raise DomainError(
+                "ENTITLEMENT_REQUIRED",
+                "Ректификация доступна после подтверждения оплаты",
+                recoverable=False,
+                status_code=403,
+            )
+        case = self.store.get_rectification(chart_id)
+        if not case or not isinstance(case.get("answers"), dict):
+            raise DomainError(
+                "RECTIFICATION_ANSWERS_MISSING",
+                "Ответы на вопросы не найдены",
+                recoverable=False,
+            )
+        self.store.mark_rectification_running(chart_id)
+        birth = self.store.get_birth(chart_id)
+        with self._calculation_lock:
+            result = calculate_rectification(birth, case["answers"])
+        self.store.complete_rectification(chart_id, result)
 
     def _start_agent_run(self, chart_id: str, job: dict[str, Any], facts, packets, paid: bool) -> str:
         payload = {

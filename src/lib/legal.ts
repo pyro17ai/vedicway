@@ -1,7 +1,7 @@
 export const LEGAL_DOCUMENT_VERSIONS = {
-  terms: "2026-07-28",
-  privacy: "2026-07-28",
-  personalDataConsent: "2026-07-28",
+  terms: "2026-07-30",
+  privacy: "2026-07-30",
+  personalDataConsent: "2026-07-30",
   cookies: "2026-07-19",
 } as const;
 
@@ -58,6 +58,7 @@ const GOAL_NAMES = new Set([
   "result_tab_opened",
   "domain_detail_requested",
   "checkout_started",
+  "rectification_checkout_opened",
   "question_saved",
   "question_status_changed",
   "pdf_requested",
@@ -104,6 +105,7 @@ function safePagePath(value: unknown) {
     return "/404";
   }
   if (/^\/chart\/[^/]+$/.test(pathname)) return "/chart/:id";
+  if (/^\/rectification\/[^/]+$/.test(pathname)) return "/rectification/:id";
   if (/^\/(?:guide|blog)\/[a-z0-9-]+$/.test(pathname)) return pathname;
   if ([
     "/",

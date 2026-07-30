@@ -198,7 +198,7 @@ class EmailDispatcher:
                 links: list[tuple[str, str | None]] = []
                 for target in targets[:10]:
                     chart_token = self.store.create_magic_link(
-                        str(target["chart_id"]), scope="read_chart"
+                        str(target["chart_id"]), scope=str(target["scope"])
                     )
                     tokens.append(chart_token)
                     chart_url = f"{self.settings.public_origin}/api/v1/magic-links/{chart_token}"

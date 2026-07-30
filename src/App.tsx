@@ -11,6 +11,7 @@ import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
 import { NotFoundPage } from "./components/NotFoundPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
 import { RecoveryPage } from "./components/RecoveryPage";
+import { RectificationFlow } from "./components/RectificationFlow";
 import { SiteHeader } from "./components/SiteHeader";
 import { trackPageView } from "./lib/analytics";
 import { applySeo } from "./lib/seo";
@@ -156,6 +157,11 @@ function chartIdFromPath(pathname: string) {
   return matched ? decodeURIComponent(matched[1]) : null;
 }
 
+function rectificationIdFromPath(pathname: string) {
+  const matched = pathname.match(/^\/rectification\/([^/]+)$/);
+  return matched ? decodeURIComponent(matched[1]) : null;
+}
+
 function contentArticleFromPath(pathname: string) {
   const matched = pathname.match(/^\/(guide|blog)\/([^/]+)$/);
   if (!matched) return null;
@@ -205,6 +211,11 @@ function App() {
   const chartId = chartIdFromPath(pathname);
   if (chartId) {
     return <ChartScreen chartId={chartId} onNavigate={navigate} />;
+  }
+
+  const rectificationId = rectificationIdFromPath(pathname);
+  if (rectificationId) {
+    return <RectificationFlow chartId={rectificationId} onNavigate={navigate} />;
   }
 
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;

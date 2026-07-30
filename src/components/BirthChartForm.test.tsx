@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createChart } from "../lib/chart-api";
+import { createChart, getPaymentConfig } from "../lib/chart-api";
 import { searchCities } from "../lib/city-search";
 import { BirthChartForm } from "./BirthChartForm";
 
@@ -12,7 +12,7 @@ vi.mock("../lib/city-search", () => ({
 
 vi.mock("../lib/chart-api", async () => {
   const actual = await vi.importActual<typeof import("../lib/chart-api")>("../lib/chart-api");
-  return { ...actual, createChart: vi.fn() };
+  return { ...actual, createChart: vi.fn(), getPaymentConfig: vi.fn() };
 });
 
 const city = {
@@ -131,6 +131,48 @@ describe("BirthChartForm", () => {
     expect(
       Object.keys(window.sessionStorage).some((key) => key.startsWith("vedicway:profile:")),
     ).toBe(false);
+  });
+
+  it("открывает платную ректификацию без выдуманного времени рождения", async () => {
+    vi.mocked(createChart).mockResolvedValueOnce({ chart_id: "chart-rectification" });
+    vi.mocked(getPaymentConfig).mockResolvedValueOnce({
+      product_code: "birth_time_rectification_v1",
+      title: "Восстановление времени рождения",
+      price_minor: 30_000,
+      currency: "RUB",
+      offer_version: "development",
+      offer_url: "/legal/offer",
+      privacy_url: "/legal/privacy",
+    });
+    render(<BirthChartForm />);
+
+    fireEvent.change(screen.getByLabelText("Дата рождения"), { target: { value: "1991-04-12" } });
+    const combobox = screen.getByRole("combobox", { name: "Место рождения" });
+    fireEvent.change(combobox, { target: { value: "Москва" } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+    fireEvent.keyDown(combobox, { key: "ArrowDown" });
+    fireEvent.keyDown(combobox, { key: "Enter" });
+    fireEvent.click(screen.getByRole("radio", { name: "Не знаю" }));
+
+    expect(screen.getByLabelText("Время рождения")).toBeDisabled();
+    expect(screen.getByText("Уточним время по событиям вашей жизни")).toBeVisible();
+    expect(screen.getByText("300 ₽")).toBeVisible();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
+    fireEvent.click(screen.getByRole("button", { name: "ВОССТАНОВИТЬ ВРЕМЯ" }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(createChart).toHaveBeenCalledWith(expect.objectContaining({
+      localTime: "12:00",
+      timeAccuracy: "unknown",
+    }));
+    expect(getPaymentConfig).toHaveBeenCalledWith("birth_time_rectification_v1");
+    expect(screen.getByRole("dialog", { name: "Восстановление времени рождения" })).toBeVisible();
   });
 
   it("отправляет восстановление из той же hero-карточки и не сохраняет email в браузере", async () => {

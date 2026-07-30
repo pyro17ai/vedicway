@@ -65,7 +65,7 @@ describe("LegalPage interpretation processor disclosure", () => {
 
     const heading = await screen.findByRole("heading", { name: "Разрешённые действия" });
     expect(heading.closest("section")).toHaveTextContent("Example Processor LLC");
-    expect(screen.getByText("Редакция от 2026-07-28")).toBeInTheDocument();
+    expect(screen.getByText("Редакция от 2026-07-30")).toBeInTheDocument();
   });
 
   it("не заявляет обработку имени, которого больше нет в форме и хранилище", async () => {

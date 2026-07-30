@@ -224,6 +224,27 @@ body {
   color: var(--ember-deep);
 }
 
+.rectification-offer {
+  border-color: rgba(169, 76, 34, 0.24);
+  background:
+    linear-gradient(135deg, rgba(200, 93, 40, 0.1), rgba(200, 93, 40, 0.025)),
+    rgba(255, 253, 248, 0.78);
+}
+
+.rectification-offer > span {
+  color: var(--ember-deep);
+}
+
+.rectification-offer h3,
+.rectification-offer strong {
+  color: var(--ink);
+}
+
+.rectification-offer p,
+.rectification-offer small {
+  color: var(--ink-muted);
+}
+
 .chart-form__recovery-copy,
 .chart-form__back,
 .chart-form__switch {

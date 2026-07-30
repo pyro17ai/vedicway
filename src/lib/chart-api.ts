@@ -255,10 +255,12 @@ export type PurchaseStatus =
   | "partially_refunded"
   | "refunded";
 
+export type ProductCode = "full_report_v1" | "birth_time_rectification_v1";
+
 export type PurchaseResource = {
   purchase_id: string;
   chart_id: string;
-  product_code: "full_report_v1";
+  product_code: ProductCode;
   status: PurchaseStatus;
   checkout_url: string | null;
   price_minor: number;
@@ -267,7 +269,7 @@ export type PurchaseResource = {
 };
 
 export type PaymentPublicConfig = {
-  product_code: "full_report_v1";
+  product_code: ProductCode;
   title: string;
   price_minor: number;
   currency: string;
@@ -276,22 +278,82 @@ export type PaymentPublicConfig = {
   privacy_url: string;
 };
 
-export function getPaymentConfig(): Promise<PaymentPublicConfig> {
-  return request("/api/v1/payments/config");
+export function getPaymentConfig(productCode: ProductCode = "full_report_v1"): Promise<PaymentPublicConfig> {
+  const url = new URL("/api/v1/payments/config", window.location.origin);
+  url.searchParams.set("product_code", productCode);
+  return request(url);
 }
 
 export async function createPurchase(
   chartId: string,
-  input: { email: string; offerVersion: string },
+  input: { email: string; offerVersion: string; productCode?: ProductCode },
 ): Promise<PurchaseResource> {
   return request(`/api/v1/charts/${encodeURIComponent(chartId)}/purchases`, {
     method: "POST",
     headers: { "Idempotency-Key": randomKey("purchase") },
     body: JSON.stringify({
-      product_code: "full_report_v1",
+      product_code: input.productCode ?? "full_report_v1",
       email: input.email,
       offer_accepted: true,
       offer_version: input.offerVersion,
+    }),
+  });
+}
+
+export type RectificationEventType =
+  | "education"
+  | "career"
+  | "marriage"
+  | "childbirth"
+  | "relocation"
+  | "property"
+  | "accident";
+
+export type RectificationResult = {
+  selected_time: string;
+  confidence: "low" | "medium" | "high";
+  uncertainty_minutes: number;
+  score_percent: number;
+  candidate_count_expected: number;
+  candidate_count_scored: number;
+  fit_event_count: number;
+  holdout_event_count: number;
+  holdout_supported: boolean;
+  lagna: string;
+  alternatives: Array<{ time: string; lagna: string; score_percent: number }>;
+  algorithm_version: "rectification.v1";
+  disclaimer: string;
+};
+
+export type RectificationResource = {
+  chart_id: string;
+  status: "awaiting_answers" | "queued" | "running" | "ready" | "failed";
+  birth_date: string;
+  birth_place: string;
+  result: RectificationResult | null;
+  error: string | null;
+};
+
+export function getRectification(chartId: string, signal?: AbortSignal): Promise<RectificationResource> {
+  return request(`/api/v1/charts/${encodeURIComponent(chartId)}/rectification`, { signal });
+}
+
+export function submitRectification(
+  chartId: string,
+  input: {
+    timeWindow: "unknown" | "night" | "morning" | "day" | "evening";
+    events: Array<{ eventType: RectificationEventType; year: number; month: number | null }>;
+  },
+): Promise<RectificationResource> {
+  return request(`/api/v1/charts/${encodeURIComponent(chartId)}/rectification`, {
+    method: "POST",
+    body: JSON.stringify({
+      time_window: input.timeWindow,
+      events: input.events.map((event) => ({
+        event_type: event.eventType,
+        year: event.year,
+        month: event.month,
+      })),
     }),
   });
 }
