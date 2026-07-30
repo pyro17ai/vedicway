@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -170,5 +170,18 @@ describe("контентные разделы", () => {
     expect(
       screen.getByText("Первый материал уже можно публиковать"),
     ).toBeInTheDocument();
+  });
+
+  it("сохраняет серверный список статей при недоступном API", async () => {
+    vi.mocked(publicArticles).mockRejectedValueOnce(new Error("offline"));
+    render(<GuidePage onNavigate={vi.fn()} initialArticles={articles} />);
+
+    expect(
+      screen.getByText("Как читать первый дом"),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(publicArticles).toHaveBeenCalledWith("guide"));
+    expect(
+      screen.queryByRole("heading", { name: "Библиотека временно недоступна" }),
+    ).not.toBeInTheDocument();
   });
 });

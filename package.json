@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/prerender-seo.mjs",
+    "check:seo": "node scripts/check-seo-build.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "test:e2e": "playwright test",

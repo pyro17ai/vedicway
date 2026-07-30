@@ -44,12 +44,19 @@ REQUIRED_LEGAL_GUARD = tuple(
     for slug in (
         "offer",
         "privacy",
-        "user-agreement",
-        "privacy-policy",
         "personal-data-consent",
         "cookies",
     )
-) + ("location ^~ /legal/ { return 404; }",)
+) + (
+    "location = /legal/user-agreement { return 308 /legal/offer; }",
+    "location = /legal/privacy-policy { return 308 /legal/privacy; }",
+    "location ^~ /legal/ { return 404; }",
+)
+
+REQUIRED_TRUST_ROUTES = tuple(
+    f"location = /{slug} {{ try_files /{slug}/index.html =404; expires -1; }}"
+    for slug in ("about", "methodology", "editorial-policy")
+)
 
 
 def main() -> None:
@@ -99,6 +106,11 @@ def main() -> None:
     ]
     if missing_legal:
         raise SystemExit(f"Legal SEO routing is incomplete: {', '.join(missing_legal)}")
+    missing_trust = [
+        fragment for fragment in REQUIRED_TRUST_ROUTES if fragment not in config
+    ]
+    if missing_trust:
+        raise SystemExit(f"Trust-page routing is incomplete: {', '.join(missing_trust)}")
     if "try_files $uri $uri/index.html /index.html" in config:
         raise SystemExit("Legal SPA fallback still returns a soft 404")
     print("Nginx SEO, legal and privacy guard contract passed.")

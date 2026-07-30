@@ -10,6 +10,7 @@ import "@fontsource/inter/600.css";
 
 import App from "./App";
 import { CookieConsentBanner } from "./components/CookieConsentBanner";
+import { readSeoBootstrap } from "./lib/seo-bootstrap";
 import "./styles.css";
 import "./results-showcase.css";
 import "./faq-section.css";
@@ -20,6 +21,8 @@ import "./legal.css";
 import "./recovery.css";
 import "./light-theme.css";
 
+const seoBootstrap = readSeoBootstrap();
+
 createRoot(document.getElementById("root")!).render(
-  <StrictMode><App /><CookieConsentBanner /></StrictMode>,
+  <StrictMode><App seoBootstrap={seoBootstrap} /><CookieConsentBanner /></StrictMode>,
 );

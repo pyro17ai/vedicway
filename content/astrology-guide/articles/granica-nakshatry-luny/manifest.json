@@ -126,7 +126,7 @@
     "/guide/koordinaty-mesta-rozhdeniya-v-karte",
     "/guide/proverka-rascheta-nakshatry",
     "/guide/dzhanma-nakshatra-luny",
-    "/chart"
+    "/#natal-chart-form"
   ],
   "schema": {
     "primary_type": "Article",

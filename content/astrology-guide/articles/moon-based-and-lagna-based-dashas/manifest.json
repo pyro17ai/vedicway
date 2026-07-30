@@ -15,7 +15,7 @@
     "excerpt": "Правило расчёта даши сверяйте с выбранной школой: исходная точка, порядок управителей и вложенность периодов должны принадлежать одной редакции."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/vimshottari-start-nakshatra",
     "/guide/rashi-bhava-lagna-i-doma",
     "/guide/pratyantardasha-nested-periods"

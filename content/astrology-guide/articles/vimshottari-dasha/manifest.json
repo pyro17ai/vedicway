@@ -83,7 +83,7 @@
     "excerpt": "Проверка Вимшоттари перед интерпретацией: исходная накшатра Луны, фиксированная последовательность управителей, остаток первого периода и чувствительность расчёта ко времени рождения."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/proverka-rascheta-nakshatry",
     "/guide/vimshottari-start-nakshatra",
     "/guide/vimshottari-balance-at-birth",

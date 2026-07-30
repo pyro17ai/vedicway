@@ -2365,3 +2365,109 @@ figure.article-reading__cover {
     animation: none;
   }
 }
+
+.trust-page {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 36px 0 96px;
+}
+
+.trust-page > article {
+  width: min(820px, 100%);
+  margin: 54px auto 0;
+}
+
+.trust-page > article > header {
+  padding-bottom: 38px;
+  border-bottom: 1px solid var(--content-line);
+}
+
+.trust-page > article > header > span,
+.article-sources > header > span {
+  color: var(--content-accent);
+  font: 600 0.76rem/1.4 Inter, sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trust-page h1 {
+  margin: 14px 0 18px;
+  font: 500 clamp(3rem, 8vw, 5.8rem)/0.94 "Cormorant Garamond", serif;
+}
+
+.trust-page h2 {
+  margin: 0 0 18px;
+  font: 500 clamp(2rem, 4vw, 3rem)/1 "Cormorant Garamond", serif;
+}
+
+.trust-page p {
+  color: var(--content-muted);
+  font: 400 1rem/1.78 Inter, sans-serif;
+}
+
+.trust-page > article > section {
+  padding: 38px 0;
+  border-bottom: 1px solid var(--content-line);
+}
+
+.trust-page > article > nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  padding-top: 32px;
+}
+
+.trust-page > article > nav a,
+.article-sources a {
+  color: var(--content-accent-deep);
+  font: 600 0.9rem/1.4 Inter, sans-serif;
+}
+
+.article-sources {
+  width: min(920px, calc(100% - 40px));
+  margin: 54px auto;
+  padding: 32px;
+  border: 1px solid rgba(166, 79, 53, 0.28);
+  background: rgba(166, 79, 53, 0.05);
+}
+
+.article-sources h2 {
+  margin: 10px 0;
+  font: 500 clamp(2rem, 4vw, 3rem)/1 "Cormorant Garamond", serif;
+}
+
+.article-sources p,
+.article-sources li {
+  color: var(--content-muted);
+  font: 400 0.94rem/1.65 Inter, sans-serif;
+}
+
+.article-sources ol {
+  display: grid;
+  gap: 10px;
+  margin: 24px 0;
+  padding-left: 24px;
+}
+
+.article-sources li a,
+.article-sources__policy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.article-sources svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 720px) {
+  .trust-page,
+  .article-sources {
+    width: min(100% - 28px, 820px);
+  }
+
+  .article-sources {
+    padding: 24px 20px;
+  }
+}

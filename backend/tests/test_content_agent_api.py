@@ -162,6 +162,10 @@ def test_html_gate_sanitizes_content_and_renders_complete_article_seo(
         assert '"wordCount":' in page.text
         assert 'property="article:published_time"' in page.text
         assert 'data-vedicway-seo-schema="ssr"' in page.text
+        assert 'id="vedicway-seo-bootstrap"' in page.text
+        assert '"kind":"article"' in page.text
+        assert 'href="/about">Редакция VedicWay</a>' in page.text
+        assert "Источники и редакция" in page.text
         assert "<script>alert" not in page.text
 
 
@@ -385,6 +389,8 @@ def test_sitemap_keeps_hubs_and_both_article_sections(tmp_path, monkeypatch) -> 
         assert '"@type":"ItemList"' in guide_hub.text
         assert '"numberOfItems":1' in guide_hub.text
         assert 'data-vedicway-seo-schema="ssr"' in guide_hub.text
+        assert 'id="vedicway-seo-bootstrap"' in guide_hub.text
+        assert '"kind":"hub"' in guide_hub.text
         assert 'class="guide-atlas-hero"' in guide_hub.text
         assert 'id="guide-route"' in guide_hub.text
         assert 'aria-valuenow="1"' in guide_hub.text
@@ -405,5 +411,8 @@ def test_sitemap_keeps_hubs_and_both_article_sections(tmp_path, monkeypatch) -> 
         root = json.loads(json.dumps(sitemap.text))
         assert "https://vedicway.ru/guide</loc>" in root
         assert "https://vedicway.ru/blog</loc>" in root
+        assert "https://vedicway.ru/about</loc>" in root
+        assert "https://vedicway.ru/methodology</loc>" in root
+        assert "https://vedicway.ru/editorial-policy</loc>" in root
         assert f"https://vedicway.ru/guide/{GUIDE_SLUG}" in root
         assert "https://vedicway.ru/blog/prognoz-na-retrogradnyy-period" in root

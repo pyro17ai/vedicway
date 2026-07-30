@@ -106,7 +106,7 @@
     "/guide/data-rozhdeniya-julian-day",
     "/guide/letnee-vremya-i-natalnaya-karta",
     "/guide/mestnoe-zvezdnoe-vremya-i-lagna",
-    "/chart"
+    "/#natal-chart-form"
   ],
   "prohibited_claims": [
     "Не обещать, что перевод в UTC восстанавливает неизвестное или приблизительное время рождения.",

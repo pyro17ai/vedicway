@@ -39,6 +39,9 @@ export function SiteHeader({ active, onNavigate, variant = "solid" }: SiteHeader
           <a className={active === "blog" ? "is-active" : ""} href="/blog" aria-current={active === "blog" ? "page" : undefined} onClick={(event) => follow(event, "/blog")}>
             Блог
           </a>
+          <a href="/methodology" onClick={(event) => follow(event, "/methodology")}>
+            Метод
+          </a>
         </nav>
       </div>
     </header>

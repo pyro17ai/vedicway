@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import { AstrologyWheel } from "./components/AstrologyWheel";
 import { ArticlePage } from "./components/ArticlePage";
 import { BirthChartForm } from "./components/BirthChartForm";
 import { BlogPage } from "./components/BlogPage";
-import { ChartWorkspace } from "./components/ChartWorkspace";
 import { FaqSection } from "./components/FaqSection";
 import { GuidePage } from "./components/GuidePage";
 import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
@@ -12,15 +11,16 @@ import { NotFoundPage } from "./components/NotFoundPage";
 import { ResultsShowcase } from "./components/ResultsShowcase";
 import { RecoveryPage } from "./components/RecoveryPage";
 import { SiteHeader } from "./components/SiteHeader";
+import { TrustPage, type TrustPageKind } from "./components/TrustPage";
 import { trackPageView } from "./lib/analytics";
-import { applySeo } from "./lib/seo";
+import { applySeo, publicOrigin } from "./lib/seo";
+import type { SeoBootstrap } from "./lib/seo-bootstrap";
 
-const avatars = [
-  "/assets/avatar-01-light.png",
-  "/assets/avatar-02-light.png",
-  "/assets/avatar-03-light.png",
-  "/assets/avatar-04-light.png",
-];
+const ChartWorkspace = lazy(() =>
+  import("./components/ChartWorkspace").then((module) => ({
+    default: module.ChartWorkspace,
+  })),
+);
 
 type LandingScreenProps = {
   onChartCreated: (chartId: string) => void;
@@ -41,7 +41,11 @@ function ChartScreen({ chartId, onNavigate }: ChartScreenProps) {
     noindex: true,
   }), [chartId]);
 
-  return <ChartWorkspace chartId={chartId} onBackToLanding={() => onNavigate("/")} />;
+  return (
+    <Suspense fallback={<main className="route-loading" role="status">Загружаем рабочую область…</main>}>
+      <ChartWorkspace chartId={chartId} onBackToLanding={() => onNavigate("/")} />
+    </Suspense>
+  );
 }
 
 function LandingSeam({ label }: { label?: string }) {
@@ -58,22 +62,39 @@ function LandingSeam({ label }: { label?: string }) {
 }
 
 function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculate" }: LandingScreenProps) {
-  useEffect(() => applySeo({
-    title: initialFormMode === "recovery"
-      ? "Восстановить оплаченный разбор | VedicWay"
-      : "Ведическая натальная карта онлайн | VedicWay",
-    description: initialFormMode === "recovery"
-      ? "Получите одноразовую ссылку на оплаченную натальную карту."
-      : "Рассчитайте ведическую натальную карту по дате, точному времени и месту рождения. Получите карту, объяснения и вопросы для самонаблюдения.",
-    path: initialFormMode === "recovery" ? "/access/recovery" : "/",
-    noindex: initialFormMode === "recovery",
-    structuredData: [{
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "VedicWay",
-      url: "https://vedicway.ru/",
-    }],
-  }), [initialFormMode]);
+  useEffect(() => {
+    const origin = publicOrigin();
+    return applySeo({
+      title: initialFormMode === "recovery"
+        ? "Восстановить оплаченный разбор | VedicWay"
+        : "Натальная карта онлайн с персональным разбором | VedicWay",
+      description: initialFormMode === "recovery"
+        ? "Получите одноразовую ссылку на оплаченную натальную карту."
+        : "Рассчитайте натальную карту онлайн по дате, точному времени и месту рождения. Получите наглядную карту и подробное персональное объяснение VedicWay.",
+      path: initialFormMode === "recovery" ? "/access/recovery" : "/",
+      noindex: initialFormMode === "recovery",
+      structuredData: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": `${origin}/about#organization`,
+          name: "VedicWay",
+          url: `${origin}/about`,
+          logo: `${origin}/assets/brand-mark.png`,
+          email: "vedicway-ru@yandex.ru",
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "@id": `${origin}/#website`,
+          name: "VedicWay",
+          url: `${origin}/`,
+          inLanguage: "ru-RU",
+          publisher: { "@id": `${origin}/about#organization` },
+        },
+      ],
+    });
+  }, [initialFormMode]);
 
   return (
     <>
@@ -96,45 +117,30 @@ function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculat
 
           <div className="hero-copy" aria-labelledby="hero-title" data-od-id="hero-copy">
           <h1 id="hero-title">
-            <span>ПОЗНАЙ СЕБЯ</span>
-            <span className="hero-copy__accent">ЧЕРЕЗ КОСМОС</span>
+            <span>ВЕДИЧЕСКАЯ НАТАЛЬНАЯ КАРТА</span>
+            <span className="hero-copy__accent">ОНЛАЙН</span>
           </h1>
 
           <p className="hero-copy__lead">
-            Натальная карта раскрывает ваш уникальный рисунок судьбы.
-            Узнайте своё предназначение и скрытые ресурсы.
+            Рассчитайте сидерическую карту по дате, времени и месту рождения.
+            Сервис покажет положения планет и объяснит их в рамках традиции джйотиш.
           </p>
 
           <div className="wisdom-note">
             <img src="/assets/celestial-star-light.png" alt="" />
             <p>
-              Древняя мудрость. Современные технологии.
+              Аянамша Лахири. Дома от лагны.
               <br />
-              Персональный подход.
+              Результат зависит от точности времени рождения.
             </p>
           </div>
 
-          <div className="social-proof" aria-label="Оценка сервиса 4,9 из 5">
-            <div className="avatar-stack" aria-hidden="true">
-              {avatars.map((avatar, index) => (
-                <img
-                  key={avatar}
-                  data-avatar
-                  src={avatar}
-                  alt=""
-                  style={{ zIndex: avatars.length - index }}
-                />
-              ))}
-            </div>
-
+          <div className="social-proof" aria-label="Метод расчёта VedicWay">
             <div className="social-proof__copy">
               <div className="rating-line">
-                <span>4.9 из 5</span>
-                <span className="rating-stars" aria-hidden="true">
-                  ★★★★★
-                </span>
+                <span>Проверяемый расчёт</span>
               </div>
-              <p>более 18 000 карт построено</p>
+              <p>Сидерические эфемериды и настройки рядом с результатом</p>
             </div>
           </div>
           </div>
@@ -174,7 +180,13 @@ const legalRoutes: Record<string, LegalDocumentKind> = {
   "/legal/cookies": "cookies",
 };
 
-function App() {
+const trustRoutes: Record<string, TrustPageKind> = {
+  "/about": "about",
+  "/methodology": "methodology",
+  "/editorial-policy": "editorial-policy",
+};
+
+function App({ seoBootstrap = null }: { seoBootstrap?: SeoBootstrap | null }) {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
   useEffect(() => {
@@ -207,8 +219,20 @@ function App() {
     return <ChartScreen chartId={chartId} onNavigate={navigate} />;
   }
 
-  if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
-  if (pathname === "/blog") return <BlogPage onNavigate={navigate} />;
+  if (pathname === "/guide") {
+    const articles =
+      seoBootstrap?.kind === "hub" && seoBootstrap.section === "guide"
+        ? seoBootstrap.articles
+        : undefined;
+    return <GuidePage key="guide" onNavigate={navigate} initialArticles={articles} />;
+  }
+  if (pathname === "/blog") {
+    const articles =
+      seoBootstrap?.kind === "hub" && seoBootstrap.section === "blog"
+        ? seoBootstrap.articles
+        : undefined;
+    return <BlogPage key="blog" onNavigate={navigate} initialArticles={articles} />;
+  }
   if (pathname === "/access/recovery") {
     return <LandingScreen onNavigate={navigate} onChartCreated={openChart} initialFormMode="recovery" />;
   }
@@ -218,13 +242,25 @@ function App() {
   const legalKind = legalRoutes[pathname];
   if (legalKind) return <LegalPage kind={legalKind} onNavigate={navigate} />;
 
+  const trustKind = trustRoutes[pathname];
+  if (trustKind) return <TrustPage kind={trustKind} onNavigate={navigate} />;
+
   const contentArticle = contentArticleFromPath(pathname);
   if (contentArticle) {
+    const seededArticle =
+      seoBootstrap?.kind === "article" &&
+      seoBootstrap.section === contentArticle.section &&
+      seoBootstrap.slug === contentArticle.slug
+        ? seoBootstrap
+        : null;
     return (
       <ArticlePage
+        key={`${contentArticle.section}/${contentArticle.slug}`}
         section={contentArticle.section}
         slug={contentArticle.slug}
         onNavigate={navigate}
+        initialArticle={seededArticle?.article}
+        initialComments={seededArticle?.comments}
       />
     );
   }

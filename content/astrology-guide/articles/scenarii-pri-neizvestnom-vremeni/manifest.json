@@ -62,7 +62,7 @@
     "excerpt": "Пошаговый сценарный метод для неизвестного времени рождения: сетка расчётов, матрица устойчивых показателей, условные ветви лагны и границы ректификации."
   },
   "internal_links": [
-    "/chart",
+    "/#natal-chart-form",
     "/guide/okruglennoe-vremya-rozhdeniya",
     "/guide/lagna-na-granice-znaka",
     "/guide/proverka-gipotezy-vremeni",
