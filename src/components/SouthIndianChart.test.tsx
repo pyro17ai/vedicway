@@ -57,7 +57,8 @@ describe("SouthIndianChart", () => {
 
   it("показывает карту-скелет до готовности D1", () => {
     render(<SouthIndianChart section={{ section: "d1", status: "queued" }} varga="D1" mode="plain" selectedSign={null} onSelectSign={vi.fn()} />);
-    expect(screen.getByRole("status")).toHaveTextContent("Строим основную карту");
+    expect(screen.getByRole("status")).toHaveTextContent("Строим натальную карту");
+    expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
   });
 
   it("не выводит несуществующую шестидесятую минуту", () => {

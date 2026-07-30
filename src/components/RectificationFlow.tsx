@@ -21,6 +21,7 @@ import {
   readPaymentReturnState,
 } from "../lib/payment-return";
 import { applySeo } from "../lib/seo";
+import { CalculationLoader } from "./CalculationLoader";
 import { SiteHeader } from "./SiteHeader";
 
 type RectificationFlowProps = {
@@ -288,17 +289,7 @@ export function RectificationFlow({ chartId, onNavigate }: RectificationFlowProp
       </section>
     );
   } else if (["queued", "running"].includes(resource.status)) {
-    content = (
-      <section className="rectification-state rectification-state--calculating">
-        <div className="rectification-orbit" aria-hidden="true"><span /></div>
-        <span>РАСЧЁТ ИДЁТ</span>
-        <h1>Сопоставляем варианты времени</h1>
-        <p>
-          Проверяем сетку кандидатов по указанным событиям. Можно оставить страницу открытой:
-          результат появится здесь автоматически.
-        </p>
-      </section>
-    );
+    content = <CalculationLoader variant="rectification" className="rectification-calculation-loader" />;
   } else if (resource.status === "ready" && resource.result) {
     const result = resource.result;
     content = (

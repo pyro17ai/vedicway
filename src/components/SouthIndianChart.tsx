@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import type { ChartCell, ChartSection, PlanetPosition } from "../lib/chart-api";
+import { CalculationLoader } from "./CalculationLoader";
 
 type SouthIndianChartProps = {
   section: ChartSection | null;
@@ -56,13 +57,7 @@ export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectS
   const selectedCell = cells.find((cell) => cell.sign_index === selectedSign) ?? null;
 
   if (!section || section.status === "queued" || section.status === "running") {
-    return (
-      <div className="south-chart south-chart--skeleton" aria-label="Строим основную карту" role="status">
-        <span className="sr-only">Строим основную карту</span>
-        {Array.from({ length: 12 }).map((_, index) => <i key={index} style={{ gridRow: positions[index].row, gridColumn: positions[index].column }} />)}
-        <div className="south-chart__center"><span>Строим D1</span></div>
-      </div>
-    );
+    return <CalculationLoader variant="chart" />;
   }
 
   if (section.status === "error" || section.status === "unavailable") {

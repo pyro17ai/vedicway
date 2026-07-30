@@ -20,6 +20,7 @@ import "./guide.css";
 import "./legal.css";
 import "./recovery.css";
 import "./rectification.css";
+import "./calculation-loader.css";
 import "./light-theme.css";
 
 const seoBootstrap = readSeoBootstrap();

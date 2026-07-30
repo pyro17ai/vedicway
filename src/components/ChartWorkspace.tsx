@@ -57,6 +57,7 @@ import {
   type PaymentReturnState,
 } from "../lib/payment-return";
 import { PaymentPaywall } from "./PaymentPaywall";
+import { CalculationLoader } from "./CalculationLoader";
 import { SouthIndianChart, formatChartDegree } from "./SouthIndianChart";
 
 type TabId = "chart" | "explanation" | "questions";
@@ -729,7 +730,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         <section className="overview-card"><div><span className="overview-card__eyebrow">Главный рисунок</span><h2>{bundle.overview.title}</h2><p>{bundle.overview.summary}</p></div><button type="button" className="text-action" onClick={() => domains[0] && openDomain(domains[0])} disabled={accessState === "preparing"}>{accessState === "locked" ? "Продолжить чтение" : accessState === "preparing" ? "Готовим полный отчёт" : "Открыть синтез"} <ChevronRight aria-hidden="true" /></button></section>
         <section className="domain-grid" aria-label="Восемь жизненных тем">{filtered.map((domain) => <DomainCardView key={domain.slug} domain={domain} facts={facts} access={accessState} onOpen={() => openDomain(domain)} />)}</section>
         {!route.domain && accessState === "locked" && <div className="compact-offer"><span>Полный отчёт объединяет все восемь тем · 990 ₽</span><button type="button" onClick={() => domains[0] && setPaywallDomain(domains[0].slug)}>Посмотреть состав</button></div>}
-      </> : <section className="domain-grid domain-grid--skeleton" aria-label="Готовим объяснение">{Array.from({ length: 8 }).map((_, index) => <div className="domain-card" key={index}><div className="lines-skeleton" /><p>Связываем факты карты</p></div>)}</section>}
+      </> : <CalculationLoader variant="explanation" />}
     </div>;
   };
 
@@ -740,7 +741,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     return <div className="workspace-panel workspace-questions-panel" role="tabpanel" id="workspace-panel-questions" aria-labelledby="workspace-tab-questions">
       <WorkspaceHeader resource={resource} title="Вопросы к себе" kicker="Личное наблюдение" controls={<div className="question-progress"><span>{savedCount} сохранено</span><button type="button" className={questionFilter === "all" ? "is-active" : ""} onClick={() => setQuestionFilter("all")}>Все</button><button type="button" className={questionFilter === "saved" ? "is-active" : ""} onClick={() => setQuestionFilter("saved")}>Сохранённые</button></div>} />
       <p className="questions-lead">Вопросы помогают заметить, как темы карты проявляются в ваших решениях.</p>
-      {questions.length ? <section className="questions-grid">{visible.map((question, index) => { const state = savedQuestions.get(question.id); return <QuestionCard key={question.id} question={question} index={index} facts={facts} saved={state?.saved ?? false} reflectionStatus={state?.reflectionStatus ?? "saved"} storedNote={state?.note ?? null} onSave={() => void toggleSavedQuestion(question.id)} onSetStatus={(status) => void updateQuestionStatus(question.id, status)} onSaveNote={(note) => void saveQuestionNote(question.id, note)} onFocus={() => updateRoute({ question: question.id }, true)} />; })}</section> : <section className="questions-grid questions-grid--skeleton">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="question-card"><span>{String(index + 1).padStart(2, "0")}</span><p>Вопрос появится после разбора</p></div>)}</section>}
+      {questions.length ? <section className="questions-grid">{visible.map((question, index) => { const state = savedQuestions.get(question.id); return <QuestionCard key={question.id} question={question} index={index} facts={facts} saved={state?.saved ?? false} reflectionStatus={state?.reflectionStatus ?? "saved"} storedNote={state?.note ?? null} onSave={() => void toggleSavedQuestion(question.id)} onSetStatus={(status) => void updateQuestionStatus(question.id, status)} onSaveNote={(note) => void saveQuestionNote(question.id, note)} onFocus={() => updateRoute({ question: question.id }, true)} />; })}</section> : <CalculationLoader variant="questions" />}
       {questionFilter === "saved" && !visible.length && <p className="workspace-notice">Сохранённых вопросов пока нет. Вернитесь к списку и отметьте те, к которым хотите вернуться.</p>}
     </div>;
   };
