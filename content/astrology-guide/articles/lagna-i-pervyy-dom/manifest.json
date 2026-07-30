@@ -1,0 +1,106 @@
+{
+  "slug": "lagna-i-pervyy-dom",
+  "title": "Лагна и первый дом",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo_title": "Лагна и первый дом: как читать начало карты",
+  "meta_description": "Что показывают лагна и первый дом в джйотише: расчёт восходящей точки, порядок чтения, пример и границы метода при неточном времени.",
+  "focus_keyphrase": "лагна и первый дом",
+  "canonical": "https://vedicway.ru/guide/lagna-i-pervyy-dom",
+  "intent": {
+    "type": "informational",
+    "primary_goal": "Понять значение лагны и первого дома и начать самостоятельное чтение D1 с тела, характера и общего ресурса.",
+    "wordstat": {
+      "query": "лагна и первый дом",
+      "total_count": 11,
+      "top_requests": [],
+      "associations": [],
+      "status": "empty_result"
+    }
+  },
+  "semantic_core": {
+    "status": "wordstat_empty_manual_cluster",
+    "phrases": [
+      "лагна в натальной карте",
+      "первый дом в джйотише",
+      "что показывает лагна",
+      "как определить лагну",
+      "управитель лагны",
+      "лагна и асцендент",
+      "Тану-бхава",
+      "восходящий знак в ведической астрологии"
+    ],
+    "reader_questions": [
+      "Что такое лагна и первый дом?",
+      "Как рассчитывают лагну по времени рождения?",
+      "Как читать управителя первого дома?",
+      "Почему разные программы показывают разные дома?",
+      "Что делать при неточном времени рождения?"
+    ],
+    "wordstat_note": "Wordstat вернул 0 выгруженных фраз и 0 ассоциаций; ядро дополнено близкими формулировками и вопросами по теме материала."
+  },
+  "seo": {
+    "seo_title": "Лагна и первый дом: как читать начало карты",
+    "meta_description": "Что показывают лагна и первый дом в джйотише: расчёт восходящей точки, порядок чтения, пример и границы метода при неточном времени.",
+    "focus_keyphrase": "лагна и первый дом",
+    "canonical_url": "https://vedicway.ru/guide/lagna-i-pervyy-dom",
+    "excerpt": "Практическое объяснение лагны и первого дома в D1: как проверить расчёт, найти управителя, прочитать тело, характер и общий ресурс без обещаний и фатальных выводов."
+  },
+  "internal_links": [
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/sistemy-domov-v-sidereicheskoj-karte",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную интерпретацию лагны и первого дома за научно подтверждённое предсказание событий.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не смешивать сидерический и тропический зодиак, равнознаковую схему и расчёт по куспидам без явной фиксации метода.",
+    "Не публиковать URL, названия источников, библиографические ссылки и атрибуцию в article.html или article.md."
+  ],
+  "cover": {
+    "asset_id": "cover-lagna-i-pervyy-dom",
+    "path": "content/astrology-guide/articles/lagna-i-pervyy-dom/cover.webp",
+    "alt": "Восходящая точка над восточным горизонтом внутри мягкой радиальной карты на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "sha256": "3c79941e0f37f02e995ff2c55eabb6ebb29a8a2cd2e77790a6801de28e12f159",
+    "status": "ready",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": {
+    "article_md": "1D2CB005AC643A8335DB40C289E7D1D0946633F97F87DFC6357612FE692D5438",
+    "article_html": "EB4065CAF68622E867329A7620966B9BD27A119275808ACABC134030DE2C94D9",
+    "cover": "1BB870C4CAC045B8485369DC1C623EB8F2912D6E5EC34D7A4C6F0134161F3177"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "лагна и первый дом",
+    "дома",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "лагна и первый дом"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.60018/acasva.nssz2549",
+      "https://doi.org/10.1017/S0252921100105809",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://insa.nic.in/(S(p3b42vmk5crtmmkeovu3oa14))/writereaddata/UpLoadedFiles/IJHS/IJHS_60_2_1.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

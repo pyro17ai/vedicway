@@ -1,0 +1,195 @@
+{
+  "title": "D7 Saptamsha: дети, потомство и пределы интерпретации",
+  "slug": "d7-saptamsha-deti",
+  "category": "Планеты и дома",
+  "seo_title": "D7 Saptamsha: дети и чтение карты вместе с D1",
+  "meta_description": "D7 Saptamsha в джйотише: назначение для темы детей, расчёт семи долей, порядок чтения вместе с D1 и строгие границы интерпретации карты без гарантий.",
+  "focus_keyphrase": "D7 Saptamsha",
+  "canonical": "https://vedicway.ru/guide/d7-saptamsha-deti",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "exa_bphs_saptamsha_calculation"
+  ],
+  "intent": {
+    "status": "wordstat_confirmed",
+    "type": "информационно-практический",
+    "primary": "Понять классическое назначение D7 для темы детей, разобраться в расчёте саптамши и научиться читать её только после проверки D1.",
+    "reader_questions": [
+      "Что показывает D7 Saptamsha в джйотише?",
+      "Как рассчитывается карта саптамша?",
+      "Какие дома смотреть в D7?",
+      "Можно ли читать D7 без D1?",
+      "Показывает ли саптамша точное количество детей?",
+      "Почему для D7 важно точное время рождения?"
+    ],
+    "wordstat": {
+      "observed_at": "2026-07-30",
+      "main_query": {
+        "query": "D7 Саптамша дети",
+        "total_count": 4,
+        "top_requests": [],
+        "associations": [],
+        "note": "Главный запрос не дал списка популярных формулировок, но Wordstat зафиксировал 4 показа за последние 30 дней."
+      },
+      "broader_query": {
+        "query": "саптамша",
+        "total_count": 271,
+        "top_requests": [
+          {
+            "phrase": "саптамша",
+            "count": 271
+          },
+          {
+            "phrase": "саптамша дома",
+            "count": 59
+          },
+          {
+            "phrase": "саптамша джйотиш",
+            "count": 56
+          },
+          {
+            "phrase": "карта саптамша",
+            "count": 23
+          },
+          {
+            "phrase": "значения домов в саптамше",
+            "count": 11
+          },
+          {
+            "phrase": "саптамша джйотиш анализ",
+            "count": 10
+          },
+          {
+            "phrase": "саптамша джйотиш расшифровка",
+            "count": 8
+          },
+          {
+            "phrase": "анализ саптамша лагны",
+            "count": 5
+          },
+          {
+            "phrase": "управитель д 7 в домах в саптамше",
+            "count": 5
+          }
+        ],
+        "note": "Нерелевантные словарные ассоциации исключены из семантического ядра."
+      },
+      "secondary_query": {
+        "query": "D7 карта джйотиш",
+        "total_count": 8,
+        "top_requests": [],
+        "associations": []
+      }
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "D7 Saptamsha",
+      "саптамша",
+      "саптамша джйотиш",
+      "карта саптамша"
+    ],
+    "close_formulations": [
+      "D7 карта джйотиш",
+      "дробная карта детей джйотиш",
+      "саптамша дома",
+      "значения домов в саптамше",
+      "саптамша джйотиш анализ",
+      "саптамша джйотиш расшифровка",
+      "анализ саптамша лагны",
+      "управитель D7 в домах"
+    ],
+    "related": [
+      "дети в натальной карте",
+      "пятый дом",
+      "управитель пятого дома",
+      "Юпитер как карака детей",
+      "D1 и D7",
+      "Shodashavarga",
+      "дробные карты джйотиша",
+      "vargottama",
+      "точность времени рождения"
+    ],
+    "questions": [
+      "что показывает D7",
+      "как рассчитать саптамшу",
+      "какие дома смотреть в D7",
+      "можно ли читать D7 отдельно",
+      "показывает ли D7 количество детей",
+      "как сопоставить D1 и D7",
+      "почему меняется лагна саптамши"
+    ],
+    "entities": [
+      "D7",
+      "Saptamsha",
+      "саптамша",
+      "D1",
+      "лагна",
+      "пятый дом",
+      "Юпитер",
+      "vargottama",
+      "Shodashavarga"
+    ]
+  },
+  "seo": {
+    "seo_title": "D7 Saptamsha: дети и чтение карты вместе с D1",
+    "meta_description": "D7 Saptamsha в джйотише: назначение для темы детей, расчёт семи долей, порядок чтения вместе с D1 и строгие границы интерпретации карты без гарантий.",
+    "focus_keyphrase": "D7 Saptamsha",
+    "canonical_url": "https://vedicway.ru/guide/d7-saptamsha-deti",
+    "excerpt": "Практический разбор D7: назначение саптамши, расчёт семи долей, порядок чтения домов вместе с D1, условный пример и пределы допустимых выводов."
+  },
+  "schema": {
+    "primary_type": "Article",
+    "additional_type": "FAQPage",
+    "faq_supported_by_visible_content": true
+  },
+  "internal_links": [
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/pyatyy-dom",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/kogda-podklyuchat-drugie-vargi",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать D7 за научно подтверждённый способ прогноза.",
+    "Не диагностировать репродуктивное здоровье и не заменять медицинскую консультацию.",
+    "Не обещать рождение ребёнка, точное число детей, их пол или срок события.",
+    "Не читать саптамшу отдельно от D1.",
+    "Не считать дома D7 надёжными при непроверенном времени рождения."
+  ],
+  "cover": {
+    "asset_id": "cover-d7-saptamsha-deti",
+    "path": "content/astrology-guide/articles/d7-saptamsha-deti/cover.webp",
+    "alt": "Семичастный астрологический круг переходит в ветвящееся созвездие рода на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "width": 1616,
+    "height": 909,
+    "sha256": "b2dd7b8b38d427f66d878143a6b8c8fe4f7cf03b564c7bb50cb4c547340410ad"
+  },
+  "sha256": "E79E38A66FBAECFA6035309687C09181F074599290FFEA1E69208E2CA58EBF55",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D7 Saptamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D7 Saptamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://doi.org/10.22271/24564427.2023.v8.i2b.181"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "slug": "ocenka-sily-doma",
+  "title": "Как оценивать силу дома",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Как оценивать силу дома в натальной карте",
+    "meta_description": "Чтобы оценить силу дома в натальной карте, проверьте управителя, планеты в доме, дришти и состояние бхавы. Сначала зафиксируйте лагну, зодиак и систему домов.",
+    "focus_keyphrase": "как оценивать силу дома",
+    "canonical_url": "https://vedicway.ru/guide/ocenka-sily-doma",
+    "excerpt": "Практический алгоритм оценки дома в джйотише: зафиксируйте расчёт, проверьте управителя, планеты, дришти и состояние бхавы, затем сформулируйте вывод с границами метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Гарантированные события по одному дому",
+    "Медицинские, финансовые или юридические обещания",
+    "Смешение школ, систем домов и правил дришти без указания метода"
+  ],
+  "cover": {
+    "asset_id": "cover-ocenka-sily-doma",
+    "path": "content/astrology-guide/articles/ocenka-sily-doma/cover.webp",
+    "alt": "Редакционная схема натальной карты с выделенным домом и связью с планетой на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "a491092890f6d1fc7c751fcfdf405b9d39a5019a53753bee60c0b682c7c010bd",
+    "width": 1729,
+    "height": 910
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/ocenka-sily-doma",
+  "tags": [
+    "Практика чтения карты",
+    "как оценивать силу дома",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как оценивать силу дома"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

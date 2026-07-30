@@ -19,15 +19,20 @@ def check(*, online: bool = False) -> dict[str, object]:
     if not host_id:
         errors.append("VEDICWAY_YANDEX_HOST_ID is missing")
     elif not (host_id.startswith("http:") or host_id.startswith("https:")):
-        warnings.append("Webmaster host_id is not URL-shaped; verify the exact ID returned by list_hosts")
+        warnings.append(
+            "Webmaster host_id is not URL-shaped; verify the exact ID returned by list_hosts"
+        )
     if not re.fullmatch(r"\d+", counter_id):
         errors.append("VEDICWAY_METRIKA_COUNTER_ID must be numeric")
     origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "").rstrip("/")
     if urlsplit(origin).scheme != "https" or not urlsplit(origin).hostname:
         errors.append("VEDICWAY_PUBLIC_ORIGIN must be an absolute HTTPS origin")
     secret_names = (
-        "OPENAI_API_KEY", "VEDICWAY_SEO_AGENT_TOKEN", "VEDICWAY_YANDEX_SEARCH_API_KEY",
-        "VEDICWAY_YANDEX_FOLDER_ID", "VEDICWAY_YANDEX_WEBMASTER_TOKEN",
+        "OPENAI_API_KEY",
+        "VEDICWAY_SEO_AGENT_TOKEN",
+        "VEDICWAY_YANDEX_SEARCH_API_KEY",
+        "VEDICWAY_YANDEX_FOLDER_ID",
+        "VEDICWAY_YANDEX_WEBMASTER_TOKEN",
         "VEDICWAY_YANDEX_METRIKA_TOKEN",
     )
     missing_secrets = [name for name in secret_names if not os.environ.get(name)]
@@ -43,12 +48,20 @@ def check(*, online: bool = False) -> dict[str, object]:
         ledger_status = {"status": "failed", "error": str(error)}
         errors.append(f"SEO ledger failed: {error}")
     site_status: dict[str, object] = {"status": "not_checked"}
-    if online and not missing_secrets and not any("PUBLIC_ORIGIN" in item for item in errors):
-        base = os.environ.get("VEDICWAY_SEO_AGENT_BASE_URL", "http://backend:8000").rstrip("/")
+    if (
+        online
+        and not missing_secrets
+        and not any("PUBLIC_ORIGIN" in item for item in errors)
+    ):
+        base = os.environ.get(
+            "VEDICWAY_SEO_AGENT_BASE_URL", "http://backend:8000"
+        ).rstrip("/")
         try:
             response = httpx.get(
-                f"{base}/internal/seo-agent/health",
-                headers={"Authorization": f"Bearer {os.environ['VEDICWAY_SEO_AGENT_TOKEN']}"},
+                f"{base}/internal/content-agent/health",
+                headers={
+                    "Authorization": f"Bearer {os.environ['VEDICWAY_SEO_AGENT_TOKEN']}"
+                },
                 timeout=10,
             )
             response.raise_for_status()
@@ -62,7 +75,10 @@ def check(*, online: bool = False) -> dict[str, object]:
         "warnings": warnings,
         "ledger": ledger_status,
         "site_api": site_status,
-        "identity_guard": {"webmaster_host_id": host_id or None, "metrika_counter_id": counter_id or None},
+        "identity_guard": {
+            "webmaster_host_id": host_id or None,
+            "metrika_counter_id": counter_id or None,
+        },
     }
 
 

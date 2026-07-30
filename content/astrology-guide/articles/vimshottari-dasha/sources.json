@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Методическая граница: натальную карту читают через согласованный набор показателей, а противоречия и силу планет проверяют до вывода."
+  },
+  {
+    "source_id": "dasha:BPHS_ARCHIVE_2",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Последовательность девяти управителей, длительности 120-летнего цикла, расчёт остатка первой маха-даши и связь интерпретации с натальной картой."
+  },
+  {
+    "source_id": "tech:node-jhora-prediction",
+    "url": "https://github.com/HariEshwar-J-A/node-jhora/blob/main/docs/PREDICTION.md",
+    "role": "Техническая сверка входов расчёта: момент рождения, сидерическая долгота Луны, остаток стартового периода и вложенные уровни Вимшоттари."
+  }
+]

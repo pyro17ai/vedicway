@@ -1,0 +1,173 @@
+{
+  "title": "D9 Navamsha: супруг, дхарма и сила планет",
+  "slug": "d9-navamsha",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_santhanam_archive",
+    "mystery_navamsa"
+  ],
+  "seo_title": "D9 Navamsha: супруг, дхарма и сила планет",
+  "meta_description": "Как читать D9 Navamsha для брака, дхармы и силы планет: расчёт навамши, vargottama, пошаговый порядок сопоставления с D1 и границы точности метода.",
+  "focus_keyphrase": "D9 Navamsha",
+  "canonical": "https://vedicway.ru/guide/d9-navamsha",
+  "intent": {
+    "source": "wordstat",
+    "type": "informational_practical",
+    "status": "data_found",
+    "primary_query": "навамша D9",
+    "primary_query_total_count": 108,
+    "broader_query": "навамша",
+    "broader_query_total_count": 4095,
+    "reader_need": "Понять назначение D9 для брака и дхармы, научиться рассчитывать навамшу и отличать её вклад в силу планеты от общей оценки грахи.",
+    "top_requests": [
+      {
+        "phrase": "навамша",
+        "count": 4095
+      },
+      {
+        "phrase": "дома навамши",
+        "count": 1220
+      },
+      {
+        "phrase": "карта навамша",
+        "count": 246
+      },
+      {
+        "phrase": "7 дом навамши",
+        "count": 234
+      },
+      {
+        "phrase": "навамша рассчитать",
+        "count": 119
+      },
+      {
+        "phrase": "D9 навамша",
+        "count": 108
+      },
+      {
+        "phrase": "раши и навамша",
+        "count": 113
+      },
+      {
+        "phrase": "планеты в навамше",
+        "count": 82
+      },
+      {
+        "phrase": "навамша брак",
+        "count": 48
+      },
+      {
+        "phrase": "навамша что означает",
+        "count": 47
+      }
+    ],
+    "excluded_associations_note": "Автоматические ассоциации Wordstat не относились к джйотишу и исключены из семантического ядра."
+  },
+  "semantic_core": {
+    "primary": [
+      "D9 Navamsha",
+      "навамша",
+      "карта D9"
+    ],
+    "related": [
+      "что показывает навамша",
+      "карта навамша",
+      "дома навамши",
+      "7 дом навамши",
+      "навамша и брак",
+      "супруг по D9",
+      "дхарма в навамше",
+      "планеты в навамше",
+      "сила планеты в D9",
+      "vargottama",
+      "раши и навамша",
+      "навамша рассчитать",
+      "лагна D9",
+      "Shodashavarga"
+    ],
+    "questions": [
+      "Что показывает D9 Navamsha?",
+      "Как рассчитать знак планеты в навамше?",
+      "Как читать 7-й дом D9 для брака?",
+      "Что означает дхарма в навамше?",
+      "Что важнее для силы планеты: D1 или D9?",
+      "Всегда ли vargottama делает планету сильной?",
+      "Можно ли читать D9 отдельно от D1?",
+      "Почему две программы показывают разную навамшу?"
+    ]
+  },
+  "seo": {
+    "seo_title": "D9 Navamsha: супруг, дхарма и сила планет",
+    "meta_description": "Как читать D9 Navamsha для брака, дхармы и силы планет: расчёт навамши, vargottama, пошаговый порядок сопоставления с D1 и границы точности метода.",
+    "focus_keyphrase": "D9 Navamsha",
+    "canonical_url": "https://vedicway.ru/guide/d9-navamsha",
+    "excerpt": "D9 читают после D1: для брака сопоставляют 7-й дом и его хозяина, для силы планеты проверяют достоинство и vargottama, а дхарму связывают с устойчивостью выбранного пути."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/d1-i-drobnie-karty",
+      "anchor": "D1 и дробные карты",
+      "reason": "Показывает место D9 среди профильных варг и приоритет основной карты."
+    },
+    {
+      "url": "/guide/rashi-i-navamsha",
+      "anchor": "раши и навамша",
+      "reason": "Углубляет порядок сопоставления D1 и D9."
+    },
+    {
+      "url": "/guide/ocenka-sily-planety",
+      "anchor": "порядок оценки силы планеты",
+      "reason": "Отделяет достоинство в D9 от полной оценки силы грахи."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Даёт исходные долготы и настройки для построения D9."
+    }
+  ],
+  "prohibited_claims": [
+    "Один показатель D9 гарантирует брак, развод, верность или качества будущего супруга.",
+    "Сильная планета в навамше отменяет слабость D1 или автоматически становится благоприятной.",
+    "D9 устанавливает медицинский диагноз, психологическое состояние, доход или неизбежное событие."
+  ],
+  "cover": {
+    "asset_id": "cover-d9-navamsha",
+    "file": "cover.png",
+    "path": "content/astrology-guide/articles/d9-navamsha/cover.webp",
+    "alt": "Две связанные планеты по сторонам многолепестковой розетки внутри астрологического круга на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "format": "png",
+    "sha256": "27a619f513045cd8f0b335e0f002e2caf5b1934ea6308c5e42dbd181806d2163"
+  },
+  "sha256": "7B1E377BD7B93273FED02AA29D137507068DFFBBB159B0D17539C3795825D6EB",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D9 Navamsha",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D9 Navamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://ijirah.dvpublication.com/uploads/666dbcc893bf7_340.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

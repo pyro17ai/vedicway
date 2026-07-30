@@ -1,0 +1,108 @@
+{
+  "title": "Базовая граха-дришти Парашары",
+  "slug": "graha-drishti-parashara",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "astrojyoti_bphs_ch26",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Граха-дришти в джйотише: аспекты Парашары",
+  "meta_description": "Разберите граха-дришти в джйотише: полный 7-й аспект и специальные аспекты Марса, Юпитера и Сатурна с примером расчёта.",
+  "focus_keyphrase": "граха-дришти в джйотише",
+  "intent": {
+    "type": "informational",
+    "primary": "Понять, что такое граха-дришти в джйотише и научиться считать полный 7-й аспект и специальные аспекты трёх грах.",
+    "wordstat": {
+      "exact_query": "граха дришти Парашары",
+      "exact_total_count": 0,
+      "broad_query": "граха дришти",
+      "broad_total_count": 18,
+      "top_request": "граха дришти в джйотиш это",
+      "top_request_count": 5
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "граха-дришти в джйотише",
+      "граха дришти",
+      "аспекты планет в джйотише"
+    ],
+    "close_formulations": [
+      "аспект Марса в джйотише",
+      "аспект Юпитера в джйотише",
+      "аспект Сатурна в джйотише",
+      "7-й аспект планеты",
+      "специальные аспекты планет"
+    ],
+    "reader_questions": [
+      "Что такое граха-дришти?",
+      "Какая граха смотрит на 7-й дом?",
+      "Какие аспекты у Марса?",
+      "Куда смотрит Юпитер?",
+      "Какие аспекты у Сатурна?",
+      "Как считать аспект планеты от дома?"
+    ],
+    "noise_excluded": [
+      "ведическая астрология",
+      "джойтиш"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/graha-drishti-parashara",
+  "seo": {
+    "seo_title": "Граха-дришти в джйотише: аспекты Парашары",
+    "meta_description": "Р“СЂР°С…Р°-РґСЂРёС€С‚Рё РІ РґР¶Р№РѕС‚РёС€Рµ РїРѕРєР°Р·С‹РІР°РµС‚, РЅР° РєР°РєРёРµ РґРѕРјР° РїР»Р°РЅРµС‚Р° РЅР°РїСЂР°РІР»СЏРµС‚ РІР»РёСЏРЅРёРµ РёР·.",
+    "focus_keyphrase": "граха-дришти в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/graha-drishti-parashara",
+    "excerpt": "Практическое объяснение граха-дришти: полный 7-й аспект для всех грах, специальные направления Марса, Юпитера и Сатурна, алгоритм расчёта и ограничения метода."
+  },
+  "cover": {
+    "asset_id": "cover-graha-drishti-parashara",
+    "path": "content/astrology-guide/articles/graha-drishti-parashara/cover.webp",
+    "alt": "Планета направляет лучи к секторам зодиакального круга на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1729,
+    "height": 910,
+    "sha256": "1f01e5a659c0537b076d7566fcbb15b103e4ae4f450797288a416ca9865877e5",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава, лагна и дома"
+    },
+    {
+      "url": "/guide/dvenadcat-bhav",
+      "anchor": "двенадцати бхавах"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать граха-дришти за научно доказанный причинный механизм.",
+    "Не обещать гарантированный прогноз, медицинский, финансовый или психологический результат.",
+    "Не смешивать граха-дришти с раши-дришти без явной маркировки системы."
+  ],
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "граха-дришти в джйотише",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "граха-дришти в джйотише"
+      }
+    ],
+    "citation": [
+      "https://www.astrojyoti.com/bphspage3-4.htm",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

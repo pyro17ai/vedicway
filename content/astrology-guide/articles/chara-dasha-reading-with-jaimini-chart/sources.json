@@ -1,0 +1,33 @@
+[
+  {
+    "source_id": "S2",
+    "title": "Jaiminisutras, fifth edition",
+    "author_or_institution": "Bangalore Suryanarain Rao; редакция Bangalore Venkata Raman",
+    "source_kind": "primary_text",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "observed_at": "2026-07-28",
+    "live_reading": "Лично открыто по прямому URL через Search/Open; сверено с verified-reading-log.jsonl, где S2 отмечен как personally_verified.",
+    "claims_used": [
+      "Оглавление включает Rāśi Daśā и результаты периодов знаков.",
+      "В издании рядом с раши-дашами присутствуют аспекты планет и знаков, караки, арyдхи и несколько видов лагн.",
+      "Издание содержит санскритский текст, транслитерацию, перевод и примечания редакторов.",
+      "В тексте подчёркнуты краткость сутр и необходимость осторожно работать с переводом и комментариями."
+    ],
+    "limitations": "Переводческое издание 1955 года, первые два адхьяи и редакторские пояснения не заменяют сопоставление разных редакций Чара-даши."
+  },
+  {
+    "source_id": "S4",
+    "title": "What Is the Correct Procedure for Computing Jaimini’s Chara Dasa?",
+    "author_or_institution": "U. K. Jha; Saptarishis Astrology",
+    "source_kind": "community_context",
+    "url": "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/",
+    "observed_at": "2026-07-28",
+    "live_reading": "Лично прочитано через Search по странице с указанным URL; открытие страницы через Web/Open вернуло внутреннюю ошибку, поэтому статус реестра agent_reviewed не повышается.",
+    "claims_used": [
+      "Статья выделяет вопросы старта, направления, длительности и порядка вложенных bhukti.",
+      "Автор сравнивает несколько процедур и призывает проверять их по сутрам.",
+      "Редакционная помета страницы указывает на отдельную традицию K. N. Rao."
+    ],
+    "limitations": "Полемический материал одной школы. Он показывает карту разногласий, но не подтверждает единственный универсальный алгоритм."
+  }
+]

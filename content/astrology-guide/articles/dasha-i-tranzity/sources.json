@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "src_brihat_gocara",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+    "role": "Классическая схема гочары с отсчётом транзитных положений от знака натальной Луны."
+  },
+  {
+    "source_id": "src_gret",
+    "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "role": "Текстовая проверка терминологии гочары, даши и разделения вычислительного и интерпретационного слоёв."
+  },
+  {
+    "source_id": "src_jyotishganit",
+    "url": "https://github.com/northtara/jyotishganit",
+    "role": "Техническая проверка раздельного расчёта натальной карты, Vimshottari Dasha и дополнительных временных показателей."
+  }
+]

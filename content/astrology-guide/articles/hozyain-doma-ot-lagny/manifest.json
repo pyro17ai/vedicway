@@ -1,0 +1,98 @@
+{
+  "title": "Как определить хозяина дома от Лагны",
+  "slug": "hozyain-doma-ot-lagny",
+  "category": "Практика чтения карты",
+  "seo_title": "Как определить хозяина дома от Лагны в джйотише",
+  "meta_description": "Пошагово определите раши дома от Лагны, найдите его управителя и отследите положение хозяина в натальной карте без путаницы в расчёте и толковании.",
+  "focus_keyphrase": "как определить хозяина дома от Лагны",
+  "intent": {
+    "type": "informational",
+    "stage": "learning",
+    "summary": "Читатель ищет пошаговый способ определить знак дома от Лагны, его управителя и дом положения управителя.",
+    "wordstat": {
+      "phrase": "хозяин дома от лагны",
+      "total_count": 5,
+      "top_requests": [],
+      "associations": [],
+      "status": "empty_result"
+    }
+  },
+  "semantic_core": {
+    "source": "editorial_core_after_empty_wordstat",
+    "phrases": [
+      "как определить хозяина дома от Лагны",
+      "управитель дома в ведической астрологии",
+      "как найти управителя бхавы",
+      "хозяин дома в натальной карте",
+      "раши дома от Лагны",
+      "где находится управитель дома",
+      "таблица управителей знаков",
+      "как считать дома от Лагны"
+    ],
+    "reader_questions": [
+      "Хозяин дома и планета в доме всегда совпадают?",
+      "Как быстро найти хозяина десятого дома?",
+      "Нужно ли учитывать Раху и Кету как хозяев знаков?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/hozyain-doma-ot-lagny",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "astrojyoti_bphs_ch7_8"
+  ],
+  "internal_links": [
+    {
+      "url": "/guide/dvenadcat-rashi",
+      "anchor": "материале о двенадцати раши"
+    },
+    {
+      "url": "/guide/bhava-i-lagna",
+      "anchor": "о Лагне и первой бхаве"
+    }
+  ],
+  "cover": {
+    "filename": "cover.png",
+    "path": "content/astrology-guide/articles/hozyain-doma-ot-lagny/cover.webp",
+    "alt": "Круг натальной карты с выделенной Лагной и линией к планете-управителю на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "7580743834e0572b657a973a7ddbd955ce3f75429707774d01c7a1bff1e81c5f",
+    "width": 1672,
+    "height": 941,
+    "mime_type": "image/png",
+    "asset_id": "cover-hozyain-doma-ot-lagny",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Как определить хозяина дома от Лагны в джйотише",
+    "meta_description": "Пошагово определите раши дома от Лагны, найдите его управителя и отследите положение хозяина в натальной карте без путаницы в расчёте и толковании.",
+    "focus_keyphrase": "как определить хозяина дома от Лагны",
+    "canonical_url": "https://vedicway.ru/guide/hozyain-doma-ot-lagny",
+    "excerpt": "Чтобы определить хозяина дома от Лагны, сначала найдите знак, который занимает нужный дом, затем сопоставьте этот знак с его управителем. В парашарском джйотише дом считают от восходящего знака: Лагна получает номер 1, следующий знак становится вторым домом, следующий за ним."
+  },
+  "tags": [
+    "Практика чтения карты",
+    "как определить хозяина дома от Лагны",
+    "дома",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как определить хозяина дома от Лагны"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20R%20Santhanam_djvu.txt",
+      "https://www.astrojyoti.com/bphspage1-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

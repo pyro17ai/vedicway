@@ -1,0 +1,61 @@
+{
+  "slug": "merkuriy-v-dzhyotish",
+  "title": "Меркурий в джйотише: речь, анализ и обучение",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "swisseph_general"
+  ],
+  "seo": {
+    "seo_title": "Меркурий в джйотише: речь, анализ и обучение",
+    "meta_description": "Как читать Меркурий в джйотише через знак, дом, соединения и управление домами. Учебный пример, ограничения и защита от фатальных выводов.",
+    "focus_keyphrase": "Меркурий в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/merkuriy-v-dzhyotish",
+    "excerpt": "Разбираем Меркурий в джйотише через речь, анализ и обучение: от точного расчёта до знака, дома, соединений и управления домами."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не сводить Меркурий к одному ярлыку вроде умный, слабый или молчаливый без знака, дома, соединений и управления домами.",
+    "Не выдавать правила BPHS одной редакции за единый закон всех школ джйотиша.",
+    "Не обещать по Меркурию здоровье, деньги, точную профессию, результат экзамена или дату события.",
+    "Исходные данные и правила выбранной школы записывайте рядом с картой, чтобы расчёт оставался проверяемым."
+  ],
+  "cover": {
+    "asset_id": "cover-merkuriy-v-dzhyotish",
+    "path": "content/astrology-guide/articles/merkuriy-v-dzhyotish/cover.webp",
+    "alt": "Тонкие орбиты и абстрактная геометрия на светлой бумажной фактуре в терракотовой и золотистой палитре",
+    "status": "ready",
+    "sha256": "2613aa49adaac2691ac2721829f54369b49e163bd5adb82ce1f7e9c3356e323d",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/merkuriy-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Меркурий в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Меркурий в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

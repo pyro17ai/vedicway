@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая проверка преобразования местного времени в UTC, сидерического режима, аянамши, географических координат и топоцентрического положения Луны."
+  },
+  {
+    "source_id": "IANA_TZDB_THEORY",
+    "url": "https://data.iana.org/time-zones/tzdb-2025c/theory.html",
+    "role": "Проверка роли места рождения и исторических правил гражданского времени при определении смещения UTC."
+  }
+]

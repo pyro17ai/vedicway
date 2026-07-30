@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка состава Shodashavarga, места шестнадцати варг в структуре текста и связи дробных карт с оценкой силы и йог."
+  },
+  {
+    "source_id": "bphs_varga_use",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+    "role": "Проверка традиционного назначения D1, D2, D3, D4, D7, D9, D10, D12, D16, D20, D24, D27, D30 и D40."
+  },
+  {
+    "source_id": "openastrology_vedic_docs",
+    "url": "https://github.com/nikolamilenkovic/openastrology-library/blob/main/DOCS_VEDIC.md",
+    "role": "Проверка современного программного перечня дробных карт и различия между классической Shodashavarga и расширенным набором калькулятора."
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "slug": "raja-yoga-kendra-kona",
+  "title": "Raja Yoga: связь управителей Kendra и Kona",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "phaladeepika_yogas",
+    "bphs_fulltext",
+    "bphs_ch34_webcheck"
+  ],
+  "seo": {
+    "seo_title": "Raja Yoga: связь управителей Kendra и Kona",
+    "meta_description": "Разберите Raja Yoga через связь управителей Kendra и Kona: точные виды связи, порядок проверки, пример для Лагны в Тельце и границы трактовки.",
+    "focus_keyphrase": "Raja Yoga Kendra Kona",
+    "canonical_url": "https://vedicway.ru/guide/raja-yoga-kendra-kona",
+    "excerpt": "Классическая Raja Yoga возникает из связи управителей угловых и трикональных домов. Статья показывает формулу, порядок проверки и пределы вывода о статусе."
+  },
+  "seo_title": "Raja Yoga: связь управителей Kendra и Kona",
+  "meta_description": "Разберите Raja Yoga через связь управителей Kendra и Kona: точные виды связи, порядок проверки, пример для Лагны в Тельце и границы трактовки.",
+  "focus_keyphrase": "Raja Yoga Kendra Kona",
+  "canonical": "https://vedicway.ru/guide/raja-yoga-kendra-kona",
+  "intent": "Информационный: определить классическую связь управителей Kendra и Kona и отделить её от общего обещания высокого статуса.",
+  "semantic_core": [
+    "Raja Yoga Kendra Kona",
+    "раджа йога управителей кендры и триконы",
+    "йога карака",
+    "Dharma-Karmadhipati Yoga",
+    "управители 9 и 10 домов"
+  ],
+  "internal_links": [
+    "/chart",
+    "/guide/znak-dom-upravitel",
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/yoga-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Гарантия высокого статуса, должности, славы или дохода по одной Raja Yoga.",
+    "Медицинский, финансовый или юридический прогноз по связи управителей домов.",
+    "Подмена формулы D1 отдельной комбинацией, найденной только в дробной карте."
+  ],
+  "cover": {
+    "asset_id": "cover-raja-yoga-kendra-kona",
+    "path": "content/astrology-guide/articles/raja-yoga-kendra-kona/cover.webp",
+    "width": 1672,
+    "height": 941,
+    "aspect_ratio": "16:9",
+    "alt": "Квадрат с четырьмя угловыми воротами и вписанным треугольником на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "561f72a88fd84e7ad6b3492fb19e097f933eaf2a08464bca08fa285240ba5729"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "Raja Yoga Kendra Kona"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Raja Yoga Kendra Kona"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.astrojyoti.com/bphspage4-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Проверка перечня даша-систем, вложенных периодов и общей логики Вимшоттари."
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка места Чара-даши и раши-даш в джайминиевской традиции."
+  },
+  {
+    "source_id": "S3",
+    "url": "https://saravali.github.io/astrology/dasa_yogini.html",
+    "role": "Проверка характеристик Йогини-даши, восьми йогини и 36-летнего цикла."
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "practice:ASTRODIENST_RECTIFICATION",
+    "url": "https://www.astro.com/astrowiki/en/Chart_Rectification",
+    "role": "Определение ректификации, связь точного времени с лагной и домами, проверка по значимым событиям и граница внешней верификации."
+  },
+  {
+    "source_id": "calc:SWISS_PROG",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=e&nhor=1",
+    "role": "Техническая проверка зависимости расчёта домов и восходящей точки от времени, координат, шкалы времени и сидерических настроек."
+  },
+  {
+    "source_id": "practice:BP_LAMA_RECTIFICATION",
+    "url": "https://www.barbarapijan.com/bpa/Practice_Issues/rectification.htm",
+    "role": "Практика джйотиша: хронология документированных событий, сравнение D1 и варг, единые правила проверки кандидатов."
+  },
+  {
+    "source_id": "S5",
+    "url": "https://shodhganga.inflibnet.ac.in/handle/10603/517807",
+    "role": "Контекст академической работы 2023 года по методике анализа натальных и хорарных карт; содержательные выводы диссертации не использованы."
+  }
+]

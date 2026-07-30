@@ -1,0 +1,100 @@
+{
+  "title": "Подвижные, неподвижные и двойственные раши",
+  "slug": "podvizhnye-nepodvizhnye-dvoistvennye-rashi",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "astrojyoti_bphs_ch7_8"
+  ],
+  "seo_title": "Подвижные, неподвижные и двойственные раши",
+  "meta_description": "Что такое подвижные, неподвижные и двойственные раши в джйотише: классификация 12 знаков, правило раши-дришти, пример и границы метода.",
+  "focus_keyphrase": "подвижные неподвижные двойственные раши",
+  "intent": "Информационный справочный интент с практическим подинтентом: читатель хочет понять, что такое раши, узнать группы знаков и применить классификацию к раши-дришти.",
+  "intent_type": "informational",
+  "wordstat": {
+    "main_query": "подвижные неподвижные двойственные раши",
+    "main_query_total_count": 0,
+    "main_query_top_requests": [],
+    "broader_query": "раши в ведической астрологии",
+    "broader_query_total_count": 12,
+    "related_requests": [
+      {
+        "phrase": "что такое раши в ведической астрологии",
+        "count": 10
+      }
+    ],
+    "regions": [
+      225
+    ],
+    "period": "последние 30 дней",
+    "note": "Точная тема не получила запросов в Wordstat; ядро сформировано по ближайшему широкому запросу и редакционным вопросам темы."
+  },
+  "semantic_core": [
+    "раши в ведической астрологии",
+    "что такое раши",
+    "подвижные раши",
+    "неподвижные раши",
+    "двойственные раши",
+    "чара стхира двисвабхава",
+    "классификация знаков зодиака",
+    "раши-дришти",
+    "аспекты знаков",
+    "чем раши-дришти отличается от граха-дришти",
+    "как определить тип раши",
+    "какие знаки подвижные",
+    "какие знаки неподвижные",
+    "какие знаки двойственные"
+  ],
+  "canonical": "https://vedicway.ru/guide/podvizhnye-nepodvizhnye-dvoistvennye-rashi",
+  "seo": {
+    "seo_title": "Подвижные, неподвижные и двойственные раши",
+    "meta_description": "Что такое подвижные, неподвижные и двойственные раши в джйотише: классификация 12 знаков, правило раши-дришти, пример и границы метода.",
+    "focus_keyphrase": "подвижные неподвижные двойственные раши",
+    "canonical_url": "https://vedicway.ru/guide/podvizhnye-nepodvizhnye-dvoistvennye-rashi",
+    "excerpt": "Классификация 12 раши по типу движения: четыре подвижных, четыре неподвижных и четыре двойственных знака, их роль в раши-дришти и границы метода."
+  },
+  "internal_links": [
+    "/guide/dvenadcat-bhav",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать тип раши за самостоятельный прогноз характера или события.",
+    "Не смешивать раши-дришти с граха-дришти.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат."
+  ],
+  "cover": {
+    "asset_id": "cover-podvizhnye-nepodvizhnye-dvoistvennye-rashi",
+    "path": "content/astrology-guide/articles/podvizhnye-nepodvizhnye-dvoistvennye-rashi/cover.webp",
+    "alt": "Круг раши, разделённый на подвижные, неподвижные и двойственные ритмы, на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "5ada969da64dcd94a4374d006d11c2c0edaf8fa8227d7a4504a5657525a94df7",
+    "width": 1727,
+    "height": 911
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "подвижные неподвижные двойственные раши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "подвижные неподвижные двойственные раши"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.astrojyoti.com/bphspage1-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

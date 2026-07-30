@@ -1,0 +1,51 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "Vimshottari",
+      "antardasha",
+      "управитель mahadasha",
+      "натальная карта",
+      "длительности периодов"
+    ],
+    "claims_used": [
+      "Глава 46 перечисляет Vimshottari и длительности периодов планет, которые суммируются в 120 лет.",
+      "Глава 51 посвящена расчёту antardasha и содержит таблицы подпериодов для Vimshottari.",
+      "Главы об эффектах mahadasha и antardasha связывают чтение с асцендентом, управителем даши, достоинством, силой и размещением планет."
+    ],
+    "limitations": "Английский перевод с редакторскими комментариями и OCR-ошибками; он не заменяет критическое сопоставление санскритских редакций и не устанавливает единственную школу календарного округления.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": "dasha:BPHS_ARCHIVE_2",
+    "notes": "URL лично прочитан через веб-доступ; проверены оглавление, фрагмент главы 46 с длительностями и расчётом остатка, а также таблицы antardasha в главе 51. Цитаты не используются."
+  },
+  {
+    "source_id": "S3",
+    "url": "https://saravali.github.io/astrology/dasa_yogini.html",
+    "title": "Yogini Dasa",
+    "author_or_institution": "Saravali",
+    "source_kind": "educational_secondary",
+    "publication_or_revision_date": "2021-12-19",
+    "topics": [
+      "Yogini Dasa",
+      "накшатры",
+      "36-летний цикл",
+      "antardasha"
+    ],
+    "claims_used": [
+      "Yogini Dasa связывает систему с положением Луны в накшатре.",
+      "В системе восемь yogini, а полный цикл составляет 36 лет.",
+      "Antardasha описывается как пропорциональная основной даше, начиная с её управителя."
+    ],
+    "limitations": "Это образовательная страница, а не критическое первичное издание; она используется для сравнения систем и не доказывает прогностическую точность.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": "dasha:YOGINI",
+    "notes": "URL лично прочитан через веб-доступ; S3 используется только для явной оговорки о границах переноса формулы Vimshottari."
+  }
+]

@@ -1,0 +1,98 @@
+{
+  "slug": "rashi-drishti-i-graha-drishti",
+  "title": "Раши-дришти и отличие от граха-дришти",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_sapta_comparative",
+    "astrojyoti_bphs_ch7_8",
+    "astrojyoti_bphs_ch26"
+  ],
+  "intent": {
+    "type": "informational_comparative",
+    "summary": "Читатель ищет определение раши-дришти, отличие от граха-дришти и порядок расчёта в натальной карте.",
+    "wordstat": {
+      "main_query": "раши дришти",
+      "count_last_30_days": 17,
+      "related_relevant_query": "граха дришти в джйотиш это",
+      "related_relevant_count_last_30_days": 5,
+      "noise_filtered": true,
+      "note": "Остальные ассоциации Wordstat не относятся к теме джйотиша и исключены из ядра."
+    }
+  },
+  "semantic_core": [
+    "раши дришти",
+    "граха дришти",
+    "раши-дришти в джйотише",
+    "граха-дришти в джйотише",
+    "аспекты знаков",
+    "аспекты планет",
+    "аспекты Марса Юпитера Сатурна",
+    "как считать раши дришти",
+    "чем раши дришти отличается от граха дришти",
+    "аспекты в натальной карте джйотиш",
+    "взгляды подвижных неподвижных двойственных знаков",
+    "7-й аспект планет в джйотише"
+  ],
+  "seo": {
+    "seo_title": "Раши-дришти и граха-дришти: отличие аспектов",
+    "meta_description": "Раши-дришти связывает знаки, граха-дришти действует от планеты. Разбираем правила расчёта, пример карты и границы обоих методов.",
+    "focus_keyphrase": "раши-дришти и граха-дришти",
+    "canonical_url": "https://vedicway.ru/guide/rashi-drishti-i-graha-drishti",
+    "excerpt": "Раши-дришти считают от знака к знаку, граха-дришти от конкретной грахи. Разделяем оба слоя и показываем их на примере Марса, Юпитера и Сатурна."
+  },
+  "canonical": "https://vedicway.ru/guide/rashi-drishti-i-graha-drishti",
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "раши, бхава, лагна и дома"
+    },
+    {
+      "url": "/chart",
+      "anchor": "калькулятор натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать дришти за научно подтверждённую причинность или гарантированный прогноз.",
+    "Не смешивать раши-дришти и граха-дришти в одну таблицу без указания источника взгляда.",
+    "Не переносить специальные аспекты Марса, Юпитера и Сатурна на остальные грахи.",
+    "Не подменять знак домом и не скрывать выбранную систему домов.",
+    "Не обещать медицинский, финансовый или иной гарантированный результат."
+  ],
+  "cover": {
+    "asset_id": "cover-rashi-drishti-i-graha-drishti",
+    "path": "content/astrology-guide/articles/rashi-drishti-i-graha-drishti/cover.webp",
+    "alt": "Круг знаков с отдельными направленными лучами от центральной грахи на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "format": "PNG",
+    "width": 1729,
+    "height": 910,
+    "status": "ready",
+    "sha256": "cbc2716692cb4f9d722054c4f3858854d0433f23c639b0da7a3efee72a45c008"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "раши-дришти и граха-дришти",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "раши-дришти и граха-дришти"
+      }
+    ],
+    "citation": [
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.astrojyoti.com/bphspage1-3.htm",
+      "https://www.astrojyoti.com/bphspage3-4.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,71 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "role_in_article": "Разделение Vimshottari, Yogini и других даши; порядок чтения antardasha и связь результатов с натальной картой.",
+    "claims_used": [
+      "Содержание издания перечисляет Vimshottari и Yogini как отдельные системы даши.",
+      "Отдельные главы посвящены результатам периодов и расчёту antardasha.",
+      "Чтение результатов связывается с достоинством, силой и размещением планет в натальной карте.",
+      "Для Vimshottari приведены порядок управителей и длительности полного цикла 120 лет."
+    ],
+    "limitations": "Английский перевод с редакторскими комментариями и OCR-ошибками; источник не заменяет сопоставление санскритских редакций и школьных правил календарного округления.",
+    "verified_reading": {
+      "log_source_id": "dasha:BPHS_ARCHIVE_2",
+      "status": "personally_verified",
+      "note": "URL лично открыт 2026-07-28; запись verified-reading-log сопоставлена по URL под source_id dasha:BPHS_ARCHIVE_2."
+    }
+  },
+  {
+    "source_id": "S3",
+    "url": "https://saravali.github.io/astrology/dasa_yogini.html",
+    "title": "Yogini Dasa",
+    "author_or_institution": "Saravali",
+    "source_kind": "educational_secondary",
+    "quality": "medium",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "role_in_article": "Таблица восьми йогини, их управителей, длительностей, номеров накшатр и пропорционального правила antardasha.",
+    "claims_used": [
+      "Yogini Dasa основана на положении Луны в накшатре.",
+      "Система содержит восемь йогини и полный цикл 36 лет.",
+      "Таблица связывает йогини с планетой-управителем, длительностью и номерами накшатр 1–27.",
+      "Antardasha начинается с управителя основной даши и распределяется пропорционально."
+    ],
+    "limitations": "Образовательная страница не раскрывает происхождение таблицы, единое правило остатка первой mahadasha и календарное округление; она не доказывает прогностическую точность.",
+    "verified_reading": {
+      "log_source_id": "dasha:YOGINI",
+      "status": "personally_verified",
+      "note": "URL лично открыт 2026-07-28; запись verified-reading-log сопоставлена по URL под source_id dasha:YOGINI."
+    }
+  },
+  {
+    "source_id": "S6",
+    "url": "https://github.com/naturalstupid/PyJHora",
+    "title": "PyJHora",
+    "author_or_institution": "naturalstupid и contributors",
+    "source_kind": "technical_reference",
+    "quality": "medium",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "role_in_article": "Техническая граница между конкретной реализацией, её настройками и текстовым правилом школы.",
+    "claims_used": [
+      "Репозиторий реализует более 50 систем даши и методы получения дочерних периодов.",
+      "Проект сообщает о проверках по книге и программному обеспечению P. V. R. Narasimha Rao.",
+      "В проекте указана настройка Lahiri по умолчанию для тестов.",
+      "История изменений содержит предупреждения о различиях между реализациями и экспериментальных функциях."
+    ],
+    "limitations": "Активно изменяемый community-проект; его код и тесты описывают конкретную реализацию и не устанавливают единый канон всех школ.",
+    "verified_reading": {
+      "log_source_id": "varga:PYJHORA",
+      "status": "personally_verified",
+      "note": "URL лично открыт 2026-07-28; запись verified-reading-log сопоставлена по URL под source_id varga:PYJHORA."
+    }
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "src_phaladeepika",
+    "url": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Проверка места Ashtakavarga в оценке транзитов, терминов Bhinna и Sarva Ashtakavarga и границ пересказа правил конкретной редакции."
+  },
+  {
+    "source_id": "src_brihat_gocara",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+    "role": "Проверка базового чтения гочара от натальной Луны и необходимости учитывать даша и натальный контекст."
+  },
+  {
+    "source_id": "src_jyotishganit",
+    "url": "https://github.com/northtara/jyotishganit",
+    "role": "Проверка современного вычислительного представления BAV и SAV, исходных параметров расчёта и отделения вычислений от интерпретационной валидности."
+  }
+]

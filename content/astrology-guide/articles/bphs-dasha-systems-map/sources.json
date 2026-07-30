@@ -1,0 +1,51 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Карта систем даши BPHS и проверка правил для Yogini, Ashtottari, Shodashottari, Kaalachakra, Sthira, Yogardha и вложенных периодов.",
+    "claims_used": [
+      "Глава 46 перечисляет Vimshottari, Ashtottari, Shodashottari, Kaalachakra, Chara, Sthira, Yogardha, Shoola, Drig, Rasi, Yogini и другие системы.",
+      "Yogini использует номер Janma Nakshatra по формуле прибавления 3 и деления на 8; нулевой остаток указывает Sankata, а сроки восьми Yogini равны 1–8 годам.",
+      "Ashtottari связывает выбор с положением Rahu относительно Lagna и её управителя, а также описывает paksha и время суток; порядок включает восемь управителей со сроками 6, 15, 8, 17, 10, 19, 12 и 21 год.",
+      "Shodashottari описывает условия по Hora и paksha, а также отсчёт от Pushya и деление по модулю 8.",
+      "Sthira начинается с Rashi Brahma Graha, использует 7, 8 и 9 лет для movable, fixed и dual знаков и меняет направление для odd и even знаков.",
+      "Yogardha равна половине суммы Chara и Sthira; главы 51 и 61–64 описывают antardasha, pratyantardasha, sookshma-dasha, prana-dasha и antardasha Kaalachakra."
+    ],
+    "limitations": "Английский перевод с редакторскими комментариями и OCR-ошибками; он не заменяет критическое санскритское издание и не доказывает единообразие школ.",
+    "verified_reading": {
+      "log_source_id": "dasha:BPHS_ARCHIVE_2",
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "note": "URL лично прочитан; оглавление и нужные фрагменты глав 46–51 и 61–64 сверены с записью verified-reading-log."
+    }
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "title": "Jaiminisutras, fifth edition",
+    "author_or_institution": "Bangalore Suryanarain Rao; редакция Bangalore Venkata Raman",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Отдельная линия Jaimini для Rashi, Sthira, Navamsa, Yogardha, Drig и Trikona; источник редакционных вариантов и ограничений.",
+    "claims_used": [
+      "Оглавление издания включает Rasi Dashas и их результаты.",
+      "В издании перечислены Sthira, Navamsa, Prana, Shoola, Yogardha, Drig и Trikona Dashas.",
+      "Sthira задаёт сроки 7, 8 и 9 лет для movable, fixed и common знаков и начинает отсчёт с Rashi, занятой Brahma.",
+      "Примечания к Navamsa Dasa различают старт от 8-го, 6-го или 7-го знака в зависимости от типа Lagna.",
+      "Краткость сутр и редакторские комментарии требуют явного указания варианта школы при переносе алгоритма в расчёт."
+    ],
+    "limitations": "Архивная OCR-копия переводческого издания 1955 года; точный порядок Chara и связанных Rashi Dasa зависит от комментария и не должен выдаваться за единственную норму.",
+    "verified_reading": {
+      "log_source_id": "practice:JAIMINI_ARCHIVE",
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "note": "URL лично прочитан; оглавление и фрагменты Sthira и Navamsa сверены с записью verified-reading-log."
+    }
+  }
+]

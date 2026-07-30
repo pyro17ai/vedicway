@@ -1,0 +1,65 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "title": "Jaiminisutras, fifth edition",
+    "author_or_institution": "Bangalore Suryanarain Rao; редакция Bangalore Venkata Raman",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Текст сутры о девятом знаке, направлении и старте от Лагны; примеры длительности раши-даши.",
+    "claims_used": [
+      "Перевод S2 связывает девятый знак от Лагны с прямым порядком при нечётном знаке и обратным порядком при чётном.",
+      "Перевод S2 указывает старт раши-даши от Лагны.",
+      "В пояснении S2 длительность иллюстрируется расстоянием до управителя: седьмой знак даёт 7 лет, третий знак даёт 3 года."
+    ],
+    "limitations": "Архивная OCR-копия английского переводческого издания 1955 года; перевод и примечания редакторов не заменяют сопоставление санскритских редакций.",
+    "verified_reading": {
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "note": "URL открыт напрямую; проверены титульные данные, оглавление, раздел о Rasi Dasa, примеры длительности и сутра Panchame pada kramat prakpratyaktvam. verified-reading-log.jsonl не содержит отдельной строки S2."
+    }
+  },
+  {
+    "source_id": "S4",
+    "url": "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/",
+    "title": "What Is the Correct Procedure for Computing Jaimini’s Chara Dasa?",
+    "author_or_institution": "U. K. Jha; Saptarishis Astrology",
+    "source_kind": "community_context",
+    "quality": "medium",
+    "review_status": "personally_verified",
+    "role_in_article": "Сопоставление конкурирующих процедур старта, направления, длительности и bhukti.",
+    "claims_used": [
+      "Статья фиксирует варианты Neelakantha, BPHS и Vriddha Karika со стартом от Лагны и направлением по девятому знаку.",
+      "Статья отдельно описывает различия Raghava Bhatt и Nrsimha Suri, включая условия старта и специальные правила длительности.",
+      "Статья отмечает варианты с сильнейшим знаком из Лагны и седьмого дома и спор о порядке bhukti."
+    ],
+    "limitations": "Полемическая статья одной школы; она показывает карту разногласий и авторское предложение, но не устанавливает единственный канон Chara Dasha.",
+    "verified_reading": {
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "note": "URL открыт прямым веб-доступом и найден через поиск по точному заголовку; прочитаны введение, перечисление методов, разделы о старте и длительности. verified-reading-log.jsonl не содержит отдельной строки S4."
+    }
+  },
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Проверка программного входа для Chara и границы между контрактом реализации и традиционной формулой.",
+    "claims_used": [
+      "В коде Chara классифицируется как лагна-ориентированная система, а Vimshottari, Ashtottari и Yogini — как лунные.",
+      "Для Chara проверяются birth_jd и lagna_sign в диапазоне 1–12.",
+      "В описании compute_dasha сказано, что Chara и Narayana возвращают один уровень, а levels для них игнорируется."
+    ],
+    "limitations": "Исходный код показывает поведение конкретного программного интерфейса и не доказывает каноничность алгоритма Chara Dasha.",
+    "verified_reading": {
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "note": "Открыт исходный файл на GitHub и его raw-представление; проверены enum DashaSystem, структура ComputeDashaInput, валидация и описание инструмента. verified-reading-log.jsonl не содержит отдельной строки S5."
+    }
+  }
+]

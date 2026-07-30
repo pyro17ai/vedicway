@@ -1,0 +1,47 @@
+[
+  {
+    "source_id": "bphs_santhanam_archive",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "title": "Brihat Parashara Hora Shastra, English translation, commentary, annotation and editing by R. Santhanam",
+    "role_in_article": "Основной текст для состава девяти грах и для структуры чтения через раши, бхавы, достоинства, аспекты и силу.",
+    "claims_used": [
+      "Солнце входит в список девяти грах вместе с Луной, пятью видимыми планетами, Раху и Кету.",
+      "В оглавлении и тексте отдельно выделены раши, бхавы, достоинства, отношения грах, аспекты, оценка силы и эффекты управителей домов.",
+      "Солнце в статье описано внутри общей карты, потому что редакция располагает планетарные характеристики рядом с домами и связями."
+    ],
+    "limits": "Это английский перевод и комментарий редакции R. Santhanam; OCR содержит ошибки, а публикация не заменяет критическое санскритское издание и не подтверждает научную прогностическую силу астрологии.",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "bphs_sapta_comparative",
+    "url": "https://saptamatrika.ru/en/bphs",
+    "title": "Brihat Parashara Hora Shastra: word-for-word translation and comparative analysis",
+    "role_in_article": "Источник для маркировки различий редакций BPHS и для правила указывать текст или школу рядом со спорным толкованием.",
+    "claims_used": [
+      "Проект сопоставляет редакции Sharma, Santhanam и Pathaka.",
+      "Часть шлок присутствует в одних версиях и отсутствует в других.",
+      "Санскритский текст и пословный перевод помогают отделять формулировку источника от позднего пересказа."
+    ],
+    "limits": "Это редакторский сравнительный проект, а не рецензируемое критическое издание; переводческие решения требуют сверки с санскритским текстом.",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "phaladeepika_wisdomlib",
+    "url": "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+    "title": "Phaladeepika by Mantreswara: text and translation, yogas and their effects",
+    "role_in_article": "Сравнительный классический источник для объяснения, что йога требует одновременной проверки кендры, триконы, знака и силы, а также для упоминания Веси, Воси и Убхайачари.",
+    "claims_used": [
+      "В тексте условия йог связаны с кендрами, триконами, собственным или экзальтационным знаком и силой грахи.",
+      "На странице приведены солнечные йоги Веси, Воси и Убхайачари.",
+      "Формулу йоги в статье подано как условную комбинацию, которую сначала нужно проверить полностью."
+    ],
+    "limits": "Веб-страница содержит OCR и предупреждения о непроверенных страницах; дата ревизии страницы не равна датировке исходного текста, поэтому правила требуют сверки с конкретной редакцией.",
+    "source_kind": "primary_text",
+    "quality": "medium",
+    "review_status": "personally_verified"
+  }
+]

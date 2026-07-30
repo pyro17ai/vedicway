@@ -1,0 +1,62 @@
+{
+  "slug": "kendry-trikony-trika",
+  "title": "Кендры, триконы и трика: геометрия домов",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Кендры, триконы и трика: группы домов в джйотише",
+    "meta_description": "Разберите кендры, триконы и трика в джйотише: какие дома входят в группы, как отметить их в карте и где метод требует осторожности.",
+    "focus_keyphrase": "кендры триконы и трика",
+    "canonical_url": "https://vedicway.ru/guide/kendry-trikony-trika",
+    "excerpt": "Практическая схема группировки домов: кендры, триконы и трика, порядок разметки карты, мини-пример и границы метода при неточном времени рождения."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/lagna-i-pervyy-dom",
+    "/guide"
+  ],
+  "prohibited_claims": [
+    "гарантированные прогнозы",
+    "медицинские диагнозы",
+    "гарантированный финансовый результат",
+    "неизбежная судьба"
+  ],
+  "cover": {
+    "asset_id": "cover-kendry-trikony-trika",
+    "path": "content/astrology-guide/articles/kendry-trikony-trika/cover.webp",
+    "alt": "Геометрическая схема домов натальной карты с треугольниками и опорными точками на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано локальным ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "54d815be23bfdb80dc75deee3f2d8f26ef79e63057a58b5abf89ab7ff45c7c0d",
+    "width": 1728,
+    "height": 910,
+    "mime_type": "image/png"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/kendry-trikony-trika",
+  "tags": [
+    "Основы астрологии",
+    "кендры триконы и трика",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "кендры триконы и трика"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

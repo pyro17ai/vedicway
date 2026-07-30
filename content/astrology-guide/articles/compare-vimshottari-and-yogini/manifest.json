@@ -1,0 +1,62 @@
+{
+  "slug": "compare-vimshottari-and-yogini",
+  "title": "[Трактовка] Как сопоставлять Vimshottari и Yogini без смешения правил",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S3",
+    "S6"
+  ],
+  "seo": {
+    "seo_title": "Vimshottari и Yogini: как сопоставить две даши",
+    "meta_description": "Сравните Vimshottari и Yogini по отдельным правилам: накшатра Луны, управитель, цикл, antardasha, пример, границы школы и ошибки расчёта.",
+    "focus_keyphrase": "сопоставление Vimshottari и Yogini",
+    "canonical_url": "https://vedicway.ru/guide/compare-vimshottari-and-yogini",
+    "excerpt": "Практический способ сопоставить Vimshottari и Yogini: сначала сохранить собственные управители, циклы и формулы, затем прочитать каждую шкалу вместе с натальной картой."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/yogini-dasha-36-year-cycle",
+    "/guide/antardasha-and-mahadasha-interpretation"
+  ],
+  "prohibited_claims": [
+    "неизбежная судьба, фатальные события и дата смерти",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьерного результата или финансового исхода",
+    "юридический исход и научно подтверждённая прогностическая точность"
+  ],
+  "cover": {
+    "asset_id": "cover-compare-vimshottari-and-yogini",
+    "path": "content/astrology-guide/articles/compare-vimshottari-and-yogini/cover.webp",
+    "alt": "Две раздельные орбитальные схемы с девятью и восемью сегментами на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "c1f400743672d52b6866142e71aed6541e9ba48219e0cf6b01f69284151d2319",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/compare-vimshottari-and-yogini",
+  "tags": [
+    "Практика чтения карты",
+    "сопоставление Vimshottari и Yogini"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "сопоставление Vimshottari и Yogini"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://saravali.github.io/astrology/dasa_yogini.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

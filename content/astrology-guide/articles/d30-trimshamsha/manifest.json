@@ -1,0 +1,133 @@
+{
+  "slug": "d30-trimshamsha",
+  "title": "D30 Trimshamsha: вред, уязвимости и несчастья",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_fulltext",
+    "d30_varga_derivation_2023"
+  ],
+  "seo_title": "D30 Trimshamsha: вред, уязвимости и несчастья",
+  "meta_description": "D30 Trimshamsha показывает уязвимости и неблагоприятные проявления. Разбираем особое деление знака, порядок чтения, пример и границы метода.",
+  "focus_keyphrase": "D30 Trimshamsha",
+  "canonical": "https://vedicway.ru/guide/d30-trimshamsha",
+  "seo": {
+    "seo_title": "D30 Trimshamsha: вред, уязвимости и несчастья",
+    "meta_description": "D30 Trimshamsha показывает уязвимости и неблагоприятные проявления. Разбираем особое деление знака, порядок чтения, пример и границы метода.",
+    "focus_keyphrase": "D30 Trimshamsha",
+    "canonical_url": "https://vedicway.ru/guide/d30-trimshamsha",
+    "excerpt": "D30 уточняет неблагоприятные проявления натальной карты. Разбираем неравное деление знака, зеркальные правила для чётных знаков, порядок чтения и границы метода."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "D30 Тримшамша",
+    "type": "informational_how_to",
+    "status": "expanded_query_data_found",
+    "reader_need": "Понять, что показывает D30, почему Trimshamsha строится по специальной неравной схеме и как читать уязвимости без фатальных прогнозов.",
+    "primary_query_result": {
+      "total_count": 0,
+      "top_requests": [],
+      "associations": []
+    },
+    "expanded_query": "тримшамша",
+    "expanded_query_result": {
+      "total_count": 120,
+      "top_requests": [
+        {
+          "phrase": "тримшамша",
+          "count": 120
+        },
+        {
+          "phrase": "тримшамша джйотиш",
+          "count": 49
+        },
+        {
+          "phrase": "тримшамша джйотиш что показывает",
+          "count": 18
+        },
+        {
+          "phrase": "брак по тримшамше д 30",
+          "count": 6
+        }
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "D30 Trimshamsha",
+      "тримшамша",
+      "тримшамша джйотиш"
+    ],
+    "related": [
+      "D30 в джйотише",
+      "что показывает тримшамша",
+      "карта D30",
+      "расчёт D30",
+      "неравные части тримшамши",
+      "вред и уязвимости в D30",
+      "ришта-пхала",
+      "Shodashavarga",
+      "дробные карты джйотиш"
+    ],
+    "questions": [
+      "Что показывает D30 Trimshamsha?",
+      "Почему D30 делит знак на пять неравных частей?",
+      "Как рассчитывается тримшамша для чётных и нечётных знаков?",
+      "Как читать лагну и управителя D30?",
+      "Можно ли трактовать D30 отдельно от D1?",
+      "Показывает ли D30 конкретное несчастье?",
+      "Насколько D30 чувствительна ко времени рождения?"
+    ],
+    "excluded": [
+      "брак по тримшамше D30"
+    ]
+  },
+  "internal_links": [
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/d1-i-drobnie-karty",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Один показатель D30 гарантирует конкретное несчастье или дату события.",
+    "D30 можно надёжно читать отдельно от D1.",
+    "Астрологическая карта заменяет медицинскую, финансовую или юридическую оценку риска."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Круглая астрологическая карта из пяти неравных бумажных секторов с тонкой трещиной и созвездиями",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "b036ccb1e69206d90160b5f2ef559d2a6c6be09ac0b45e1e01a5e7acec7145f8",
+    "asset_id": "cover-d30-trimshamsha",
+    "path": "content/astrology-guide/articles/d30-trimshamsha/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "34C951F95ADDE36C770B2DE944AEB876A584A4E05F8F29C03DB306AC5D66DC35",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D30 Trimshamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D30 Trimshamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://doi.org/10.22271/24564427.2023.v8.i2b.181"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

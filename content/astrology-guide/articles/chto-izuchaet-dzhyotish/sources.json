@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка различий джаймини-метода, специальных лагн, карак и периодов знаков"
+  },
+  {
+    "source_id": "web_degruyter_jyotihsastra_three_branches",
+    "url": "https://www.degruyterbrill.com/document/doi/10.70249/9780871690432/html?lang=en",
+    "role": "Проверка классического деления jyotiḥśāstra на хора, ганиту и самхиту"
+  },
+  {
+    "source_id": "web_oxford_astrology_jyotihsastra",
+    "url": "https://academic.oup.com/reference/62357/reference-article-abstract/554513393",
+    "role": "Проверка различия расчётного и гороскопного слоёв индийской традиции"
+  }
+]

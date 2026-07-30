@@ -15,6 +15,10 @@ export default defineConfig(({ mode }) => {
           target: env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8005",
           changeOrigin: true,
         },
+        "/media": {
+          target: env.VITE_API_PROXY_TARGET || "http://127.0.0.1:8005",
+          changeOrigin: true,
+        },
       },
     },
     test: {

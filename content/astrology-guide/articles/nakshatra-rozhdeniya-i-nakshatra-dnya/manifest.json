@@ -1,0 +1,60 @@
+{
+  "slug": "nakshatra-rozhdeniya-i-nakshatra-dnya",
+  "title": "Накшатра рождения и накшатра дня: как сопоставить карту и дату",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A5",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Накшатра рождения и накшатра дня: сравнение",
+    "meta_description": "Разберите разницу между джанма-накшатрой и накшатрой дня: расчёт Луны, пада, панчанга, границы метода и пример сопоставления.",
+    "focus_keyphrase": "накшатра рождения и накшатра дня",
+    "canonical_url": "https://vedicway.ru/guide/nakshatra-rozhdeniya-i-nakshatra-dnya",
+    "excerpt": "Практический порядок расчёта и сопоставления джанма-накшатры Луны с текущей накшатрой панчанги."
+  },
+  "internal_links": [
+    "/guide/dzhanma-nakshatra-luny",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "cover": {
+    "asset_id": "cover-nakshatra-rozhdeniya-i-nakshatra-dnya",
+    "path": "content/astrology-guide/articles/nakshatra-rozhdeniya-i-nakshatra-dnya/cover.webp",
+    "alt": "Лунный круг из 27 секторов с двумя отметками для сопоставления рождения и текущего дня на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "a8bfbe2664b95e5b945a6f9bbe24855365759532433eecf545c2e2d38cd95270",
+    "status": "ready",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": {
+    "article_md": "E959CB8C315CB1202AA1FA1BFFA7CC8F47B34F50F7695946D10E4B60A89D20A3",
+    "article_html": "6AABE3ECCE9EE5368F467D784BF37DF588ABC787E8F8F3033A3822FA9DCAF988",
+    "cover": "A398503B8F9F0B533226856EA576EDACB365396395D79F311E23AD3FB624767A"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/nakshatra-rozhdeniya-i-nakshatra-dnya",
+  "tags": [
+    "Практика чтения карты",
+    "накшатра рождения и накшатра дня",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "накшатра рождения и накшатра дня"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

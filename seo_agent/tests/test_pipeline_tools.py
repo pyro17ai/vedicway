@@ -14,53 +14,61 @@ from PIL import Image
 from seo_agent.db import AgentLedger, LedgerError, canonical_json, utc_now
 from seo_agent.media import generate_cover
 from seo_agent.quality_gate import evaluate
-from seo_agent.scheduler import MCP_CONFIG_OVERRIDES, build_codex_command, due_jobs, preflight
+from seo_agent.scheduler import (
+    MCP_CONFIG_OVERRIDES,
+    build_codex_command,
+    due_jobs,
+    preflight,
+)
 from seo_agent.site_client import publish_bundle
 
 
 def _content() -> str:
     paragraphs = [
-        "Дома в натальной карте показывают, в какой жизненной области проявляется планета, знак и ее управитель. "
-        "Читатель получит последовательный порядок разбора и сможет проверить трактовку по собственной карте."
+        "<p>Дома в натальной карте показывают, в какой жизненной области проявляется планета, знак и ее управитель. "
+        "Читатель получит последовательный порядок разбора и сможет проверить трактовку по собственной карте.</p>"
     ]
     for index in range(1, 18):
         paragraphs.append(
-            f"## Шаг {index}: проверка показателей\n\n"
-            f"На шаге {index} сначала найдите знак на куспиде, затем положение управителя и только после этого аспекты. "
+            f"<h2>Шаг {index}: проверка показателей</h2>"
+            f"<p>На шаге {index} сначала найдите знак на куспиде, затем положение управителя и только после этого аспекты. "
             "Запишите наблюдение простыми словами и сверьте его с повторяющимися темами карты. "
             "Один показатель не дает надежного вывода: смысл подтверждает связка дома, планеты и контекста вопроса. "
-            f"Контрольный номер этого фрагмента {index} помогает сохранить самостоятельность каждого раздела."
+            f"Контрольный номер этого фрагмента {index} помогает сохранить самостоятельность каждого раздела.</p>"
         )
     paragraphs.extend(
         [
-            "Рассчитайте исходные положения в [натальной карте](/chart/new), затем вернитесь к схеме разбора.",
-            "Смежные определения собраны в [гиде по астрологии](/guide).",
-            "Методические основания сверяйте с [документацией Swiss Ephemeris](https://www.astro.com/swisseph/) и "
-            "[описанием часовых поясов IANA](https://www.iana.org/time-zones).",
+            '<p>Рассчитайте исходные положения на <a href="/">главной странице</a>, затем вернитесь к схеме разбора.</p>',
+            '<p>Смежные определения собраны в <a href="/guide">гиде по астрологии</a>.</p>',
+            '<p>Методические основания сверяйте с <a href="https://www.astro.com/swisseph/">документацией Swiss Ephemeris</a> и '
+            '<a href="https://www.iana.org/time-zones">описанием часовых поясов IANA</a>.</p>',
         ]
     )
-    return "\n\n".join(paragraphs)
+    return "".join(paragraphs)
 
 
 def _manifest(cover: Path) -> dict[str, object]:
     content = _content()
     return {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "draft_id": "draft-test-001",
         "claim_token": "claimed-draft-token-with-enough-length",
         "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
         "article": {
+            "section": "guide",
+            "difficulty": "beginner",
             "title": "Дома в натальной карте: последовательный разбор",
             "slug": "doma-v-natalnoy-karte",
             "category": "Основы астрологии",
             "excerpt": "Практический порядок чтения домов натальной карты с проверкой знака, управителя и аспектов.",
-            "content": content,
+            "content_html": content,
+            "cover_image_alt": "Схема домов в натальной карте",
             "seo_title": "Дома в натальной карте: как читать",
             "meta_description": "Разбираем дома в натальной карте по шагам: знак на куспиде, управитель, планеты и аспекты без оторванных трактовок.",
             "focus_keyphrase": "дома в натальной карте",
-            "canonical_url": "https://vedicway.ru/guide/doma-v-natalnoy-karte",
+            "tags": ["дома", "натальная карта"],
+            "schema_extra": {"learningResourceType": "Практическое руководство"},
             "author_name": "Редакция VedicWay",
-            "status": "published",
         },
         "media": [
             {
@@ -102,14 +110,16 @@ def _authorize_manifest(manifest: dict[str, object]) -> None:
                 "publishing",
                 article["title"],
                 article["excerpt"],
-                article["content"],
+                article["content_html"],
                 article["seo_title"],
                 article["meta_description"],
                 article["focus_keyphrase"],
                 article["category"],
                 article["author_name"],
                 manifest["content_hash"],
-                canonical_json({"passed": True, "content_hash": manifest["content_hash"]}),
+                canonical_json(
+                    {"passed": True, "content_hash": manifest["content_hash"]}
+                ),
                 manifest["claim_token"],
                 "2099-01-01T00:00:00.000Z",
                 now,
@@ -132,20 +142,24 @@ def _authorize_manifest(manifest: dict[str, object]) -> None:
         )
 
 
-def test_quality_gate_accepts_complete_article_and_rejects_prohibited_heading(tmp_path: Path) -> None:
+def test_quality_gate_accepts_complete_article_and_rejects_prohibited_heading(
+    tmp_path: Path,
+) -> None:
     manifest = _manifest(tmp_path / "cover.webp")
     report = evaluate(manifest)
     assert report["passed"] is True
     assert report["metrics"]["characters"] >= 4500
 
     rejected = deepcopy(manifest)
-    rejected["article"]["content"] += "\n\n## Заключение"  # type: ignore[index]
+    rejected["article"]["content_html"] += "<h2>Заключение</h2>"  # type: ignore[index]
     report = evaluate(rejected)
     assert report["passed"] is False
     assert report["violations"] == ["filler_heading"]
 
 
-def test_cover_and_publication_manifest_stay_inside_agent_data(tmp_path: Path, monkeypatch) -> None:
+def test_cover_and_publication_manifest_stay_inside_agent_data(
+    tmp_path: Path, monkeypatch
+) -> None:
     data = tmp_path / "seo-data"
     monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
     monkeypatch.setenv("VEDICWAY_SEO_DB", str(data / "vedicway_seo_agent.sqlite3"))
@@ -279,51 +293,111 @@ def test_scheduler_injects_only_the_four_vedicway_mcp_servers(tmp_path: Path) ->
     assert command.index("--ignore-user-config") < command.index("--config")
 
 
-def test_site_client_publishes_and_verifies_public_evidence(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[2] / "backend" / "src"))
+def test_site_client_publishes_and_verifies_public_evidence(
+    tmp_path: Path, monkeypatch
+) -> None:
+    monkeypatch.syspath_prepend(
+        str(Path(__file__).resolve().parents[2] / "backend" / "src")
+    )
     data = tmp_path / "seo-data"
     monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
     monkeypatch.setenv("VEDICWAY_SEO_DB", str(data / "vedicway_seo_agent.sqlite3"))
-    monkeypatch.setenv("VEDICWAY_SEO_AGENT_TOKEN", "test-token-with-more-than-thirty-two-characters")
+    monkeypatch.setenv(
+        "VEDICWAY_SEO_AGENT_TOKEN", "test-token-with-more-than-thirty-two-characters"
+    )
     monkeypatch.setenv("VEDICWAY_SEO_AGENT_BASE_URL", "http://backend:8000")
     monkeypatch.setenv("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru")
     cover = data / "media" / "cover.webp"
     generate_cover("Дома в натальной карте", "Основы астрологии", cover)
+    body = data / "media" / "body.webp"
+    Image.new("RGB", (1000, 700), (239, 225, 204)).save(body, "WEBP")
     manifest_path = data / "manifests" / "article.json"
     manifest_path.parent.mkdir(parents=True)
     manifest = _manifest(cover)
+    article = manifest["article"]
+    assert isinstance(article, dict)
+    article["content_html"] = f"{article['content_html']}{{{{media:body-1}}}}"
+    manifest["content_hash"] = hashlib.sha256(
+        str(article["content_html"]).encode("utf-8")
+    ).hexdigest()
+    media = manifest["media"]
+    assert isinstance(media, list)
+    media.append(
+        {
+            "purpose": "body",
+            "placeholder": "{{media:body-1}}",
+            "local_path": str(body),
+            "alt_text": "Схема последовательного чтения домов",
+            "source_kind": "generated",
+            "license_note": "Generated locally for VedicWay",
+        }
+    )
     _authorize_manifest(manifest)
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
     article_url = "https://vedicway.ru/guide/doma-v-natalnoy-karte"
-    asset_id = "11111111-1111-4111-8111-111111111111"
+    cover_asset_id = "11111111-1111-4111-8111-111111111111"
+    body_asset_id = "22222222-2222-4222-8222-222222222222"
+    uploaded_asset_ids = iter((cover_asset_id, body_asset_id))
     observed_request_hash = ""
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal observed_request_hash
         authorization = request.headers.get("authorization")
-        if request.url.path.startswith("/internal/seo-agent"):
-            assert authorization == "Bearer test-token-with-more-than-thirty-two-characters"
-        if request.method == "GET" and request.url.path == "/internal/seo-agent/health":
+        if request.url.path.startswith("/internal/content-agent"):
+            assert (
+                authorization
+                == "Bearer test-token-with-more-than-thirty-two-characters"
+            )
+        if (
+            request.method == "GET"
+            and request.url.path == "/internal/content-agent/health"
+        ):
             return httpx.Response(200, json={"status": "ready"})
-        if request.method == "POST" and request.url.path == "/internal/seo-agent/media":
+        if (
+            request.method == "POST"
+            and request.url.path == "/internal/content-agent/media"
+        ):
             assert len(request.headers["idempotency-key"]) >= 16
+            asset_id = next(uploaded_asset_ids)
             return httpx.Response(
                 201,
-                json={"asset": {"id": asset_id, "url": f"/media/articles/{asset_id}/1200.webp"}},
+                json={
+                    "asset": {
+                        "id": asset_id,
+                        "url": f"/media/articles/{asset_id}/1200.webp",
+                    }
+                },
             )
-        if request.method == "GET" and request.url.path == "/api/v1/content/articles/doma-v-natalnoy-karte":
+        if (
+            request.method == "GET"
+            and request.url.path
+            == "/api/v1/content/guide/articles/doma-v-natalnoy-karte"
+        ):
             return httpx.Response(404, json={"error": {"code": "ARTICLE_NOT_FOUND"}})
-        if request.method == "PUT" and request.url.path == "/internal/seo-agent/articles/doma-v-natalnoy-karte":
+        if (
+            request.method == "PUT"
+            and request.url.path
+            == "/internal/content-agent/guide/articles/doma-v-natalnoy-karte"
+        ):
             payload = json.loads(request.content)
-            assert payload["cover_media_id"] == asset_id
+            assert payload["cover_media_id"] == cover_asset_id
             assert payload["cover_image_alt"] == "Схема домов в натальной карте"
+            assert (
+                f'<figure data-media-id="{body_asset_id}"></figure>'
+                in payload["content_html"]
+            )
+            assert "{{media:body-1}}" not in payload["content_html"]
             assert len(request.headers["x-content-sha256"]) == 64
             observed_request_hash = request.headers["x-content-sha256"]
-            return httpx.Response(200, json={"article": payload, "idempotent_replay": False})
-        if request.method == "GET" and request.url.path == "/guide/doma-v-natalnoy-karte":
+            return httpx.Response(
+                200, json={"article": payload, "idempotent_replay": False}
+            )
+        if (
+            request.method == "GET"
+            and request.url.path == "/guide/doma-v-natalnoy-karte"
+        ):
             html = (
                 f'<link rel="canonical" href="{article_url}">'
-                f'<meta name="vedicway-article-request-sha256" content="{observed_request_hash}">'
                 '<script type="application/ld+json">{"@type":"Article"}</script>'
                 "Дома в натальной карте: последовательный разбор"
             )
@@ -333,10 +407,12 @@ def test_site_client_publishes_and_verifies_public_evidence(tmp_path: Path, monk
         if request.method == "GET" and request.url.path == "/feed/dzen.xml":
             return httpx.Response(
                 200,
-                text=f"{article_url} vedicway-request-sha256:{observed_request_hash}",
+                text=article_url,
             )
         if request.method == "GET" and request.url.path.endswith("/1200.webp"):
-            return httpx.Response(200, content=b"webp", headers={"content-type": "image/webp"})
+            return httpx.Response(
+                200, content=b"webp", headers={"content-type": "image/webp"}
+            )
         raise AssertionError(f"Unexpected request: {request.method} {request.url}")
 
     result = publish_bundle(manifest_path, transport=httpx.MockTransport(handler))
@@ -344,8 +420,13 @@ def test_site_client_publishes_and_verifies_public_evidence(tmp_path: Path, monk
     assert all(result["evidence"]["checks"].values())
     assert result["uploaded_media"] == [
         {
-            "id": asset_id,
-            "url": f"/media/articles/{asset_id}/1200.webp",
+            "id": cover_asset_id,
+            "url": f"/media/articles/{cover_asset_id}/1200.webp",
             "sha256": result["uploaded_media"][0]["sha256"],
-        }
+        },
+        {
+            "id": body_asset_id,
+            "url": f"/media/articles/{body_asset_id}/1200.webp",
+            "sha256": result["uploaded_media"][1]["sha256"],
+        },
     ]

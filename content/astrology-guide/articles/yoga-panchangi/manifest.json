@@ -1,0 +1,60 @@
+{
+  "slug": "yoga-panchangi",
+  "title": "Йога панчанги: сумма долгот Солнца и Луны",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A5",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Йога панчанги: сумма долгот Солнца и Луны",
+    "meta_description": "Формула йоги панчанги через сумму долгот Солнца и Луны, 27 участков по 13°20′, пример расчёта и отличие от натальной йоги.",
+    "focus_keyphrase": "йога панчанги",
+    "canonical_url": "https://vedicway.ru/guide/yoga-panchangi",
+    "excerpt": "Показываем формулу календарной йоги, нормализацию суммы, практический пример и границы традиционной классификации панчанги."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/titkhi-lunnyy-den",
+    "/guide/muhurta-v-dzhyotish"
+  ],
+  "prohibited_claims": [
+    "Не смешивать йогу панчанги с натальной йогой.",
+    "Не скрывать аянāмшу и момент расчёта.",
+    "Не выдавать календарную классификацию за гарантию события."
+  ],
+  "cover": {
+    "asset_id": "cover-yoga-panchangi",
+    "path": "content/astrology-guide/articles/yoga-panchangi/cover.webp",
+    "alt": "Суммирующиеся солнечная и лунная дуги с 27 делениями на тёплой бумаге",
+    "status": "ready",
+    "sha256": "02a60caf12f3fa00d5475ab4a90f71b746ad853eca617a07f3e92de66304e68e",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/yoga-panchangi",
+  "tags": [
+    "Время и циклы",
+    "йога панчанги",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "йога панчанги"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

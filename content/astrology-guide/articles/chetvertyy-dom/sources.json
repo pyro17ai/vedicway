@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Прочитанная первичная линия для понимания необходимости связывать трактовку показателя с положением, достоинством и общим контекстом карты; прямые тезисы о четвёртом доме не использовались как единственная опора."
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Прочитанная отдельная школа для фиксации границ переноса правил между традициями; специальные правила Джаймини в статью не перенесены."
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "role": "Текстовая опора для последовательности домов, связи восходящего знака с первым домом и различения дома как отдельного слоя интерпретации."
+  },
+  {
+    "source_id": "search-fourth-house-bphs",
+    "url": "https://enjoylearningsanskrit.com/scriptures/parashara/chapter-15",
+    "role": "Поисковая проверка содержания главы о четвёртом доме: Sukha Bhava, материнская тема и необходимость читать управителя вместе с поддерживающими показателями."
+  }
+]

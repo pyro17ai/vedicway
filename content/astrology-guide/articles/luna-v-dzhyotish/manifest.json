@@ -1,0 +1,63 @@
+{
+  "slug": "luna-v-dzhyotish",
+  "title": "Луна в джйотише: ум, привычка и изменчивость",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "a1_heidelberg_nakshatras",
+    "swisseph_general"
+  ],
+  "seo": {
+    "seo_title": "Луна в джйотише: знак, дом, накшатра и сила",
+    "meta_description": "Разберите Луну в джйотише по знаку, дому, накшатре и силе. Учебный пример, настройки расчёта и границы традиционной интерпретации.",
+    "focus_keyphrase": "значение Луны в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/luna-v-dzhyotish",
+    "excerpt": "Пошагово разберите Луну через знак, дом, накшатру и силу, отделяя расчётное положение от традиционных выводов о привычках и изменчивости."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/nakshatra-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционные сигнификации Луны за научно подтверждённый психологический факт или диагноз.",
+    "Не обещать по Луне здоровье, деньги, точные события, профессию или неизбежную судьбу.",
+    "Не смешивать тропический и сидерический расчёт, аянамши, системы домов и редакции правил без явной маркировки.",
+    "Не переносить правило о 27 или 28 накшатрах и силе Луны между школами без указания источника."
+  ],
+  "cover": {
+    "asset_id": "cover-luna-v-dzhyotish",
+    "path": "content/astrology-guide/articles/luna-v-dzhyotish/cover.webp",
+    "alt": "Светлая бумажная композиция с тонкими лунными орбитами и терракотовой геометрией",
+    "status": "ready",
+    "sha256": "5deb387e48315ca6dcf5b5def153b5dc8ef59547048db32292ee6b0b8a535051",
+    "source_kind": "generated_image",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешняя лицензия и исходный URL не применяются.",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/luna-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "значение Луны в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "значение Луны в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

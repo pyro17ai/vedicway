@@ -1,0 +1,114 @@
+{
+  "slug": "d60-shashtiamsha",
+  "title": "D60 Shashtiamsha: самая тонкая варга и проблема времени рождения",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_fulltext",
+    "openastrology_vedic_docs"
+  ],
+  "seo_title": "D60 Shashtiamsha: тонкая варга и точность времени",
+  "meta_description": "D60 Shashtiamsha делит знак на 60 частей. Разбираем назначение карты, чувствительность к минутам, порядок проверки и границы трактовки в джйотише.",
+  "focus_keyphrase": "D60 Shashtiamsha",
+  "canonical": "https://vedicway.ru/guide/d60-shashtiamsha",
+  "seo": {
+    "seo_title": "D60 Shashtiamsha: тонкая варга и точность времени",
+    "meta_description": "D60 Shashtiamsha делит знак на 60 частей. Разбираем назначение карты, чувствительность к минутам, порядок проверки и границы трактовки в джйотише.",
+    "focus_keyphrase": "D60 Shashtiamsha",
+    "canonical_url": "https://vedicway.ru/guide/d60-shashtiamsha",
+    "excerpt": "D60 делит каждый знак на участки по 0°30′. Узнайте, почему её лагна меняется примерно за две минуты и какие выводы допустимы при неточном времени рождения."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "D60 Шаштьямша",
+    "type": "informational_how_to",
+    "status": "no_keyword_data",
+    "total_count": 1,
+    "reader_need": "Понять назначение D60, математическую причину её чувствительности ко времени рождения и безопасный порядок чтения при известной погрешности.",
+    "top_requests": [],
+    "associations": []
+  },
+  "semantic_core": {
+    "wordstat_result": {
+      "top_requests": [],
+      "associations": []
+    },
+    "primary": [
+      "D60 Shashtiamsha",
+      "D60 шаштьямша",
+      "дробная карта D60"
+    ],
+    "related": [
+      "самая тонкая варга",
+      "время рождения для D60",
+      "точность времени рождения",
+      "лагна D60",
+      "шестидесятая часть знака",
+      "0°30′",
+      "Shodashavarga",
+      "D1 и D60",
+      "vargottama в D60",
+      "йоги в D60",
+      "ректификация времени рождения"
+    ],
+    "questions": [
+      "Что показывает D60 Shashtiamsha?",
+      "Почему D60 меняется каждые две минуты?",
+      "Можно ли читать D60 при неточном времени рождения?",
+      "Как связать D1 и D60?",
+      "Что проверять в лагне и домах D60?",
+      "Меняются ли планеты D60 вместе с лагной?",
+      "Можно ли использовать D60 для ректификации?"
+    ],
+    "basis": "Редакционное ядро составлено по информационному интенту темы после пустой выдачи Wordstat."
+  },
+  "internal_links": [
+    "/guide/d1-i-drobnie-karty",
+    "/guide/okruglennoe-vremya-rozhdeniya",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/karta-bez-vremeni-rozhdeniya",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "D60 точно восстанавливает время рождения или доказывает правильность ректификации.",
+    "Одна йога либо благоприятная шаштьямша гарантирует событие, доход, здоровье или статус.",
+    "D60 научно подтверждает прошлые рождения, карму или нравственные качества человека."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Астрологический круг с тонкой радиальной разметкой и стрелкой у границы участка на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "740dfb6acf1223cf6f028e24b90c3e12a0deb6afe0f8b3b9b691395053e32f20",
+    "asset_id": "cover-d60-shashtiamsha",
+    "path": "content/astrology-guide/articles/d60-shashtiamsha/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "afed97b01373b804d2dd445eef2edfd7f19cea4dad5002b419717bc3256a807b",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "D60 Shashtiamsha",
+    "варги"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "D60 Shashtiamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

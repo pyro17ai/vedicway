@@ -1,0 +1,46 @@
+[
+  {
+    "source_id": "A1",
+    "title": "Searching for nakṣatras in the Ṛgveda",
+    "author_or_institution": "B. N. Narahari Achar, University of Memphis",
+    "source_kind": "scholarly_secondary",
+    "quality": "high",
+    "url": "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+    "role_in_article": "Историческая основа определения nakṣatra, различия 27 и 28, таблицы имён и божеств, а также текстовых вариантов.",
+    "claims_used": [
+      "Nakṣatra обозначает звезду, звёздную группу или дуговое деление эклиптики.",
+      "В ведийских источниках встречаются списки из 27 и 28 накшатр, а Vedāṅga Jyotiṣa связывает накшатру с одной двадцать седьмой эклиптики.",
+      "Для накшатр приводятся управляющие божества; названия и отдельные божества различаются между текстовыми традициями.",
+      "Таблица из Taittirīya Saṃhitā содержит пары накшатра — божество, а отдельные разделы показывают варианты для Citrā, Śatabhiṣaj и Mūlā."
+    ],
+    "limits": "Историко-филологическая статья, а не руководство по натальной интерпретации; она не устанавливает единственную современную школу чтения.",
+    "verification": {
+      "personally_read": true,
+      "read_via": "Прямой доступ к PDF",
+      "observed_at": "2026-07-28",
+      "verified_reading_log_source_id": "nakshatra:ACHAR"
+    }
+  },
+  {
+    "source_id": "A3",
+    "title": "Nakshatra Suktam (Nakshatreshti)",
+    "author_or_institution": "Vaidika Vignanam; Тайттирия-брахмана и Тайттирия-самхита",
+    "source_kind": "primary_text",
+    "quality": "medium",
+    "url": "https://vignanam.org/samskritam/nakshatra-suktam-nakshatreshti.html",
+    "role_in_article": "Ритуальный контекст последовательности накшатр и пример, в котором рядом с традицией 27 позиций присутствует Абхиджит.",
+    "claims_used": [
+      "Страница воспроизводит санскритский текст, связанный с Taittirīya Brāhmaṇa и Taittirīya Saṃhitā.",
+      "В тексте последовательно называются накшатры и связанные с ними божества.",
+      "Абхиджит присутствует в ритуальной последовательности nakṣatreṣṭi."
+    ],
+    "limits": "Онлайн-транскрипция без критического аппарата, перевода и независимой проверки редакции; используется только для обозначения ритуального контекста.",
+    "verification": {
+      "personally_read": false,
+      "read_via": "Заявленный URL открыт; сервер вернул 403, содержание сверено по индексированной мобильной версии той же страницы",
+      "observed_at": "2026-07-28",
+      "verified_reading_log_source_id": null,
+      "verified_reading_log_note": "Отдельной записи A3 в verified-reading-log.jsonl нет; source-ledger.jsonl помечает источник как agent_reviewed."
+    }
+  }
+]

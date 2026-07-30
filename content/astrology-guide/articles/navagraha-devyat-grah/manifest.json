@@ -1,0 +1,62 @@
+{
+  "slug": "navagraha-devyat-grah",
+  "title": "Navagraha: девять грах в джйотише",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "nasiri_zarvani_jyotisha_history"
+  ],
+  "seo": {
+    "seo_title": "Наваграха в джйотише: девять грах карты",
+    "meta_description": "Разбираем Navagraha: семь видимых грах, Раху и Кету как лунные узлы, порядок чтения и ограничения традиции джйотиша для новичка.",
+    "focus_keyphrase": "Navagraha: девять грах",
+    "canonical_url": "https://vedicway.ru/guide/navagraha-devyat-grah",
+    "excerpt": "Navagraha в джйотише объединяет семь видимых грах и Раху с Кету. Разбираем состав девятки, узловую ось и границы интерпретации."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/graha-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не называть Navagraha девятью физическими планетами.",
+    "Не выдавать интерпретации джйотиша за научно подтверждённые прогнозы.",
+    "Не обещать по положению грах здоровье, деньги, точную дату события или неизбежную судьбу."
+  ],
+  "cover": {
+    "asset_id": "cover-navagraha-devyat-grah",
+    "path": "content/astrology-guide/articles/navagraha-devyat-grah/cover.webp",
+    "alt": "Тонкие терракотовые и чернильные орбиты на тёплом бумажном фоне с девятью абстрактными небесными точками",
+    "status": "ready",
+    "sha256": "6ec1bb0f8903824a760177e6b7e63a49bbc1935824377917af18de2c348bbcbf",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/navagraha-devyat-grah",
+  "tags": [
+    "Основы астрологии",
+    "Navagraha: девять грах",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "Navagraha: девять грах"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://jihs.ut.ac.ir/article_102707_d7ed20c26f4e491a96722d963b07656d.pdf?lang=en"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

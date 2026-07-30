@@ -1,0 +1,57 @@
+{
+  "slug": "data-rozhdeniya-julian-day",
+  "title": "Как дата рождения превращается в Julian Day",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming"
+  ],
+  "seo": {
+    "seo_title": "Дата рождения в Julian Day: UTC, UT1 и TT",
+    "meta_description": "Как перевести дату рождения из местного времени в UTC и Julian Day, разделить UT1 и TT и сохранить параметры сидерической карты.",
+    "focus_keyphrase": "дата рождения в Julian Day",
+    "canonical_url": "https://vedicway.ru/guide/data-rozhdeniya-julian-day",
+    "excerpt": "Пошагово переводим местное время рождения в UTC и два значения Julian Day: TT для планет и UT1 для домов и углов карты."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/ayanamsha-lahiri-raman-true-chitra"
+  ],
+  "prohibited_claims": [
+    "Не выдавать переход между временными шкалами и расчёт Julian Day за доказательство астрологической причинности.",
+    "Не смешивать тропический зодиак с сидерическими долготами, аянāмшу и систему домов из разных конфигураций.",
+    "Не обещать точность времени рождения, неизбежные события, медицинские результаты или финансовый исход по карте."
+  ],
+  "cover": {
+    "asset_id": "cover-data-rozhdeniya-julian-day",
+    "path": "content/astrology-guide/articles/data-rozhdeniya-julian-day/cover.webp",
+    "alt": "Три связанные геометрические шкалы времени на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "fc8a7bf80a5b4741ee3b7794eef3ee366f825f30dd93c79f75bc9f143e495c50",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/data-rozhdeniya-julian-day",
+  "tags": [
+    "Время и циклы",
+    "дата рождения в Julian Day"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "дата рождения в Julian Day"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/yulianskiy-den"
+    ]
+  }
+}

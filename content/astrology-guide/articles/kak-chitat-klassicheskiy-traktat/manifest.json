@@ -1,0 +1,107 @@
+{
+  "title": "Как читать классический трактат без смешения редакций",
+  "slug": "kak-chitat-klassicheskiy-traktat",
+  "category": "Основы астрологии",
+  "seo_title": "Как читать классический трактат по джйотишу",
+  "meta_description": "Как читать классический трактат по джйотишу: отделить санскритский текст, перевод, комментарий и современную интерпретацию.",
+  "focus_keyphrase": "как читать классический трактат",
+  "intent": {
+    "type": "informational",
+    "primary": "Понять, как самостоятельно читать классический трактат по джйотишу и не смешивать текст с переводом и комментарием.",
+    "wordstat": {
+      "query": "как читать классический трактат джйотиш",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "status": "no_data"
+    },
+    "reader_questions": [
+      "Как отличить санскритский текст от перевода и комментария?",
+      "Как понять, к какой редакции и школе относится правило?",
+      "Что делать, если две редакции трактата расходятся?",
+      "Когда правило можно переносить на расчёт натальной карты?"
+    ]
+  },
+  "semantic_core": {
+    "primary": [
+      "как читать классический трактат",
+      "трактат по джйотишу",
+      "классический текст джйотиша"
+    ],
+    "close_formulations": [
+      "как читать древний трактат",
+      "как работать с переводом трактата",
+      "как сравнить редакции текста",
+      "как читать санскритский текст",
+      "как отделить комментарий от оригинала"
+    ],
+    "entities": [
+      "джйотиш",
+      "санскрит",
+      "перевод",
+      "комментарий",
+      "редакция",
+      "школа",
+      "Лагна",
+      "даша",
+      "натальная карта"
+    ],
+    "questions": [
+      "Можно ли использовать несколько редакций одновременно?",
+      "Нужно ли начинать с перевода?",
+      "Как читать трактат при неточном времени рождения?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/kak-chitat-klassicheskiy-traktat",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2",
+    "S3"
+  ],
+  "internal_links": [
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "cover": {
+    "asset_id": "cover-kak-chitat-klassicheskiy-traktat",
+    "path": "content/astrology-guide/articles/kak-chitat-klassicheskiy-traktat/cover.webp",
+    "alt": "Открытый классический трактат с раздельными слоями рукописи, перевода и схемы созвездий на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "228c95c16f9131caddf4b919a3a5a93fc1f920e9d29e8228e8691cb0f77f5309",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Как читать классический трактат по джйотишу",
+    "meta_description": "Как читать классический трактат по джйотишу: отделить санскритский текст, перевод, комментарий и современную интерпретацию.",
+    "focus_keyphrase": "как читать классический трактат",
+    "canonical_url": "https://vedicway.ru/guide/kak-chitat-klassicheskiy-traktat",
+    "excerpt": "Основы астрологии Классический трактат по джйотишу нужно читать послойно: отдельно фиксировать санскритский текст, перевод, комментарий и современную интерпретацию. Такой порядок показывает, где находится правило, где решение редактора, а где ваша рабочая гипотеза."
+  },
+  "tags": [
+    "Основы астрологии",
+    "как читать классический трактат"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "как читать классический трактат"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saravali.github.io/astrology/dasa_yogini.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

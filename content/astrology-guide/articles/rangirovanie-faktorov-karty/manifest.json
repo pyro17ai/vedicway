@@ -1,0 +1,63 @@
+{
+  "slug": "rangirovanie-faktorov-karty",
+  "title": "Как ранжировать факторы карты",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Как ранжировать факторы карты в джйотише",
+    "meta_description": "Как ранжировать факторы карты в джйотише: отделить сильный повторяющийся показатель от единичного сигнала и читать карту по шагам.",
+    "focus_keyphrase": "как ранжировать факторы карты",
+    "canonical_url": "https://vedicway.ru/guide/rangirovanie-faktorov-karty",
+    "excerpt": "Практический порядок чтения натальной карты: отделите факт расчёта от трактовки, найдите повторяющиеся показатели и сравните их по устойчивости."
+  },
+  "canonical": "https://vedicway.ru/guide/rangirovanie-faktorov-karty",
+  "cover": {
+    "asset_id": "cover-rangirovanie-faktorov-karty",
+    "path": "content/astrology-guide/articles/rangirovanie-faktorov-karty/cover.webp",
+    "alt": "Круговая карта с выделенным указателем, который отделяет сильный повторяющийся фактор от разрозненных отметок",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешние изображения не использовались.",
+    "status": "ready",
+    "sha256": "b08ce4b2449756404b25ac4a5d859d65c2299917ccf2bad34c7c5342adfecdb3",
+    "width": 1672,
+    "height": 941
+  },
+  "content_sha256": {
+    "article_md": "7B45606250FFAD12AB26AD58E65B4B3E7D60B4031EE655510201F6039498B5B2",
+    "article_html": "B791EE5824969E15CF2FFFBA22C620EBAABBF4C79AAAB0ACCEDAEC63118D4285"
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/rashi-grahi-bhavy",
+    "/guide/proverka-raschyota-karty"
+  ],
+  "prohibited_claims": [
+    "медицинские диагнозы и гарантии здоровья",
+    "гарантии денег, профессии или юридического результата",
+    "неизбежная судьба и точное обещание события"
+  ],
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "как ранжировать факторы карты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как ранжировать факторы карты"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

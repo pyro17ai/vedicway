@@ -1,0 +1,109 @@
+{
+  "slug": "trikony-v-dzhyotishe",
+  "title": "Триконы: 5-й и 9-й дома",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "astrojyoti_bphs_ch7_8"
+  ],
+  "seo": {
+    "seo_title": "Триконы в джйотише: значение 5-го и 9-го домов",
+    "meta_description": "Разберите триконы в джйотише: чем 5-й и 9-й дома отличаются от кендров, как читать их управителей и связи в натальной карте.",
+    "focus_keyphrase": "триконы в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/trikony-v-dzhyotishe",
+    "excerpt": "Триконы в джйотише объединяют 1-й, 5-й и 9-й дома. Статья объясняет роль 5-го и 9-го домов, отличие от кендров и порядок чтения карты."
+  },
+  "intent": {
+    "type": "informational",
+    "label": "Учебное объяснение термина и классификации домов",
+    "evidence": {
+      "main_query": "триконы в джйотише",
+      "wordstat_total_count": 21,
+      "top_requests": [
+        {
+          "phrase": "трикона в джйотиш",
+          "count": 21
+        },
+        {
+          "phrase": "дома триконы в джйотиш",
+          "count": 10
+        },
+        {
+          "phrase": "кендры и триконы джйотиш",
+          "count": 17
+        },
+        {
+          "phrase": "триконы джйотиш это какие дома",
+          "count": 5
+        }
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "триконы в джйотише",
+      "трикона в джйотиш",
+      "дома триконы в джйотиш"
+    ],
+    "related": [
+      "кендры и триконы джйотиш",
+      "5 дом в джйотиш",
+      "9 дом в джйотиш",
+      "дома дхармы",
+      "треугольник дхармы"
+    ],
+    "reader_questions": [
+      "Что такое триконы в джйотише?",
+      "Какие дома относятся к триконам?",
+      "Чем триконы отличаются от кендров?",
+      "Как читать 5-й и 9-й дома?",
+      "Что важнее: граха в доме или управитель дома?"
+    ]
+  },
+  "internal_links": [
+    "/guide/dvenadcat-bhav",
+    "/guide/kak-chitat-natalnuyu-kartu",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "гарантии событий",
+    "медицинские и финансовые обещания",
+    "точный прогноз по одному дому"
+  ],
+  "cover": {
+    "asset_id": "cover-trikony-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/trikony-v-dzhyotishe/cover.webp",
+    "alt": "Треугольная схема домов вокруг центрального светила на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1729,
+    "height": 910,
+    "sha256": "04f3e2f88ec3f439eb60461aa373739bc4efd72600f7c17576b097c83ecd1ea7",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/trikony-v-dzhyotishe",
+  "tags": [
+    "Планеты и дома",
+    "триконы в джйотише",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "триконы в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.astrojyoti.com/bphspage1-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "source_id": "A4",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+    "title": "Bṛhat-saṃhitā: English translation and chapter index",
+    "role_in_article": "Классический текстовый фон для терминов и правил о светилах.",
+    "claims_used": [
+      "Классическая традиция использует отдельный язык для светил и календарных показателей."
+    ],
+    "limits": "Перевод и индекс не заменяют критическое издание и не устанавливают современный метод чтения."
+  },
+  {
+    "source_id": "A6",
+    "url": "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt",
+    "title": "Muhurtha: Electional Astrology",
+    "role_in_article": "Разделение натальной Луны и лунных элементов панчанги.",
+    "claims_used": [
+      "Календарные элементы панчанги относятся к выбранному моменту, месту и времени."
+    ],
+    "limits": "Учебный оцифрованный текст имеет редакционные ограничения."
+  },
+  {
+    "source_id": "A7",
+    "url": "https://archive.org/details/brihat-parashara-hora-shastra",
+    "title": "Brihat Parashara Hora Shastra",
+    "role_in_article": "Карта классических тем чтения грах, Луны и периодов.",
+    "claims_used": [
+      "BPHS связывает чтение карты с грахами, домами и периодами."
+    ],
+    "limits": "Архивная копия и перевод не заменяют критическую санскритскую редакцию."
+  }
+]

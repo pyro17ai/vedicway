@@ -1,0 +1,75 @@
+{
+  "slug": "chara-dasha-reading-with-jaimini-chart",
+  "title": "Трактовка Чара-даши Джаймини: чтение периодов знаков",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "S4"
+  ],
+  "seo": {
+    "seo_title": "Трактовка Чара-даши Джаймини: периоды знаков",
+    "meta_description": "Как читать Чара-дашу Джаймини: отделить расчёт от трактовки, сопоставить активный знак с натальной картой и учесть различия школ.",
+    "focus_keyphrase": "трактовка Чара-даши",
+    "canonical_url": "https://vedicway.ru/guide/chara-dasha-reading-with-jaimini-chart",
+    "excerpt": "Переходите от планетной логики Vimshottari к знаковой логике Джаймини: фиксируйте редакцию расчёта, читайте активный раши через D1 и проверяйте вложенный bhukti."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Зафиксировать D1 и исходные данные перед чтением периода знака."
+    },
+    {
+      "url": "/guide/vimshottari-start-nakshatra",
+      "anchor": "стартовая маха-даша Vimshottari",
+      "reason": "Сопоставить планетарную логику Vimshottari со знаковой логикой Чара-даши."
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты",
+      "reason": "Проверить активный знак через дом, управителя и остальные показатели D1."
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать неизбежное событие, фатальный исход или точную дату по Чара-даше.",
+    "Не выдавать астрологическую трактовку за научно доказанную причинность.",
+    "Не обещать здоровье, доход, карьерный результат, сделку или юридический исход.",
+    "Не смешивать Vimshottari и Чара-дашу без отдельной фиксации входов, школы и правила.",
+    "Не скрывать выбор 27 или 28 накшатр и границы школы, если накшатры участвуют в сопоставлении."
+  ],
+  "cover": {
+    "asset_id": "cover-chara-dasha-reading-with-jaimini-chart",
+    "path": "content/astrology-guide/articles/chara-dasha-reading-with-jaimini-chart/cover.webp",
+    "alt": "Абстрактные концентрические кольца и радиальные сегменты периодов знаков на тёплой бумаге",
+    "status": "ready",
+    "sha256": "25ee73da67c99b4ed88eb8a39f964f735180f9a3e276ece0942ab6b10812cf55",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/chara-dasha-reading-with-jaimini-chart",
+  "tags": [
+    "Планеты и дома",
+    "трактовка Чара-даши",
+    "даши",
+    "Джаймини"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "трактовка Чара-даши"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

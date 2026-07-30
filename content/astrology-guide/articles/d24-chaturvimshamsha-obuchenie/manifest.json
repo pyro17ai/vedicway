@@ -1,0 +1,139 @@
+{
+  "title": "D24 Chaturvimshamsha: обучение и знание",
+  "slug": "d24-chaturvimshamsha-obuchenie",
+  "category": "Планеты и дома",
+  "seo_title": "D24 Chaturvimshamsha: обучение и знание",
+  "meta_description": "Как читать D24 Chaturvimshamsha для темы обучения: расчёт, проверка через D1, четвёртый дом и Меркурий, мини-пример и границы без фатальных выводов.",
+  "focus_keyphrase": "D24 Chaturvimshamsha",
+  "canonical": "https://vedicway.ru/guide/d24-chaturvimshamsha-obuchenie",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_fulltext",
+    "exa_para_d24_calculation"
+  ],
+  "intent": {
+    "type": "informational_practical",
+    "status": "no_wordstat_data",
+    "primary": "Понять назначение D24 для обучения и применить последовательность проверки через D1, четвёртый дом и Меркурий.",
+    "reader_questions": [
+      "Что показывает D24 Chaturvimshamsha?",
+      "Как рассчитывается карта D24?",
+      "Как читать D24 вместе с D1?",
+      "Как связаны D24, четвёртый дом и Меркурий?",
+      "Можно ли читать D24 без точного времени рождения?",
+      "Гарантирует ли сильная D24 высшее образование?"
+    ],
+    "wordstat": {
+      "observed_at": "2026-07-30",
+      "query": "D24 Chaturvimshamsha",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "note": "Wordstat не вернул запросов и ассоциаций за последние 30 дней; интент выведен из темы и заданного результата для читателя без приписывания частот."
+    }
+  },
+  "semantic_core": {
+    "wordstat_confirmed": [],
+    "primary": [
+      "D24 Chaturvimshamsha",
+      "D24 джйотиш",
+      "Chaturvimshamsha обучение",
+      "карта D24"
+    ],
+    "close_formulations": [
+      "чатурвимшамша",
+      "сиддхамша",
+      "D24 обучение и знание",
+      "дробная карта образования",
+      "как читать D24",
+      "как рассчитать D24"
+    ],
+    "related": [
+      "D1 и D24",
+      "четвёртый дом и образование",
+      "Меркурий и обучение",
+      "Shodashavarga",
+      "варготтама D1 D24",
+      "точное время рождения для D24"
+    ],
+    "questions": [
+      "что показывает D24",
+      "как читать Chaturvimshamsha",
+      "какие дома смотреть в D24",
+      "можно ли читать D24 отдельно от D1",
+      "что значит сильный Меркурий в D24"
+    ],
+    "entities": [
+      "D24",
+      "Chaturvimshamsha",
+      "Siddhamsha",
+      "D1",
+      "четвёртый дом",
+      "Меркурий",
+      "лагна",
+      "Shodashavarga",
+      "варготтама"
+    ]
+  },
+  "seo": {
+    "seo_title": "D24 Chaturvimshamsha: обучение и знание",
+    "meta_description": "Как читать D24 Chaturvimshamsha для темы обучения: расчёт, проверка через D1, четвёртый дом и Меркурий, мини-пример и границы без фатальных выводов.",
+    "focus_keyphrase": "D24 Chaturvimshamsha",
+    "canonical_url": "https://vedicway.ru/guide/d24-chaturvimshamsha-obuchenie",
+    "excerpt": "Практический разбор D24 для учебной темы: расчёт двадцать четвёртой варги, порядок проверки через D1, четвёртый дом и Меркурий, условный пример и ограничения."
+  },
+  "schema": {
+    "primary_type": "Article",
+    "additional_type": "FAQPage",
+    "faq_supported_by_visible_content": true
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/d1-i-drobnie-karty",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/merkuriy-v-dzhyotish"
+  ],
+  "prohibited_claims": [
+    "Не выдавать D24 за научно подтверждённый способ оценки интеллекта или прогноза образования.",
+    "Не обещать поступление, диплом, учёную степень, победу на олимпиаде или конкретную оценку.",
+    "Не диагностировать по D24 расстройство обучения, психологическое или медицинское состояние.",
+    "Не читать D24 отдельно от D1 и не считать один Меркурий достаточным основанием вывода.",
+    "Не использовать дома D24 как надёжные при непроверенном или округлённом времени рождения."
+  ],
+  "cover": {
+    "asset_id": "cover-d24-chaturvimshamsha-obuchenie",
+    "path": "content/astrology-guide/articles/d24-chaturvimshamsha-obuchenie/cover.webp",
+    "alt": "Раскрытая рукопись и небесный круг из двадцати четырёх секторов на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "2798cad9e1b88470088466c3e95e1ad613fca3144444e18369cc9d3f08469971"
+  },
+  "sha256": "0459D72018FC5A3402DE535B6B379F2F7DC58BD5E6297044F907E3B37F22D942",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D24 Chaturvimshamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D24 Chaturvimshamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicastrologer.org/articles/para_d24.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

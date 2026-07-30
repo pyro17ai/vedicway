@@ -1,0 +1,136 @@
+{
+  "slug": "dharma-karmadhipati-yoga",
+  "title": "Dharma-Karmadhipati Yoga: управители девятого и десятого домов",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "phaladeepika_yogas",
+    "phaladeepika_maharajayogas_ch7",
+    "bphs_varga_use"
+  ],
+  "seo_title": "Dharma-Karmadhipati Yoga: управители 9 и 10 домов",
+  "meta_description": "Как проверить Dharma-Karmadhipati Yoga: связь управителей 9-го и 10-го домов, условия силы, роль D9, D10 и Vargottama, пример и границы метода.",
+  "focus_keyphrase": "Dharma-Karmadhipati Yoga",
+  "intent": {
+    "status": "low_confirmed_wordstat_demand",
+    "type": "informational_how_to",
+    "description": "Читатель хочет найти управителей девятого и десятого домов, проверить допустимый тип связи и понять, какие условия усиливают или ограничивают результат йоги.",
+    "wordstat": {
+      "main_query": "дхарма кармадхипати йога",
+      "queries_checked": [
+        {
+          "phrase": "дхарма кармадхипати йога",
+          "total_count": 2,
+          "top_requests": []
+        },
+        {
+          "phrase": "кармадхипати йога",
+          "total_count": 2,
+          "top_requests": []
+        },
+        {
+          "phrase": "дхарма карма адхипати йога",
+          "total_count": 11,
+          "top_requests": [
+            {
+              "phrase": "дхарма карма адхипати йога джйотиш",
+              "count": 7
+            }
+          ]
+        }
+      ],
+      "period": "последние 30 дней",
+      "note": "Ассоциации Wordstat исключены как нерелевантный шум. Близкие вопросы сформированы редакционно из практического интента темы."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "Dharma-Karmadhipati Yoga",
+      "дхарма кармадхипати йога"
+    ],
+    "close_formulations": [
+      "дхарма карма адхипати йога",
+      "дхарма карма адхипати йога джйотиш",
+      "йога управителей 9 и 10 домов",
+      "связь девятого и десятого домов",
+      "раджа-йога девятого и десятого домов"
+    ],
+    "reader_questions": [
+      "как найти управителей девятого и десятого домов",
+      "какие связи образуют Dharma-Karmadhipati Yoga",
+      "усиливает ли Vargottama эту йогу",
+      "нужно ли подтверждать йогу в D9 и D10",
+      "что ослабляет результат йоги"
+    ],
+    "entities": [
+      "джйотиш",
+      "Лагна",
+      "девятый дом",
+      "десятый дом",
+      "Dharmadhipati",
+      "Karmadhipati",
+      "sambandha",
+      "раджа-йога",
+      "D1",
+      "D9 Navamsha",
+      "D10 Dashamsha",
+      "Vargottama"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/dharma-karmadhipati-yoga",
+  "seo": {
+    "seo_title": "Dharma-Karmadhipati Yoga: управители 9 и 10 домов",
+    "meta_description": "Как проверить Dharma-Karmadhipati Yoga: связь управителей 9-го и 10-го домов, условия силы, роль D9, D10 и Vargottama, пример и границы метода.",
+    "focus_keyphrase": "Dharma-Karmadhipati Yoga",
+    "canonical_url": "https://vedicway.ru/guide/dharma-karmadhipati-yoga",
+    "excerpt": "Пошаговая проверка связи управителей девятого и десятого домов с оценкой силы, D9, D10, Vargottama и ограничений метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/upravitel-doma",
+    "/guide/d10-dashamsha-karera",
+    "/guide/vargottama-d1-d9"
+  ],
+  "prohibited_claims": [
+    "гарантированная должность, доход или известность",
+    "точное событие только по одной йоге",
+    "медицинский, финансовый или психологический диагноз по карте",
+    "создание натальной йоги одной дробной картой или транзитом"
+  ],
+  "cover": {
+    "asset_id": "cover-dharma-karmadhipati-yoga",
+    "path": "content/astrology-guide/articles/dharma-karmadhipati-yoga/cover.webp",
+    "alt": "Два небесных медальона, соединённые световой геометрической связью на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "a6d525bc00baed1b3287183fb66bf7a2f9670d9aa973a90db9fe2be39ffc0af2"
+  },
+  "sha256": "58E6FADA4793BAAF1B7ECD9CE70991EBA4C56D6665905EC4B0B328AA4A6AF183",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Dharma-Karmadhipati Yoga",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Dharma-Karmadhipati Yoga"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621579.html",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

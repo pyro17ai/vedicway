@@ -1,0 +1,1458 @@
+{
+  "version": 1,
+  "article_count": 202,
+  "categories": [
+    {
+      "name": "Основы астрологии",
+      "description": "Термины, устройство сидерической карты и базовый язык джйотиша.",
+      "article_count": 41,
+      "difficulty": {
+        "beginner": 33,
+        "expert": 8
+      }
+    },
+    {
+      "name": "Планеты и дома",
+      "description": "Грахи, бхавы и связи, из которых складывается предметное чтение карты.",
+      "article_count": 55,
+      "difficulty": {
+        "beginner": 46,
+        "expert": 9
+      }
+    },
+    {
+      "name": "Время и циклы",
+      "description": "Даши, транзиты, панчанга и расчётные правила работы со временем.",
+      "article_count": 44,
+      "difficulty": {
+        "beginner": 18,
+        "expert": 26
+      }
+    },
+    {
+      "name": "Практика чтения карты",
+      "description": "Пошаговые алгоритмы, проверка гипотез и продвинутый синтез показателей.",
+      "article_count": 62,
+      "difficulty": {
+        "expert": 41,
+        "beginner": 21
+      }
+    }
+  ],
+  "articles": [
+    {
+      "slug": "siderealnyj-i-tropicheskij-zodiak",
+      "label": "Сидерический и тропический зодиак: почему карты расходятся",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 10
+    },
+    {
+      "slug": "ayanamsha-lahiri-raman-true-chitra",
+      "label": "Аянāмша в джйотише: Лахири, Раман и True Chitra",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 20
+    },
+    {
+      "slug": "koordinaty-mesta-rozhdeniya-v-karte",
+      "label": "Координаты рождения: долгота, широта и высота",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 30
+    },
+    {
+      "slug": "chto-izuchaet-dzhyotisha",
+      "label": "Что изучает джйотиша: от веданги к натальной карте",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 40
+    },
+    {
+      "slug": "tri-razdela-dzhyotisha",
+      "label": "Три раздела джйотиша: gaṇita, horā и saṃhitā",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 50
+    },
+    {
+      "slug": "graha-v-dzhyotishe",
+      "label": "Graha в джйотише: планета, захватывающая смысл карты",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 60
+    },
+    {
+      "slug": "rashi-v-dzhyotishe",
+      "label": "Раши в джйотише (rāśi): двенадцать знаков сидерической системы",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 70
+    },
+    {
+      "slug": "nakshatra-v-dzhyotishe",
+      "label": "Nakshatra: лунные стоянки от календаря до натальной карты",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 80
+    },
+    {
+      "slug": "kak-proveryat-onlayn-izdanie-dzhyotisha",
+      "label": "Как проверять онлайн-издание классического трактата джйотиша",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 90
+    },
+    {
+      "slug": "bphs-dasha-systems-map",
+      "label": "[Алгоритм] Карта систем даши BPHS: когда встречаются Kaalachakra, Sthira, Yogini и другие",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 100
+    },
+    {
+      "slug": "moon-based-and-lagna-based-dashas",
+      "label": "[Алгоритм] Лунные и знаковые даши в программном расчёте",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 110
+    },
+    {
+      "slug": "27-nakshatr-i-ikh-bozhestva",
+      "label": "27 накшатр и их божества: как читать традиционную таблицу",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 120
+    },
+    {
+      "slug": "abhidzhit-27-28-nakshatr",
+      "label": "Абхиджит: почему в джйотише говорят о 27 и 28 накшатрах",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 130
+    },
+    {
+      "slug": "navagraha-devyat-grah",
+      "label": "Navagraha: девять грах в джйотише",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 140
+    },
+    {
+      "slug": "dvenadcat-rashi",
+      "label": "Двенадцать раши: порядок и санскритские названия",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 150
+    },
+    {
+      "slug": "podvizhnye-nepodvizhnye-dvoistvennye-rashi",
+      "label": "Подвижные, неподвижные и двойственные раши",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 160
+    },
+    {
+      "slug": "hozyeva-rashi",
+      "label": "Хозяева раши и схема управления знаками",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 170
+    },
+    {
+      "slug": "chto-izuchaet-dzhyotish",
+      "label": "Что изучает джйотиш: хора, ганита и самхита",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 180
+    },
+    {
+      "slug": "dzhyotish-i-tropicheskaya-astrologiya",
+      "label": "Джйотиш и западная тропическая астрология: разные расчётные рамки",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 190
+    },
+    {
+      "slug": "rashi-grahi-bhavy",
+      "label": "Раши, грахи и бхавы: базовый словарь карты",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 200
+    },
+    {
+      "slug": "lagna-i-ascendent",
+      "label": "Лагна и асцендент: что именно показывает точка восхода",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 210
+    },
+    {
+      "slug": "devyat-grah",
+      "label": "Девять грах: семь планет и лунные узлы",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 220
+    },
+    {
+      "slug": "estestvennye-blagodeteli-i-vrediteli",
+      "label": "Естественные благодетели и вредители",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 230
+    },
+    {
+      "slug": "funkcionalnaya-rol-planety",
+      "label": "Функциональная роль планеты через управление домами",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 240
+    },
+    {
+      "slug": "upravitel-doma",
+      "label": "Управитель дома: почему положение хозяина меняет трактовку",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 250
+    },
+    {
+      "slug": "ekzaltaciya-debilitaciya-sobstvennyy-znak",
+      "label": "Экзальтация, дебилитация и собственный знак",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 260
+    },
+    {
+      "slug": "znak-dom-upravitel",
+      "label": "Знак, дом и управитель: три разных слоя одного показателя",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 270
+    },
+    {
+      "slug": "drishti-v-parashari",
+      "label": "Дришти в парашари: базовая логика аспектов",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 280
+    },
+    {
+      "slug": "nakshatry-i-pady",
+      "label": "Накшатры и пады: как читать лунный сектор",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 290
+    },
+    {
+      "slug": "vargi-drobnie-karty",
+      "label": "Варги: зачем нужны дробные карты",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 300
+    },
+    {
+      "slug": "yoga-kak-sochetanie-faktorov",
+      "label": "Йога как сочетание факторов, а не готовый диагноз",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 310
+    },
+    {
+      "slug": "karaki-v-dzhyotish",
+      "label": "Караки: планета-сигнификатор и пределы её применения",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 320
+    },
+    {
+      "slug": "dashi-v-dzhyotish",
+      "label": "Даши как системы времени в джйотише",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 330
+    },
+    {
+      "slug": "tranzity-i-natalnaya-karta",
+      "label": "Транзиты и натальная карта: разные вопросы",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 340
+    },
+    {
+      "slug": "kendry-trikony-trika",
+      "label": "Кендры, триконы и трика: геометрия домов",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 350
+    },
+    {
+      "slug": "kak-chitat-klassicheskiy-traktat",
+      "label": "Как читать классический трактат без смешения редакций",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 360
+    },
+    {
+      "slug": "gochara-transity-otnositelno-natalnoy-luny",
+      "label": "Гочара: как читать текущие транзиты относительно натальной Луны",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 370
+    },
+    {
+      "slug": "ashtakavarga-dzhyotish",
+      "label": "Ashtakavarga: bindu, Bhinnashtakavarga и Sarvashtakavarga",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 380
+    },
+    {
+      "slug": "sistema-jaimini-dlya-nachinayushchih",
+      "label": "Джаймини: отдельная логика знаков, карак и даша",
+      "category": "Основы астрологии",
+      "difficulty": "beginner",
+      "order": 390
+    },
+    {
+      "slug": "shodashavarga-drobnie-karty",
+      "label": "Что такое varga и как устроена Shodashavarga",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 400
+    },
+    {
+      "slug": "d1-i-drobnie-karty",
+      "label": "D1 и дробные карты: базовая карта, подтверждение и специализация",
+      "category": "Основы астрологии",
+      "difficulty": "expert",
+      "order": 410
+    },
+    {
+      "slug": "polozheniya-grah-v-sidereicheskoj-karte",
+      "label": "Как рассчитываются положения грах в сидерической карте",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 420
+    },
+    {
+      "slug": "retrogradnost-i-stacionarnost-grah",
+      "label": "Ретроградность и стационарность грах в джйотише",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 430
+    },
+    {
+      "slug": "rashi-bhava-lagna-i-doma",
+      "label": "Раши, бхава и лагна: что именно называют домом",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 440
+    },
+    {
+      "slug": "sistemy-domov-v-sidereicheskoj-karte",
+      "label": "Сидерические дома: как выбрать систему домов в карте джйотиша",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 450
+    },
+    {
+      "slug": "bhava-i-lagna",
+      "label": "Bhava и lagna: как из долготы получается система домов",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 460
+    },
+    {
+      "slug": "yoga-v-dzhyotishe",
+      "label": "Yoga в джйотише: как читать сочетания грах в карте",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 470
+    },
+    {
+      "slug": "chara-dasha-reading-with-jaimini-chart",
+      "label": "Трактовка Чара-даши Джаймини: чтение периодов знаков",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 480
+    },
+    {
+      "slug": "chetyre-pady-nakshatry",
+      "label": "Четыре пади накшатры: границы 13°20′ и расчёт Луны",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 490
+    },
+    {
+      "slug": "dzhanma-nakshatra-luny",
+      "label": "Как определить джанма-накшатру Луны в карте рождения",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 500
+    },
+    {
+      "slug": "estestvennye-blagotvornye-i-vredonosnye-grahi",
+      "label": "Естественные благотворные и вредоносные грахи",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 510
+    },
+    {
+      "slug": "solntse-i-luna-v-dzhyotishe",
+      "label": "Солнце и Луна как светила натальной карты",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 520
+    },
+    {
+      "slug": "rahu-ketu-dostoinstva",
+      "label": "Раху и Кету: узлы и спорные достоинства",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 530
+    },
+    {
+      "slug": "ekzaltaciya-i-debilitaciya-grah",
+      "label": "Экзальтация и дебилитация семи грах",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 540
+    },
+    {
+      "slug": "svakshetra-mulatrikona-uchcha",
+      "label": "Собственный знак, мулатрикона и экзальтация",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 550
+    },
+    {
+      "slug": "estestvennoe-druzhestvo-grah",
+      "label": "Естественное дружество и вражда грах",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 560
+    },
+    {
+      "slug": "dvenadcat-bhav",
+      "label": "Двенадцать бхав: предметные области домов в джйотише",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 570
+    },
+    {
+      "slug": "kendry-v-dzhyotishe",
+      "label": "Кендры: 1-й, 4-й, 7-й и 10-й дома",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 580
+    },
+    {
+      "slug": "trikony-v-dzhyotishe",
+      "label": "Триконы: 5-й и 9-й дома",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 590
+    },
+    {
+      "slug": "upachayi",
+      "label": "Упачаи: 3-й, 6-й, 10-й и 11-й дома",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 600
+    },
+    {
+      "slug": "dushtkhany",
+      "label": "Душтханы: 6-й, 8-й и 12-й дома",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 610
+    },
+    {
+      "slug": "solnce-v-dzhyotish",
+      "label": "Солнце в джйотише: базовые сигнификации",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 620
+    },
+    {
+      "slug": "luna-v-dzhyotish",
+      "label": "Луна в джйотише: ум, привычка и изменчивость",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 630
+    },
+    {
+      "slug": "mars-v-dzhyotish",
+      "label": "Марс в джйотише: действие, энергия и конфликт",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 640
+    },
+    {
+      "slug": "merkuriy-v-dzhyotish",
+      "label": "Меркурий в джйотише: речь, анализ и обучение",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 650
+    },
+    {
+      "slug": "yupiter-v-dzhyotish",
+      "label": "Юпитер в джйотише: знание, наставник и расширение",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 660
+    },
+    {
+      "slug": "venera-v-dzhyotish",
+      "label": "Венера в джйотише: отношения, удовольствие и ценность",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 670
+    },
+    {
+      "slug": "saturn-v-dzhyotish",
+      "label": "Сатурн в джйотише: время, ограничение и устойчивость",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 680
+    },
+    {
+      "slug": "rahu-v-dzhyotish",
+      "label": "Раху: узел, усиление и нестандартный путь",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 690
+    },
+    {
+      "slug": "ketu-v-dzhyotish",
+      "label": "Кету: отделение, разрыв и минимизация",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 700
+    },
+    {
+      "slug": "lagna-i-pervyy-dom",
+      "label": "Лагна и первый дом",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 710
+    },
+    {
+      "slug": "vtoroy-dom",
+      "label": "Второй дом: речь, семья и накопления",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 720
+    },
+    {
+      "slug": "tretiy-dom",
+      "label": "Третий дом: усилие, навыки и братья",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 730
+    },
+    {
+      "slug": "chetvertyy-dom",
+      "label": "Четвёртый дом: дом, мать и внутреннее спокойствие",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 740
+    },
+    {
+      "slug": "pyatyy-dom",
+      "label": "Пятый дом: обучение, дети и творческое выражение",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 750
+    },
+    {
+      "slug": "shestoy-dom",
+      "label": "Шестой дом: болезнь, долг и конфликт",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 760
+    },
+    {
+      "slug": "sedmoy-dom",
+      "label": "Седьмой дом: партнёрство и договор",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 770
+    },
+    {
+      "slug": "vosmoy-dom",
+      "label": "Восьмой дом: кризис, наследство и продолжительность жизни",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 780
+    },
+    {
+      "slug": "devyatyy-dom",
+      "label": "Девятый дом: наставник, дхарма и удача",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 790
+    },
+    {
+      "slug": "desyatyy-dom",
+      "label": "Десятый дом: профессия, статус и действие",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 800
+    },
+    {
+      "slug": "odinnadcatyy-dom",
+      "label": "Одиннадцатый дом: доход, приобретение и окружение",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 810
+    },
+    {
+      "slug": "dvenadcatyy-dom",
+      "label": "Двенадцатый дом: расходы, удаление и освобождение",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 820
+    },
+    {
+      "slug": "karaki-planet-i-domov",
+      "label": "Караки планет и домов: как не дублировать один показатель",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 830
+    },
+    {
+      "slug": "tranzit-saturna-v-dzhyotish",
+      "label": "Транзит Сатурна: почему одна и та же планета действует по-разному",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 840
+    },
+    {
+      "slug": "tranzit-yupitera-v-dzhyotish",
+      "label": "Транзит Юпитера: как читать расширение без обещаний чуда",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 850
+    },
+    {
+      "slug": "rahu-ketu-v-gochare",
+      "label": "Раху и Кету в гочаре: как объяснить ось узлов без фатализма",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 860
+    },
+    {
+      "slug": "sade-sati-tri-fazy",
+      "label": "Саде-сати как трёхфазный транзит Сатурна",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 870
+    },
+    {
+      "slug": "upagraha-gulika-mandi",
+      "label": "Упаграхи, Gulika и Mandi: дополнительные индикаторы",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 880
+    },
+    {
+      "slug": "d7-saptamsha-deti",
+      "label": "D7 Saptamsha: дети, потомство и пределы интерпретации",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 890
+    },
+    {
+      "slug": "d9-navamsha",
+      "label": "D9 Navamsha: супруг, дхарма и сила планет",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 900
+    },
+    {
+      "slug": "d12-dvadashamsha-roditeli",
+      "label": "D12 Dvadashamsha: родители и родовая линия",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 910
+    },
+    {
+      "slug": "d20-vimshamsha-duhovnaya-praktika",
+      "label": "D20 Vimshamsha: поклонение, практика и духовная направленность",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 920
+    },
+    {
+      "slug": "d24-chaturvimshamsha-obuchenie",
+      "label": "D24 Chaturvimshamsha: обучение и знание",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 930
+    },
+    {
+      "slug": "d30-trimshamsha",
+      "label": "D30 Trimshamsha: вред, уязвимости и несчастья",
+      "category": "Планеты и дома",
+      "difficulty": "expert",
+      "order": 940
+    },
+    {
+      "slug": "rahu-i-ketu-v-dzhyotish",
+      "label": "Раху и Кету в джйотише: узлы и ось карты",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 950
+    },
+    {
+      "slug": "solntse-v-dzhyotishe",
+      "label": "Солнце в джйотише: светило, власть и жизненная опора",
+      "category": "Планеты и дома",
+      "difficulty": "beginner",
+      "order": 960
+    },
+    {
+      "slug": "data-rozhdeniya-julian-day",
+      "label": "Как дата рождения превращается в Julian Day",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 970
+    },
+    {
+      "slug": "letnee-vremya-i-natalnaya-karta",
+      "label": "Летнее время в натальной карте: почему UTC+3 недостаточно",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 980
+    },
+    {
+      "slug": "vedanga-jyotisha-kalendar-rituala",
+      "label": "Vedanga Jyotisha и календарь ритуала",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 990
+    },
+    {
+      "slug": "surya-siddhanta-kalendar-i-graha",
+      "label": "Surya Siddhanta: как классическая астрономия считала время и движения graha",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1000
+    },
+    {
+      "slug": "tithi-nakshatra-yoga-raschet",
+      "label": "Расчёт титхи, накшатры и йоги в библиотеке",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1010
+    },
+    {
+      "slug": "vimshottari-start-nakshatra",
+      "label": "Как определить стартовую маха-дашу Vimshottari по накшатре Луны",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1020
+    },
+    {
+      "slug": "vimshottari-balance-at-birth",
+      "label": "Баланс первой Vimshottari-даши при рождении",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1030
+    },
+    {
+      "slug": "vimshottari-antardasha-calculation",
+      "label": "Как считать antardasha в Vimshottari: формула и порядок",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1040
+    },
+    {
+      "slug": "pratyantardasha-nested-periods",
+      "label": "[Алгоритм] Pratyantardasha и следующие уровни: вложенное деление периода",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1050
+    },
+    {
+      "slug": "ashtottari-dasha-calculation",
+      "label": "Ashtottari Dasha: условие выбора, порядок и длительности",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1060
+    },
+    {
+      "slug": "yogini-dasha-36-year-cycle",
+      "label": "[Алгоритм] Yogini Dasha: восемь йогини и 36-летний цикл",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1070
+    },
+    {
+      "slug": "yogini-antardasha-calculation",
+      "label": "Antardasha в Yogini Dasha: расчёт пропорциональных подпериодов",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1080
+    },
+    {
+      "slug": "titkhi-lunnyy-den",
+      "label": "Титхи: как считается лунный день",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1090
+    },
+    {
+      "slug": "vara-den-nedeli-v-panchange",
+      "label": "Вара: семь дней недели в системе панчанги",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1100
+    },
+    {
+      "slug": "karana-polovina-titkhi",
+      "label": "Карана: половина титхи и 11 традиционных названий",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1110
+    },
+    {
+      "slug": "yoga-panchangi",
+      "label": "Йога панчанги: сумма долгот Солнца и Луны",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1120
+    },
+    {
+      "slug": "panchanga-pyat-chastey",
+      "label": "Панчанга: пять частей одного временного среза",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1130
+    },
+    {
+      "slug": "muhurta-30-vremennykh-otrezkov",
+      "label": "Мухурта: 30 временных отрезков и исторический смысл слова",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1140
+    },
+    {
+      "slug": "dannye-dlya-raschyota-vremeni",
+      "label": "Какие сведения нужны для расчёта времени и места рождения",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1150
+    },
+    {
+      "slug": "mestnoe-vremya-i-utc",
+      "label": "Местное время, UTC и часовой пояс рождения",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1160
+    },
+    {
+      "slug": "istoricheskiy-chasovoy-poyas",
+      "label": "Исторический часовой пояс и переходы времени",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1170
+    },
+    {
+      "slug": "yulianskiy-den",
+      "label": "Юлианский день в расчёте натальной карты",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1180
+    },
+    {
+      "slug": "zvezdnoe-vremya-i-ascendent",
+      "label": "Звёздное время и вычисление асцендента",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1190
+    },
+    {
+      "slug": "ayanamsha",
+      "label": "Аянамша в ведической астрологии",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1200
+    },
+    {
+      "slug": "granica-znaka-lagny",
+      "label": "Граница знака лагны и смена восходящего знака",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1210
+    },
+    {
+      "slug": "granica-nakshatry-luny",
+      "label": "Граница накшатры Луны и смена лунного сектора",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1220
+    },
+    {
+      "slug": "okruglennoe-vremya-rozhdeniya",
+      "label": "Округлённое время рождения и цена минутной ошибки",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1230
+    },
+    {
+      "slug": "dashi-kak-kalendar",
+      "label": "Даши как календарь активации показателей",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1240
+    },
+    {
+      "slug": "vimshottari-dasha",
+      "label": "Вимшоттари-даша: что проверить перед интерпретацией",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1250
+    },
+    {
+      "slug": "rashi-dashi-dzhaymini",
+      "label": "Раши-даши в системе Джаймини",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1260
+    },
+    {
+      "slug": "chara-dasha",
+      "label": "Чара-даша и специальная терминология Джаймини",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1270
+    },
+    {
+      "slug": "drugie-sistemy-dash",
+      "label": "Другие системы даш: как составить карту различий",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1280
+    },
+    {
+      "slug": "tranzit-cherez-natalnuyu-tochku",
+      "label": "Транзит планеты через натальную точку",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1290
+    },
+    {
+      "slug": "sopostavlenie-dashi-i-tranzita",
+      "label": "Как сопоставить дашу и транзит",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1300
+    },
+    {
+      "slug": "scenarii-pri-neizvestnom-vremeni",
+      "label": "Сценарии при неизвестном времени рождения",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1310
+    },
+    {
+      "slug": "hronologiya-sobytiy-dlya-rektifikacii",
+      "label": "Хронология событий для проверки времени",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1320
+    },
+    {
+      "slug": "versii-raschyota-karty",
+      "label": "Версионирование расчёта карты",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1330
+    },
+    {
+      "slug": "bezopasnyy-prognoz",
+      "label": "Безопасный прогноз: как отделить символическую гипотезу от решения",
+      "category": "Время и циклы",
+      "difficulty": "beginner",
+      "order": 1340
+    },
+    {
+      "slug": "varshaphala-tajika",
+      "label": "Varshaphala и Tajika: что такое годовая карта",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1350
+    },
+    {
+      "slug": "godovoy-prognoz-v-tajike",
+      "label": "Как устроен годовой прогноз в таджике",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1360
+    },
+    {
+      "slug": "tajika-i-parashari",
+      "label": "Tajika и Parashari: какие правила нельзя смешивать",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1370
+    },
+    {
+      "slug": "muhurta-v-dzhyotish",
+      "label": "Мухурта: выбор времени для действия",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1380
+    },
+    {
+      "slug": "panchanga-dlya-muhurty",
+      "label": "Панчанг в мухурте: титхи, накшатра, йога, карана и вара",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1390
+    },
+    {
+      "slug": "raja-yoga-kendra-kona",
+      "label": "Raja Yoga: связь управителей Kendra и Kona",
+      "category": "Время и циклы",
+      "difficulty": "expert",
+      "order": 1400
+    },
+    {
+      "slug": "mestnoe-zvezdnoe-vremya-i-lagna",
+      "label": "Местное звёздное время и лагна: как найти восходящий знак",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1410
+    },
+    {
+      "slug": "lagna-na-granice-znaka",
+      "label": "Лагна на границе знака: как проверить точность времени рождения",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1420
+    },
+    {
+      "slug": "ogranicheniya-rascheta-natalnoj-karty",
+      "label": "Ограничения расчёта натальной карты: эфемериды, высокие широты и версии",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1430
+    },
+    {
+      "slug": "brihat-jataka-vvedenie",
+      "label": "Brihat Jataka: первый маршрут по классическому чтению карты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1440
+    },
+    {
+      "slug": "brihat-parashara-hora-shastra-struktura",
+      "label": "Brihat Parashara Hora Shastra: структура чтения карты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1450
+    },
+    {
+      "slug": "phaladipika-i-saravali",
+      "label": "Phaladipika и Saravali: сравнение двух классических языков интерпретации",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1460
+    },
+    {
+      "slug": "jaimini-sutras-bazovye-printsipy",
+      "label": "Jaimini Sutras: chara karaka, pada и rashi daśā",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1470
+    },
+    {
+      "slug": "kak-chitat-natalnuyu-kartu",
+      "label": "Как читать натальную карту: lagna, graha, bhava, yoga и daśā",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1480
+    },
+    {
+      "slug": "chara-dasha-calculation",
+      "label": "Chara Dasha: стартовый знак, направление и длительность",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1490
+    },
+    {
+      "slug": "chara-dasha-variants",
+      "label": "[Алгоритм] Почему варианты Чара-даши дают разные даты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1500
+    },
+    {
+      "slug": "how-to-read-mahadasha-with-natal-chart",
+      "label": "Как читать маха-дашу через натальную карту",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1510
+    },
+    {
+      "slug": "antardasha-and-mahadasha-interpretation",
+      "label": "Antardasha и mahadasha: как читать модификатор периода",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1520
+    },
+    {
+      "slug": "when-to-use-pratyantardasha",
+      "label": "[Трактовка] Pratyantardasha: когда переходить к мелкому уровню времени",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1530
+    },
+    {
+      "slug": "compare-vimshottari-and-yogini",
+      "label": "[Трактовка] Как сопоставлять Vimshottari и Yogini без смешения правил",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1540
+    },
+    {
+      "slug": "lunnaya-priroda-natalnoy-karty",
+      "label": "Лунная природа карты: почему чтение начинают с положения Луны",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1550
+    },
+    {
+      "slug": "algoritm-chteniya-luny-v-dzhyotishe",
+      "label": "Минимальный алгоритм чтения Луны в карте рождения",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1560
+    },
+    {
+      "slug": "bazovaya-muhurta-poryadok-proverki",
+      "label": "Базовая мухурта: порядок проверки панчанги",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1570
+    },
+    {
+      "slug": "nakshatra-rozhdeniya-i-nakshatra-dnya",
+      "label": "Накшатра рождения и накшатра дня: как сопоставить карту и дату",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1580
+    },
+    {
+      "slug": "proverka-rascheta-nakshatry",
+      "label": "Как проверить расчёт накшатры: аянамша, время и повторяемость",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1590
+    },
+    {
+      "slug": "vremennoe-druzhestvo-grah",
+      "label": "Временное дружество грах в натальной карте",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1600
+    },
+    {
+      "slug": "sostavnoe-otnoshenie-grah",
+      "label": "Составное отношение: естественное плюс временное",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1610
+    },
+    {
+      "slug": "hozyain-doma-ot-lagny",
+      "label": "Как определить хозяина дома от Лагны",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1620
+    },
+    {
+      "slug": "graha-drishti-parashara",
+      "label": "Базовая граха-дришти Парашары",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1630
+    },
+    {
+      "slug": "rashi-drishti-i-graha-drishti",
+      "label": "Раши-дришти и отличие от граха-дришти",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1640
+    },
+    {
+      "slug": "soedinenie-grah",
+      "label": "Соединение грах: что фиксировать в карте",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1650
+    },
+    {
+      "slug": "algoritm-chteniya-natalnoy-karty",
+      "label": "Как читать натальную карту: редакционный алгоритм от Лагны до соединения",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1660
+    },
+    {
+      "slug": "podgotovka-dannyh-rozhdeniya",
+      "label": "Как подготовить исходные данные рождения",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1670
+    },
+    {
+      "slug": "vybor-aynamshi-i-sistemy-domov",
+      "label": "Как зафиксировать школу, аянамшу и систему домов",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1680
+    },
+    {
+      "slug": "proverka-raschyota-karty",
+      "label": "Проверка расчёта карты перед интерпретацией",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1690
+    },
+    {
+      "slug": "pervyy-prohod-po-karte",
+      "label": "Первый проход по карте: лагна, Луна и управитель лагны",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1700
+    },
+    {
+      "slug": "ocenka-upravitelya-lagny",
+      "label": "Как оценить управителя лагны",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1710
+    },
+    {
+      "slug": "inventarizaciya-domov",
+      "label": "Инвентаризация домов перед синтезом",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1720
+    },
+    {
+      "slug": "chetyre-sloya-chteniya-doma",
+      "label": "Четыре слоя чтения дома",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1730
+    },
+    {
+      "slug": "ocenka-sily-planety",
+      "label": "Как оценивать силу планеты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1740
+    },
+    {
+      "slug": "ocenka-sily-doma",
+      "label": "Как оценивать силу дома",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1750
+    },
+    {
+      "slug": "estestvennaya-i-funkcionalnaya-blagopriyatnost",
+      "label": "Естественная и функциональная благоприятность в синтезе",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1760
+    },
+    {
+      "slug": "proverka-yogi",
+      "label": "Как проверять йогу после её обнаружения",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1770
+    },
+    {
+      "slug": "rashi-i-navamsha",
+      "label": "Раши и навамша: порядок сопоставления",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1780
+    },
+    {
+      "slug": "kogda-podklyuchat-drugie-vargi",
+      "label": "Когда подключать другие варги",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1790
+    },
+    {
+      "slug": "argala-pada-karaki",
+      "label": "Аргала, пада и караки: дополнительные инструменты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1800
+    },
+    {
+      "slug": "protivorechivye-pokazateli",
+      "label": "Как работать с противоречивыми показателями",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1810
+    },
+    {
+      "slug": "rangirovanie-faktorov-karty",
+      "label": "Как ранжировать факторы карты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1820
+    },
+    {
+      "slug": "formulirovka-vyvoda-po-karte",
+      "label": "Как формулировать вывод с разной степенью уверенности",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1830
+    },
+    {
+      "slug": "karta-bez-vremeni-rozhdeniya",
+      "label": "Натальная карта без времени рождения: что можно узнать",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1840
+    },
+    {
+      "slug": "rektifikaciya-vremeni-rozhdeniya",
+      "label": "Ректификация времени рождения: как уточнить время по событиям",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1850
+    },
+    {
+      "slug": "proverka-gipotezy-vremeni",
+      "label": "Проверка гипотезы времени рождения по независимым событиям",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1860
+    },
+    {
+      "slug": "shablon-chteniya-zhiznennoy-temy",
+      "label": "Практический шаблон чтения одной жизненной темы",
+      "category": "Практика чтения карты",
+      "difficulty": "beginner",
+      "order": 1870
+    },
+    {
+      "slug": "ashtakavarga-i-gochara",
+      "label": "Как соединять Ashtakavarga с гочаром",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1880
+    },
+    {
+      "slug": "dasha-i-tranzity",
+      "label": "Даша и транзит: два слоя времени в одной карте",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1890
+    },
+    {
+      "slug": "vedha-v-tranzitah",
+      "label": "Vedha: что блокирует благоприятный транзит",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1900
+    },
+    {
+      "slug": "prashna-v-dzhyotish",
+      "label": "Прашна: как читать карту заданного вопроса",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1910
+    },
+    {
+      "slug": "arudha-pada-i-pada-lagna",
+      "label": "Arudha Pada и Pada Lagna: как читать проявленный образ карты",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1920
+    },
+    {
+      "slug": "upapada-lagna",
+      "label": "Upapada Lagna: отдельный показатель в системе Джаймини",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1930
+    },
+    {
+      "slug": "karakamsha-i-dopolnitelnye-lagny",
+      "label": "Karakamsha и дополнительные лагны: когда их подключать",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1940
+    },
+    {
+      "slug": "d10-dashamsha-karera",
+      "label": "D10 Dashamsha: профессия, статус и карьера",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1950
+    },
+    {
+      "slug": "d60-shashtiamsha",
+      "label": "D60 Shashtiamsha: самая тонкая варга и проблема времени рождения",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1960
+    },
+    {
+      "slug": "vargottama-d1-d9",
+      "label": "Vargottama: совпадение D1 и D9 без обещания автоматического успеха",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1970
+    },
+    {
+      "slug": "vimshopaka-bala",
+      "label": "Vimshopaka Bala: как складывается сила планеты по варгам",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1980
+    },
+    {
+      "slug": "dharma-karmadhipati-yoga",
+      "label": "Dharma-Karmadhipati Yoga: управители девятого и десятого домов",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 1990
+    },
+    {
+      "slug": "pancha-mahapurusha-yoga",
+      "label": "Pancha Mahapurusha Yoga: пять планетарных архетипов",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 2000
+    },
+    {
+      "slug": "dhana-yoga",
+      "label": "Dhana Yoga: богатство как система связей, а не один показатель",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 2010
+    },
+    {
+      "slug": "drugie-klassicheskie-yogi",
+      "label": "Другие йоги: Gajakesari, Amala, Kemadruma и Nabhasa",
+      "category": "Практика чтения карты",
+      "difficulty": "expert",
+      "order": 2020
+    }
+  ]
+}

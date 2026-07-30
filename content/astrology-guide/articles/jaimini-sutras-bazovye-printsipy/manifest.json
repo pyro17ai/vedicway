@@ -1,0 +1,81 @@
+{
+  "slug": "jaimini-sutras-bazovye-printsipy",
+  "title": "Jaimini Sutras: chara karaka, pada и rashi daśā",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S10",
+    "S13"
+  ],
+  "seo": {
+    "seo_title": "Jaimini Sutras: chara karaka, pada и rashi daśā",
+    "meta_description": "Осторожное введение в Jaimini Sutras: chara karaka, pada и rashi daśā, пошаговый алгоритм и границы метода без смешения с Parāśara.",
+    "focus_keyphrase": "Jaimini Sutras",
+    "canonical_url": "https://vedicway.ru/guide/jaimini-sutras-bazovye-printsipy",
+    "excerpt": "Разбираем chara karaka, pada и rashi daśā как отдельные инструменты Jaimini: что зафиксировать в карте, как пройти алгоритм и где нельзя смешивать метод с Parāśara."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay",
+      "reason": "Переход к словарю и соседним материалам о базовых понятиях джйотиша."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Проверка исходной карты и сохранение параметров расчёта до интерпретации."
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "раши, бхава и лагна",
+      "reason": "Разведение исходного знака, лагны и дома перед расчётом pada."
+    },
+    {
+      "url": "/guide/sistemy-domov-v-sidereicheskoj-karte",
+      "anchor": "сидерические дома",
+      "reason": "Уточнение аянāмши и системы домов, которые нельзя скрывать в параметрах карты."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать Jaimini Sutras или любую астрологическую интерпретацию за научно подтверждённый прогноз.",
+    "Не обещать фатальное событие, здоровье, доход, профессию, отношения или юридический результат по chara karaka, pada или rashi daśā.",
+    "Не смешивать Jaimini с Parāśara, Vimśottarī или другой школой без названия метода и отдельного блока чтения.",
+    "Не скрывать сидерический или тропический зодиак, аянāмшу, систему домов, состав карак и разновидность rashi daśā.",
+    "Не смешивать Jaiminīyasaṃhitā с Jaimini Sutras и не выдавать позднюю пользовательскую перепечатку S10 за критическое издание."
+  ],
+  "cover": {
+    "asset_id": "cover-jaimini-sutras-bazovye-printsipy",
+    "path": "content/astrology-guide/articles/jaimini-sutras-bazovye-printsipy/cover.webp",
+    "alt": "Абстрактная знаковая схема с радиальными дугами и точками карак на тёплом бумажном фоне",
+    "source_kind": "generated",
+    "license_note": "Создано через OpenAI ImageGen для VedicWay; сторонние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "sha256": "9bcf76c367bbe1057d78d928ce7d1dfa800cef6e399e001764c803e7ba4fb9e1",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/jaimini-sutras-bazovye-printsipy",
+  "tags": [
+    "Практика чтения карты",
+    "Jaimini Sutras",
+    "Джаймини"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Jaimini Sutras"
+      }
+    ],
+    "citation": [
+      "https://www.scribd.com/document/618163397/Jaimini-Sutras-B-Suryanarain-Rao-1949",
+      "http://hdl.handle.net/2078.1/149862"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

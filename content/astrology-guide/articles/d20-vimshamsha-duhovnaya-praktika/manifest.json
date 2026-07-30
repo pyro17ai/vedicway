@@ -1,0 +1,130 @@
+{
+  "slug": "d20-vimshamsha-duhovnaya-praktika",
+  "title": "D20 Vimshamsha: поклонение, практика и духовная направленность",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_santhanam_vimshamsha_calculation",
+    "jagannathhora_d20_reading_limits"
+  ],
+  "seo_title": "D20 Vimshamsha: практика, поклонение и границы чтения",
+  "meta_description": "D20 Vimshamsha показывает тему поклонения и устойчивой практики. Разбираем расчёт, порядок чтения с D1, мини-пример и границы духовных выводов.",
+  "focus_keyphrase": "D20 Vimshamsha",
+  "canonical": "https://vedicway.ru/guide/d20-vimshamsha-duhovnaya-praktika",
+  "seo": {
+    "seo_title": "D20 Vimshamsha: практика, поклонение и границы чтения",
+    "meta_description": "D20 Vimshamsha показывает тему поклонения и устойчивой практики. Разбираем расчёт, порядок чтения с D1, мини-пример и границы духовных выводов.",
+    "focus_keyphrase": "D20 Vimshamsha",
+    "canonical_url": "https://vedicway.ru/guide/d20-vimshamsha-duhovnaya-praktika",
+    "excerpt": "D20 связывают с поклонением и устойчивой духовной практикой. Статья показывает расчёт двадцатой доли, порядок чтения с D1 и пределы допустимых выводов."
+  },
+  "intent": {
+    "source": "yandex_wordstat",
+    "primary_query": "D20 Вимшамша",
+    "type": "informational_definition_and_method",
+    "status": "low_volume_data_found_on_close_query",
+    "primary_query_total_count": 1,
+    "primary_query_top_requests": [],
+    "primary_query_associations": [],
+    "close_queries": [
+      {
+        "phrase": "Вимшамша",
+        "total_count": 32,
+        "top_requests": [
+          {
+            "phrase": "вимшамша",
+            "count": 32
+          },
+          {
+            "phrase": "вимшамша джйотиш",
+            "count": 11
+          }
+        ]
+      },
+      {
+        "phrase": "D20 карта джйотиш",
+        "total_count": 4,
+        "top_requests": []
+      }
+    ],
+    "reader_need": "Понять текстовое назначение D20, научиться рассчитывать и читать её вместе с D1, отделить анализ устойчивости практики от обещаний просветления или гарантированного духовного результата."
+  },
+  "semantic_core": {
+    "primary": [
+      "D20 Vimshamsha",
+      "Вимшамша",
+      "вимшамша джйотиш"
+    ],
+    "related": [
+      "D20 карта джйотиш",
+      "дробная карта духовной практики",
+      "поклонение в джйотише",
+      "упасана",
+      "садхана",
+      "как читать D20",
+      "как рассчитать Vimshamsha",
+      "D1 и D20",
+      "Shodashavarga",
+      "Vargottama в D20",
+      "йоги в D20",
+      "духовная направленность"
+    ],
+    "questions": [
+      "Что показывает D20 Vimshamsha?",
+      "Как рассчитывается двадцатая дробная карта?",
+      "Какие дома смотреть в D1 перед D20?",
+      "Как читать лагну и дома D20?",
+      "Может ли сильная D20 гарантировать духовный успех?",
+      "Означает ли напряжённая D20 отсутствие духовности?",
+      "Можно ли выбрать божество или мантру по D20?"
+    ]
+  },
+  "internal_links": [
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/d1-i-drobnie-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "D20 гарантирует просветление, освобождение, сиддхи или духовный успех.",
+    "По D20 можно измерить ценность, нравственность или духовный ранг человека.",
+    "Одна комбинация D20 предписывает конкретное божество, мантру, наставника или традицию.",
+    "Астрологическая карта подтверждает безопасность духовной группы или компетентность наставника."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Круг из двадцати астрологических долей с ровным пламенем масляной лампы на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешнее изображение и поисковая выдача не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "b8ea88df016411840060531230f4de171b15213098569ca5bdddab40e4e4d16d",
+    "asset_id": "cover-d20-vimshamsha-duhovnaya-praktika",
+    "path": "content/astrology-guide/articles/d20-vimshamsha-duhovnaya-praktika/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "853F5C57A07571D4778A4CE4D1CF73DB9847C1BAEB916445BF4E1C81EED7079A",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D20 Vimshamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D20 Vimshamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://ia903205.us.archive.org/30/items/brihatparasarahorashastrabyr.santhanam/Brihat%20Par%C4%81%C5%9Bara%20Hor%C4%81%20%C5%9Ah%C4%81stra%20By%20R.%20Santhanam.pdf",
+      "https://jagannathhora.com/vimsamsa-chart-d20-spiritual-progress/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

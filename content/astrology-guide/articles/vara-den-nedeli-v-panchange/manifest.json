@@ -1,0 +1,59 @@
+{
+  "slug": "vara-den-nedeli-v-panchange",
+  "title": "Вара: семь дней недели в системе панчанги",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Вара в панчанге: день недели в джйотише",
+    "meta_description": "Что такое вара в панчанге: семь дней недели, планетарные управители, местная дата, восход, пример, граница и ограничения чтения.",
+    "focus_keyphrase": "вара в панчанге",
+    "canonical_url": "https://vedicway.ru/guide/vara-den-nedeli-v-panchange",
+    "excerpt": "Разбираем семь вар и их управителей, различие местной даты и UTC, правило восхода и место варa среди пяти элементов панчанги."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/muhurta-v-dzhyotish",
+    "/guide/titkhi-lunnyy-den"
+  ],
+  "prohibited_claims": [
+    "Не выдавать вару за гарантию события.",
+    "Не путать местную дату с UTC и не скрывать границу дня.",
+    "Не использовать планетарное соответствие как медицинский, финансовый или юридический совет."
+  ],
+  "cover": {
+    "asset_id": "cover-vara-den-nedeli-v-panchange",
+    "path": "content/astrology-guide/articles/vara-den-nedeli-v-panchange/cover.webp",
+    "alt": "Семь тёплых орбитальных меток недельного цикла на бумажной фактуре",
+    "status": "ready",
+    "sha256": "06f2c81263d323e990b1532679a8ff46f4084f8d4ff6a6ba1f7c549c5c47497b",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/vara-den-nedeli-v-panchange",
+  "tags": [
+    "Время и циклы",
+    "вара в панчанге",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "вара в панчанге"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

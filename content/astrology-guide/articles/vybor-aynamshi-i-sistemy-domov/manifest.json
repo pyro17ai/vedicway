@@ -1,0 +1,114 @@
+{
+  "slug": "vybor-aynamshi-i-sistemy-domov",
+  "title": "Как зафиксировать школу, аянамшу и систему домов",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S4",
+    "S6"
+  ],
+  "seo_title": "Выбор аянамши и системы домов в джйотише",
+  "meta_description": "Как зафиксировать школу, аянамшу и систему домов, чтобы расчёт натальной карты можно было повторить и корректно сравнивать.",
+  "focus_keyphrase": "выбор аянамши и системы домов",
+  "intent": {
+    "status": "no_confirmed_wordstat_demand",
+    "type": "informational_how_to",
+    "description": "Wordstat не вернул запросы по точной теме и двум уточняющим формулировкам; материал закрывает практический вопрос воспроизводимости расчёта.",
+    "wordstat": {
+      "main_query": "выбор аянамши и системы домов",
+      "queries_checked": [
+        "выбор аянамши и системы домов",
+        "аянамша в ведической астрологии",
+        "система домов в ведической астрологии"
+      ],
+      "total_results": 0,
+      "regions": [
+        225
+      ],
+      "period": "последние 30 дней"
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "выбор аянамши и системы домов"
+    ],
+    "close_formulations": [
+      "как выбрать аянамшу",
+      "какую аянамшу выбрать",
+      "система домов в джйотише",
+      "whole sign или placidus",
+      "как зафиксировать настройки натальной карты"
+    ],
+    "reader_questions": [
+      "почему разные калькуляторы показывают разные дома",
+      "нужно ли указывать точное название аянамши",
+      "как сообщить параметры карты другому читателю",
+      "что меняется при ошибке времени рождения"
+    ],
+    "entities": [
+      "джйотиш",
+      "сидерический зодиак",
+      "лагна",
+      "бхава",
+      "Whole Sign",
+      "Equal",
+      "Placidus",
+      "Lahiri",
+      "Raman",
+      "True Chitra"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/vybor-aynamshi-i-sistemy-domov",
+  "seo": {
+    "seo_title": "Выбор аянамши и системы домов в джйотише",
+    "meta_description": "Как зафиксировать школу, аянамшу и систему домов, чтобы расчёт натальной карты можно было повторить и корректно сравнивать.",
+    "focus_keyphrase": "выбор аянамши и системы домов",
+    "canonical_url": "https://vedicway.ru/guide/vybor-aynamshi-i-sistemy-domov",
+    "excerpt": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/ayanamsha-lahiri-raman-true-chitra",
+    "/guide"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз",
+    "медицинские, финансовые и юридические выводы по карте",
+    "универсально правильная аянамша для всех школ"
+  ],
+  "cover": {
+    "asset_id": "cover-vybor-aynamshi-i-sistemy-domov",
+    "path": "content/astrology-guide/articles/vybor-aynamshi-i-sistemy-domov/cover.webp",
+    "alt": "Сидерический круг с геометрической сеткой домов и вертикальной линией фиксации на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "status": "ready",
+    "sha256": "86134113c3f5e250397934f620bd6475758dbd30d679e89037e514ab44d0f803",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": "8D3C780649BB4B918BE6F81B2280B4A8E86D3D9775E76FA8EDC76B15663605E4",
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "выбор аянамши и системы домов",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "выбор аянамши и системы домов"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/ayanamsha"
+    ]
+  }
+}

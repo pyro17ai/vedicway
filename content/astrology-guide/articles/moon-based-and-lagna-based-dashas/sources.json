@@ -1,0 +1,55 @@
+[
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": null,
+    "topics": [
+      "программный расчёт",
+      "Vimshottari",
+      "Yogini",
+      "Chara",
+      "Narayana",
+      "вложенные уровни"
+    ],
+    "claims": [
+      "Исходник группирует Vimshottari, Ashtottari и Yogini как системы на основе сидерической долготы Луны, а Chara и Narayana — как системы на основе знака Лагны.",
+      "Контракт входа принимает birth_jd, moon_longitude в диапазоне [0, 360), lagna_sign в диапазоне 1–12 и levels от 1 до 5 для лунных систем.",
+      "Для Chara и Narayana поле levels игнорируется, а результат описан как дерево периодов с началом и концом в Julian Day."
+    ],
+    "quality": "high",
+    "limitations": "Исходник показывает поведение и валидацию конкретной программы; он не доказывает каноничность алгоритма и не описывает в этом файле все школьные варианты формул.",
+    "observed_at": "2026-07-28",
+    "review_status": "agent_reviewed",
+    "verified_reading_log": null,
+    "notes": "URL и код лично прочитаны через веб-доступ. В verified-reading-log.jsonl отдельная запись с source_id S5 не найдена; источник использован только для наблюдаемого программного контракта и его ограничений."
+  },
+  {
+    "source_id": "S6",
+    "url": "https://github.com/naturalstupid/PyJHora",
+    "title": "PyJHora",
+    "author_or_institution": "naturalstupid и contributors",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": "2026-06-07",
+    "topics": [
+      "реализация даш",
+      "Swiss Ephemeris",
+      "аянамша",
+      "дочерние периоды",
+      "сравнение с JHora"
+    ],
+    "claims": [
+      "Репозиторий содержит отдельные модули для Vimsottari, Yogini, Chara и Narayana и методы получения дочерних периодов.",
+      "README связывает проект с книгой P. V. R. Narasimha Rao и Jagannatha Hora, сообщает о тестах и зависимости от Swiss Ephemeris.",
+      "README фиксирует Lahiri для тестов и описывает изменения настроек аянамши в истории версий, поэтому ревизию и режим нужно закреплять при сравнении."
+    ],
+    "quality": "medium",
+    "limitations": "Активно изменяемый community-проект; часть модулей опирается на интернет-источники и экспериментальные алгоритмы, а разные версии могут использовать разные настройки по умолчанию.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": "varga:PYJHORA",
+    "notes": "URL лично проверен и сверён с verified-reading-log.jsonl. Использован как технический ориентир для сравнения реализаций и настройки, не как универсальный авторитет для всех школ."
+  }
+]

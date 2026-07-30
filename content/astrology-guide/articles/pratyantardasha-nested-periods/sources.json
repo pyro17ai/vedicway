@@ -1,0 +1,52 @@
+[
+  {
+    "source_id": "S1",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "verified_reading_log_id": "dasha:BPHS_ARCHIVE_2",
+    "claims_used": [
+      "Глава 51 описывает расчёт antardasha в Vimshottari и других системах.",
+      "Глава 61 даёт формулу pratyantar dasha через длительность antardasha, годы планеты и полный цикл 120 лет.",
+      "Главы 62–63 продолжают деление до sookshma и prāṇa; главы 47–48 связывают интерпретацию с достоинством, силой и размещением в натальной карте."
+    ],
+    "limitations": "Английский перевод с редакторскими комментариями и OCR-ошибками; не заменяет проверку санскритского текста и не устанавливает единое правило для всех школ."
+  },
+  {
+    "source_id": "S5",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "quality": "high",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "review_status": "agent_reviewed",
+    "observed_at": "2026-07-28",
+    "claims_used": [
+      "Vimshottari, Ashtottari и Yogini используют сидерическую долготу Луны, а Chara и Narayana требуют знак Лагны.",
+      "Параметр levels задаёт от одного до пяти вложенных уровней для лунных систем.",
+      "Расчёт принимает birth Julian Day и возвращает дерево с началами и концами периодов."
+    ],
+    "limitations": "Исходный код показывает поведение конкретной программы и не доказывает каноничность её алгоритма для всех школ."
+  },
+  {
+    "source_id": "S6",
+    "title": "PyJHora",
+    "author_or_institution": "naturalstupid и contributors",
+    "source_kind": "technical_reference",
+    "quality": "medium",
+    "url": "https://github.com/naturalstupid/PyJHora",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "verified_reading_log_id": "varga:PYJHORA",
+    "claims_used": [
+      "Проект реализует более 50 систем dasha и методы получения дочерних периодов.",
+      "README и история изменений описывают проверку с книгой P. V. R. Narasimha Rao и Jagannatha Hora, а также исправления отдельных алгоритмов.",
+      "Для тестов проекта зафиксирован режим Lahiri; это техническая настройка проекта, не универсальная норма."
+    ],
+    "limitations": "Активно изменяемый проект сообщества; его тесты и настройки не подтверждают истинность астрологических интерпретаций и не заменяют выбор школы."
+  }
+]

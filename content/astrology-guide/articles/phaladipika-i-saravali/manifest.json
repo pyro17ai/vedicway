@@ -1,0 +1,79 @@
+{
+  "slug": "phaladipika-i-saravali",
+  "title": "Phaladipika и Saravali: сравнение двух классических языков интерпретации",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S08",
+    "S12"
+  ],
+  "seo": {
+    "seo_title": "Phaladipika и Saravali: как сравнивать правила",
+    "meta_description": "Сравниваем языки Phaladipika и Saravali: как фиксировать расхождения правил, читать карту по одной школе и не смешивать йоги механически.",
+    "focus_keyphrase": "Phaladipika и Saravali",
+    "canonical_url": "https://vedicway.ru/guide/phaladipika-i-saravali",
+    "excerpt": "Пошаговый способ сравнить правила Phaladipika и Saravali: отделить текст от перевода, зафиксировать условия, сохранить расхождения и выбрать одну ведущую схему чтения."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay",
+      "reason": "Переход к общему словарю и соседним материалам гида."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты VedicWay",
+      "reason": "Переход от сравнения правил к фиксации параметров карты."
+    },
+    {
+      "url": "/guide/bhava-i-lagna",
+      "anchor": "статье о координатах натальной карты",
+      "reason": "Проверка различий между rāśi, lagna и bhāva перед интерпретацией."
+    },
+    {
+      "url": "/guide/tri-razdela-dzhyotisha",
+      "anchor": "материале о трёх разделах джйотиша",
+      "reason": "Связь истории канона с переходом от расчётного слоя к horā."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать трактовки Phaladipika, Saravali или BPHS за научно доказанную причинность.",
+    "Не обещать фатальные события, здоровье, доход, безопасность или юридический результат по карте и йоге.",
+    "Не приписывать Phaladipika или Saravali точную дату, авторство, каноническую иерархию или первичную формулировку без проверенного издания.",
+    "Не смешивать тропический и сидерический зодиак, аянāмшу и систему домов без явной фиксации параметров.",
+    "Не превращать современный перевод, комментарий или препринт S12 в первичный текст классической школы.",
+    "Не объединять расхожие йоги из разных текстов в единую гарантированную формулу."
+  ],
+  "cover": {
+    "asset_id": "cover-phaladipika-i-saravali",
+    "path": "content/astrology-guide/articles/phaladipika-i-saravali/cover.webp",
+    "alt": "Два раздельных рукописных слоя и геометрическая схема карты на тёплой бумаге",
+    "status": "ready",
+    "sha256": "9718a0d41da7525363c2c125b69ee8428193afeec6b66d4683c647f4ae034194",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/phaladipika-i-saravali",
+  "tags": [
+    "Практика чтения карты",
+    "Phaladipika и Saravali"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Phaladipika и Saravali"
+      }
+    ],
+    "citation": [
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://doi.org/10.5281/zenodo.20649051"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

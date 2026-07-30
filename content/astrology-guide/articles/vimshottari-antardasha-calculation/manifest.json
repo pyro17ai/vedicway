@@ -1,0 +1,61 @@
+{
+  "slug": "vimshottari-antardasha-calculation",
+  "title": "Как считать antardasha в Vimshottari: формула и порядок",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S5"
+  ],
+  "seo": {
+    "seo_title": "Как считать antardasha в Vimshottari: формула и порядок",
+    "meta_description": "Формула antardasha в Vimshottari, порядок девяти подпериодов, таблица для маха-даши Венеры и правила точной проверки календарных дат.",
+    "focus_keyphrase": "расчёт antardasha в Vimshottari",
+    "canonical_url": "https://vedicway.ru/guide/vimshottari-antardasha-calculation",
+    "excerpt": "Пошаговый расчёт девяти antardasha внутри маха-даши Vimshottari: формула через 120 лет, порядок управителей, таблица и ограничения календарного перевода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/vimshottari-balance-at-birth"
+  ],
+  "prohibited_claims": [
+    "Не выдавать Vimshottari и antardasha за научно подтверждённый прогноз или гарантию будущего события.",
+    "Не обещать фатальный исход, здоровье, доход, юридический результат или точность времени рождения по периоду.",
+    "Не скрывать сидерический зодиак, выбранную аянамшу, систему домов, эфемериды и правило перевода дробного года в дату.",
+    "Не смешивать порядок и формулы Vimshottari с Аштоттари, Йогини, Чара или другой системой даши.",
+    "Расчётное правило сверяйте с классическим источником и редакцией выбранной школы, не подменяя ими астрологическую интерпретацию."
+  ],
+  "cover": {
+    "asset_id": "cover-vimshottari-antardasha-calculation",
+    "path": "content/astrology-guide/articles/vimshottari-antardasha-calculation/cover.webp",
+    "alt": "Абстрактная орбитальная схема из девяти сегментов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "762f75ce017a9b22629f3c268588683fd6eeacb5e6f27a57b3e48cc548c80a2a",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/vimshottari-antardasha-calculation",
+  "tags": [
+    "Время и циклы",
+    "расчёт antardasha в Vimshottari"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "расчёт antardasha в Vimshottari"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

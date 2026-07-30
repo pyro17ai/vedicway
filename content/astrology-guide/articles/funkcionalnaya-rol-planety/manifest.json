@@ -1,0 +1,70 @@
+{
+  "slug": "funkcionalnaya-rol-planety",
+  "title": "Функциональная роль планеты через управление домами",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Функциональная роль планеты в джйотише",
+    "meta_description": "Как определить функциональную роль планеты по лагне и управлению домами: порядок чтения, мини-пример Юпитера и границы метода.",
+    "focus_keyphrase": "функциональная роль планеты",
+    "canonical_url": "https://vedicway.ru/guide/funkcionalnaya-rol-planety",
+    "excerpt": "Практический алгоритм оценки планеты через лагну, управляемые дома, положение, силу и связи в традиции джйотиша."
+  },
+  "internal_links": [
+    "/guide/estestvennye-blagotvornye-i-vredonosnye-grahi",
+    "/guide/bhava-i-lagna",
+    "/guide/dvenadcat-bhav",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную интерпретацию за научно подтверждённый прогноз.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не смешивать естественную природу планеты с функциональной ролью от лагны.",
+    "Не объявлять событие неизбежным по одной планете или одному дому.",
+    "Не объединять правила разных школ без явной фиксации выбранной традиции."
+  ],
+  "cover": {
+    "asset_id": "cover-funkcionalnaya-rol-planety",
+    "path": "content/astrology-guide/articles/funkcionalnaya-rol-planety/cover.webp",
+    "alt": "Центральная планета соединена линиями с секторами натальной карты на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения из поисковой выдачи не использовались.",
+    "width": 1280,
+    "height": 720,
+    "mime_type": "image/png",
+    "sha256": "048d9dfef9240a0ec53f4700cc5ca5be9a5f2897e9762ce78e0841d384da09f0"
+  },
+  "sha256": {
+    "article_md": "4C551647DC83EEDC4F48D91D447ACA3E7E1128A2F6F3FA29A52673DB02921C8A",
+    "article_html": "36ECA948A3B36295E6488EED4E5EBF5FFBA1CA7A44416F91F0AFEEB8E2985598",
+    "cover": "6B7CFF0BC971151C36CEF3DF596FA6121FC6EA7B262556E6435AC6D924C06C38"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/funkcionalnaya-rol-planety",
+  "tags": [
+    "Основы астрологии",
+    "функциональная роль планеты",
+    "планеты",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "функциональная роль планеты"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

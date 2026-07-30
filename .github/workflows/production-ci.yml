@@ -37,9 +37,10 @@ jobs:
         run: npm run build
       - name: Verify prerendered public routes
         run: |
-          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/access/recovery/index.html && test -s dist/privacy/request/index.html && test -s dist/legal/offer/index.html && test -s dist/legal/privacy/index.html && test -s dist/legal/user-agreement/index.html && test -s dist/legal/privacy-policy/index.html && test -s dist/legal/personal-data-consent/index.html && test -s dist/legal/cookies/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
+          test -s dist/index.html && test -s dist/guide/index.html && test -s dist/blog/index.html && test -s dist/access/recovery/index.html && test -s dist/privacy/request/index.html && test -s dist/legal/offer/index.html && test -s dist/legal/privacy/index.html && test -s dist/legal/user-agreement/index.html && test -s dist/legal/privacy-policy/index.html && test -s dist/legal/personal-data-consent/index.html && test -s dist/legal/cookies/index.html && test -s dist/404.html && test -s dist/robots.txt && test -s dist/sitemap.xml
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/index.html
           grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/guide/index.html
+          grep -F '<meta name="yandex-metrika-counter-id" content="12345678" />' dist/blog/index.html
           python scripts/check_nginx_contract.py docker/nginx/nginx.conf
       - name: Build non-root frontend image
         run: docker build --build-arg VITE_PUBLIC_ORIGIN="$VITE_PUBLIC_ORIGIN" --file docker/frontend/Dockerfile --tag vedicway-frontend:ci .

@@ -1,0 +1,27 @@
+[
+  {
+    "source_id": "src_tajika_academic",
+    "url": "https://doi.org/10.1163/9789004433717",
+    "role": "Историческое происхождение Tajika, её годовая специализация и разграничение с даша, варгами и Ashtakavarga."
+  },
+  {
+    "source_id": "src_phaladeepika",
+    "url": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Проверка места Ashtakavarga и транзитных методов в классическом натально-прогностическом контуре."
+  },
+  {
+    "source_id": "transits:TAJIKA_ACADEMIC",
+    "url": "https://journals.library.ualberta.ca/hssa/index.php/hssa/article/download/34/91",
+    "role": "Проверка происхождения таджикских аспектов, достоинств и шестнадцати конфигураций."
+  },
+  {
+    "source_id": "varga:BPHS_ARCHIVE_1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка места дробных карт в парашарийской натальной системе."
+  },
+  {
+    "source_id": "dasha:BPHS_ARCHIVE_2",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Проверка места махадаша и антардаша в парашарийской системе времени."
+  }
+]

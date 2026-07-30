@@ -8,8 +8,14 @@
   </url>
   <url>
     <loc>https://vedicway.ru/guide</loc>
-    <lastmod>2026-07-19</lastmod>
+    <lastmod>2026-07-28</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://vedicway.ru/blog</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 </urlset>

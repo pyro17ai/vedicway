@@ -1,0 +1,62 @@
+{
+  "slug": "when-to-use-pratyantardasha",
+  "title": "[Трактовка] Pratyantardasha: когда переходить к мелкому уровню времени",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S5"
+  ],
+  "seo": {
+    "seo_title": "Pratyantardasha: когда переходить к мелкому уровню",
+    "meta_description": "Когда переходить к pratyantardasha после mahadasha и antardasha: формула, пример BPHS, порядок чтения, границы школы и проверка карты.",
+    "focus_keyphrase": "когда использовать pratyantardasha",
+    "canonical_url": "https://vedicway.ru/guide/when-to-use-pratyantardasha",
+    "excerpt": "Пошагово разбираем, когда переходить к pratyantardasha: сначала проверяем тему mahadasha и antardasha в натальной карте, затем считаем вложенный период и фиксируем параметры школы."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/antardasha-and-mahadasha-interpretation",
+    "/guide/vimshottari-antardasha-calculation",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не выдавать pratyantardasha, Vimshottari и трактовку карты за научно подтверждённую причинность или гарантию будущего события.",
+    "Не обещать неизбежную судьбу, здоровье, лечение, доход, сделку или юридический исход.",
+    "Не объявлять единственной нормой школу 27 или 28 накшатр, включение Abhijit, аянамшу, эфемериды или правило календарного округления.",
+    "Не переносить формулу, порядок и условия Vimshottari на Ashtottari, Yogini, Chara, Narayana или другую систему без отдельного источника.",
+    "Расчётное правило сверяйте с классическим источником и редакцией выбранной школы, не подменяя ими астрологическую интерпретацию."
+  ],
+  "cover": {
+    "asset_id": "cover-when-to-use-pratyantardasha",
+    "path": "content/astrology-guide/articles/when-to-use-pratyantardasha/cover.webp",
+    "alt": "Вложенные круги временных периодов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "7c482657239171d76ffaa6556ce883e321d8456c746f008d6bf93f9735837a3b",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/when-to-use-pratyantardasha",
+  "tags": [
+    "Практика чтения карты",
+    "когда использовать pratyantardasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "когда использовать pratyantardasha"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

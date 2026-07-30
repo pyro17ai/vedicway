@@ -4,7 +4,10 @@ import argparse
 from pathlib import Path
 
 REQUIRED_ARTICLE_GUARD = (
-    "proxy_pass http://vedicway_backend/internal/seo/articles/$article_slug/page;",
+    "proxy_pass http://vedicway_backend/internal/seo/guide/articles/$article_slug/page;",
+    "proxy_pass http://vedicway_backend/internal/seo/blog/articles/$blog_article_slug/page;",
+    "proxy_pass http://vedicway_backend/internal/seo/guide/page;",
+    "proxy_pass http://vedicway_backend/internal/seo/blog/page;",
     "proxy_intercept_errors on;",
     "error_page 404 =404 /404.html;",
     "location = /assets/seo-entry.js {",
@@ -50,28 +53,50 @@ REQUIRED_LEGAL_GUARD = tuple(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Validate fail-closed Nginx SEO routes")
+    parser = argparse.ArgumentParser(
+        description="Validate fail-closed Nginx SEO routes"
+    )
     parser.add_argument("config", type=Path)
     args = parser.parse_args()
     config = args.config.read_text(encoding="utf-8")
 
-    missing = [fragment for fragment in REQUIRED_ARTICLE_GUARD if fragment not in config]
+    missing = [
+        fragment for fragment in REQUIRED_ARTICLE_GUARD if fragment not in config
+    ]
     if missing:
         raise SystemExit(f"Article SEO proxy is incomplete: {', '.join(missing)}")
     if "location ~ ^/guide/[^/]+/?$" in config:
-        raise SystemExit("Legacy guide SPA fallback still returns 200 for unknown article slugs")
-    missing_dzen = [fragment for fragment in REQUIRED_DZEN_GUARD if fragment not in config]
+        raise SystemExit(
+            "Legacy guide SPA fallback still returns 200 for unknown article slugs"
+        )
+    if "location ~ ^/blog/[^/]+/?$" in config:
+        raise SystemExit(
+            "Legacy blog SPA fallback still returns 200 for unknown article slugs"
+        )
+    if "location ~ ^/admin" in config:
+        raise SystemExit("Removed manual editor is still exposed by Nginx")
+    missing_dzen = [
+        fragment for fragment in REQUIRED_DZEN_GUARD if fragment not in config
+    ]
     if missing_dzen:
         raise SystemExit(f"Dzen RSS proxy is incomplete: {', '.join(missing_dzen)}")
-    missing_csp = [fragment for fragment in REQUIRED_METRIKA_CSP if fragment not in config]
+    missing_csp = [
+        fragment for fragment in REQUIRED_METRIKA_CSP if fragment not in config
+    ]
     if missing_csp:
         raise SystemExit(
             "Metrika external-mode CSP is incomplete: " + ", ".join(missing_csp)
         )
-    missing_recovery = [fragment for fragment in REQUIRED_RECOVERY_GUARD if fragment not in config]
+    missing_recovery = [
+        fragment for fragment in REQUIRED_RECOVERY_GUARD if fragment not in config
+    ]
     if missing_recovery:
-        raise SystemExit(f"Recovery privacy guard is incomplete: {', '.join(missing_recovery)}")
-    missing_legal = [fragment for fragment in REQUIRED_LEGAL_GUARD if fragment not in config]
+        raise SystemExit(
+            f"Recovery privacy guard is incomplete: {', '.join(missing_recovery)}"
+        )
+    missing_legal = [
+        fragment for fragment in REQUIRED_LEGAL_GUARD if fragment not in config
+    ]
     if missing_legal:
         raise SystemExit(f"Legal SEO routing is incomplete: {', '.join(missing_legal)}")
     if "try_files $uri $uri/index.html /index.html" in config:

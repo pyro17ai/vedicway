@@ -37,10 +37,10 @@ flowchart LR
     S --> C["Codex + 12 SEO Skills"]
     C <--> L["Отдельный SQLite ledger"]
     C --> P["Детерминированный publisher CLI"]
-    P --> A["Закрытый FastAPI /internal/seo-agent"]
+    P --> A["Закрытый FastAPI /internal/content-agent"]
     A --> DB["PostgreSQL content tables"]
     A --> M["Media volume"]
-    DB --> H["/guide/slug + sitemap"]
+    DB --> H["/guide/slug + /blog/slug + sitemap"]
     DB --> R["/feed/dzen.xml"]
     R --> D["Канал Дзена"]
 ```
@@ -108,17 +108,17 @@ Search и Wordstat работают с одним VedicWay Search API key и fol
 
 Яндекс относит автоматически сгенерированные тексты без анализа и редактуры, повторы, выдуманные факты и страницы без практической ценности к малополезному контенту. Отдельное нарушение создает текст, написанный ради поискового робота и перенасыщенный запросами. Поэтому production gate запрещает серийные тонкие страницы, обещания точного будущего и механические комбинации всех планет со всеми домами. Правила взяты из официальных разделов [малополезный контент](https://yandex.ru/support/webmaster/ru/threat/useless-content), [SEO-тексты](https://yandex.ru/support/webmaster/ru/threat/seo-text), [советы Вебмастера](https://yandex.ru/support/webmaster/ru/yandex-indexing/webmaster-advice) и [оценка качества EPOS](https://yandex.ru/support/webmaster/ru/epos).
 
-Автоматический `quality_gate` требует 4500-30000 знаков, нормальную длину title/meta/excerpt, минимум три H2, две внутренние ссылки, переход к расчету карты, две внешние ссылки на источники, cover и полную атрибуцию media. Он считает плотность focus keyphrase, ищет повторенные абзацы и блокирует гарантированные предсказания с медицинскими claims. После него Skill вручную сверяет статью с brief и источниками; автоматический pass без этой проверки не дает статус `approved`.
+Автоматический `quality_gate` требует 4500-30000 знаков, нормальную длину title/meta/excerpt, минимум три H2, две внутренние ссылки, две внешние ссылки на источники, cover и полную атрибуцию media. Он считает плотность focus keyphrase, ищет повторенные абзацы и блокирует гарантированные предсказания с медицинскими claims. CTA нельзя встраивать в исходный HTML: сайт сам добавляет два одинаково управляемых блока в середину и конец статьи. После gate Skill вручную сверяет статью с brief и источниками; автоматический pass без этой проверки не даёт статус `approved`.
 
 Астрологический расчет и трактовка разделены. Дата транзита или положение планеты рассчитываются локальным `vedic-astrology` Skill с сохраненными входными параметрами. Интерпретация описывается как астрологическая система чтения, без маскировки под медицинский диагноз или доказанную причинность.
 
 ## Публикация на сайте
 
-Backend получил три закрытые операции: health, upload media и idempotent article PUT. Media принимает максимум 12 МБ, отклоняет decompression bomb и cover уже 700 px, конвертирует файл в WebP variants 640/960/1280/1600 и использует детерминированный UUID от idempotency key с content SHA-256. Суффикс ключа связан с hash файла и всей media-метадаты, поэтому измененный alt или purpose не переиспользует старый asset. Статья требует status `published`, минимум 4500 знаков, правильный canonical и cover; её idempotency key связан с hash полного payload. Повтор того же payload возвращает `idempotent_replay=true`, а изменение существующей статьи требует актуальный `If-Match` revision.
+Backend получил три закрытые операции: health, upload media и идемпотентный article PUT. Media принимает максимум 12 МБ, отклоняет decompression bomb, конвертирует файл в WebP variants 640/960/1280/1600 и использует детерминированный UUID от idempotency key с content SHA-256. Production gate требует cover шириной от 1200 px. Суффикс ключа связан с hash файла и всей media-метадаты, поэтому изменённый alt или purpose не переиспользует старый asset. Статья передаётся как HTML v1, проходит серверную очистку и порог 4500 знаков; canonical и статус формирует backend. Повтор того же payload возвращает `idempotent_replay=true`, а изменение существующей статьи требует актуальный `If-Match` revision.
 
-Публикатор читает manifest только внутри каталога агента и до первого HTTP-запроса сверяет его с активной арендой draft: идентификатор, claim token, срок, content hash, все поля статьи, пути и SHA-256 media должны совпасть с ledger. Затем он загружает cover и body media, заменяет `{{media:body-N}}` реальными UUID, отправляет статью и проверяет публичный origin. Успех требует совпавшего canonical, Article JSON-LD, title, request hash текущей версии, sitemap, Dzen RSS с тем же hash и доступной cover. Эти семь проверок входят в publication evidence с SHA-256 ответов.
+Публикатор читает manifest версии `2.0` только внутри каталога агента и до первого HTTP-запроса сверяет его с активной арендой draft: идентификатор, claim token, срок, content hash, поля статьи, пути и SHA-256 media должны совпасть с ledger. Затем он загружает cover и body media, заменяет `{{media:body-N}}` на серверные `<figure data-media-id="UUID"></figure>`, отправляет статью и проверяет публичный origin. Успех требует точного canonical, Article или BlogPosting JSON-LD, заголовка, sitemap, Dzen RSS и доступной cover. Эти проверки входят в publication evidence с SHA-256 ответов.
 
-Server-rendered HTML теперь сохраняет body media и безопасные Markdown links вместо удаления маркеров. Внутренние ссылки становятся абсолютными на VedicWay, внешние получают `nofollow noopener noreferrer`. Изменений макета и визуального интерфейса нет.
+Server-rendered HTML сохраняет семантические блоки, безопасные ссылки и body media. Он добавляет хлебные крошки, уровень сложности, прогресс чтения, два CTA, комментарии и рекомендации. Все ссылки получают безопасный `rel`, а внешний `img` входной шлюз удаляет.
 
 ## Дзен и выбор площадок
 
@@ -154,8 +154,8 @@ docker compose --env-file .env.production -f compose.production.yml exec seo-age
 
 ## Проверки
 
-Новые тесты покрывают checksum миграций, path ownership, atomic claim race, повторный захват просроченной аренды сущности и аварийного run, durable result, привязку quality report к draft hash, полный цикл optimization action, terminal publication guard, online backup и транзакционный restore. Backend tests проверяют bearer auth, hash-bound idempotency, optimistic article revision, минимальную длину, SSR body media, safe links, sitemap и валидный XML RSS. Сквозной publisher test подтверждает upload, article PUT и семь публичных свидетельств; backup bundle включает SEO-ledger в зашифрованную пару. Финальный локальный прогон дал 134 пройденных Python-теста и 57 frontend-тестов в 19 файлах. Ruff, compileall, production-сборка frontend, статический release-check, Nginx-контракт и все 12 Skills прошли без ошибок; Compose YAML разобран с 19 сервисами.
+Тесты покрывают checksum миграций, path ownership, atomic claim race, повторный захват просроченной аренды сущности и аварийного run, durable result, привязку quality report к draft hash, полный цикл optimization action, terminal publication guard, online backup и транзакционный restore. Backend tests проверяют bearer auth, hash-bound idempotency, optimistic article revision, минимальную длину, SSR body media, safe links, sitemap и валидный XML RSS. Сквозной publisher test подтверждает upload, article PUT, замену HTML media marker и публичные свидетельства; backup bundle включает SEO-ledger в зашифрованную пару. Актуальные числа прогонов фиксирует CI, а не этот документ.
 
 CI устанавливает четыре pinned Yandex MCP на Node 22.17, проверяет версии из lockfile, запускает весь backend и `seo_agent/tests`, валидирует Skills, Nginx, shell, Dockerfile и resolved Compose. На текущей Windows-машине нет Docker, `sh` и Nginx binary, поэтому здесь выполнены Python и Node проверки, production-сборка frontend, Nginx-контракт и разбор Compose YAML. Linux image build, `sh -n`, `nginx -t` и `docker compose config` остаются обязательными CI/server gates.
 
-Основные файлы: [код агента](../seo_agent), [Skills](../.agents/skills), [Codex MCP config](../.codex/config.toml), [Compose](../compose.production.yml), [внутренний API и RSS](../backend/src/vedicway_backend/admin_api.py), [release-check](../scripts/check_seo_agent_release.py), [список доступов](../seo_agent/OPEN_GATES_RU.md).
+Основные файлы: [код агента](../seo_agent), [Skills](../.agents/skills), [Codex MCP config](../.codex/config.toml), [Compose](../compose.production.yml), [внутренний API и RSS](../backend/src/vedicway_backend/content_api.py), [release-check](../scripts/check_seo_agent_release.py), [список доступов](../seo_agent/OPEN_GATES_RU.md).

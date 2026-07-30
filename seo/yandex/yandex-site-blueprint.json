@@ -1,7 +1,7 @@
 {
   "project": {
     "primary_host": "https://vedicway.ru",
-    "site_type": "online_service_and_editorial_guide",
+    "site_type": "online_service_and_editorial_sections",
     "launch_stage": "prelaunch",
     "routing_strategy": "folders",
     "trailing_slash": "never",
@@ -45,7 +45,7 @@
         "Демонстрационный блок воспроизводит интерфейс готовой карты, объяснений и вопросов к себе."
       ],
       "region_ids": [225],
-      "internal_entrypoints": ["/guide"]
+      "internal_entrypoints": ["/guide", "/blog"]
     },
     {
       "id": "guide",
@@ -67,45 +67,31 @@
       "first_release": true,
       "data_owner": "editorial",
       "unique_value_proof": [
-        "Тематический индекс связывает материалы о планетах, домах, аспектах и чтении карты.",
+        "Кодовый каталог задаёт конечный набор материалов и их стабильные адреса.",
         "Каждая опубликованная статья имеет автора, дату обновления, обложку и самостоятельный канонический адрес."
       ],
       "region_ids": [225],
       "internal_entrypoints": ["/"]
     },
     {
-      "id": "guide-editor",
-      "url": "/guide/editor",
-      "parent_id": "guide",
+      "id": "blog",
+      "url": "/blog",
+      "parent_id": "home",
       "page_type": "section",
-      "template_id": "admin-editor-v1",
-      "intent": "navigation",
-      "primary_cluster": "редактор материалов",
-      "index_state": "blocked",
-      "canonical_url": "https://vedicway.ru/guide/editor",
-      "sitemap_include": false,
+      "template_id": "content-index-v2",
+      "intent": "informational",
+      "primary_cluster": "астрология статьи",
+      "index_state": "index",
+      "canonical_url": "https://vedicway.ru/blog",
+      "sitemap_include": true,
       "first_release": true,
-      "data_owner": "admin",
-      "unique_value_proof": [],
+      "data_owner": "content-agent",
+      "unique_value_proof": [
+        "Материалы проходят технический quality gate и получают серверную Schema.org разметку.",
+        "Поиск и фильтр сложности помогают выбрать материал по уровню подготовки."
+      ],
       "region_ids": [225],
-      "internal_entrypoints": []
-    },
-    {
-      "id": "admin",
-      "url": "/admin",
-      "parent_id": null,
-      "page_type": "section",
-      "template_id": "admin-shell-v1",
-      "intent": "navigation",
-      "primary_cluster": "администрирование VedicWay",
-      "index_state": "blocked",
-      "canonical_url": "https://vedicway.ru/admin",
-      "sitemap_include": false,
-      "first_release": true,
-      "data_owner": "admin",
-      "unique_value_proof": [],
-      "region_ids": [225],
-      "internal_entrypoints": []
+      "internal_entrypoints": ["/"]
     }
   ],
   "redirects": []

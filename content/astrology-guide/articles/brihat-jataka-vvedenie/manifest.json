@@ -1,0 +1,65 @@
+{
+  "slug": "brihat-jataka-vvedenie",
+  "title": "Brihat Jataka: первый маршрут по классическому чтению карты",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S05",
+    "S06",
+    "S07"
+  ],
+  "seo": {
+    "seo_title": "Brihat Jataka: как читать классическую карту",
+    "meta_description": "Введение в Brihat Jataka Varāhamihira: как читать шлоку вместе с переводом, переносить условие в карту и не смешивать школы.",
+    "focus_keyphrase": "Brihat Jataka",
+    "canonical_url": "https://vedicway.ru/guide/brihat-jataka-vvedenie",
+    "excerpt": "Первый маршрут по Brihat Jataka: от оригинальной шлоки и перевода к проверке лагны, раши и бхавы с ясными ограничениями метода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "научно доказанные прогнозы по Brihat Jataka",
+    "медицинские диагнозы или рекомендации по лечению",
+    "гарантии дохода, карьеры, брака или юридического результата",
+    "фаталистические обещания неизбежного события",
+    "смешение тропической и сидерической систем",
+    "скрытая смена аянāмши или системы домов",
+    "выдуманные цитаты, шлоки и варианты чтения"
+  ],
+  "cover": {
+    "asset_id": "cover-brihat-jataka-vvedenie",
+    "path": "content/astrology-guide/articles/brihat-jataka-vvedenie/cover.webp",
+    "alt": "Абстрактная схема чтения классической шлоки и натальной карты на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "6fcf928c495e816bd7262fe12ebc7c6faacb49f802f6746e8f523f19bf341dab",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/brihat-jataka-vvedenie",
+  "tags": [
+    "Практика чтения карты",
+    "Brihat Jataka"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Brihat Jataka"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://archive.org/details/brihatjataka00varaiala",
+      "https://books.google.com/books/about/Sree_Varaha_Mihira_s_Brihat_Jataka.html?id=Bf7PKVpe3p4C"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

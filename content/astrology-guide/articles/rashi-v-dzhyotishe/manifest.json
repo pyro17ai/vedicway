@@ -1,0 +1,75 @@
+{
+  "slug": "rashi-v-dzhyotishe",
+  "title": "Раши в джйотише (rāśi): двенадцать знаков сидерической системы",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S05",
+    "S08",
+    "S11"
+  ],
+  "seo": {
+    "seo_title": "Раши в джйотише: 12 знаков сидерического зодиака",
+    "meta_description": "Разбираем, что такое rāśi, чем знак отличается от graha и bhāva, как считать долготу в сидерической системе и фиксировать аянāмшу.",
+    "focus_keyphrase": "раши в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/rashi-v-dzhyotishe",
+    "excerpt": "Раши — 12 равных секторов по 30°. Разбираем разницу между знаком, положением graha и домом, затем показываем расчёт сидерической долготы с фиксированной аянāмшей."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "калькулятор натальной карты"
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "раши, бхава и лагна"
+    },
+    {
+      "url": "/guide/ayanamsha-lahiri-raman-true-chitra",
+      "anchor": "аянāмша в джйотише"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать rāśi, graha или астрологическую интерпретацию за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, отношения, безопасность или точное событие по одному знаку и положению graha.",
+    "Не смешивать тропическую и сидерическую долготу и не скрывать выбранную аянāмшу.",
+    "Не приписывать правило всей традиции по одной редакции BPHS или одной библиотечной реализации.",
+    "Не называть домом сам rāśi и не менять систему домов без явной маркировки метода."
+  ],
+  "cover": {
+    "asset_id": "cover-rashi-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/rashi-v-dzhyotishe/cover.webp",
+    "alt": "Двенадцатисекторная радиальная схема сидерической долготы с орбитами и точками graha на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "11e257a0ccbf4726550e6c2aa12658491891b73497e34d3aeec45c7d54ff790f",
+    "width": 1680,
+    "height": 945
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/rashi-v-dzhyotishe",
+  "tags": [
+    "Основы астрологии",
+    "раши в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "раши в джйотише"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

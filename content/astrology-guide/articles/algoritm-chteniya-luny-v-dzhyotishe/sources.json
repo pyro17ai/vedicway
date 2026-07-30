@@ -1,0 +1,58 @@
+[
+  {
+    "source_id": "A1",
+    "url": "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+    "title": "Searching for nakṣatras in the Ṛgveda",
+    "author_or_institution": "B. N. Narahari Achar, University of Memphis",
+    "role_in_article": "Историческая основа определения накшатры и оговорки о системах из 27 и 28 позиций.",
+    "claims_used": [
+      "Nakṣatra в статье описывается как звёздная группа и как дуговое деление эклиптики.",
+      "В ведийских списках встречаются 27 и 28 накшатр; статус Абхиджит и порядок списка обсуждаются отдельно.",
+      "Vedāṅga Jyotiṣa связывает накшатру с одной двадцать седьмой эклиптики.",
+      "Названия и связанные божества накшатр различаются между текстовыми списками."
+    ],
+    "limits": "Историко-филологическое исследование не служит готовым руководством по современной натальной интерпретации; четыре пади и полный алгоритм чтения Луны в нём не разбираются.",
+    "verified_reading": {
+      "status": "personally_verified",
+      "observed_at": "2026-07-28",
+      "checked_against": "content/astrology-guide/research/verified-reading-log.jsonl"
+    }
+  },
+  {
+    "source_id": "A5",
+    "url": "https://www.astro.com/swisseph/swephprg.htm",
+    "title": "Swiss Ephemeris Programming Interface",
+    "author_or_institution": "Astrodienst AG",
+    "role_in_article": "Техническая основа цепочки время → юлианский день → положение Луны → сидерическая долгота → разбиение на накшатру и паду.",
+    "claims_used": [
+      "Документация описывает преобразование даты и времени в юлианский день и расчёт положения тела через swe_calc_ut().",
+      "Сидерический режим задаётся флагом и функцией swe_set_sid_mode(), которая определяет аянāмшу.",
+      "Функция swe_split_deg() разделяет долготу на знак, накшатру, градусы, минуты и секунды и описывает правила округления.",
+      "Технический интерфейс отделён от традиционной интерпретации джйотиша."
+    ],
+    "limits": "Swiss Ephemeris описывает программную реализацию, а не канон джйотиша; выбор аянāмши, таблицы накшатр и правила интерпретации требуют отдельной фиксации.",
+    "verified_reading": {
+      "status": "personally_verified",
+      "observed_at": "2026-07-28",
+      "checked_against": "content/astrology-guide/research/verified-reading-log.jsonl"
+    }
+  },
+  {
+    "source_id": "A7",
+    "url": "https://archive.org/details/brihat-parashara-hora-shastra",
+    "title": "Brihat Parashara Hora Shastra",
+    "author_or_institution": "Internet Archive; традиционная атрибуция Парашаре",
+    "role_in_article": "Указатель на текстовый корпус BPHS и основание для оговорки о качестве архивной копии.",
+    "claims_used": [
+      "Архивная карточка описывает материал как скан и OCR санскритского текста на телугу.",
+      "Страница не предлагает критической редакции и не заменяет ручную проверку конкретного фрагмента.",
+      "В статье источник используется для обозначения корпуса, а не как основание для неподтверждённых правил о Луне."
+    ],
+    "limits": "Архивная копия и её OCR не равны критическому изданию; конкретные положения о Луне, паде или джанма-накшатре нельзя приписывать карточке без проверки нужных страниц.",
+    "verified_reading": {
+      "status": "personally_verified",
+      "observed_at": "2026-07-28",
+      "checked_against": "content/astrology-guide/research/verified-reading-log.jsonl"
+    }
+  }
+]

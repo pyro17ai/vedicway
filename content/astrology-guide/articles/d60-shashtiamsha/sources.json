@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "bphs_varga_use",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+    "role": "Классическое назначение D60 в системе шестнадцати варг и её место в оценке показателей карты."
+  },
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Расчёт шестидесятой части знака, прямой и обратный порядок шаштьямш, а также оценка средней скорости восхождения градуса."
+  },
+  {
+    "source_id": "openastrology_vedic_docs",
+    "url": "https://github.com/nikolamilenkovic/openastrology-library/blob/main/DOCS_VEDIC.md",
+    "role": "Техническая проверка отдельного расчёта D60, параметров аянамши и зависимости результата от настроек реализации."
+  }
+]

@@ -1,0 +1,107 @@
+{
+  "slug": "bazovaya-muhurta-poryadok-proverki",
+  "title": "Базовая мухурта: порядок проверки панчанги",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A2",
+    "A4",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Базовая мухурта: проверка панчанги по шагам",
+    "meta_description": "Как проверить панчангу для мухурты: определить задачу, собрать пять анг, учесть место и границы времени, затем выбрать момент старта.",
+    "focus_keyphrase": "базовая мухурта",
+    "canonical_url": "https://vedicway.ru/guide/bazovaya-muhurta-poryadok-proverki",
+    "excerpt": "Осторожный рабочий порядок базовой мухурты: от задачи и места до проверки пяти анг панчанги, переходов внутри окна и выбора минуты старта."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "базовая мухурта",
+    "type": "informational_how_to",
+    "status": "no_data",
+    "total_count": 0,
+    "top_requests": [],
+    "associations": [],
+    "reader_need": "Понять, как последовательно проверить панчангу и выбрать допустимое время для начала действия без обещания гарантированного результата."
+  },
+  "semantic_core": {
+    "primary": [
+      "базовая мухурта",
+      "проверка панчанги"
+    ],
+    "related": [
+      "панчанга",
+      "титхи",
+      "вара",
+      "накшатра",
+      "йога",
+      "карана",
+      "мухурта в джйотише",
+      "выбор времени для действия"
+    ],
+    "questions": [
+      "как проверить панчангу для мухурты",
+      "что смотреть в панчанге",
+      "как учитывать границы титхи и накшатры",
+      "нужна ли натальная карта для мухурты",
+      "что делать, если подходящего окна нет"
+    ]
+  },
+  "internal_links": [
+    {
+      "url": "/guide/titkhi-lunnyy-den",
+      "anchor": "Как считается титхи"
+    },
+    {
+      "url": "/guide/karana-polovina-titkhi",
+      "anchor": "Карана в панчанге"
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не выдавать традиционную интерпретацию мухурты за доказанную причинность.",
+    "Не смешивать панчангу момента с лунной натальной картой без явного правила школы."
+  ],
+  "cover": {
+    "asset_id": "cover-bazovaya-muhurta-poryadok-proverki",
+    "path": "content/astrology-guide/articles/bazovaya-muhurta-poryadok-proverki/cover.webp",
+    "alt": "Круг панчанги с пятью секторами и лунной дугой на теплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения из поисковой выдачи не использовались.",
+    "sha256": "1a906cac073e8a86037698e8916205b2c327c949ea9045e1565619b467f911a8",
+    "width": 1729,
+    "height": 910
+  },
+  "sha256": {
+    "article_md": "85AE2A6C81EF0697D89BB255AB9858C44959698AA045798025C31C04934C1D71",
+    "article_html": "3C84DCF6AEF0B7338F88005A47035230A26EB3C5A76DA81C6805997F02AC7CB3",
+    "cover": "06427F64DF99E649FCEA463F2E754DD285E2D91BC77AA742BCF679F084CA55C6"
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/bazovaya-muhurta-poryadok-proverki",
+  "tags": [
+    "Практика чтения карты",
+    "базовая мухурта",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "базовая мухурта"
+      }
+    ],
+    "citation": [
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

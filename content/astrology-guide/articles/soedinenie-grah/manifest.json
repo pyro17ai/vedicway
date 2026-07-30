@@ -1,0 +1,104 @@
+{
+  "title": "Соединение грах: что фиксировать в карте",
+  "slug": "soedinenie-grah",
+  "category": "Практика чтения карты",
+  "seo_title": "Соединение грах в карте: что фиксировать до йоги",
+  "meta_description": "Как фиксировать соединение грах в ведической карте: знак, дом, долготы, расстояние и порядок проверки перед трактовкой йоги.",
+  "focus_keyphrase": "соединение грах",
+  "intent": {
+    "status": "no_data",
+    "type": "informational_how_to",
+    "wordstat_phrase": "соединение грах",
+    "wordstat_total_count": 4,
+    "top_requests": [],
+    "associations": [],
+    "editorial_hypothesis": "Читателю нужен практический порядок фиксации совместного положения грах в одном раши или доме перед интерпретацией йоги."
+  },
+  "semantic_core": {
+    "status": "no_wordstat_data",
+    "primary": [
+      "соединение грах",
+      "соединение планет в ведической астрологии"
+    ],
+    "close_formulations": [
+      "планеты в одном знаке",
+      "грахи в одном доме",
+      "соединение планет в натальной карте",
+      "как читать соединение грах"
+    ],
+    "reader_questions": [
+      "Что считать соединением грах?",
+      "Какие грахи учитывать?",
+      "Нужно ли учитывать градусы?",
+      "Соединение грах всегда означает йогу?"
+    ],
+    "note": "Wordstat не вернул запросов и ассоциаций; семантика сохранена как редакторская гипотеза для заданного reader_outcome."
+  },
+  "canonical": "https://vedicway.ru/guide/soedinenie-grah",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo": {
+    "seo_title": "Соединение грах в карте: что фиксировать до йоги",
+    "meta_description": "Как фиксировать соединение грах в ведической карте: знак, дом, долготы, расстояние и порядок проверки перед трактовкой йоги.",
+    "focus_keyphrase": "соединение грах",
+    "canonical_url": "https://vedicway.ru/guide/soedinenie-grah",
+    "excerpt": "Практический порядок фиксации соединения грах: состав группы, раши, бхава, градусы, расстояние, хозяин знака и границы метода."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Переход от текста к проверке положения грах"
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава, Лагна и дома",
+      "reason": "Углубление в различия знака и дома"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать соединение грах за гарантированный прогноз.",
+    "Не считать близость планет по долготе соединением без проверки раши.",
+    "Не смешивать факт положения с интерпретацией йоги."
+  ],
+  "cover": {
+    "asset_id": "cover-soedinenie-grah",
+    "path": "content/astrology-guide/articles/soedinenie-grah/cover.webp",
+    "alt": "Две грахи, соединённые внутри одного знака на тёплой бумажной астрологической схеме",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешние материалы не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "d2c0b3bf49ab78c8085950a4c6552f7d1e74d456a2e1decb85a353525eb2241b"
+  },
+  "sha256": {
+    "cover.png": "7BF4DD26026CBC3E6827C1BD41AA81EA39B1117CCD712612285FE91A07064CB8"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "соединение грах",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "соединение грах"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

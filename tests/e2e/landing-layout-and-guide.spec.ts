@@ -32,17 +32,16 @@ test("desktop-компоновка помещает форму и все три 
   }
 });
 
-test("публичный гид не открывает редактор, а админка требует вход", async ({ page }) => {
+test("гид и блог доступны, а удалённый ручной редактор возвращает 404", async ({ page }) => {
   await page.setViewportSize({ width: 1569, height: 920 });
   await page.goto("/guide");
 
   await expect(page.getByRole("heading", { name: "Гид по астрологии" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Читайте с самого начала или выбирайте нужную тему" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Редактор статей" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Читайте по порядку или находите нужный приём" })).toBeVisible();
 
+  await page.goto("/blog");
+  await expect(page.getByRole("heading", { name: "Блог VedicWay" })).toBeVisible();
   await page.goto("/admin");
-  await expect(page.getByRole("heading", { name: "Вход в редакцию" })).toBeVisible();
-  await expect(page.getByLabel("Рабочая почта")).toBeVisible();
-  await expect(page.getByLabel("Пароль")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Войти" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Страница не найдена" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Вход в редакцию" })).toHaveCount(0);
 });

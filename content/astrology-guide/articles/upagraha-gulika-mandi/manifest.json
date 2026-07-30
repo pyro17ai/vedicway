@@ -1,0 +1,108 @@
+{
+  "title": "Упаграхи, Gulika и Mandi: дополнительные индикаторы",
+  "slug": "upagraha-gulika-mandi",
+  "category": "Планеты и дома",
+  "seo_title": "Упаграхи, Gulika и Mandi: расчёт и порядок чтения",
+  "meta_description": "Упаграхи, Gulika и Mandi в джйотише: что это за точки, как их рассчитывают, чем они отличаются от грах и где проходят границы безопасной трактовки.",
+  "focus_keyphrase": "упаграхи, Gulika и Mandi",
+  "intent": {
+    "type": "informational",
+    "status": "wordstat_empty_editorial_hypothesis",
+    "summary": "Читатель хочет понять статус упаграх, различие Gulika и Mandi, принцип расчёта по частям дня или ночи и безопасный порядок чтения этих точек после основных грах.",
+    "wordstat": {
+      "phrase": "упаграхи Гулика Манди",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "note": "Wordstat не вернул запросов и ассоциаций за последние 30 дней; интент и семантическое ядро сохранены как редакционная гипотеза по теме статьи."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "упаграхи, Gulika и Mandi",
+      "упаграхи в джйотише",
+      "Gulika в джйотише",
+      "Mandi в джйотише"
+    ],
+    "close_formulations": [
+      "что такое упаграхи",
+      "Гулика и Манди",
+      "расчёт Гулики",
+      "расчёт Манди",
+      "кала-вела",
+      "дополнительные точки натальной карты"
+    ],
+    "reader_questions": [
+      "чем упаграхи отличаются от грах",
+      "Gulika и Mandi это одно и то же или разные точки",
+      "как рассчитать Gulika по восходу и закату",
+      "почему программы показывают разные положения Mandi",
+      "как читать Gulika в доме",
+      "можно ли строить прогноз по упаграхам"
+    ],
+    "cluster": "дополнительные расчётные индикаторы джйотиша после базового чтения натальной карты"
+  },
+  "canonical": "https://vedicway.ru/guide/upagraha-gulika-mandi",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_phaladeepika",
+    "src_jaimini",
+    "src_bphs_upagraha"
+  ],
+  "seo": {
+    "seo_title": "Упаграхи, Gulika и Mandi: расчёт и порядок чтения",
+    "meta_description": "Упаграхи, Gulika и Mandi в джйотише: что это за точки, как их рассчитывают, чем они отличаются от грах и где проходят границы безопасной трактовки.",
+    "focus_keyphrase": "упаграхи, Gulika и Mandi",
+    "canonical_url": "https://vedicway.ru/guide/upagraha-gulika-mandi",
+    "excerpt": "Если два расчёта расходятся, сначала сравните время рождения, аянамшу и систему домов, а затем правило округления."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/graha-v-dzhyotishe",
+    "/guide/ocenka-sily-planety"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогностический результат",
+    "медицинские и финансовые выводы по положению упаграхи",
+    "приравнивание упаграх к основным грахам",
+    "смешение разных определений Gulika и Mandi без маркировки школы"
+  ],
+  "cover": {
+    "asset_id": "cover-upagraha-gulika-mandi",
+    "path": "content/astrology-guide/articles/upagraha-gulika-mandi/cover.webp",
+    "width": 1600,
+    "height": 900,
+    "aspect_ratio": "16:9",
+    "alt": "Круговой циферблат из восьми долей с выделенной тёмной точкой и дугой восходящего горизонта на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано через OpenAI ImageGen специально для VedicWay; сторонние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "sha256": "97ef90eb8f1d184a3f06e21e4cf9f2b9832dc61bd6c2fcba0cc8b6724ac448a9"
+  },
+  "sha256": "48B6C8DC66768BB13FB652DF04FC3B60287D3CED8CE71C9645D5C9FFB565BCEF",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "упаграхи, Gulika и Mandi",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "упаграхи, Gulika и Mandi"
+      }
+    ],
+    "citation": [
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

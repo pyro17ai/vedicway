@@ -6,7 +6,7 @@ SEO-agent запускается отдельным Compose profile `seo` и н�
 
 `compose.production.yml` поднимает PostgreSQL, две последовательные цепочки миграций, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
 
-Сейчас действует split storage. PostgreSQL предназначен для users, roles, articles и media metadata после объединения admin-ветки. Расчёты, purchases, entitlements, PDF metadata и очередь писем остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно по одному API, worker и email-consumer. Масштабирование этих процессов и rolling update с двумя активными экземплярами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
+Сейчас действует split storage. PostgreSQL хранит статьи, комментарии, media metadata и журнал согласий. Расчёты, purchases, entitlements, PDF metadata и очередь писем остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно по одному API, worker и email-consumer. Масштабирование этих процессов и rolling update с двумя активными экземплярами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
 
 Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. Access log не записывает IP, URL, query, referrer и user-agent; для связи событий остаётся случайный request id. Uvicorn запускается с `--no-access-log`, а прикладной журнал использует шаблон маршрута `/api/v1/magic-links/{token}`. Inter и Cormorant Garamond собираются из локальных `@fontsource` assets: до согласия на cookies браузер не обращается к Google. CSP оставляет прямой поиск городов Open-Meteo, который нужен форме и должен быть раскрыт в политике персональных данных.
 
@@ -14,9 +14,9 @@ Nginx проксирует `/api`, отключает buffering для SSE, за
 
 Служебные payment/metrics endpoints доступны только через профиль `ops`: `ops-gateway` слушает loopback `127.0.0.1:8081` и подключён к отдельной internal-сети. Оператор открывает SSH tunnel или входит через VPN bastion; публичный TLS ingress этот порт не публикует. API не получает Codex key, worker не получает YooKassa, operations и metrics tokens. Раздельные `api-egress` и `worker-egress` сети позволяют хостовому firewall либо egress proxy независимо ограничить исходящий трафик. Сам Docker Compose не фильтрует HTTPS по домену: API разрешается только `api.yookassa.ru`, worker получает доступ только к утверждённым OpenAI/Codex endpoints.
 
-`/sitemap.xml` запрашивает `/api/v1/seo/sitemap.xml`. Backend должен включать в ответ только опубликованные статьи. При 404/502/503/504 Nginx отдаёт статический `public/sitemap.xml`, в котором остаются главная и `/guide`. Draft, admin, chart, checkout и API URL запрещены в sitemap и уже закрыты в `robots.txt`.
+`/sitemap.xml` запрашивает `/api/v1/seo/sitemap.xml`. Backend включает только опубликованные статьи и разрешённые кодом слоты гида. При 404/502/503/504 Nginx отдаёт статический `public/sitemap.xml`, в котором остаются главная, `/guide` и `/blog`. Служебные, chart, checkout и API URL запрещены в sitemap.
 
-Запрос `/guide/<slug>` проходит через серверный HTML endpoint. Опубликованная статья уже в первом ответе содержит собственные title, description, canonical, полный текст и Article JSON-LD, после загрузки стабильных `seo-entry` aliases React заменяет исходную разметку обычным интерфейсом. Неизвестный slug и черновик возвращают статический 404 без SPA fallback; frontend image проверяет Nginx через `nginx -t` при сборке.
+Запросы `/guide/<slug>` и `/blog/<slug>` проходят через серверный HTML endpoint. Опубликованная статья уже в первом ответе содержит title, description, canonical, полный текст, BreadcrumbList и Article либо BlogPosting JSON-LD; после загрузки React заменяет исходную разметку интерактивным интерфейсом. Неизвестный slug возвращает статический 404 без SPA fallback; frontend image проверяет Nginx через `nginx -t` при сборке.
 
 ## Обязательные входы релиза
 
@@ -38,16 +38,7 @@ docker compose --env-file .env.production -f compose.production.yml up -d backen
 docker compose --env-file .env.production -f compose.production.yml ps
 ```
 
-Bash использует те же команды после `cp .env.production.example .env.production`. Сервис `migrate` создаёт `schema_migrations`, исполняет все `backend/migrations/*.sql` по имени файла и сохраняет SHA-256. Изменённая задним числом миграция завершает запуск кодом 65. Затем `content-migrate` выполняет `alembic upgrade head` для пользователей, статей, медиа и журнала согласий. Backend и worker не стартуют, пока обе цепочки не завершатся без ошибки.
-
-Первого администратора создаёт отдельный одноразовый профиль. Положите адрес и пароль длиной от 16 символов в `secrets/admin_bootstrap_email.txt` и `secrets/admin_bootstrap_password.txt`, затем выполните команду и удалите оба файла:
-
-```powershell
-docker compose --env-file .env.production -f compose.production.yml --profile bootstrap run --rm bootstrap-admin
-Remove-Item secrets/admin_bootstrap_email.txt, secrets/admin_bootstrap_password.txt
-```
-
-Bootstrap-секреты не передаются обычным backend/worker. Повторный запуск не меняет существующего администратора и завершится без создания дубликата.
+Bash использует те же команды после `cp .env.production.example .env.production`. Сервис `migrate` создаёт `schema_migrations`, исполняет все `backend/migrations/*.sql` по имени файла и сохраняет SHA-256. Изменённая задним числом миграция завершает запуск кодом 65. Затем `content-migrate` выполняет `alembic upgrade head` для статей, комментариев, медиа и журнала согласий. Backend и worker не стартуют, пока обе цепочки не завершатся без ошибки.
 
 FastAPI запускается одним Uvicorn process. `VEDICWAY_INLINE_WORKER=0` отключает обработку очереди внутри API, поэтому jobs исполняет отдельный `worker`. Named volume `runtime_data` обязателен и не удаляется командой `down -v`. PostgreSQL readiness не доказывает сохранность chart/payment Store: отдельно проверяйте SQLite volume и runtime backup.
 
@@ -72,7 +63,7 @@ curl.exe -I https://YOUR_DOMAIN/internal/metrics
 
 Последний запрос обязан вернуть 404. Затем проведите один расчёт контрольной карты через публичную форму, дождитесь D1, бесплатного объяснения и вопросов. Тестовый платёж в production запрещён. До приёма реальных денег используйте тестовый магазин YooKassa в отдельном staging-контуре с `VEDICWAY_ENV=development`; production запускается только с реальными HTTPS callback URL и подтверждённым кодом НДС.
 
-Проверка PDF включает D1 и выбранную varga/mode из интерфейса, загрузку файла и открытие всех страниц. Проверка sitemap включает опубликованную статью и подтверждает отсутствие draft slug, `/admin`, `/guide/editor` и `/chart/*`.
+Проверка PDF включает D1 и выбранную varga/mode из интерфейса, загрузку файла и открытие всех страниц. Проверка sitemap включает статьи гида и блога, но исключает скрытые старые slug гида и `/chart/*`.
 
 ## Backup и restore PostgreSQL
 
@@ -100,13 +91,13 @@ Runtime lifecycle запускается сервисами `retention-dry-run` 
 
 - [ ] `.env.production` не содержит `.example`, `REPLACE_*`, тестовых payment flags и чужих CIDR; `check_production_release.py` завершился кодом 0.
 - [ ] Image tags привязаны к Git SHA, wheelhouse PyJHora имеет сохранённый `SHA256SUMS`, лицензированный `places.json` прошёл загрузку, Codex API key принадлежит отдельному service account.
-- [ ] `migrate` и `content-migrate` завершились кодом 0; Alembic находится на `head`, users/articles store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
+- [ ] `migrate` и `content-migrate` завершились кодом 0; Alembic находится на `head`, content store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
 - [ ] TLS ingress передаёт `X-Forwarded-Proto=https`, порт Compose слушает loopback, `/internal` закрыт, CSP report в браузере пуст, HSTS присутствует на HTTPS-ответе. URI `/api/v1/magic-links/*` отключён или отредактирован во всех внешних access/error logs; тестовый токен-маркер не найден в CDN, ingress и SIEM.
 - [ ] Опубликованы актуальные оферта, политика и согласие; реквизиты `VEDICWAY_INTERPRETATION_PROCESSOR_*` совпадают с договором, юрист проверил трансграничный флаг и уведомительный порядок Роскомнадзора. `VEDICWAY_OFFER_VERSION` совпадает с текстом, YooKassa webhook и возврат проверены из разрешённых сетей без ручного SQL.
 - [ ] SMTP secret смонтирован, SPF/DKIM/DMARC проходят внешний тест, одноразовые chart/PDF ссылки не попадают в access log и не принимают replay.
-- [ ] `/`, `/guide`, legal pages и опубликованные статьи возвращают корректные canonical/robots/schema; sitemap не содержит служебных URL, Yandex Webmaster принял robots и sitemap.
+- [ ] `/`, `/guide`, `/blog`, legal pages и опубликованные статьи возвращают корректные canonical/robots/schema; sitemap не содержит служебных URL, Yandex Webmaster принял robots и sitemap.
 - [ ] Golden-карта, бесплатное объяснение, полный отчёт, вопросы и PDF прошли end-to-end. p95 расчёта и provider timeout укладываются в утверждённый SLO.
 - [ ] Логи, PostgreSQL, media volume и backup физически размещены по утверждённой схеме локализации; секреты и персональные данные не попадают в logs, CI artifacts и error tracking.
 - [ ] Утверждены сроки хранения по каждому классу данных; `retention-dry-run` проверен, systemd timer включён, запрос удаления очищает primary storage, отчёты, медиа и backup-копии, а восстановление не возвращает данные с истёкшим сроком.
 
-Жёсткий стоп масштабирования: `backend/src/vedicway_backend/store.py` хранит charts и payments в SQLite. Compose передаёт `DATABASE_URL` и `VEDICWAY_DATABASE_URL` для admin/content adapter, но до переноса chart/payment таблиц допускается только single-node split storage. Если после объединения admin-ветки ни один production component не читает PostgreSQL, уберите `postgres` и `migrate` из запуска: декоративная база создаёт ложное ощущение надёжности. Зелёный `/health/ready` сейчас подтверждает доступ к runtime Store, но не полноценный disaster recovery.
+Жёсткий стоп масштабирования: `backend/src/vedicway_backend/store.py` хранит charts и payments в SQLite. Compose передаёт `DATABASE_URL` и `VEDICWAY_DATABASE_URL` content adapter, но до переноса chart/payment таблиц допускается только single-node split storage. Зелёный `/health/ready` подтверждает доступ к runtime Store, но не полноценный disaster recovery.

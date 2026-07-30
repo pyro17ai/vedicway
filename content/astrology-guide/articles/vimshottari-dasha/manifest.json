@@ -1,0 +1,137 @@
+{
+  "slug": "vimshottari-dasha",
+  "title": "Вимшоттари-даша: что проверить перед интерпретацией",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "dasha:BPHS_ARCHIVE_2",
+    "tech:node-jhora-prediction"
+  ],
+  "seo_title": "Вимшоттари-даша: что проверить перед трактовкой",
+  "meta_description": "Вимшоттари-даша без ошибок: проверьте накшатру Луны, порядок периодов, остаток первой маха-даши и точность времени рождения до трактовки карты.",
+  "focus_keyphrase": "Вимшоттари-даша",
+  "intent": "Информационно-практический: читатель хочет понять устройство Вимшоттари, проверить расчёт периодов и выяснить причины расхождений онлайн-калькуляторов до интерпретации.",
+  "semantic_core": {
+    "primary": [
+      {
+        "query": "вимшоттари даша",
+        "count_30d": 625
+      }
+    ],
+    "calculation": [
+      {
+        "query": "рассчитать вимшоттари даша",
+        "count_30d": 148
+      },
+      {
+        "query": "вимшоттари даша джйотиш рассчитать",
+        "count_30d": 67
+      },
+      {
+        "query": "вимшоттари даша онлайн",
+        "count_30d": 39
+      },
+      {
+        "query": "вимшоттари даши расчет",
+        "count_30d": 22
+      }
+    ],
+    "periods": [
+      {
+        "query": "периоды вимшоттари даша",
+        "count_30d": 103
+      },
+      {
+        "query": "таблицу вимшоттари даши",
+        "count_30d": 15
+      }
+    ],
+    "questions": [
+      "что такое вимшоттари даша",
+      "как определить первую маха-дашу",
+      "как рассчитать остаток даши при рождении",
+      "почему онлайн-калькуляторы дают разные даты",
+      "как точность времени рождения влияет на периоды"
+    ],
+    "entities": [
+      "махадаша",
+      "антардаша",
+      "накшатра Луны",
+      "аянамша",
+      "сидерическая долгота Луны",
+      "остаток даши",
+      "Кету",
+      "Венера",
+      "Солнце",
+      "Луна",
+      "Марс",
+      "Раху",
+      "Юпитер",
+      "Сатурн",
+      "Меркурий"
+    ],
+    "wordstat_observed_at": "2026-07-30",
+    "wordstat_window": "последние 30 дней"
+  },
+  "canonical": "https://vedicway.ru/guide/vimshottari-dasha",
+  "seo": {
+    "seo_title": "Вимшоттари-даша: что проверить перед трактовкой",
+    "meta_description": "Вимшоттари-даша без ошибок: проверьте накшатру Луны, порядок периодов, остаток первой маха-даши и точность времени рождения до трактовки карты.",
+    "focus_keyphrase": "Вимшоттари-даша",
+    "canonical_url": "https://vedicway.ru/guide/vimshottari-dasha",
+    "excerpt": "Проверка Вимшоттари перед интерпретацией: исходная накшатра Луны, фиксированная последовательность управителей, остаток первого периода и чувствительность расчёта ко времени рождения."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/proverka-rascheta-nakshatry",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/vimshottari-balance-at-birth",
+    "/guide/how-to-read-mahadasha-with-natal-chart"
+  ],
+  "prohibited_claims": [
+    "медицинский диагноз или обещание лечения",
+    "гарантированный финансовый результат",
+    "неизбежное событие или научно доказанная прогностическая точность"
+  ],
+  "structured_data": {
+    "type": "FAQPage",
+    "visible_content_match": true,
+    "question_count": 3
+  },
+  "cover": {
+    "asset_id": "cover-vimshottari-dasha",
+    "path": "content/astrology-guide/articles/vimshottari-dasha/cover.webp",
+    "alt": "Лунный диск и девять вложенных орбит на тёплой бумажной фактуре",
+    "width": 1672,
+    "height": 941,
+    "aspect_ratio": "16:9",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и лицензируемые материалы не использованы.",
+    "sha256": "a7b3c1dc9294a77c78c23e11d56ba5e4ddd3ade90d52a637d35fd2578af3dbed"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "Вимшоттари-даша",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Вимшоттари-даша"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

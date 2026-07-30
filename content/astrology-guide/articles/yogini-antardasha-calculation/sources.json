@@ -1,0 +1,48 @@
+[
+  {
+    "source_id": "S3",
+    "url": "https://saravali.github.io/astrology/dasa_yogini.html",
+    "title": "Yogini Dasa",
+    "author_or_institution": "Saravali",
+    "source_kind": "educational_secondary",
+    "quality": "medium",
+    "review_status": "personally_verified",
+    "role_in_article": "Таблица восьми йогини, управителей, длительностей, накшатр и текстовое правило пропорциональной antardasha.",
+    "claims_used": [
+      "Yogini Dasha связана с положением Луны в накшатре.",
+      "В системе восемь йогини, а полный цикл составляет 36 лет.",
+      "У каждой йогини есть управитель и длительность от 1 до 8 лет.",
+      "Первым antardasha идёт управитель основной даши, а длительность подпериодов строится пропорционально Vimshottari."
+    ],
+    "limitations": "Учебная вторичная страница не раскрывает происхождение таблицы и не даёт отдельной полной формулы в календарных днях.",
+    "verified_reading": {
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "log_source_id": "dasha:YOGINI",
+      "note": "URL открыт прямым веб-доступом; проверены строки с накшатрой Луны, восемью йогини, циклом 36 лет, таблицей и разделом Antardasas."
+    }
+  },
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Текстовая опора для Yogini Dasha, общего принципа расчёта antardasha и порядка, начинающегося с управителя основной даши.",
+    "claims_used": [
+      "Глава 46 перечисляет Yogini Dasha среди систем даша и называет восемь йогини с длительностями 1–8 лет.",
+      "Глава 51 задаёт пропорциональный принцип: длительность подпериода получают через произведение длительностей и деление на полный цикл системы.",
+      "В главе 51 первый antardasha принадлежит управителю основной даши, затем идёт порядок основной системы.",
+      "Чтение результатов antardasha связывается с натальными параметрами, включая положение относительно асцендента."
+    ],
+    "limitations": "Оцифрованный английский перевод с редакторскими комментариями и OCR-ошибками; он не заменяет проверку санскритской редакции и не содержит отдельной полной календарной формулы именно для Yogini.",
+    "verified_reading": {
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "log_source_id": "dasha:BPHS_ARCHIVE_2",
+      "note": "URL открыт прямым веб-доступом; проверены оглавление, фрагмент Yogini Dasa в главе 46 и глава 51 с общей формулой antardasha, порядком подпериодов и примером Vimshottari."
+    }
+  }
+]

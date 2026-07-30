@@ -1,0 +1,115 @@
+{
+  "slug": "tranzit-cherez-natalnuyu-tochku",
+  "title": "Транзит планеты через натальную точку",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "S4",
+    "EXA_PHALADEEPIKA_26",
+    "EXA_BRIHAT_SAMHITA_104"
+  ],
+  "seo_title": "Транзит планеты через натальную точку: как читать",
+  "meta_description": "Как читать транзит планеты через натальную точку: отделить временный контакт от натальной структуры, проверить градус, дашу и границы метода.",
+  "focus_keyphrase": "транзит планеты через натальную точку",
+  "canonical": "https://vedicway.ru/guide/tranzit-cherez-natalnuyu-tochku",
+  "seo": {
+    "seo_title": "Транзит планеты через натальную точку: как читать",
+    "meta_description": "Как читать транзит планеты через натальную точку: отделить временный контакт от натальной структуры, проверить градус, дашу и границы метода.",
+    "focus_keyphrase": "транзит планеты через натальную точку",
+    "canonical_url": "https://vedicway.ru/guide/tranzit-cherez-natalnuyu-tochku",
+    "excerpt": "Порядок чтения точного транзита поверх натальной структуры: расчёт долготы, гочара от Луны, даша, повторные проходы и ограничения времени рождения."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "транзит планеты через натальную точку",
+    "type": "informational_methodological",
+    "status": "no_data",
+    "total_count": 0,
+    "top_requests": [],
+    "associations": [],
+    "wordstat_data": [],
+    "reader_need": "Понять транзит как временный фактор поверх натальной структуры и получить воспроизводимый порядок чтения точного контакта без обещания обязательного события.",
+    "inference_note": "Тип интента выведен из формулировки темы и цели читателя; Wordstat не вернул запросов или ассоциаций."
+  },
+  "semantic_core": {
+    "source": "wordstat",
+    "status": "no_data",
+    "primary": [],
+    "related": [],
+    "questions": [],
+    "editorial_fallback": {
+      "primary": "транзит планеты через натальную точку",
+      "related": [
+        "транзитная планета и натальная карта",
+        "точное соединение транзитной и натальной планеты",
+        "гочара от натальной Луны",
+        "орбис транзита",
+        "повторный транзит при ретроградности"
+      ],
+      "questions": [
+        "как читать транзит через натальную точку",
+        "меняет ли транзит натальную карту",
+        "всегда ли событие происходит в день точного соединения",
+        "что важнее: транзит по знаку или по точному градусу"
+      ],
+      "basis": "Редакционная кластеризация без приписывания частот; Wordstat-результат сохранён пустым."
+    }
+  },
+  "internal_links": [
+    "/guide/ogranicheniya-rascheta-natalnoj-karty",
+    "/guide/gochara-transity-otnositelno-natalnoy-luny",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не назначать обязательное событие по одному точному транзиту.",
+    "Не выдавать рабочий орбис одной школы за общую норму джйотиша.",
+    "Не скрывать неопределённость времени рождения при транзите к Лагне или куспиду."
+  ],
+  "cover": {
+    "asset_id": "cover-tranzit-cherez-natalnuyu-tochku",
+    "path": "content/astrology-guide/articles/tranzit-cherez-natalnuyu-tochku/cover.webp",
+    "alt": "Терракотовая планета пересекает отмеченную натальную точку на орбите поверх тёплой бумажной карты неба",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения из поисковой выдачи не использовались.",
+    "sha256": "1e93254911995339b389879070df2df03a5cdab80120ee60ed8c5574c9c19209",
+    "width": 1600,
+    "height": 900,
+    "mime_type": "image/png"
+  },
+  "sha256": {
+    "article_md": "F98776362FED26BD25A0BB9636E6F67A63FA359BF91BC3ACAEC2202937E81DEC",
+    "article_html": "4D6181C7C1F21E2E3914C16A9B3BEBD140D111A2AFC473E41566329AA4227F98",
+    "sources_json": "53905B7BC6D970A7EAEFE7B58F0346833C8644CFF994DEBB219E8DEA2861491D",
+    "cover": "1DE40D9E6DD7AE38D29F293649A3432AC728222F1C36035CB5A1FE4A739DB8F2"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Время и циклы",
+    "транзит планеты через натальную точку",
+    "натальная карта",
+    "планеты",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "транзит планеты через натальную точку"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.siva.sh/phaladeepika/26/",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

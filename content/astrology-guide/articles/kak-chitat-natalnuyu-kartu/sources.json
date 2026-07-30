@@ -1,0 +1,103 @@
+[
+  {
+    "source_id": "S05",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "title": "Varahamihira: Brhatsamhita",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": "1998-05-08",
+    "topics": [
+      "gaṇita",
+      "horā",
+      "saṃhitā",
+      "graha",
+      "rāśi",
+      "bhāva",
+      "yoga",
+      "daśā"
+    ],
+    "claims": [
+      "В первой главе jyotiḥśāstra разделено на gaṇita, horā и saṃhitā.",
+      "В тексте рядом с разделами встречаются темы graha, rāśi, horā, bhāva и yoga.",
+      "GRETIL указывает на справочный статус файла и редакторскую основу A. V. Tripathi с вариантами H. Kern и комментарием Utpala."
+    ],
+    "quality": "medium",
+    "limitations": "Это справочный цифровой текст 1998 года; sandhi, варианты чтения и редакторские пометы требуют сверки с печатным изданием.",
+    "review_status": "agent_reviewed",
+    "observed_at": "2026-07-28",
+    "verified_reading_log_match": "canon:GRETIL_BS",
+    "role_in_article": "Первичный текстовый источник для исторической рамки и разграничения классического корпуса с поздней редакторской передачей.",
+    "claims_used": [
+      "Трёхчастная структура jyotiḥśāstra.",
+      "Наличие в корпусе тем graha, rāśi, bhāva, yoga и daśā.",
+      "Справочный статус цифровой версии и её редакторская основа."
+    ],
+    "limits": "Не используется как единственный нормативный алгоритм современного чтения карты."
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Brihatparāśarahorāśāstra",
+    "author_or_institution": "Перевод BPHS; данные редактора на странице не указаны",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "lagna",
+      "graha",
+      "bhāva",
+      "yoga",
+      "daśā",
+      "Vimśottarī"
+    ],
+    "claims": [
+      "PDF содержит разделы о lagna, bhāva, graha, yoga и daśā.",
+      "В тексте bhāva связываются с предметными областями, а оценка периода зависит от положения и связей показателей.",
+      "В документе приведены группы Nabha yoga и формулы для расчёта antar-daśā."
+    ],
+    "quality": "medium",
+    "limitations": "PDF размещён на стороннем сайте и не сообщает переводчика, редакцию, издателя, датировку или рукописную базу; его нельзя использовать как единственный исторический канон BPHS.",
+    "review_status": "agent_reviewed",
+    "observed_at": "2026-07-28",
+    "verified_reading_log_match": "dasha:BPHS_ARCHIVE_2; тема совпадает, URL и редакция отличаются",
+    "role_in_article": "Навигация по классическим темам и источник оговорки о различии первичного текста, позднего перевода и современной трактовки.",
+    "claims_used": [
+      "Разделение карты на lagna, graha, bhāva, yoga и daśā.",
+      "Необходимость оценивать bhāva, хозяев и связи вместе.",
+      "Условия для yoga и antar-daśā проверяются по конкретной редакции."
+    ],
+    "limits": "Точные правила школы и выводы о событиях по этому PDF не переносятся в статью без маркировки редакции."
+  },
+  {
+    "source_id": "S11",
+    "url": "https://docs.rs/panchangam",
+    "title": "panchangam — High-Precision Vedic Calendar Library",
+    "author_or_institution": "Документация Rust-библиотеки Panchangam",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": null,
+    "topics": [
+      "Drik Gaṇita",
+      "tithi",
+      "nakṣatra",
+      "yoga",
+      "Swiss Ephemeris",
+      "Vimśottarī"
+    ],
+    "claims": [
+      "Документация описывает расчёт tithi, nakṣatra, yoga, karaṇa и vara по модели Drik Gaṇita.",
+      "Для положений планет библиотека использует Swiss Ephemeris, а для восходов и закатов — отдельный географический модуль.",
+      "В API перечислены функции для Vimśottarī daśā, varga и активных yoga."
+    ],
+    "quality": "medium",
+    "limitations": "Документация описывает конкретную библиотечную реализацию, а не нормативный канон джйотиша; ayanāṃśa, эфемериды, системы домов и правила начала суток требуют отдельной фиксации.",
+    "review_status": "agent_reviewed",
+    "observed_at": "2026-07-28",
+    "verified_reading_log_match": null,
+    "role_in_article": "Современный технический источник для объяснения параметров расчёта и границы между программной функцией и астрологической интерпретацией.",
+    "claims_used": [
+      "Расчётный слой разделяет календарные, планетные и географические функции.",
+      "Библиотека предоставляет отдельные функции Vimśottarī daśā и yoga.",
+      "Наличие функции в коде не подтверждает каноничность или прогностическую точность правила."
+    ],
+    "limits": "Не используется как доказательство исторического происхождения терминов или истинности астрологических выводов."
+  }
+]

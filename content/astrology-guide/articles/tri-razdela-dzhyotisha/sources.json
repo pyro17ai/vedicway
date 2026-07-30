@@ -1,0 +1,48 @@
+[
+  {
+    "source_id": "S01",
+    "url": "https://doi.org/10.60018/acasva.nssz2549",
+    "title": "Calendrical Terminology in the Early Vedic Astronomical Treatises of the Jyotiṣavedāṅga",
+    "author_or_institution": "Marta Monkiewicz, University of Wrocław",
+    "source_kind": "scholarly_secondary",
+    "role_in_article": "Подтверждает ранний календарно-ритуальный слой jyotiṣa и границы Jyotiṣavedāṅga.",
+    "claims_used": [
+      "Сохранились две основные редакции Jyotiṣavedāṅga, связанные с Ṛgveda и Yajurveda.",
+      "Ранний материал посвящён движению Солнца и Луны, лунно-солнечному циклу, tithi и nakṣatra.",
+      "Знание jyotiṣa связано с определением времени ведийского ритуала.",
+      "Абсолютная датировка спорна и не сводится к одной уверенной цифре."
+    ],
+    "verified_reading": "URL проверен 2026-07-28 через поиск по DOI; тезисы сверены с записью canon:S01 в verified-reading-log.jsonl.",
+    "limits": "Исследовательская статья разбирает выбранные строфы и терминологию, но не заменяет критическое издание обеих редакций Jyotiṣavedāṅga."
+  },
+  {
+    "source_id": "S05",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "title": "Varahamihira: Bṛhatsaṃhitā",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "role_in_article": "Даёт первичный текстовый пример трёхчастной структуры jyotiḥśāstra и материалы о horā и saṃhitā.",
+    "claims_used": [
+      "Первая глава формулирует трёхчастную структуру jyotiḥśāstra: gaṇita, horā и saṃhitā.",
+      "В тексте упомянуты движения грах, рождение, путешествия, свадьбы и знамения.",
+      "Цифровая версия основана на редакции A. V. Tripathi с вариантными чтениями и помечена как справочная."
+    ],
+    "verified_reading": "URL открыт 2026-07-28; первая глава и редакционная оговорка прочитаны непосредственно на странице GRETIL.",
+    "limits": "Электронная транслитерация не заменяет критическое издание; sandhi и варианты чтения требуют осторожности."
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Bṛhat Parāśara Horāśāstra",
+    "author_or_institution": "Анонимная онлайн-перепечатка",
+    "source_kind": "primary_text",
+    "role_in_article": "Подтверждает карту тем horā и явное перечисление horā, gaṇita и saṃhitā во вводной главе.",
+    "claims_used": [
+      "В начальной главе текст называет horā, gaṇita и saṃhitā тремя разделами jyotiṣa.",
+      "Далее документ содержит темы graha, rāśi, lagna, bhāva, делительных карт, yoga и daśā.",
+      "Документ годится для сверки содержания horā, но не для самостоятельных исторических выводов."
+    ],
+    "verified_reading": "PDF открыт 2026-07-28; прочитана вводная глава и оглавление документа на 302 страницы.",
+    "limits": "Нет имени переводчика, редакции, издателя, датировки и сведений о санскритском оригинале или рукописной базе."
+  }
+]

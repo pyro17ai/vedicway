@@ -1,0 +1,69 @@
+{
+  "slug": "lagna-na-granice-znaka",
+  "title": "Лагна на границе знака: как проверить точность времени рождения",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Лагна на границе знака: как проверить время",
+    "meta_description": "Как проверить лагну на границе знака: сверяем минуты рождения, исторический offset, координаты, аянāмшу и систему домов до чтения карты.",
+    "focus_keyphrase": "лагна на границе знака",
+    "canonical_url": "https://vedicway.ru/guide/lagna-na-granice-znaka",
+    "excerpt": "Пошагово проверяем время рождения, исторический offset и координаты, если лагна близка к границе раши в сидерической карте."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "о раши, бхаве и лагне"
+    },
+    {
+      "url": "/guide/siderealnyj-i-tropicheskij-zodiak",
+      "anchor": "о сидерическом и тропическом зодиаке"
+    },
+    {
+      "url": "/chart",
+      "anchor": "калькулятор натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать джйотиш и техническую проверку времени за научно подтверждённый прогноз.",
+    "Не обещать точность времени рождения и не выбирать знак лагны при пересечении границы неопределённым интервалом.",
+    "Не смешивать тропический и сидерический зодиак, аянāмши и системы домов без явной фиксации настроек.",
+    "Не выдавать астрологическую интерпретацию за медицинский диагноз, финансовое решение или гарантию события."
+  ],
+  "cover": {
+    "asset_id": "cover-lagna-na-granice-znaka",
+    "path": "content/astrology-guide/articles/lagna-na-granice-znaka/cover.webp",
+    "alt": "Абстрактная восходящая дуга пересекает границу двух знаковых секторов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "d4c171e1207027b147fc67a00e47fa44bc0202c931dcbbe6df33dcaa93281a94",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/lagna-na-granice-znaka",
+  "tags": [
+    "Практика чтения карты",
+    "лагна на границе знака",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "лагна на границе знака"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/granica-znaka-lagny"
+    ]
+  }
+}

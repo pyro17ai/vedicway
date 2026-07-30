@@ -1,0 +1,75 @@
+{
+  "slug": "pyatyy-dom",
+  "title": "Пятый дом: обучение, дети и творческое выражение",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "5 дом в астрологии: дети и творчество",
+    "meta_description": "5 дом в астрологии показывает, как человек учится через интерес, создаёт новое и передаёт себя дальше. В джйотише его читают через сам дом, управителя 5-го.",
+    "focus_keyphrase": "5 дом в астрологии",
+    "canonical_url": "https://vedicway.ru/guide/pyatyy-dom",
+    "excerpt": "Практический разбор пятого дома в джйотише: значение обучения, детей и творчества, проверка управителя и Юпитера, мини-пример и границы метода."
+  },
+  "canonical": "https://vedicway.ru/guide/pyatyy-dom",
+  "internal_links": [
+    {
+      "url": "/guide/bhava-i-lagna",
+      "anchor": "бхавах и Лагне",
+      "reason": "Переход к базовой схеме домов."
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "Порядок чтения натальной карты",
+      "reason": "Встраивание пятого дома в полный разбор."
+    },
+    {
+      "url": "/chart",
+      "anchor": "Рассчитать натальную карту",
+      "reason": "Переход к расчёту карты после фиксации исходных данных."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно доказанную причинность.",
+    "Не обещать рождение ребёнка, конкретную профессию, доход или гарантированное событие.",
+    "Не делать вывод о пятом доме по одной планете без проверки управителя, Юпитера и силы дома.",
+    "Не смешивать расчёт, традиционное правило и личную гипотезу."
+  ],
+  "cover": {
+    "asset_id": "cover-pyatyy-dom",
+    "path": "content/astrology-guide/articles/pyatyy-dom/cover.webp",
+    "alt": "Открытая книга и созвездие над выделенным сектором астрологического круга на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным генератором изображений OpenAI для VedicWay; внешняя лицензия не требуется.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "65e6f98ee07fc7f5274c64ed791102a0fe496468b62ce9b29f5a26485f80fe6c"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "5 дом в астрологии",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "5 дом в астрологии"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

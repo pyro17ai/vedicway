@@ -1,0 +1,63 @@
+{
+  "slug": "surya-siddhanta-kalendar-i-graha",
+  "title": "Surya Siddhanta: как классическая астрономия считала время и движения graha",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S04",
+    "S05"
+  ],
+  "seo": {
+    "seo_title": "Surya Siddhanta: время и движения graha",
+    "meta_description": "Как Sūryasiddhānta делит время, описывает календарь и считает движения graha, и где заканчивается расчёт перед чтением натальной карты.",
+    "focus_keyphrase": "Surya Siddhanta и движения graha",
+    "canonical_url": "https://vedicway.ru/guide/surya-siddhanta-kalendar-i-graha",
+    "excerpt": "Разбираем расчётный слой Sūryasiddhānta: единицы времени, календарь, среднее движение и коррекции перед интерпретацией натальной карты."
+  },
+  "internal_links": [
+    "/guide/data-rozhdeniya-julian-day",
+    "/guide/mestnoe-zvezdnoe-vremya-i-lagna",
+    "/guide/siderealnyj-i-tropicheskij-zodiak"
+  ],
+  "prohibited_claims": [
+    "Не выдавать историческую модель Sūryasiddhānta за современную независимую эфемериду без проверки эпохи, констант и редакции.",
+    "Не выдавать вычисленное положение graha за доказанную причинность, прогноз или неизбежное событие.",
+    "Не смешивать расчётные параметры с интерпретацией rāśi, bhāva, nakṣatra и правилами конкретной школы.",
+    "Не смешивать тропический и сидерический зодиаки, аянāмшу и систему домов без фиксации настроек.",
+    "Не обещать медицинский, финансовый или юридический результат по натальной карте."
+  ],
+  "cover": {
+    "asset_id": "cover-surya-siddhanta-kalendar-i-graha",
+    "path": "content/astrology-guide/articles/surya-siddhanta-kalendar-i-graha/cover.webp",
+    "alt": "Абстрактная схема календарного круга, орбит graha и расчётной сетки на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "ai_generated",
+    "license_note": "Создано ImageGen для VedicWay; внешние права третьих лиц не использованы.",
+    "sha256": "dc7a64e1b48015d46d21c3fcc2d6c4b2eb9a621a52c20e6f5cc977152a52ab44",
+    "width": 1680,
+    "height": 945
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/surya-siddhanta-kalendar-i-graha",
+  "tags": [
+    "Время и циклы",
+    "Surya Siddhanta и движения graha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Surya Siddhanta и движения graha"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/surysidu.htm",
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

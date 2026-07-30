@@ -3,16 +3,14 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
-import secrets
 import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit
 
-from pwdlib import PasswordHash
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -32,6 +30,7 @@ from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
     Session,
+    defer,
     mapped_column,
     relationship,
     sessionmaker,
@@ -40,14 +39,10 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from .legal_config import INTERPRETATION_PROCESSOR_ENV, interpretation_processor_config
 
-PASSWORD_HASH = PasswordHash.recommended()
-DUMMY_PASSWORD_HASH = PASSWORD_HASH.hash(secrets.token_urlsafe(32))
-ADMIN_SESSION_TTL = timedelta(hours=8)
-CONTENT_SCHEMA_REVISION = "20260719_01"
+CONTENT_SCHEMA_REVISION = "20260728_01"
 CONTENT_SCHEMA_TABLES = {
-    "users",
-    "admin_sessions",
     "articles",
+    "article_comments",
     "media_assets",
     "consent_records",
 }
@@ -61,15 +56,9 @@ def new_id() -> str:
     return str(uuid.uuid4())
 
 
-def token_hash(value: str) -> str:
-    return hashlib.sha256(value.encode("utf-8")).hexdigest()
-
-
 def fingerprint_hash(value: str, purpose: str) -> str:
     """Hash low-entropy personal data with a server secret and domain separation."""
-    configured = os.environ.get("VEDICWAY_PRIVACY_PEPPER") or os.environ.get(
-        "VEDICWAY_SIGNING_KEY"
-    )
+    configured = os.environ.get("VEDICWAY_PRIVACY_PEPPER") or os.environ.get("VEDICWAY_SIGNING_KEY")
     production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
     if not configured:
         if production:
@@ -87,50 +76,21 @@ class Base(DeclarativeBase):
     pass
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
-    display_name: Mapped[str] = mapped_column(String(160), default="Редактор")
-    password_hash: Mapped[str] = mapped_column(String(512))
-    role: Mapped[str] = mapped_column(String(20), default="user", index=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now, onupdate=utc_now
-    )
-
-    sessions: Mapped[list[AdminSession]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-
-
-class AdminSession(Base):
-    __tablename__ = "admin_sessions"
-
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    session_token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
-    csrf_token_hash: Mapped[str] = mapped_column(String(64))
-    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
-    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
-    user_agent_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
-
-    user: Mapped[User] = relationship(back_populates="sessions")
-
-
 class Article(Base):
     __tablename__ = "articles"
+    __table_args__ = (UniqueConstraint("section", "slug", name="uq_articles_section_slug"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     title: Mapped[str] = mapped_column(String(240), default="")
-    slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
+    slug: Mapped[str] = mapped_column(String(120), index=True)
+    section: Mapped[str] = mapped_column(String(20), default="guide", index=True)
+    difficulty: Mapped[str] = mapped_column(String(20), default="beginner", index=True)
     category: Mapped[str] = mapped_column(String(120), default="Основы астрологии")
     excerpt: Mapped[str] = mapped_column(String(500), default="")
     content: Mapped[str] = mapped_column(Text, default="")
+    content_format: Mapped[str] = mapped_column(String(30), default="html.v1")
+    tags: Mapped[list[str]] = mapped_column(JSON, default=list)
+    schema_extra: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     cover_media_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     body_media_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
     cover_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -140,9 +100,6 @@ class Article(Base):
     focus_keyphrase: Mapped[str] = mapped_column(String(180), default="")
     canonical_url: Mapped[str] = mapped_column(String(500), default="")
     author_name: Mapped[str] = mapped_column(String(160), default="Редакция VedicWay")
-    author_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
     status: Mapped[str] = mapped_column(String(20), default="draft", index=True)
     revision: Mapped[int] = mapped_column(Integer, default=1)
     __mapper_args__ = {"version_id_col": revision}
@@ -153,6 +110,28 @@ class Article(Base):
     published_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
+
+    comments: Mapped[list[ArticleComment]] = relationship(
+        back_populates="article", cascade="all, delete-orphan"
+    )
+
+
+class ArticleComment(Base):
+    __tablename__ = "article_comments"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    article_id: Mapped[str] = mapped_column(
+        ForeignKey("articles.id", ondelete="CASCADE"), index=True
+    )
+    display_name: Mapped[str] = mapped_column(String(80))
+    body: Mapped[str] = mapped_column(String(3000))
+    ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    user_agent_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, index=True
+    )
+
+    article: Mapped[Article] = relationship(back_populates="comments")
 
 
 class MediaAsset(Base):
@@ -170,9 +149,6 @@ class MediaAsset(Base):
     alt_text: Mapped[str] = mapped_column(String(300), default="")
     title: Mapped[str] = mapped_column(String(240), default="")
     caption: Mapped[str] = mapped_column(String(500), default="")
-    uploaded_by: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
@@ -251,112 +227,21 @@ class ContentDatabase:
                 database.rollback()
                 raise
 
-    def bootstrap_admin_from_environment(self) -> bool:
-        email = os.environ.get("VEDICWAY_BOOTSTRAP_ADMIN_EMAIL", "").strip().casefold()
-        password = os.environ.get("VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD", "")
-        if not email and not password:
-            return False
-        if not email or not password:
-            raise RuntimeError(
-                "Both VEDICWAY_BOOTSTRAP_ADMIN_EMAIL and VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD are required"
-            )
-        minimum = 16 if os.environ.get("VEDICWAY_ENV") == "production" else 12
-        if len(password) < minimum:
-            raise RuntimeError(
-                f"Bootstrap admin password must contain at least {minimum} characters"
-            )
-        with self.session() as database:
-            existing = database.scalar(select(User).where(User.email == email))
-            if existing:
-                if existing.role != "admin" or not existing.is_active:
-                    raise RuntimeError("Bootstrap email belongs to a non-admin or disabled account")
-                return False
-            database.add(
-                User(
-                    email=email,
-                    display_name=os.environ.get(
-                        "VEDICWAY_BOOTSTRAP_ADMIN_NAME", "Администратор"
-                    ).strip()
-                    or "Администратор",
-                    password_hash=PASSWORD_HASH.hash(password),
-                    role="admin",
-                )
-            )
-        return True
-
-    def authenticate(self, email: str, password: str) -> User | None:
-        with self.session() as database:
-            user = database.scalar(select(User).where(User.email == email.strip().casefold()))
-            verified, updated_hash = PASSWORD_HASH.verify_and_update(
-                password,
-                user.password_hash if user else DUMMY_PASSWORD_HASH,
-            )
-            if not user or not user.is_active or not verified:
-                return None
-            if updated_hash:
-                user.password_hash = updated_hash
-            return user
-
-    def create_admin_session(
-        self, user: User, user_agent: str | None, ip: str | None
-    ) -> tuple[str, str]:
-        session_token = secrets.token_urlsafe(48)
-        csrf_token = secrets.token_urlsafe(36)
-        with self.session() as database:
-            database.add(
-                AdminSession(
-                    user_id=user.id,
-                    session_token_hash=token_hash(session_token),
-                    csrf_token_hash=token_hash(csrf_token),
-                    expires_at=utc_now() + ADMIN_SESSION_TTL,
-                    user_agent_hash=(
-                        fingerprint_hash(user_agent, "admin-user-agent") if user_agent else None
-                    ),
-                    ip_hash=fingerprint_hash(ip, "admin-ip") if ip else None,
-                )
-            )
-        return session_token, csrf_token
-
-    def resolve_admin_session(self, session_token: str | None) -> tuple[AdminSession, User] | None:
-        if not session_token:
-            return None
-        with self.session() as database:
-            session = database.scalar(
-                select(AdminSession).where(
-                    AdminSession.session_token_hash == token_hash(session_token)
-                )
-            )
-            if not session or self._aware(session.expires_at) <= utc_now():
-                if session:
-                    database.delete(session)
-                return None
-            user = database.get(User, session.user_id)
-            if not user or not user.is_active:
-                return None
-            session.last_seen_at = utc_now()
-            return session, user
-
-    def revoke_admin_session(self, session_token: str | None) -> None:
-        if not session_token:
-            return
-        with self.session() as database:
-            session = database.scalar(
-                select(AdminSession).where(
-                    AdminSession.session_token_hash == token_hash(session_token)
-                )
-            )
-            if session:
-                database.delete(session)
-
-    @staticmethod
-    def _aware(value: datetime) -> datetime:
-        return value if value.tzinfo else value.replace(tzinfo=UTC)
-
-    def list_articles(self, include_drafts: bool) -> list[Article]:
+    def list_articles(
+        self,
+        include_drafts: bool,
+        *,
+        section: str | None = None,
+        include_content: bool = False,
+    ) -> list[Article]:
         with self.session() as database:
             query = select(Article)
+            if not include_content:
+                query = query.options(defer(Article.content))
             if not include_drafts:
                 query = query.where(Article.status == "published")
+            if section:
+                query = query.where(Article.section == section)
             query = query.order_by(Article.published_at.desc(), Article.updated_at.desc())
             return list(database.scalars(query))
 
@@ -374,9 +259,33 @@ class ContentDatabase:
                 select(Article).where(Article.slug == slug, Article.status == "published")
             )
 
-    def slug_exists(self, slug: str, except_id: str | None = None) -> bool:
+    def get_article_by_path(
+        self,
+        section: str,
+        slug: str,
+        *,
+        published_only: bool = False,
+    ) -> Article | None:
+        with self.session() as database:
+            query = select(Article).where(
+                Article.section == section,
+                Article.slug == slug,
+            )
+            if published_only:
+                query = query.where(Article.status == "published")
+            return database.scalar(query)
+
+    def slug_exists(
+        self,
+        slug: str,
+        except_id: str | None = None,
+        *,
+        section: str | None = None,
+    ) -> bool:
         with self.session() as database:
             query = select(Article.id).where(Article.slug == slug)
+            if section:
+                query = query.where(Article.section == section)
             if except_id:
                 query = query.where(Article.id != except_id)
             return database.scalar(query) is not None
@@ -384,7 +293,6 @@ class ContentDatabase:
     def save_article(
         self,
         values: dict[str, Any],
-        author_id: str | None,
         article_id: str | None = None,
         expected_revision: int | None = None,
     ) -> Article:
@@ -392,7 +300,9 @@ class ContentDatabase:
             article = database.get(Article, article_id) if article_id else None
             if article is None:
                 article = Article(
-                    id=article_id or new_id(), slug=values["slug"], author_id=author_id
+                    id=article_id or new_id(),
+                    slug=values["slug"],
+                    section=values.get("section", "guide"),
                 )
                 database.add(article)
             elif expected_revision is None or article.revision != expected_revision:
@@ -400,9 +310,14 @@ class ContentDatabase:
             for field in (
                 "title",
                 "slug",
+                "section",
+                "difficulty",
                 "category",
                 "excerpt",
                 "content",
+                "content_format",
+                "tags",
+                "schema_extra",
                 "cover_media_id",
                 "body_media_ids",
                 "cover_image_url",
@@ -414,8 +329,8 @@ class ContentDatabase:
                 "author_name",
                 "status",
             ):
-                setattr(article, field, values.get(field))
-            article.author_id = author_id
+                if field in values:
+                    setattr(article, field, values[field])
             article.updated_at = utc_now()
             if article.status == "published" and article.published_at is None:
                 article.published_at = utc_now()
@@ -426,6 +341,41 @@ class ContentDatabase:
             database.refresh(article)
             return article
 
+    def list_comments(self, article_id: str) -> list[ArticleComment]:
+        with self.session() as database:
+            query = (
+                select(ArticleComment)
+                .where(ArticleComment.article_id == article_id)
+                .order_by(ArticleComment.created_at.asc(), ArticleComment.id.asc())
+            )
+            return list(database.scalars(query))
+
+    def add_comment(
+        self,
+        *,
+        article_id: str,
+        display_name: str,
+        body: str,
+        ip: str | None,
+        user_agent: str | None,
+    ) -> ArticleComment:
+        with self.session() as database:
+            comment = ArticleComment(
+                article_id=article_id,
+                display_name=display_name,
+                body=body,
+                ip_hash=fingerprint_hash(ip, "article-comment-ip") if ip else None,
+                user_agent_hash=(
+                    fingerprint_hash(user_agent, "article-comment-user-agent")
+                    if user_agent
+                    else None
+                ),
+            )
+            database.add(comment)
+            database.flush()
+            database.refresh(comment)
+            return comment
+
     def delete_article(self, article_id: str) -> bool:
         with self.session() as database:
             article = database.get(Article, article_id)
@@ -434,9 +384,9 @@ class ContentDatabase:
             database.delete(article)
             return True
 
-    def add_media(self, values: dict[str, Any], user_id: str | None) -> MediaAsset:
+    def add_media(self, values: dict[str, Any]) -> MediaAsset:
         with self.session() as database:
-            asset = MediaAsset(**values, uploaded_by=user_id)
+            asset = MediaAsset(**values)
             database.add(asset)
             database.flush()
             database.refresh(asset)
@@ -455,37 +405,47 @@ class ContentDatabase:
         return [by_id[asset_id] for asset_id in asset_ids if asset_id in by_id]
 
     def media_in_use(self, asset_id: str) -> bool:
-        marker = f"{{{{media:{asset_id}}}}}"
         with self.session() as database:
             asset = database.get(MediaAsset, asset_id)
             if not asset:
                 return False
-            articles = database.scalars(select(Article)).all()
+            articles = database.execute(
+                select(
+                    Article.cover_media_id,
+                    Article.body_media_ids,
+                    Article.cover_image_url,
+                )
+            ).all()
             return any(
                 article.cover_media_id == asset_id
-                or marker in article.content
+                or asset_id in (article.body_media_ids or [])
                 or article.cover_image_url == asset.public_url
                 for article in articles
             )
 
     def media_is_public(self, asset_id: str, filename: str) -> bool:
-        marker = f"{{{{media:{asset_id}}}}}"
         with self.session() as database:
             asset = database.get(MediaAsset, asset_id)
             if not asset:
                 return False
             urls = [asset.public_url, *(source.get("url", "") for source in asset.sources or [])]
             allowed_filenames = {
-                PurePosixPath(urlsplit(url).path).name for url in urls if isinstance(url, str) and url
+                PurePosixPath(urlsplit(url).path).name
+                for url in urls
+                if isinstance(url, str) and url
             }
             if filename not in allowed_filenames:
                 return False
-            articles = database.scalars(
-                select(Article).where(Article.status == "published")
+            articles = database.execute(
+                select(
+                    Article.cover_media_id,
+                    Article.body_media_ids,
+                    Article.cover_image_url,
+                ).where(Article.status == "published")
             ).all()
             return any(
                 article.cover_media_id == asset_id
-                or marker in article.content
+                or asset_id in (article.body_media_ids or [])
                 or article.cover_image_url == asset.public_url
                 for article in articles
             )
@@ -598,9 +558,7 @@ class ContentDatabase:
                 data_categories=data_categories,
                 ip_hash=fingerprint_hash(ip, "consent-ip") if ip else None,
                 user_agent_hash=(
-                    fingerprint_hash(user_agent, "consent-user-agent")
-                    if user_agent
-                    else None
+                    fingerprint_hash(user_agent, "consent-user-agent") if user_agent else None
                 ),
             )
         )
@@ -647,6 +605,4 @@ def production_configuration_errors(database: ContentDatabase) -> list[str]:
         errors.append("database:postgresql_required")
     if os.environ.get("VEDICWAY_RUNTIME_PROFILE") != "single-node-sqlite":
         errors.append("runtime:single_node_profile_required")
-    if os.environ.get("VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD"):
-        errors.append("security:bootstrap_admin_secret_must_be_removed")
     return errors

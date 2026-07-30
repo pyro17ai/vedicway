@@ -1,0 +1,64 @@
+{
+  "slug": "algoritm-chteniya-natalnoy-karty",
+  "title": "Как читать натальную карту: редакционный алгоритм от Лагны до соединения",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "swisseph_programming",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Как читать натальную карту: алгоритм джйотиша",
+    "meta_description": "Пошаговый алгоритм чтения натальной карты: от Лагны и раши к бхаве, хозяину дома, достоинству, дришти и соединению с оговорками метода.",
+    "focus_keyphrase": "алгоритм чтения натальной карты",
+    "canonical_url": "https://vedicway.ru/guide/algoritm-chteniya-natalnoy-karty",
+    "excerpt": "Пошаговый редакционный алгоритм чтения карты: проверьте расчёт, начните с Лагны, разделите раши и бхаву, найдите хозяина дома, оцените достоинство, дришти и соединение."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/lagna-i-pervyy-dom"
+  ],
+  "prohibited_claims": [
+    "научно подтверждённые прогнозы по натальной карте",
+    "гарантии здоровья или медицинские диагнозы",
+    "гарантии денег, карьеры или юридического результата",
+    "неизбежная судьба и точное обещание события"
+  ],
+  "cover": {
+    "asset_id": "cover-algoritm-chteniya-natalnoy-karty",
+    "path": "content/astrology-guide/articles/algoritm-chteniya-natalnoy-karty/cover.webp",
+    "alt": "Абстрактная схема чтения натальной карты с орбитами и последовательными линиями на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "7e8a826903be8a0f5e536edf10206b1ffd06ac5a03be53d340fb172acd3b1fd9",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/algoritm-chteniya-natalnoy-karty",
+  "tags": [
+    "Практика чтения карты",
+    "алгоритм чтения натальной карты",
+    "натальная карта",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "алгоритм чтения натальной карты"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

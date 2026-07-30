@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "phaladeepika_yogas",
+    "url": "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+    "role": "Сверка состава главы о классических йогах и вариантов формул Gajakesari, Amala и Kemadruma; источник не назван и не процитирован в статье."
+  },
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка структуры разделов о Nabhasa, других йогах и лунных йогах; источник использован без атрибуции в статье."
+  },
+  {
+    "source_id": "bphs_yogas_ch36_37",
+    "url": "http://www.astrojyoti.com/bphspage4-4.htm",
+    "role": "Проверка точных условий Gajakesari, Amala и строгой версии Kemadruma."
+  },
+  {
+    "source_id": "bphs_nabhasa_ch35",
+    "url": "https://www.astrojyoti.com/bphspage4-3.htm",
+    "role": "Проверка числа, групп, отдельных формул и правила приоритета Nabhasa yoga."
+  }
+]

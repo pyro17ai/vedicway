@@ -1,0 +1,75 @@
+{
+  "slug": "bphs-dasha-systems-map",
+  "title": "[Алгоритм] Карта систем даши BPHS: когда встречаются Kaalachakra, Sthira, Yogini и другие",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Карта систем даши BPHS: Yogini, Sthira, Kaalachakra",
+    "meta_description": "Справочник систем даши BPHS: от чего зависят Yogini, Sthira, Kaalachakra и Vimshottari, какие нужны входы, формулы и оговорки школы.",
+    "focus_keyphrase": "системы даши BPHS",
+    "canonical_url": "https://vedicway.ru/guide/bphs-dasha-systems-map",
+    "excerpt": "Алгоритм-карта систем даши BPHS: лунные, знаковые и специальные методы, их входные данные, формулы, вложенные периоды и границы школьных вариантов."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Переход от карты систем даши к фиксации исходных данных рождения, Луны и Лагны."
+    },
+    {
+      "url": "/guide/vimshottari-start-nakshatra",
+      "anchor": "стартовая nakshatra Vimshottari",
+      "reason": "Уточнение лунной накшатры и остатка первого периода в планетной системе."
+    },
+    {
+      "url": "/guide/jaimini-sutras-bazovye-printsipy",
+      "anchor": "базовые принципы Jaimini Sutras",
+      "reason": "Переход к знаковым системам Jaimini и их вариантам чтения."
+    }
+  ],
+  "prohibited_claims": [
+    "Фатальные события, дата смерти или неизбежный исход по любой системе даши.",
+    "Медицинская диагностика, лечение, обещание здоровья или психологический диагноз.",
+    "Гарантия дохода, карьеры, сделки или юридического результата.",
+    "Представление традиционной астрологической интерпретации как научно доказанной причинности.",
+    "Смешение Vimshottari, Kaalachakra, Chara, Sthira и других систем под одной формулой.",
+    "Скрытие аянāṃши, сидерического или тропического зодиака, системы домов и редакции источника."
+  ],
+  "cover": {
+    "asset_id": "cover-bphs-dasha-systems-map",
+    "path": "content/astrology-guide/articles/bphs-dasha-systems-map/cover.webp",
+    "alt": "Абстрактная радиальная карта лунных и знаковых циклов даши на тёплой бумаге",
+    "status": "ready",
+    "sha256": "ad882bc2160991c1596df81332aec206e48f12c777c5d8c618718266867eb923",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/bphs-dasha-systems-map",
+  "tags": [
+    "Основы астрологии",
+    "системы даши BPHS",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "системы даши BPHS"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

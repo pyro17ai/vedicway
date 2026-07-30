@@ -1,0 +1,78 @@
+{
+  "slug": "27-nakshatr-i-ikh-bozhestva",
+  "title": "27 накшатр и их божества: как читать традиционную таблицу",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A1",
+    "A3"
+  ],
+  "seo": {
+    "seo_title": "27 накшатр и их божества: как читать таблицу",
+    "meta_description": "Проверяемая таблица 27 накшатр и божеств: происхождение связей, различие 27 и 28 позиций, шаги чтения и границы традиционных школ.",
+    "focus_keyphrase": "27 накшатр и их божества",
+    "canonical_url": "https://vedicway.ru/guide/27-nakshatr-i-ikh-bozhestva",
+    "excerpt": "Проверяемая таблица 27 накшатр и связанных с ними божеств, объяснение разницы между 27-секторной и 28-позиционной традицией и учебный пример чтения долготы Луны."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay",
+      "reason": "Переход к соседним базовым материалам."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Переход от таблицы к получению долготы Луны."
+    },
+    {
+      "url": "/guide/dzhanma-nakshatra-luny",
+      "anchor": "положении Луны в накшатре",
+      "reason": "Углубление в расчёт джанма-накшатры."
+    },
+    {
+      "url": "/guide/muhurta-v-dzhyotish",
+      "anchor": "мухурте в джйотише",
+      "reason": "Разделение натального и календарно-ритуального контекста."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать связь накшатры с божеством за научно подтверждённую причинность.",
+    "Не обещать по одной накшатре здоровье, деньги, отношения, юридический результат или неизбежное событие.",
+    "Не смешивать 27-секторный расчёт с 28-позиционной ритуальной последовательностью без названия контекста и школы.",
+    "Не скрывать текстовые расхождения для Читры, Мулы и Шатабхиши и не выдавать одну редакцию за единственный канон."
+  ],
+  "cover": {
+    "asset_id": "cover-27-nakshatr-i-ikh-bozhestva",
+    "path": "content/astrology-guide/articles/27-nakshatr-i-ikh-bozhestva/cover.webp",
+    "alt": "Круговая схема из 27 секторов на тёплой бумаге в терракотовой и охристой палитре",
+    "status": "ready",
+    "sha256": "b9dd2a81e47904f63e7f580a101fcd89de26728cae03bc7acf449a2df71a5b6f",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/27-nakshatr-i-ikh-bozhestva",
+  "tags": [
+    "Основы астрологии",
+    "27 накшатр и их божества",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "27 накшатр и их божества"
+      }
+    ],
+    "citation": [
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+      "https://vignanam.org/samskritam/nakshatra-suktam-nakshatreshti.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

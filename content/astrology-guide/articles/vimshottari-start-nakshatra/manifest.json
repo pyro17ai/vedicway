@@ -1,0 +1,61 @@
+{
+  "slug": "vimshottari-start-nakshatra",
+  "title": "Как определить стартовую маха-дашу Vimshottari по накшатре Луны",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs-santham-vimshottari",
+    "pyjhora-repository",
+    "vedaksha-compute-dasha"
+  ],
+  "seo": {
+    "seo_title": "Стартовая маха-даша Vimshottari по накшатре Луны",
+    "meta_description": "Узнайте, как по сидерической долготе Луны определить накшатру, её управителя и порядок маха-даш Vimshottari с учётом ограничений.",
+    "focus_keyphrase": "стартовая маха-даша Vimshottari по накшатре Луны",
+    "canonical_url": "https://vedicway.ru/guide/vimshottari-start-nakshatra",
+    "excerpt": "Практический алгоритм: найдите сидерическую накшатру Луны, определите управителя первой маха-даши Vimshottari и продолжите 120-летний цикл без смешения школ."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/vimshottari-balance-at-birth"
+  ],
+  "prohibited_claims": [
+    "Не выдавать Vimshottari за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги или неизбежные события по названию маха-даши.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
+  ],
+  "cover": {
+    "asset_id": "cover-vimshottari-start-nakshatra",
+    "path": "content/astrology-guide/articles/vimshottari-start-nakshatra/cover.webp",
+    "alt": "Тёплая абстрактная схема лунной орбиты и концентрических небесных линий на бумажном фоне",
+    "status": "ready",
+    "sha256": "8843e9f24da3b1feb61dee970bca1b75cc378aab1e0983c74265b6f28dec06b9",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/vimshottari-start-nakshatra",
+  "tags": [
+    "Время и циклы",
+    "стартовая маха-даша Vimshottari по накшатре Луны",
+    "накшатры",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "стартовая маха-даша Vimshottari по накшатре Луны"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

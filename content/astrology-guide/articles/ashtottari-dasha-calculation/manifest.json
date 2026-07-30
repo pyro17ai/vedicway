@@ -1,0 +1,63 @@
+{
+  "slug": "ashtottari-dasha-calculation",
+  "title": "Ashtottari Dasha: условие выбора, порядок и длительности",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S5",
+    "S6"
+  ],
+  "seo": {
+    "seo_title": "Ashtottari Dasha: условие выбора и расчёт",
+    "meta_description": "Когда выбирают Ashtottari Dasha, как определить группу накшатры Луны, порядок маха-даш и остаток первого периода с оговорками школы.",
+    "focus_keyphrase": "Ashtottari Dasha",
+    "canonical_url": "https://vedicway.ru/guide/ashtottari-dasha-calculation",
+    "excerpt": "Практический алгоритм Ashtottari Dasha: условие выбора, 28-позиционная схема с Абхиджитом, длительности восьми управителей и учебный расчёт остатка первой маха-даши."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/ayanamsha-lahiri-raman-true-chitra"
+  ],
+  "prohibited_claims": [
+    "фатальные события и дата смерти по маха-даше",
+    "медицинская диагностика или обещание здоровья",
+    "гарантия дохода, карьеры или материального результата",
+    "юридический результат, научно подтверждённый прогноз или неизбежная судьба"
+  ],
+  "cover": {
+    "asset_id": "cover-ashtottari-dasha-calculation",
+    "path": "content/astrology-guide/articles/ashtottari-dasha-calculation/cover.webp",
+    "alt": "Абстрактная схема лунного цикла и последовательности периодов на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "ai_generated",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешний лицензированный источник не используется.",
+    "sha256": "4a005f953ec1e7bb58a2376e4b0054654bfcc68e857fe33adeb6811f2ff788b8",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/ashtottari-dasha-calculation",
+  "tags": [
+    "Время и циклы",
+    "Ashtottari Dasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Ashtottari Dasha"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

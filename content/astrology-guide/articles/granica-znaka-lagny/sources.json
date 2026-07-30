@@ -1,0 +1,11 @@
+[
+  {
+    "source_id": "S4",
+    "title": "Programming interface to the Swiss Ephemeris",
+    "author_or_institution": "Astrodienst AG",
+    "source_kind": "technical_reference",
+    "quality": "high",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая опора для разделения местного времени и UTC, расчёта асцендента, сидерического режима, аянамши и параметров домов. Источник не используется как доктринальный авторитет джйотиша."
+  }
+]

@@ -1,0 +1,157 @@
+{
+  "title": "Хозяева раши и схема управления знаками",
+  "slug": "hozyeva-rashi",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Хозяева раши: управители 12 знаков",
+  "meta_description": "Таблица хозяев раши: управители 12 знаков, порядок поиска хозяина дома, пример чтения карты и границы метода в традиции парашарского джйотиша для начинающих.",
+  "focus_keyphrase": "хозяева раши",
+  "intent": {
+    "status": "no_relevant_wordstat_intent",
+    "query": "хозяева раши",
+    "source": "mcp__yandex_wordstat__top_requests",
+    "region": 225,
+    "wordstat": {
+      "total_count": 84,
+      "top_requests": [
+        {
+          "phrase": "хозяин блэк раша",
+          "count": 34
+        }
+      ],
+      "associations": [
+        {
+          "phrase": "хозяин горбушки",
+          "count": 1461
+        },
+        {
+          "phrase": "черный отряд",
+          "count": 14296
+        },
+        {
+          "phrase": "блэсс раша",
+          "count": 1476
+        },
+        {
+          "phrase": "хозяева смотреть",
+          "count": 39913
+        },
+        {
+          "phrase": "хозяин 2023",
+          "count": 14751
+        },
+        {
+          "phrase": "хозяин хаоса",
+          "count": 5525
+        },
+        {
+          "phrase": "черный без хозяин",
+          "count": 756
+        },
+        {
+          "phrase": "смотреть хозяин",
+          "count": 39866
+        },
+        {
+          "phrase": "черный без хозяин мем",
+          "count": 158
+        },
+        {
+          "phrase": "хозяева сквад",
+          "count": 2464
+        },
+        {
+          "phrase": "мы черный отряд гайера",
+          "count": 548
+        }
+      ]
+    },
+    "editorial_intent": "Обучающий справочный материал: построить таблицу управителей 12 раши и применить её при чтении дома и карты.",
+    "reader_questions": [
+      "Кто управляет каждым раши?",
+      "Как найти хозяина дома в карте?",
+      "Чем хозяин знака отличается от планеты в знаке?",
+      "Можно ли судить о доме только по его управителю?"
+    ]
+  },
+  "semantic_core": {
+    "status": "editorial_core_used_after_wordstat_no_match",
+    "primary": [
+      "хозяева раши",
+      "управители знаков",
+      "таблица хозяев знаков"
+    ],
+    "related": [
+      "планеты-управители раши",
+      "управитель дома",
+      "хозяин бхавы",
+      "управление знаками в джйотише",
+      "раши и бхава",
+      "Лагна и хозяин первого дома"
+    ],
+    "questions": [
+      "Кто хозяин Овна?",
+      "Кто управляет Скорпионом?",
+      "Как определить хозяина дома?",
+      "Что делать, если в знаке стоит другая планета?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/hozyeva-rashi",
+  "canonical_url": "https://vedicway.ru/guide/hozyeva-rashi",
+  "excerpt": "Практическая таблица управителей 12 раши и порядок чтения хозяина дома через его знак, положение, силу и связи.",
+  "internal_links": [
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "гарантированные прогнозы",
+    "медицинские диагнозы",
+    "финансовые обещания",
+    "неизбежные события"
+  ],
+  "cover": {
+    "asset_id": "cover-hozyeva-rashi",
+    "path": "content/astrology-guide/articles/hozyeva-rashi/cover.webp",
+    "alt": "Тёплая редакционная схема круга раши с двенадцатью связанными секторами и центральным символом управителя на бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "e23a65d7b24ac38d4b84123d3f8c9329e41dc360c9beca6818d6a786a5e037df",
+    "width": 1728,
+    "height": 910,
+    "mime_type": "image/png"
+  },
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Хозяева раши: управление знаками в джйотише",
+    "meta_description": "Таблица хозяев раши: управители 12 знаков, порядок поиска хозяина дома, пример чтения карты и границы метода в традиции парашарского джйотиша для начинающих.",
+    "focus_keyphrase": "хозяева раши",
+    "canonical_url": "https://vedicway.ru/guide/hozyeva-rashi",
+    "excerpt": "Практическая таблица управителей 12 раши и порядок чтения хозяина дома через его знак, положение, силу и связи."
+  },
+  "tags": [
+    "Основы астрологии",
+    "хозяева раши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "хозяева раши"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

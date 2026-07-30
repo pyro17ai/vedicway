@@ -1,0 +1,64 @@
+{
+  "slug": "mars-v-dzhyotish",
+  "title": "Марс в джйотише: действие, энергия и конфликт",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "phaladeepika_yogas"
+  ],
+  "seo": {
+    "seo_title": "Марс в джйотише: действие, энергия и конфликт",
+    "meta_description": "Как читать Марс в джйотише по дому, знаку и связям: отличать собранное действие от напряжённого конфликта и учитывать границы метода.",
+    "focus_keyphrase": "Марс в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/mars-v-dzhyotish",
+    "excerpt": "Статья показывает, как читать Марс в джйотише по дому, знаку, достоинству и связям, отличать конструктивное действие от напряжения и учитывать редакцию текста."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/merkuriy-v-dzhyotish"
+  ],
+  "prohibited_claims": [
+    "Не обещать по Марсу здоровье, деньги, брак, точную дату события или неизбежную судьбу.",
+    "Не выдавать традиционную интерпретацию за научно подтверждённый прогноз или психологический диагноз.",
+    "Не объявлять Ручака-йогу и силу Марса по одному положению без проверки знака, дома, связей и редакции текста.",
+    "Не смешивать правила BPHS, Phaladeepika и другой школы без явной маркировки текста и редакции."
+  ],
+  "cover": {
+    "asset_id": "cover-mars-v-dzhyotish",
+    "path": "content/astrology-guide/articles/mars-v-dzhyotish/cover.webp",
+    "alt": "Абстрактная геометрия и тонкие орбиты в терракотовой палитре на светлой фактурной бумаге",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения не использовались.",
+    "sha256": "0505a75a881af97882e73230b984f13ce6b84a17afd7dba7e75420ba3a75d711",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/mars-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Марс в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Марс в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

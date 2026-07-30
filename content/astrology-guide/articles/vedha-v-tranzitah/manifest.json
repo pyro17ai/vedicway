@@ -1,0 +1,137 @@
+{
+  "title": "Vedha: что блокирует благоприятный транзит",
+  "slug": "vedha-v-tranzitah",
+  "category": "Практика чтения карты",
+  "seo_title": "Ведха в транзитах: что блокирует благоприятный гочар",
+  "meta_description": "Ведха в транзитах: как найти дом препятствия от натальной Луны, проверить благоприятный гочар по таблице и учесть исключения между планетами.",
+  "focus_keyphrase": "ведха в транзитах",
+  "intent": {
+    "type": "informational_how_to",
+    "status": "exact_query_low_demand_adjacent_cluster_confirmed",
+    "summary": "Читатель хочет понять, что такое ведха в джйотише, как найти парный дом препятствия для благоприятного транзита и почему хороший дом гочары не читают изолированно.",
+    "wordstat": {
+      "primary_query": "ведха в транзитах",
+      "measured_at": "2026-07-30",
+      "period": "последние 30 дней",
+      "raw_total_count": 1,
+      "top_requests": [],
+      "associations": [],
+      "note": "Главная формулировка получила один показ без раскрытых запросов. Интент подтверждён уточняющим и широким транзитным кластерами.",
+      "supporting_queries": [
+        {
+          "phrase": "ведха в джйотиш что это",
+          "count": 11
+        },
+        {
+          "phrase": "транзиты планет джйотиш",
+          "count": 468
+        },
+        {
+          "phrase": "джйотиш транзиты планет по домам",
+          "count": 17
+        },
+        {
+          "phrase": "бесплатно посмотреть транзиты планет джйотиш",
+          "count": 5
+        }
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "ведха в транзитах",
+      "ведха в джйотиш что это",
+      "транзиты планет джйотиш"
+    ],
+    "close_formulations": [
+      "что такое ведха",
+      "ведха в гочаре",
+      "дом ведхи от натальной Луны",
+      "благоприятные транзиты планет по домам",
+      "что блокирует благоприятный транзит",
+      "таблица ведхи в джйотише"
+    ],
+    "reader_questions": [
+      "как определить дом ведхи",
+      "от какой точки считать ведху",
+      "какая планета блокирует благоприятный гочар",
+      "какие исключения действуют между Солнцем и Сатурном",
+      "проверяют ли ведху для неблагоприятного транзита",
+      "гарантирует ли свободный дом ведхи хороший результат"
+    ],
+    "entities": [
+      "Vedha",
+      "гочара",
+      "Janma Rashi",
+      "натальная Луна",
+      "транзитная граха",
+      "даша",
+      "Ashtakavarga"
+    ],
+    "cluster": "практическое чтение гочары относительно натальной Луны"
+  },
+  "canonical": "https://vedicway.ru/guide/vedha-v-tranzitah",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_brihat_gocara",
+    "src_phaladeepika",
+    "WEB-PHALADEEPIKA-CH26",
+    "WEB-BRIHAT-SAMHITA-104-4"
+  ],
+  "seo": {
+    "seo_title": "Ведха в транзитах: что блокирует благоприятный гочар",
+    "meta_description": "Ведха в транзитах: как найти дом препятствия от натальной Луны, проверить благоприятный гочар по таблице и учесть исключения между планетами.",
+    "focus_keyphrase": "ведха в транзитах",
+    "canonical_url": "https://vedicway.ru/guide/vedha-v-tranzitah",
+    "excerpt": "Ведха показывает парный дом препятствия для благоприятной гочары. Разбираем расчёт от натальной Луны, таблицу семи грах, исключения и границы метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/gochara-transity-otnositelno-natalnoy-luny",
+    "/guide/sopostavlenie-dashi-i-tranzita",
+    "/guide/ashtakavarga-i-gochara"
+  ],
+  "prohibited_claims": [
+    "гарантированное событие по благоприятному транзиту или свободному дому ведхи",
+    "медицинский диагноз или выбор лечения по гочаре",
+    "финансовый результат или безопасность сделки по таблице ведхи",
+    "универсальность одного правила Раху и Кету для всех школ"
+  ],
+  "cover": {
+    "asset_id": "cover-vedha-v-tranzitah",
+    "path": "content/astrology-guide/articles/vedha-v-tranzitah/cover.webp",
+    "alt": "Терракотовая орбита планеты пересекается охристой дугой внутри астрологического круга",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen по редакционному заданию VedicWay; внешние изображения и материалы поисковой выдачи не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "5a4591bfe95896da8858ec18314a81b59cf95f961a566ac8f32b61cb31c0b55b"
+  },
+  "sha256": "4111fa52c2585c28abda4a7fe5020599792b99c342f0e3e4a86e309052cbdd2f",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "ведха в транзитах",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "ведха в транзитах"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html",
+      "https://www.siva.sh/brihat-samhita/104/4"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

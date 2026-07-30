@@ -1,0 +1,60 @@
+{
+  "slug": "yogini-dasha-36-year-cycle",
+  "title": "[Алгоритм] Yogini Dasha: восемь йогини и 36-летний цикл",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S3",
+    "S5"
+  ],
+  "seo": {
+    "seo_title": "Yogini Dasha: 8 йогини и 36-летний цикл",
+    "meta_description": "Пошаговый расчёт Yogini Dasha: накшатра Луны, йогини, управитель, длительность периода и границы формул для antardasha в выбранной школе.",
+    "focus_keyphrase": "Yogini Dasha",
+    "canonical_url": "https://vedicway.ru/guide/yogini-dasha-36-year-cycle",
+    "excerpt": "Практический алгоритм Yogini Dasha: сопоставьте накшатру Луны с одной из восьми йогини, её управителем и длительностью, затем проверьте цикл и ограничения школы."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/antardasha-and-mahadasha-interpretation"
+  ],
+  "prohibited_claims": [
+    "фатальные события, дата смерти и неизбежная судьба",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьерного результата или финансового исхода",
+    "юридический исход и научно подтверждённая прогностическая точность"
+  ],
+  "cover": {
+    "asset_id": "cover-yogini-dasha-36-year-cycle",
+    "path": "content/astrology-guide/articles/yogini-dasha-36-year-cycle/cover.webp",
+    "alt": "Спокойная абстрактная схема лунного цикла и восьми последовательных периодов на тёплой бумаге",
+    "status": "ready",
+    "sha256": "91a92d1dc29891e600bc2b533efebdd99b4ea569807d9af5fe19bad03acb3551",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/yogini-dasha-36-year-cycle",
+  "tags": [
+    "Время и циклы",
+    "Yogini Dasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Yogini Dasha"
+      }
+    ],
+    "citation": [
+      "https://saravali.github.io/astrology/dasa_yogini.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

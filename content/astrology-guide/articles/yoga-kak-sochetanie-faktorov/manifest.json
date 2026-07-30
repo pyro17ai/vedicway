@@ -1,0 +1,100 @@
+{
+  "slug": "yoga-kak-sochetanie-faktorov",
+  "title": "Йога как сочетание факторов, а не готовый диагноз",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Йоги в ведической астрологии: как читать состав",
+  "meta_description": "Разбираем йоги в ведической астрологии: как проверить состав сочетания, силу планет, дома, варги и границы интерпретации.",
+  "focus_keyphrase": "йоги в ведической астрологии",
+  "intent": {
+    "type": "informational",
+    "description": "Понять, что такое йога в джйотише, как проверить её условия, силу участников и область проявления без автоматического прогноза.",
+    "wordstat_query": "йога в ведической астрологии",
+    "wordstat_total_count": 55,
+    "wordstat_top_requests": [
+      {
+        "phrase": "йоги в ведической астрологии",
+        "count": 55
+      },
+      {
+        "phrase": "раджа йога что это в ведической астрологии",
+        "count": 11
+      }
+    ]
+  },
+  "semantic_core": {
+    "primary": [
+      "йоги в ведической астрологии",
+      "йога в джйотише",
+      "что такое йога в ведической астрологии"
+    ],
+    "related": [
+      "раджа-йога",
+      "сочетание планет в натальной карте",
+      "сила планет",
+      "управители домов",
+      "йоги в натальной карте"
+    ],
+    "reader_questions": [
+      "как проверить йогу в карте",
+      "из чего состоит йога",
+      "как определить силу йоги",
+      "в каком доме проявляется йога",
+      "зависит ли йога от времени рождения"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/yoga-kak-sochetanie-faktorov",
+  "seo": {
+    "seo_title": "Йоги в ведической астрологии: как читать состав",
+    "meta_description": "Разбираем йоги в ведической астрологии: как проверить состав сочетания, силу планет, дома, варги и границы интерпретации.",
+    "focus_keyphrase": "йоги в ведической астрологии",
+    "canonical_url": "https://vedicway.ru/guide/yoga-kak-sochetanie-faktorov",
+    "excerpt": "Йога в джйотише требует проверки состава, силы участников и области карты. Статья даёт порядок чтения, мини-пример и границы метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/yoga-v-dzhyotishe",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "медицинские диагнозы",
+    "гарантированные финансовые или карьерные результаты",
+    "неизбежные события",
+    "универсальная трактовка йоги вне школы и настроек расчёта"
+  ],
+  "cover": {
+    "asset_id": "cover-yoga-kak-sochetanie-faktorov",
+    "path": "content/astrology-guide/articles/yoga-kak-sochetanie-faktorov/cover.webp",
+    "alt": "Орбитальные линии и астрологические символы сходятся в одну конфигурацию на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1729,
+    "height": 910,
+    "sha256": "1bda949be7a299df46ae29e77a04e42e90b649cc50f777375c5d6db85198ccfd",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "йоги в ведической астрологии"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "йоги в ведической астрологии"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

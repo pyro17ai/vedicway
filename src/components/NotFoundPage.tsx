@@ -20,7 +20,7 @@ export function NotFoundPage({ onNavigate }: NotFoundPageProps) {
     <div className="guide-site">
       <SiteHeader active="home" onNavigate={onNavigate} />
       <main className="article-page">
-        <section className="article-not-found" aria-labelledby="not-found-title">
+        <section className="article-state article-state--missing" aria-labelledby="not-found-title">
           <span aria-hidden="true">404</span>
           <h1 id="not-found-title">Страница не найдена</h1>
           <p>Адрес мог измениться или в ссылке есть ошибка.</p>

@@ -1,0 +1,73 @@
+{
+  "title": "Даши как системы времени в джйотише",
+  "slug": "dashi-v-dzhyotish",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "seo_title": "Даши в джйотише: как читать время карты",
+  "meta_description": "Даши в джйотише показывают время активации натального обещания. Разбираем Вимшоттари, Чара-дашу, Йогини и границы метода.",
+  "focus_keyphrase": "даши в джйотише",
+  "intent": "Информационный: читатель хочет понять, что такое даши в джйотише, как рассчитываются периоды, чем отличаются Вимшоттари, Чара-даша и Йогини и как связать период с натальной картой.",
+  "semantic_core": [
+    "даши в джйотише",
+    "вимшоттари даша в джйотиш",
+    "периоды даши в джйотиш",
+    "что такое чара даша в джйотиш",
+    "йогини даша",
+    "маха-даша",
+    "антар-даша",
+    "натальное обещание и период активации",
+    "как читать дашу в натальной карте"
+  ],
+  "canonical": "https://vedicway.ru/guide/dashi-v-dzhyotish",
+  "source_ids": [
+    "S2",
+    "S3"
+  ],
+  "seo": {
+    "seo_title": "Даши в джйотише: как читать время карты",
+    "meta_description": "Даши в джйотише показывают время активации натального обещания. Разбираем Вимшоттари, Чара-дашу, Йогини и границы метода.",
+    "focus_keyphrase": "даши в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/dashi-v-dzhyotish",
+    "excerpt": "Даша задаёт время активации натального обещания. Статья объясняет, как читать Вимшоттари, Чара-дашу и Йогини, отделяя расчёт периода от интерпретации карты."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "cover": {
+    "asset_id": "cover-dashi-v-dzhyotish",
+    "path": "content/astrology-guide/articles/dashi-v-dzhyotish/cover.webp",
+    "alt": "Терракотовый круг временного цикла с выделенным активным сектором на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешняя лицензия и поисковый источник не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "aba4a1ec5bd4916ac85b67506a2fd636b5f1f067a793fcb2a3e6689a74058a42",
+    "status": "ready"
+  },
+  "sha256": "A17612D717F63D333349AC0F35AED45E3C501CC7A6247C7E01F1BF161C320188",
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "даши в джйотише",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "даши в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saravali.github.io/astrology/dasa_yogini.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

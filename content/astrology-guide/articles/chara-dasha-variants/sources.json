@@ -1,0 +1,80 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "title": "Jaiminisutras, fifth edition",
+    "author_or_institution": "Bangalore Suryanarain Rao; редакция Bangalore Venkata Raman",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "ledger_review_status": "personally_verified",
+    "review_status": "personally_verified",
+    "role_in_article": "Текстовая опора для старта от Лагны, направления по 9-му знаку, длительности раши и bhukti в редакции перевода и комментариев.",
+    "claims_used": [
+      "В издании описаны расчёты вперёд и назад для нечётных и чётных знаков.",
+      "В одном из прочтений Rasi Dasa начинается от Лагны, а направление зависит от знака в 9-м доме.",
+      "Длительность раши связывается со счётом до положения управителя; для собственного управителя приведено 12 лет, а для экзальтации и дебилитации описаны поправки.",
+      "Для bhukti приведены деление на 12, распределение пропорционально длительностям раши и направление по нечётности Лагны."
+    ],
+    "limitations": "Архивная OCR-копия переводческого издания; точное прочтение зависит от редакции и комментариев. В verified-reading-log совпадает запись practice:JAIMINI_ARCHIVE, но журнал подтверждает выбранные разделы и ограничения, а не единую современную норму.",
+    "verified_reading": {
+      "log_source_id": "practice:JAIMINI_ARCHIVE",
+      "observed_at": "2026-07-28",
+      "status": "personally_verified",
+      "method": "verified-reading-log plus direct web read",
+      "note": "Запись журнала соответствует URL; напрямую прочитаны титульные сведения, оглавление и фрагменты о направлении, длительности и bhukti."
+    },
+    "license_note": "Архивная ссылка используется как источник исследования и атрибуция; изображение источника в проект не копируется."
+  },
+  {
+    "source_id": "S4",
+    "url": "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/",
+    "title": "What Is the Correct Procedure for Computing Jaimini’s Chara Dasa?",
+    "author_or_institution": "U. K. Jha; Saptarishis Astrology",
+    "source_kind": "community_context",
+    "quality": "medium",
+    "ledger_review_status": "agent_reviewed",
+    "review_status": "directly_verified_this_run",
+    "role_in_article": "Каталог различий между процедурами старта, направления, длительности и bhukti; используется как полемический источник, а не как канон.",
+    "claims_used": [
+      "Статья выделяет два сутры Jaimini Upadesha Sutra, связанные с вычислением Чара-даши.",
+      "Автор перечисляет варианты Нилакантхи, BPHS и Vriddha Karika, Рагхавы Бхатты и Нрисимхи Сури, Рамана и K. N. Rao, P. S. Sastri и Санджая Ратха.",
+      "В отдельных процедурах расходятся стартовый знак, направление, формула длительности и порядок bhukti.",
+      "Для некоторых вариантов порядок bhukti в статье назван отсутствующим или заданным отдельным авторским правилом."
+    ],
+    "limitations": "Это полемическая статья одной школы и авторский каталог разногласий; она не доказывает, что перечисленная процедура единственно правильна.",
+    "verified_reading": {
+      "log_source_id": null,
+      "observed_at": "2026-07-28",
+      "status": "not_in_verified-reading-log",
+      "method": "direct web search and direct page read",
+      "note": "Отдельной записи S4 в verified-reading-log нет; прямой доступ к странице дал заголовок, дату, предисловие, перечень вариантов и полный текст основных аргументов."
+    },
+    "license_note": "Ссылка используется как внешняя атрибуция и источник контекста; текст страницы не копируется целиком."
+  },
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "quality": "high",
+    "ledger_review_status": "agent_reviewed",
+    "review_status": "directly_verified_this_run",
+    "role_in_article": "Проверка входного контракта программы и границы между поведением конкретного калькулятора и традиционным правилом.",
+    "claims_used": [
+      "Файл перечисляет пять систем и относит Chara к системам на основе знака Лагны.",
+      "Для Chara нужен birth_jd и lagna_sign от 1 до 12; долгота Луны требуется только для Vimshottari, Ashtottari и Yogini.",
+      "Параметр levels от 1 до 5 игнорируется для Chara и Narayana, поэтому этот контракт не строит вложенные уровни для Chara.",
+      "Исходный код описывает конкретную реализацию и не доказывает каноничность её алгоритма."
+    ],
+    "limitations": "Исходный код показывает поведение конкретной программы, но сам по себе не доказывает каноничность алгоритма, порядок bhukti или астрологическую интерпретацию.",
+    "verified_reading": {
+      "log_source_id": null,
+      "observed_at": "2026-07-28",
+      "status": "not_in_verified-reading-log",
+      "method": "direct raw GitHub file read",
+      "note": "Отдельной записи S5 в verified-reading-log нет; напрямую прочитаны объявления систем, входов, проверки параметров и комментарий об игнорировании levels для Chara."
+    },
+    "license_note": "Исходный код используется как техническая ссылка и атрибуция; код проекта VedicWay не копируется."
+  }
+]

@@ -1,0 +1,87 @@
+{
+  "slug": "muhurta-30-vremennykh-otrezkov",
+  "title": "Мухурта: 30 временных отрезков и исторический смысл слова",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A2",
+    "A4"
+  ],
+  "seo": {
+    "seo_title": "Мухурта: 30 временных отрезков в джйотише",
+    "meta_description": "Что такое мухурта: 30 временных отрезков, 48 минут в равной схеме, выбор момента по панчанге и границы исторического метода.",
+    "focus_keyphrase": "мухурта 30 временных отрезков",
+    "canonical_url": "https://vedicway.ru/guide/muhurta-30-vremennykh-otrezkov",
+    "excerpt": "Разбираем два смысла мухурты: единицу времени и выбор подходящего момента, а также показываем расчёт 30 отрезков и границы метода."
+  },
+  "seo_title": "Мухурта: 30 временных отрезков в джйотише",
+  "meta_description": "Что такое мухурта: 30 временных отрезков, 48 минут в равной схеме, выбор момента по панчанге и границы исторического метода.",
+  "focus_keyphrase": "мухурта 30 временных отрезков",
+  "intent": "Информационный: различить мухурту как единицу времени и как выбор подходящего момента; понять 30 частей суток, 48-минутную равную схему, сезонное деление и связь с панчангой.",
+  "semantic_core": [
+    "мухурта",
+    "мухурта в джйотише",
+    "30 мухурт",
+    "48 минут",
+    "расчёт мухурты",
+    "панчанга",
+    "титхи",
+    "накшатра",
+    "караṇа",
+    "натальная карта",
+    "время мухурты",
+    "таблица мухурт"
+  ],
+  "canonical": "https://vedicway.ru/guide/muhurta-30-vremennykh-otrezkov",
+  "internal_links": [
+    "/guide/muhurta-v-dzhyotish",
+    "/guide/titkhi-lunnyy-den",
+    "/guide/vara-den-nedeli-v-panchange",
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не выдавать 48 минут за единственную современную норму.",
+    "Не смешивать единицу времени, панчангу и выборную интерпретацию.",
+    "Не обещать медицинский, финансовый, юридический или гарантированный прогностический результат.",
+    "Не упоминать источники и внешние URL в тексте статьи."
+  ],
+  "cover": {
+    "asset_id": "cover-muhurta-30-vremennykh-otrezkov",
+    "path": "content/astrology-guide/articles/muhurta-30-vremennykh-otrezkov/cover.webp",
+    "alt": "Круг из тридцати временных секторов с лунной дугой на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения и поисковая выдача не использовались.",
+    "status": "ready",
+    "sha256": "79cb417b991887381fb11778cc0cfcad291856ab84a74311a38f1759c66dcba0",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": {
+    "article_md": "274AFFD3E2293A677D6D846042DAA7DC7CCBE14DE61C0D57B7A81AAEE13A4A4F",
+    "article_html": "ACB64317CCB8D920EE7A3C5C8543953D973FF6F60A231D60D75FC9583C7BDE0A",
+    "cover": "6468B1703950F23BAF35567005A1B0905C9941B1C46B501C11B6B185838FF2CE"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "мухурта 30 временных отрезков"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "мухурта 30 временных отрезков"
+      }
+    ],
+    "citation": [
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

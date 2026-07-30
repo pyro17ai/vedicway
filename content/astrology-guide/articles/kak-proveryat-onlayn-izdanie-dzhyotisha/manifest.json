@@ -1,0 +1,69 @@
+{
+  "slug": "kak-proveryat-onlayn-izdanie-dzhyotisha",
+  "title": "Как проверять онлайн-издание классического трактата джйотиша",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S03",
+    "S04",
+    "S06",
+    "S07",
+    "S09"
+  ],
+  "seo": {
+    "seo_title": "Как проверять онлайн-издание трактата джйотиша",
+    "meta_description": "Разбираем, как отличить скан старого перевода, каталог, цифровой санскритский текст и критическое издание трактата джйотиша.",
+    "focus_keyphrase": "как проверять онлайн-издание классического трактата джйотиша",
+    "canonical_url": "https://vedicway.ru/guide/kak-proveryat-onlayn-izdanie-dzhyotisha",
+    "excerpt": "Практическая проверка онлайн-источника: читатель различает скан перевода, библиотечную запись, цифровой санскритский текст и критическое издание, фиксируя редакцию и ограничения."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/chto-izuchaet-dzhyotisha",
+    "/guide/brihat-jataka-vvedenie"
+  ],
+  "prohibited_claims": [
+    "Не выдавать текст трактата или астрологическую интерпретацию за научно доказанную причинность.",
+    "Не обещать фатальные события, неизбежную судьбу или точность любого прогноза.",
+    "Не давать медицинские советы, диагнозы или обещания результата для здоровья.",
+    "Не обещать доход, карьерный результат, финансовую выгоду или юридический исход.",
+    "Не скрывать выбранный зодиак, аянāмшу и систему домов при переходе к натальной карте.",
+    "Не называть скан перевода, каталог или цифровую компиляцию критическим изданием без подтверждающего аппарата."
+  ],
+  "cover": {
+    "asset_id": "cover-kak-proveryat-onlayn-izdanie-dzhyotisha",
+    "path": "content/astrology-guide/articles/kak-proveryat-onlayn-izdanie-dzhyotisha/cover.webp",
+    "alt": "Сопоставление бумажной страницы, скана и цифровой записи на тёплом фоне",
+    "status": "ready",
+    "sha256": "51d397afbf448afee77ae0f3c73bea918d32865b49e5cf42e95ab142db6460a7",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/kak-proveryat-onlayn-izdanie-dzhyotisha",
+  "tags": [
+    "Основы астрологии",
+    "как проверять онлайн-издание классического трактата джйотиша"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "как проверять онлайн-издание классического трактата джйотиша"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.16943/ijhs/2019/v54i3/49738",
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/surysidu.htm",
+      "https://archive.org/details/brihatjataka00varaiala",
+      "https://books.google.com/books/about/Sree_Varaha_Mihira_s_Brihat_Jataka.html?id=Bf7PKVpe3p4C",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC1172313/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

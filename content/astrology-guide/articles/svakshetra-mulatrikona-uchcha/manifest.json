@@ -1,0 +1,62 @@
+{
+  "slug": "svakshetra-mulatrikona-uchcha",
+  "title": "Собственный знак, мулатрикона и экзальтация",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_vedpuran_translation",
+    "bphs_santhanam_archive"
+  ],
+  "seo": {
+    "seo_title": "Собственный знак, мулатрикона и экзальтация",
+    "meta_description": "Разбираем собственный знак, мулатрикону и экзальтацию в джйотише: чем различаются три уровня достоинства грахи и как читать их в карте.",
+    "focus_keyphrase": "собственный знак мулатрикона экзальтация",
+    "canonical_url": "https://vedicway.ru/guide/svakshetra-mulatrikona-uchcha",
+    "excerpt": "Читатель различает собственный знак, мулатрикону и экзальтацию и проверяет их через раши, бхаву, управление и связи."
+  },
+  "internal_links": [
+    "/guide/rashi-v-dzhyotishe",
+    "/guide/bhava-i-lagna"
+  ],
+  "prohibited_claims": [
+    "Не сводить три уровня достоинства к одному слову сильная планета.",
+    "Не выдавать традиционную интерпретацию за научно доказанный прогноз.",
+    "Не обещать здоровье, доход, точную дату события или неизбежную судьбу по одному положению.",
+    "Не смешивать таблицы разных редакций без указания выбранного правила."
+  ],
+  "cover": {
+    "asset_id": "cover-svakshetra-mulatrikona-uchcha",
+    "path": "content/astrology-guide/articles/svakshetra-mulatrikona-uchcha/cover.webp",
+    "alt": "Светящаяся граха внутри трёх концентрических зон на тёплом бумажном фоне с мягкой графикой созвездий",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "format": "png",
+    "status": "ready",
+    "sha256": "d7d540a962cea8715b057e1da610c9732b86a7f3afc4799e9d1736d3655fa9df"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/svakshetra-mulatrikona-uchcha",
+  "tags": [
+    "Планеты и дома",
+    "собственный знак мулатрикона экзальтация"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "собственный знак мулатрикона экзальтация"
+      }
+    ],
+    "citation": [
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

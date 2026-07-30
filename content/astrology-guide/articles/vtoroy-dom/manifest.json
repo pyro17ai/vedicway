@@ -1,0 +1,72 @@
+{
+  "title": "Второй дом: речь, семья и накопления",
+  "slug": "vtoroy-dom",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Второй дом в ведической астрологии: как читать карту",
+    "meta_description": "Разберите второй дом в ведической астрологии: речь, семья и накопления, роль управителя, планет и связи с 11-м домом доходов. Порядок чтения и границы метода.",
+    "focus_keyphrase": "второй дом в ведической астрологии",
+    "canonical_url": "https://vedicway.ru/guide/vtoroy-dom",
+    "excerpt": "Практический разбор второго дома: как читать речь, семейную среду и накопления через знак, управителя, планеты и связь с 11-м домом."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/dvenadcat-bhav",
+      "anchor": "двенадцати бхавах"
+    },
+    {
+      "url": "/guide/hozyain-doma-ot-lagny",
+      "anchor": "Как определить хозяина дома от Лагны"
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать богатство, доход или неизбежное семейное событие по одному второму дому.",
+    "Не выдавать традиционные значения бхавы за научно подтверждённую причинность.",
+    "Не смешивать парашарийские и джайминиевские правила без маркировки школы.",
+    "Не заменять картой финансовую, медицинскую или юридическую консультацию."
+  ],
+  "cover": {
+    "asset_id": "cover-vtoroy-dom",
+    "path": "content/astrology-guide/articles/vtoroy-dom/cover.webp",
+    "alt": "Керамическая чаша с монетами и мягким созвездием на тёплом бумажном фоне в терракотовой и охристой палитре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешняя лицензия и источник поисковой выдачи не применяются.",
+    "status": "ready",
+    "sha256": "eee9efab831eb1e63d2282cd8fec5346de41d526956582f449d0fbe474d70b00",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/vtoroy-dom",
+  "tags": [
+    "Планеты и дома",
+    "второй дом в ведической астрологии",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "второй дом в ведической астрологии"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

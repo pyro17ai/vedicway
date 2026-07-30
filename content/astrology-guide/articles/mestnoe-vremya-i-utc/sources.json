@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=e&nhor=1",
+    "role": "Техническая последовательность преобразования местного времени в UTC и дальнейшего расчёта Julian Day, UT1 и TT."
+  },
+  {
+    "source_id": "IANA_TZDB_OVERVIEW",
+    "url": "https://data.iana.org/time-zones/tzdb/tz-link.html",
+    "role": "История смещений гражданского времени, территориальные идентификаторы часовых поясов и ограничения исторических данных."
+  },
+  {
+    "source_id": "IANA_TZDB_HOWTO",
+    "url": "https://data.iana.org/time-zones/tzdb/tz-how-to.html",
+    "role": "Правила стандартного и летнего времени, переменные смещения и неоднозначность локальных показаний при переходах часов."
+  }
+]

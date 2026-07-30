@@ -1,0 +1,63 @@
+{
+  "slug": "graha-v-dzhyotishe",
+  "title": "Graha в джйотише: планета, захватывающая смысл карты",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "brhatsamhita_gretil"
+  ],
+  "seo": {
+    "seo_title": "Graha в джйотише: как планета действует в карте",
+    "meta_description": "Разбираем graha в джйотише как действующий показатель карты: расчёт, раши, бхава, связи, пример и границы традиционной интерпретации.",
+    "focus_keyphrase": "graha в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/graha-v-dzhyotishe",
+    "excerpt": "Graha в джйотише связывает расчётное положение с раши, бхавой и правилами школы. Статья показывает порядок чтения и границы метода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не сводить graha к физической планете: в классической модели Раху и Кету входят в список грах как лунные узлы.",
+    "Не выдавать традиционные интерпретации за научно подтверждённые прогнозы.",
+    "Не обещать по одной грахе здоровье, деньги, брак, точную дату события или неизбежную судьбу.",
+    "Не смешивать правила разных редакций BPHS и школ джйотиша без явной маркировки."
+  ],
+  "cover": {
+    "asset_id": "cover-graha-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/graha-v-dzhyotishe/cover.webp",
+    "alt": "Тёмная центральная точка, тонкие орбиты и геометрические метки на тёплом фактурном бумажном фоне",
+    "status": "ready",
+    "sha256": "cbcda47084434b20ea2f2e5c8de11efc1049d78b2670b2e552601df199e40cfd",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/graha-v-dzhyotishe",
+  "tags": [
+    "Основы астрологии",
+    "graha в джйотише",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "graha в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

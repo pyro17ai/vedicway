@@ -1,48 +1,48 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
-import { resolveArticleMediaUrl, safeArticleMediaUrl } from "../lib/article-media";
-import type { ArticleMediaAsset } from "../lib/article-store";
+import type { ContentMediaAsset } from "../lib/content-api";
 
 type ArticleMediaProps = {
-  asset: ArticleMediaAsset;
+  asset: ContentMediaAsset;
   className?: string;
   sizes?: string;
   loading?: "eager" | "lazy";
   decorative?: boolean;
 };
 
-export function ArticleMedia({ asset, className = "", sizes = "100vw", loading = "lazy", decorative = false }: ArticleMediaProps) {
-  const [source, setSource] = useState(() => safeArticleMediaUrl(asset.url));
+function safeMediaUrl(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.startsWith("/media/articles/")) return trimmed;
+  if (/^https:\/\/[^/]+\/media\/articles\//i.test(trimmed)) return trimmed;
+  return "";
+}
 
-  useEffect(() => {
-    let alive = true;
-    let revoke = false;
-    let resolvedUrl = "";
-    setSource(safeArticleMediaUrl(asset.url));
-    void resolveArticleMediaUrl(asset).then((resolved) => {
-      if (!alive) {
-        if (resolved.revoke) URL.revokeObjectURL(resolved.url);
-        return;
-      }
-      resolvedUrl = resolved.url;
-      revoke = resolved.revoke;
-      setSource(resolved.url);
-    }).catch(() => setSource(""));
-    return () => {
-      alive = false;
-      if (revoke && resolvedUrl) URL.revokeObjectURL(resolvedUrl);
-    };
-  }, [asset.provider, asset.storageKey, asset.url]);
-
-  const srcSet = useMemo(() => asset.sources
-    .map((candidate) => ({ ...candidate, url: safeArticleMediaUrl(candidate.url) }))
-    .filter((candidate) => candidate.url)
-    .map((candidate) => `${candidate.url} ${candidate.width}w`)
-    .join(", "), [asset.sources]);
+export function ArticleMedia({
+  asset,
+  className = "",
+  sizes = "100vw",
+  loading = "lazy",
+  decorative = false,
+}: ArticleMediaProps) {
+  const source = safeMediaUrl(asset.url);
+  const srcSet = useMemo(
+    () =>
+      asset.sources
+        .map((candidate) => ({
+          ...candidate,
+          url: safeMediaUrl(candidate.url),
+        }))
+        .filter((candidate) => candidate.url)
+        .map((candidate) => `${candidate.url} ${candidate.width}w`)
+        .join(", "),
+    [asset.sources],
+  );
 
   return (
-    <span className={`article-media${source ? " is-ready" : " is-pending"}${className ? ` ${className}` : ""}`}>
-      {source && (
+    <span
+      className={`article-media${source ? " is-ready" : " is-pending"}${className ? ` ${className}` : ""}`}
+    >
+      {source ? (
         <img
           src={source}
           srcSet={srcSet || undefined}
@@ -53,18 +53,14 @@ export function ArticleMedia({ asset, className = "", sizes = "100vw", loading =
           title={asset.title || undefined}
           loading={loading}
           decoding="async"
+          fetchPriority={loading === "eager" ? "high" : "auto"}
+        />
+      ) : (
+        <span
+          className="article-media__placeholder"
+          aria-label="Изображение недоступно"
         />
       )}
-      {!source && <span className="article-media__placeholder" aria-label="Изображение загружается" />}
     </span>
-  );
-}
-
-export function ArticleMediaFigure({ asset }: { asset: ArticleMediaAsset }) {
-  return (
-    <figure className="article-body-media">
-      <ArticleMedia asset={asset} sizes="(max-width: 820px) calc(100vw - 30px), 780px" />
-      {asset.caption && <figcaption>{asset.caption}</figcaption>}
-    </figure>
   );
 }

@@ -1,0 +1,110 @@
+{
+  "title": "Четвёртый дом: дом, мать и внутреннее спокойствие",
+  "slug": "chetvertyy-dom",
+  "category": "Планеты и дома",
+  "seo_title": "Четвёртый дом в джйотише: дом, мать и спокойствие",
+  "meta_description": "Что означает четвёртый дом в джйотише: мать, жильё, недвижимость, транспорт и внутреннее спокойствие. Порядок чтения и границы метода.",
+  "focus_keyphrase": "четвёртый дом в джйотише",
+  "intent": {
+    "type": "informational",
+    "wordstat": {
+      "phrase": "четвёртый дом в ведической астрологии",
+      "totalCount": 8,
+      "topRequests": [],
+      "associations": [],
+      "status": "no_displayed_data"
+    },
+    "reader_need": "Понять значение четвёртого дома и самостоятельно связать его с матерью, жильём, недвижимостью, транспортом и внутренним спокойствием.",
+    "questions": [
+      "Что означает четвёртый дом в джйотише?",
+      "Как читать четвёртый дом в натальной карте?",
+      "Показывает ли четвёртый дом отношения с матерью?",
+      "Можно ли по четвёртому дому узнать про жильё и автомобиль?",
+      "Что делать, если время рождения неизвестно?"
+    ]
+  },
+  "semantic_core": {
+    "primary": [
+      "четвёртый дом в джйотише",
+      "четвёртый дом в ведической астрологии"
+    ],
+    "close_formulations": [
+      "значение четвёртого дома",
+      "четвёртый дом в натальной карте",
+      "Sukha Bhava",
+      "Bandhu Bhava",
+      "Matru Bhava"
+    ],
+    "reader_questions": [
+      "дом матери в джйотише",
+      "дом жилья и недвижимости",
+      "дом автомобиля и транспорта",
+      "внутреннее спокойствие в карте",
+      "как определить управителя четвёртого дома"
+    ],
+    "entities": [
+      "бхава",
+      "лагна",
+      "управитель дома",
+      "Луна",
+      "аспекты",
+      "сидерический расчёт",
+      "время рождения"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/chetvertyy-dom",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2",
+    "S08",
+    "search-fourth-house-bphs"
+  ],
+  "internal_links": [
+    "/chart",
+    "/guide/bhava-i-lagna"
+  ],
+  "cover": {
+    "asset_id": "cover-chetvertyy-dom",
+    "path": "content/astrology-guide/articles/chetvertyy-dom/cover.webp",
+    "alt": "Тёплая редакционная сцена дома с матерью, лунным отражением и мягкой схемой четвёртого дома на бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано генератором изображений OpenAI для VedicWay; внешние изображения не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "9a039f95fe945e777825848fd4a95fb8b8d181bd54b6765c41078863cb14d51d"
+  },
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Четвёртый дом в джйотише: дом, мать и спокойствие",
+    "meta_description": "Что означает четвёртый дом в джйотише: мать, жильё, недвижимость, транспорт и внутреннее спокойствие. Порядок чтения и границы метода.",
+    "focus_keyphrase": "четвёртый дом в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/chetvertyy-dom",
+    "excerpt": "Четвёртый дом в джйотише связывает жильё, землю, транспорт, мать и ощущение внутренней опоры. В карте он показывает, где человек ищет чувство дома, как переживает семейную среду и насколько легко восстанавливается после внешней нагрузки. Поэтому его читают через конкретные."
+  },
+  "tags": [
+    "Планеты и дома",
+    "четвёртый дом в джйотише",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "четвёртый дом в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://enjoylearningsanskrit.com/scriptures/parashara/chapter-15"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

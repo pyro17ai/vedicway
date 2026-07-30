@@ -1,0 +1,118 @@
+{
+  "title": "Vimshopaka Bala: как складывается сила планеты по варгам",
+  "slug": "vimshopaka-bala",
+  "category": "Практика чтения карты",
+  "seo_title": "Vimshopaka Bala: сила планеты по варгам",
+  "meta_description": "Vimshopaka Bala: формула, веса четырёх наборов варг и пример расчёта силы планеты по шкале от 0 до 20 без смешивания разных схем, с границами метода.",
+  "focus_keyphrase": "Vimshopaka Bala",
+  "canonical": "https://vedicway.ru/guide/vimshopaka-bala",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_fulltext",
+    "bphs_varga_use"
+  ],
+  "intent": {
+    "source": "wordstat",
+    "type": "informational_definition_and_calculation",
+    "status": "limited_data_no_request_rows",
+    "primary_query": "вимшопака бала",
+    "primary_query_total_count": 15,
+    "latin_query": "vimshopaka bala",
+    "latin_query_total_count": 0,
+    "broader_query": "вимшопака",
+    "broader_query_total_count": 18,
+    "top_requests": [],
+    "associations": [],
+    "period": "последние 30 дней на 2026-07-30",
+    "reader_need": "Понять, как веса варг и достоинство планеты складываются в оценку от 0 до 20, чем отличаются четыре схемы и как читать результат без двойного учёта Vargottama."
+  },
+  "semantic_core": {
+    "primary": [
+      "Vimshopaka Bala",
+      "вимшопака бала",
+      "сила планеты по варгам"
+    ],
+    "related": [
+      "Vimshopaka Bala расчёт",
+      "веса варг",
+      "Shadvarga",
+      "Saptavarga",
+      "Dashavarga",
+      "Shodashavarga",
+      "дробные карты джйотиш",
+      "Vargottama",
+      "достоинство планеты в варгах",
+      "шкала 20 баллов"
+    ],
+    "questions": [
+      "Что показывает Vimshopaka Bala?",
+      "Как рассчитать силу планеты по варгам?",
+      "Какие веса получают варги в четырёх схемах?",
+      "Чем Shadvarga отличается от Shodashavarga?",
+      "Даёт ли Vargottama дополнительные баллы?",
+      "Можно ли сравнивать результаты разных схем?",
+      "Почему два калькулятора дают разные значения?"
+    ],
+    "wordstat_result": {
+      "top_requests": [],
+      "associations": [],
+      "note": "Wordstat не вернул вложенных и ассоциированных формулировок; близкие фразы сформированы из терминологии и вопросов, необходимых для полного ответа на информационный интент."
+    }
+  },
+  "seo": {
+    "seo_title": "Vimshopaka Bala: сила планеты по варгам",
+    "meta_description": "Vimshopaka Bala: формула, веса четырёх наборов варг и пример расчёта силы планеты по шкале от 0 до 20 без смешивания разных схем, с границами метода.",
+    "focus_keyphrase": "Vimshopaka Bala",
+    "canonical_url": "https://vedicway.ru/guide/vimshopaka-bala",
+    "excerpt": "Взвешенная оценка планеты по варгам: четыре набора, таблица весов, формула до 20 баллов, учебный расчёт и границы интерпретации."
+  },
+  "internal_links": [
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/shodashavarga-drobnie-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать Vimshopaka Bala за полную силу планеты или замену Shadbala.",
+    "Не обещать медицинский, финансовый или гарантированный событийный результат.",
+    "Не прибавлять отдельный бонус за Vargottama поверх двадцатибалльной шкалы.",
+    "Не смешивать веса и результаты разных схем варг.",
+    "Не делать уверенный вывод по тонким варгам без проверки времени рождения и настроек расчёта."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Терракотовая планета в центре четырёх концентрических колец дробных карт на бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "width": 1616,
+    "height": 909,
+    "sha256": "9244b39b02d9ee96ba640b471a958bb10ae9a62c1d1b928f772b2a2c2300f940",
+    "asset_id": "cover-vimshopaka-bala",
+    "path": "content/astrology-guide/articles/vimshopaka-bala/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "74EDEA09102CEF47DAD245A8770C875BB62CB29F8C42D8CD493474D1EE7B7C68",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Vimshopaka Bala",
+    "планеты",
+    "варги"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Vimshopaka Bala"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

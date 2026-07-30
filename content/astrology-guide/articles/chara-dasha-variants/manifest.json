@@ -1,0 +1,62 @@
+{
+  "slug": "chara-dasha-variants",
+  "title": "[Алгоритм] Почему варианты Чара-даши дают разные даты",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "S4",
+    "S5"
+  ],
+  "seo": {
+    "seo_title": "Чара-даша: почему школы дают разные даты",
+    "meta_description": "Разбираем варианты Чара-даши: стартовый знак, направление, длительность периодов и порядок бхукти в разных школах джйотиша.",
+    "focus_keyphrase": "варианты Чара-даши",
+    "canonical_url": "https://vedicway.ru/guide/chara-dasha-variants",
+    "excerpt": "Разберите, почему Чара-даша даёт разные даты: зафиксируйте стартовый знак, направление, формулу длительности и порядок bhukti, затем сверяйте расчёт по контрольным точкам."
+  },
+  "internal_links": [
+    "/guide/kak-chitat-natalnuyu-kartu",
+    "/chart",
+    "/guide/ayanamsha-lahiri-raman-true-chitra"
+  ],
+  "prohibited_claims": [
+    "фатальные события, дата смерти или неизбежный исход по Чара-даше",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьеры, сделки или материального результата",
+    "юридический исход, научно подтверждённый прогноз или точность времени рождения"
+  ],
+  "cover": {
+    "asset_id": "cover-chara-dasha-variants",
+    "path": "content/astrology-guide/articles/chara-dasha-variants/cover.webp",
+    "alt": "Абстрактные круги и расходящиеся геометрические траектории на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "787094c3ee37599ccc7d532e8324291cd080d6f4b76dbba647ac118fa84212e6",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/chara-dasha-variants",
+  "tags": [
+    "Практика чтения карты",
+    "варианты Чара-даши",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "варианты Чара-даши"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

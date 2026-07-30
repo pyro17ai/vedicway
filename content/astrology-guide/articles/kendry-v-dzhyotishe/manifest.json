@@ -1,0 +1,62 @@
+{
+  "slug": "kendry-v-dzhyotishe",
+  "title": "Кендры: 1-й, 4-й, 7-й и 10-й дома",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "astrojyoti_bphs_ch7_8"
+  ],
+  "seo": {
+    "seo_title": "Кендры в джйотише: 1-й, 4-й, 7-й и 10-й дома",
+    "meta_description": "Что такое кендры в джйотише: 1-й, 4-й, 7-й и 10-й дома, их оси, значения, порядок поиска от Лагны и границы чтения карты для начинающих и вопросы читателя.",
+    "focus_keyphrase": "кендры в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/kendry-v-dzhyotishe",
+    "excerpt": "Кендры в джйотише составляют 1-й, 4-й, 7-й и 10-й дома. Разбираем их оси, значение каждого угла, порядок поиска от Лагны и границы метода."
+  },
+  "internal_links": [
+    "/guide/bhava-i-lagna",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную классификацию кендров за научно подтверждённый прогноз.",
+    "Не обещать медицинский, финансовый, карьерный или событийный результат по одному дому или грахе.",
+    "Не смешивать правила разных школ джйотиша без явной фиксации метода."
+  ],
+  "cover": {
+    "asset_id": "cover-kendry-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/kendry-v-dzhyotishe/cover.webp",
+    "alt": "Четыре светящиеся угловые точки вокруг геометрии натальной карты на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для VedicWay; сторонние изображения из поисковой выдачи не использовались.",
+    "width": 1672,
+    "height": 941,
+    "format": "PNG",
+    "sha256": "9c4b13c40def83d59e57ff1d4f3d896b19fba5de257d66183634c33e53338396",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/kendry-v-dzhyotishe",
+  "tags": [
+    "Планеты и дома",
+    "кендры в джйотише",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "кендры в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.astrojyoti.com/bphspage1-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

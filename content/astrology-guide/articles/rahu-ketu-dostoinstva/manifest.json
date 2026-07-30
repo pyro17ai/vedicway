@@ -1,0 +1,84 @@
+{
+  "slug": "rahu-ketu-dostoinstva",
+  "title": "Раху и Кету: узлы и спорные достоинства",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Раху и Кету: спорные достоинства в джйотише",
+  "meta_description": "Почему экзальтацию и собственные знаки Раху и Кету нужно связывать со школой, текстом, диспозитором и всей осью карты.",
+  "focus_keyphrase": "достоинства Раху и Кету",
+  "intent": "Информационный интент: читатель хочет понять, в каких знаках Раху и Кету считают экзальтированными или собственниками и почему ответы зависят от школы. Wordstat по запросу «Раху и Кету достоинства» не вернул запросов.",
+  "semantic_core": {
+    "status": "empty_wordstat",
+    "wordstat_phrase": "Раху и Кету достоинства",
+    "top_requests": [],
+    "associations": [],
+    "editorial_queries": [
+      "в каком знаке экзальтирован Раху",
+      "в каком знаке экзальтирован Кету",
+      "собственные знаки Раху и Кету",
+      "достоинства узлов в джйотише",
+      "почему школы расходятся в экзальтации узлов",
+      "как читать Раху и Кету через диспозитора"
+    ]
+  },
+  "seo": {
+    "seo_title": "Раху и Кету: спорные достоинства в джйотише",
+    "meta_description": "Вопрос о достоинствах Раху и Кету нельзя решить одной таблицей экзальтаций. В парашарском джйотише узлы входят в число девяти грах, но правила их возвышения.",
+    "focus_keyphrase": "достоинства Раху и Кету",
+    "canonical_url": "https://vedicway.ru/guide/rahu-ketu-dostoinstva",
+    "excerpt": "Экзальтация и собственные знаки Раху и Кету зависят от редакции текста. Разбираем, как фиксировать расчёт, проверять диспозитора и читать ось без готовых прогнозов."
+  },
+  "canonical": "https://vedicway.ru/guide/rahu-ketu-dostoinstva",
+  "internal_links": [
+    "/guide/rahu-i-ketu-v-dzhyotish",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "медицинские диагнозы и обещания здоровья",
+    "гарантированный финансовый или карьерный результат",
+    "точная дата события по одному узлу",
+    "фатальные выводы о судьбе"
+  ],
+  "cover": {
+    "asset_id": "cover-rahu-ketu-dostoinstva",
+    "path": "content/astrology-guide/articles/rahu-ketu-dostoinstva/cover.webp",
+    "alt": "Два лунных узла на общей оси вокруг затмения и знаков зодиака на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешняя лицензия и исходный URL не применяются.",
+    "status": "ready",
+    "sha256": "8e1b5326dea362906a150cd5e1b1b40554296301a3d7db098601f2cee5cca259",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": {
+    "article.html": "763DB8CD613AD84BEA9BEC8E7ABF9A04452E0EA7909A44CC8764B731C4EAFEF7",
+    "article.md": "15D1962BF30ADE41622F0FFC4D2713485081870240AA07FE349804B60E503107",
+    "cover.png": "A13F5F41D016A2C2CC75436E82C5A2427C44354610B8C28D9A6D610A49DDCC3E"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "достоинства Раху и Кету"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "достоинства Раху и Кету"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

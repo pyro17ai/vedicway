@@ -1,0 +1,72 @@
+{
+  "slug": "dvenadcat-bhav",
+  "title": "Двенадцать бхав: предметные области домов в джйотише",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_sanskritdocuments_11_20",
+    "bphs_saptamatrika_comparative",
+    "bphs_santhanam_archive_vol1"
+  ],
+  "seo": {
+    "seo_title": "Двенадцать бхав: значения домов в джйотише",
+    "meta_description": "Разберите двенадцать бхав в джйотише: предметы домов, группы кендров и трикон, порядок чтения и ограничения традиционного метода.",
+    "focus_keyphrase": "двенадцать бхав",
+    "canonical_url": "https://vedicway.ru/guide/dvenadcat-bhav",
+    "excerpt": "Практический словарь двенадцати бхав: какие темы связывают с каждым домом, как учитывать группы домов и что проверить перед интерпретацией грах."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/hozyain-doma-ot-lagny",
+      "anchor": "Как определить хозяина дома от Лагны"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционные предметные области домов за научно подтверждённые прогнозы.",
+    "Не ставить диагнозы и не обещать здоровье, доход, брак или неизбежное событие по одной бхаве.",
+    "Не смешивать редакции BPHS и правила разных школ без явной маркировки."
+  ],
+  "cover": {
+    "asset_id": "cover-dvenadcat-bhav",
+    "path": "content/astrology-guide/articles/dvenadcat-bhav/cover.webp",
+    "alt": "Абстрактные небесные орбиты на тёплом бумажном фоне в терракотовой и медовой палитре",
+    "status": "ready",
+    "sha256": "e4041747eff209417a122dbf122366c96ee776962c7e4aa0d9be0f8febd58729",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/dvenadcat-bhav",
+  "tags": [
+    "Планеты и дома",
+    "двенадцать бхав",
+    "дома",
+    "бхавы"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "двенадцать бхав"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://saptamatrika.ru/en/bphs",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

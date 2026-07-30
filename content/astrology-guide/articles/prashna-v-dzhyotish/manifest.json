@@ -1,0 +1,73 @@
+{
+  "slug": "prashna-v-dzhyotish",
+  "title": "Прашна: как читать карту заданного вопроса",
+  "category": "Практика чтения карты",
+  "canonical": "https://vedicway.ru/guide/prashna-v-dzhyotish",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_gret",
+    "prasna_marga_raman_part1",
+    "gansten_prasnatantra_2014"
+  ],
+  "seo": {
+    "seo_title": "Прашна в джйотиш: как читать карту вопроса",
+    "meta_description": "Разберите прашну по лагне, Луне и дому вопроса. Поймите отличие от натальной карты, порядок трактовки, границы метода и типичные ошибки чтения.",
+    "focus_keyphrase": "прашна в джйотиш",
+    "canonical_url": "https://vedicway.ru/guide/prashna-v-dzhyotish",
+    "excerpt": "Прашна фиксирует один вопрос в момент обращения. Материал показывает, как читать лагну, Луну и предметный дом, не смешивая карту вопроса с натальной."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты"
+    },
+    {
+      "url": "/guide/muhurta-v-dzhyotish",
+      "anchor": "мухурта в джйотиш"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать прашну за научно доказанный способ прогнозирования.",
+    "Не обещать медицинский, финансовый, юридический или гарантированный событийный результат.",
+    "Не смешивать правила южноиндийской, таджикской и других школ без явного выбора системы.",
+    "Не подменять карту вопроса натальной картой и не переносить её выводы на всю жизнь человека."
+  ],
+  "cover": {
+    "asset_id": "cover-prashna-v-dzhyotish",
+    "path": "content/astrology-guide/articles/prashna-v-dzhyotish/cover.webp",
+    "alt": "Круговая карта вопроса с терракотовым лучом, сходящимся в точке времени на тёплой бумаге",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "width": 1729,
+    "height": 910,
+    "sha256": "5347c10d1083e3322fd7e87fa04a042462fb4bdea635541c8caae69721d15ef3"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "прашна в джйотиш"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "прашна в джйотиш"
+      }
+    ],
+    "citation": [
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://astrofoxx.files.wordpress.com/2018/11/prasna-marga-1.pdf",
+      "https://doi.org/10.18732/h23w27"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

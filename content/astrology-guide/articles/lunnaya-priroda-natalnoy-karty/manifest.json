@@ -1,0 +1,63 @@
+{
+  "slug": "lunnaya-priroda-natalnoy-karty",
+  "title": "Лунная природа карты: почему чтение начинают с положения Луны",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A4",
+    "A6",
+    "A7"
+  ],
+  "seo": {
+    "seo_title": "Луна в джйотише: алгоритм чтения карты",
+    "meta_description": "Как читать Луну в ведической карте: знак, накшатра, пада, дом, фаза, связи, пример, границы и проверка лунной интерпретации.",
+    "focus_keyphrase": "положение Луны в натальной карте",
+    "canonical_url": "https://vedicway.ru/guide/lunnaya-priroda-natalnoy-karty",
+    "excerpt": "Пошаговый разбор положения Луны в сидерической карте: от долготы и накшатры до дома, связей, даши и проверки ограничений метода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/dzhanma-nakshatra-luny",
+    "/guide/vimshottari-start-nakshatra"
+  ],
+  "prohibited_claims": [
+    "Не выдавать лунную интерпретацию за медицинский диагноз.",
+    "Не смешивать тропические и сидерические показатели или системы домов.",
+    "Не обещать по Луне неизбежные отношения, доход или событие."
+  ],
+  "cover": {
+    "asset_id": "cover-lunnaya-priroda-natalnoy-karty",
+    "path": "content/astrology-guide/articles/lunnaya-priroda-natalnoy-karty/cover.webp",
+    "alt": "Светлая лунная дуга над спокойной геометрией натальной карты на тёплой бумаге",
+    "status": "ready",
+    "sha256": "74eb166a8260d6e8556af0d61d9c88a8e61617e835129f73237e07c736977076",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/lunnaya-priroda-natalnoy-karty",
+  "tags": [
+    "Практика чтения карты",
+    "положение Луны в натальной карте",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "положение Луны в натальной карте"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt",
+      "https://archive.org/details/brihat-parashara-hora-shastra"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

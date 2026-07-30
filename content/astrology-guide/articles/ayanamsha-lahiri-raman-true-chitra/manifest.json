@@ -1,0 +1,60 @@
+{
+  "slug": "ayanamsha-lahiri-raman-true-chitra",
+  "title": "Аянāмша в джйотише: Лахири, Раман и True Chitra",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_general",
+    "dieter_ayanamsha",
+    "pyswisseph_sidereal"
+  ],
+  "seo": {
+    "seo_title": "Аянāмша в джйотише: Лахири, Раман и True Chitra",
+    "meta_description": "Как выбрать аянāмшу для джйотиша: сравниваем Лахири, Раман и True Chitra, фиксируем режим до чтения карты и проверяем границы знаков.",
+    "focus_keyphrase": "аянāмша в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/ayanamsha-lahiri-raman-true-chitra",
+    "excerpt": "Аянāмша задаёт исходную точку сидерического зодиака. Разбираем Лахири, Раман и True Chitra, затем фиксируем одну настройку до интерпретации карты."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/siderealnyj-i-tropicheskij-zodiak",
+    "/guide/vybor-aynamshi-i-sistemy-domov"
+  ],
+  "prohibited_claims": [
+    "Не выдавать джйотиш и выбор аянāмши за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, точные события или неизбежную судьбу по карте.",
+    "Не называть Лахири, Раман или True Chitra универсально правильной настройкой для всех школ."
+  ],
+  "cover": {
+    "asset_id": "cover-ayanamsha-lahiri-raman-true-chitra",
+    "path": "content/astrology-guide/articles/ayanamsha-lahiri-raman-true-chitra/cover.webp",
+    "alt": "Тонкие орбиты и абстрактная геометрия на светлом бумажном фоне",
+    "status": "ready",
+    "sha256": "237ce36ca4ce47270bf9b0f7a03959f732170ad305c4f335e89aaa66a6d5c2c4",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/ayanamsha-lahiri-raman-true-chitra",
+  "tags": [
+    "Основы астрологии",
+    "аянāмша в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "аянāмша в джйотише"
+      }
+    ],
+    "citation": [
+      "https://www.astro.com/astrology/in_ayanamsha_e.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

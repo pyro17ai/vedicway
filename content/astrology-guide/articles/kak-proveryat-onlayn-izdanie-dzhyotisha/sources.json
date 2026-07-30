@@ -1,0 +1,81 @@
+[
+  {
+    "source_id": "S03",
+    "title": "The Untapped Wealth of Manuscripts on Indian Astronomy and Mathematics",
+    "author_or_institution": "M. D. Srinivas",
+    "source_kind": "scholarly_secondary",
+    "url": "https://doi.org/10.16943/ijhs/2019/v54i3/49738",
+    "role_in_article": "Академическая рамка для различения рукописного корпуса, каталога, издания и перевода.",
+    "claims_used": [
+      "Корпус индийской астрономии и математики велик и отредактирован лишь частично.",
+      "При работе с классическими текстами нужно различать каталог рукописи, критическое издание, перевод и популярную перепечатку."
+    ],
+    "limitations": "Оценки относятся к широкому корпусу астрономии и математики и не заменяют проверку конкретного трактата.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "S04",
+    "title": "Suryasiddhanta",
+    "author_or_institution": "GRETIL; текст подготовлен Michio Yano",
+    "source_kind": "primary_text",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/surysidu.htm",
+    "role_in_article": "Пример цифрового санскритского текста с редакторской основой, вариантами чтения и статусом справочного файла.",
+    "claims_used": [
+      "Электронная версия основана на изданиях Hall 1854, Kashi Sanskrit Granthamala 1987 и издании с комментарием Sudhakara Dvivedi 1987.",
+      "На странице представлены варианты чтения и Unicode-текст санскритского сочинения.",
+      "Страница прямо ограничивает использование файла справочными целями."
+    ],
+    "limitations": "Это цифровая компиляция нескольких изданий без полноценного критического аппарата и современного аннотированного перевода.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "S06",
+    "title": "The Brihat jataka",
+    "author_or_institution": "Varahamihira; перевод N. Chidambaram Aiyar",
+    "source_kind": "primary_text",
+    "url": "https://archive.org/details/brihatjataka00varaiala",
+    "role_in_article": "Пример скана старого английского перевода для проверки года издания, вида текста и ограничений OCR.",
+    "claims_used": [
+      "Internet Archive содержит скан английского перевода Brihat Jataka, опубликованного в Мадрасе в 1905 году.",
+      "В метаданных указаны 310 страниц скана и библиотечное происхождение экземпляра.",
+      "Скан полезен для истории раннего перевода, но не подтверждает критическую сверку санскритских рукописей."
+    ],
+    "limitations": "Перевод старый, скан имеет OCR-ограничения и не сообщает о критической сверке санскритских рукописей.",
+    "observed_at": "2026-07-28",
+    "review_status": "agent_reviewed"
+  },
+  {
+    "source_id": "S07",
+    "title": "Sree Varaha Mihira's Brihat Jataka: English Translation with Original Slokas in Devanagari",
+    "author_or_institution": "Varāhamihira; Bangalore Suryanarain Rao; редакторы B. Lakshminarain Rao и B. V. Raman",
+    "source_kind": "technical_reference",
+    "url": "https://books.google.com/books/about/Sree_Varaha_Mihira_s_Brihat_Jataka.html?id=Bf7PKVpe3p4C",
+    "role_in_article": "Библиографическая запись для различения книги с оригинальными шлоками и полного критического издания.",
+    "claims_used": [
+      "Библиографическая запись фиксирует переиздание Motilal Banarsidass 1986 года.",
+      "Указаны оригинальные шлоки на деванагари, английский перевод, редакторы, ISBN и объём 639 страниц.",
+      "Карточка подтверждает библиографию, но не подтверждает критический статус издания."
+    ],
+    "limitations": "Запись Google Books подтверждает библиографию, но не даёт полного доступа к тексту и не доказывает статус критического издания.",
+    "observed_at": "2026-07-28",
+    "review_status": "agent_reviewed"
+  },
+  {
+    "source_id": "S09",
+    "title": "Book Review: Catalogue of Jyotiṣa manuscripts in the Wellcome Library",
+    "author_or_institution": "Christopher Minkowski; Cambridge University Press",
+    "source_kind": "scholarly_secondary",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1172313/",
+    "role_in_article": "Пример того, какие поля каталога помогают проверить происхождение рукописи и не спутать каталог с изданием.",
+    "claims_used": [
+      "Каталог описывает 959 индийских рукописей, представляющих более 500 текстов и около 250 авторов.",
+      "Описание рукописей включает название, автора, датировку, инципит, колофоны и физические особенности.",
+      "Каталог полезен для поиска рукописных свидетелей, но не заменяет критическое издание отдельного трактата."
+    ],
+    "limitations": "Это рецензия на каталог Wellcome, а не каталог всех сохранившихся рукописей Индии и не критическое издание отдельного текста.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified"
+  }
+]

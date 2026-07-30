@@ -1,0 +1,97 @@
+{
+  "title": "Как оценить управителя лагны",
+  "slug": "ocenka-upravitelya-lagny",
+  "category": "Практика чтения карты",
+  "seo_title": "Как оценить управителя лагны в джйотише",
+  "meta_description": "Пошагово оцените управителя лагны: дом, знак, достоинство, аспекты и силу планеты. Разберите мини-пример и границы метода.",
+  "focus_keyphrase": "как оценить управителя лагны",
+  "intent": {
+    "type": "informational",
+    "stage": "learning",
+    "summary": "Читатель ищет понятный порядок самостоятельной оценки управителя первого дома в натальной карте.",
+    "wordstat": {
+      "phrase": "как оценить управителя лагны",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "status": "empty_result"
+    }
+  },
+  "semantic_core": {
+    "source": "editorial_core_after_empty_wordstat",
+    "phrases": [
+      "как оценить управителя лагны",
+      "управитель первого дома в джйотише",
+      "как найти управителя лагны",
+      "положение управителя лагны в домах",
+      "управитель лагны в знаке",
+      "достоинство управителя лагны",
+      "аспекты управителя лагны",
+      "сила управителя лагны",
+      "как читать управителя первого дома"
+    ],
+    "reader_questions": [
+      "Как найти управителя лагны по восходящему знаку?",
+      "Что показывает дом, в котором стоит управитель первого дома?",
+      "Как учитывать достоинство, аспекты и силу управителя лагны?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/ocenka-upravitelya-lagny",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "internal_links": [
+    "/guide/bhava-i-lagna",
+    "/guide/dvenadcat-rashi"
+  ],
+  "cover": {
+    "filename": "cover.png",
+    "path": "content/astrology-guide/articles/ocenka-upravitelya-lagny/cover.webp",
+    "alt": "Круг натальной карты с выделенной Лагной и линией к планете-управителю на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "cc53a13ef070a89d2a6be13588fbe9df3070becd5a07ac496cc159e2e374c311",
+    "width": 1672,
+    "height": 941,
+    "mime_type": "image/png",
+    "asset_id": "cover-ocenka-upravitelya-lagny",
+    "status": "ready"
+  },
+  "prohibited_claims": [
+    "Медицинская диагностика по управителю лагны",
+    "Гарантированный финансовый или прогностический результат",
+    "Категоричный вывод по неточному времени рождения"
+  ],
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Как оценить управителя лагны в джйотише",
+    "meta_description": "Пошагово оцените управителя лагны: дом, знак, достоинство, аспекты и силу планеты. Разберите мини-пример и границы метода.",
+    "focus_keyphrase": "как оценить управителя лагны",
+    "canonical_url": "https://vedicway.ru/guide/ocenka-upravitelya-lagny",
+    "excerpt": "Чтобы оценить управителя лагны, найдите восходящий знак, определите планету, которая им управляет, и зафиксируйте её положение в карте. Затем прочитайте эту планету через пять вопросов: в каком доме она стоит, в каком знаке находится, каким достоинством обладает, какие влияния."
+  },
+  "tags": [
+    "Практика чтения карты",
+    "как оценить управителя лагны",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как оценить управителя лагны"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

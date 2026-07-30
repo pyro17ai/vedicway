@@ -1,0 +1,35 @@
+[
+  {
+    "source_id": "S01",
+    "url": "https://doi.org/10.60018/acasva.nssz2549",
+    "title": "Calendrical Terminology in the Early Vedic Astronomical Treatises of the Jyotiṣavedāṅga",
+    "author_or_institution": "Marta Monkiewicz, University of Wrocław",
+    "source_kind": "scholarly_secondary",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "role_in_article": "Историческая опора для связи раннего jyotiṣa с измерением времени, двумя редакциями текста и календарной задачей ведийского ритуала.",
+    "claims_used": [
+      "Сохранились две основные редакции Jyotiṣavedāṅga, связанные с Ṛgveda и Yajurveda.",
+      "Текст посвящён измерению и делению времени, а вычисления связаны с данными, нужными для ведийского ритуала.",
+      "Абсолютная датировка текста спорна и не сводится к одной уверенной дате."
+    ],
+    "limits": "Исследовательская статья с авторскими переводами выбранных стихов, а не критическое издание обеих редакций."
+  },
+  {
+    "source_id": "S02",
+    "url": "https://doi.org/10.1017/S0252921100105809",
+    "title": "Main Characteristics and Achievements of Ancient Indian Astronomy in Historical Perspective",
+    "author_or_institution": "K. S. Shukla",
+    "source_kind": "scholarly_secondary",
+    "quality": "high",
+    "review_status": "agent_reviewed",
+    "role_in_article": "Основной источник для технического описания tithi, nakṣatra, месяцев, сезонов, вставного месяца и пятилетней yuga.",
+    "claims_used": [
+      "Vedāṅga Jyotiṣa описывается как знание определения времени и представлена двумя близкими редакциями.",
+      "Текст работает с месяцами, годами, muhūrta, накшатрами, новолуниями, полнолуниями, сезонами, солнцестояниями, вставным месяцем и пропуском tithi.",
+      "Пятилетняя yuga включает 61 гражданский, 62 лунных и 67 сидерических месяцев; в модели описаны 366-дневный год и шесть сезонов.",
+      "Историческая модель имеет расхождения с более точными астрономическими значениями."
+    ],
+    "limits": "Исторический обзор, а не самостоятельная публикация санскритского текста и не универсальное руководство для современных школ календаря."
+  }
+]

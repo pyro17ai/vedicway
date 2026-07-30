@@ -1,0 +1,63 @@
+{
+  "slug": "moon-based-and-lagna-based-dashas",
+  "title": "Лунные и знаковые даши: исходные данные и различия",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S5",
+    "S6"
+  ],
+  "seo": {
+    "seo_title": "Лунные и знаковые даши: входные данные",
+    "meta_description": "Разберите входы для Vimshottari, Yogini, Chara и Narayana: сидерическая долгота Луны, знак Лагны, Julian Day, уровни и ограничения.",
+    "focus_keyphrase": "лунные и знаковые даши",
+    "canonical_url": "https://vedicway.ru/guide/moon-based-and-lagna-based-dashas",
+    "excerpt": "Правило расчёта даши сверяйте с выбранной школой: исходная точка, порядок управителей и вложенность периодов должны принадлежать одной редакции."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/pratyantardasha-nested-periods"
+  ],
+  "prohibited_claims": [
+    "Не выдавать классификацию входов S5 за единственную каноническую формулу всех школ джйотиша.",
+    "Не обещать фатальные события, здоровье, деньги, юридический исход или точность времени рождения по даше.",
+    "Не смешивать сидерическую долготу Луны с её знаком и знак Лагны с номером дома или бхавой.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные.",
+    "Отделяйте вычисленные долготы от трактовки: сначала фиксируйте параметры карты, затем применяйте правила школы."
+  ],
+  "cover": {
+    "asset_id": "cover-moon-based-and-lagna-based-dashas",
+    "path": "content/astrology-guide/articles/moon-based-and-lagna-based-dashas/cover.webp",
+    "alt": "Спокойная геометрическая схема лунного якоря и знака Лагны на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "6749f36563381bd14ea795b87789595f4226455209d29691816a3dec42294acb",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/moon-based-and-lagna-based-dashas",
+  "tags": [
+    "Основы астрологии",
+    "лунные и знаковые даши",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "лунные и знаковые даши"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/dashi-v-dzhyotish"
+    ]
+  }
+}

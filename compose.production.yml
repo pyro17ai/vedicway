@@ -163,35 +163,6 @@ services:
         condition: service_completed_successfully
     restart: "no"
 
-  bootstrap-admin:
-    image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
-    profiles: ["bootstrap"]
-    entrypoint: ["python", "/opt/vedicway/backend/scripts/bootstrap_admin.py"]
-    user: "10001:10001"
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
-      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
-      VEDICWAY_BOOTSTRAP_ADMIN_NAME: ${VEDICWAY_BOOTSTRAP_ADMIN_NAME:-Администратор}
-    secrets:
-      - postgres_password
-      - admin_bootstrap_email
-      - admin_bootstrap_password
-    networks:
-      - data
-    read_only: true
-    tmpfs:
-      - /tmp:rw,noexec,nosuid,nodev,size=32m,uid=10001,gid=10001,mode=1770
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    depends_on:
-      content-migrate:
-        condition: service_completed_successfully
-    restart: "no"
-
   backend:
     <<: *backend-common
     environment:
@@ -640,7 +611,3 @@ secrets:
     file: ${VEDICWAY_SMTP_PASSWORD_FILE:-./secrets/smtp_password.txt}
   backup_encryption_key:
     file: ${VEDICWAY_BACKUP_KEY_FILE:-./secrets/backup_encryption_key.txt}
-  admin_bootstrap_email:
-    file: ${VEDICWAY_BOOTSTRAP_ADMIN_EMAIL_FILE:-./secrets/admin_bootstrap_email.txt}
-  admin_bootstrap_password:
-    file: ${VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD_FILE:-./secrets/admin_bootstrap_password.txt}

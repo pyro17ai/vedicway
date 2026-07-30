@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react";
 
 type SiteHeaderProps = {
-  active: "home" | "guide" | null;
+  active: "home" | "guide" | "blog" | null;
   onNavigate: (path: string) => void;
   variant?: "overlay" | "solid";
 };
@@ -35,6 +35,9 @@ export function SiteHeader({ active, onNavigate, variant = "solid" }: SiteHeader
           </a>
           <a className={active === "guide" ? "is-active" : ""} href="/guide" aria-current={active === "guide" ? "page" : undefined} onClick={(event) => follow(event, "/guide")}>
             Гид по астрологии
+          </a>
+          <a className={active === "blog" ? "is-active" : ""} href="/blog" aria-current={active === "blog" ? "page" : undefined} onClick={(event) => follow(event, "/blog")}>
+            Блог
           </a>
         </nav>
       </div>

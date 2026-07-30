@@ -1,0 +1,64 @@
+{
+  "slug": "rahu-v-dzhyotish",
+  "title": "Раху: узел, усиление и нестандартный путь",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "bphs_santhanam_archive"
+  ],
+  "seo": {
+    "seo_title": "Раху в джйотише: дом, знак и порядок чтения",
+    "meta_description": "Планеты и дома Раху в джйотише читают через связку из четырёх записей: знак, дом, управителя дома и планеты, связанные с узлом. Сам по себе Раху показывает.",
+    "focus_keyphrase": "Раху в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/rahu-v-dzhyotish",
+    "excerpt": "Редакционный алгоритм чтения Раху через дом, знак, хозяина, ось Раху-Кету и связанные планеты с условным примером и границами метода."
+  },
+  "internal_links": [
+    "/guide/polozheniya-grah-v-sidereicheskoj-karte",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/graha-drishti-parashara"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз события",
+    "медицинский диагноз или совет",
+    "гарантия финансового или карьерного результата",
+    "неизбежная судьба по одному положению Раху"
+  ],
+  "cover": {
+    "asset_id": "cover-rahu-v-dzhyotish",
+    "path": "content/astrology-guide/articles/rahu-v-dzhyotish/cover.webp",
+    "alt": "Абстрактный тёмный узел Раху в орбитальной дуге среди мягкой графики созвездий на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано генератором ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "e9bad313ff1872edf76fe9d3cba90bc28d786965deec04598b22e36dffa6d003",
+    "width": 1672,
+    "height": 941,
+    "format": "png"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/rahu-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Раху в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Раху в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

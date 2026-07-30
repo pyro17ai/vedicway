@@ -1,0 +1,65 @@
+{
+  "slug": "rahu-i-ketu-v-dzhyotish",
+  "title": "Раху и Кету в джйотише: узлы и ось карты",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "nasiri_zarvani_jyotisha_history",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Раху и Кету в джйотише: как читать ось карты",
+    "meta_description": "Разберите Раху и Кету как одну ось: проверьте дом, знак, диспозитора и связи до интерпретации, без фатальных прогнозов и ярлыков.",
+    "focus_keyphrase": "Раху и Кету в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/rahu-i-ketu-v-dzhyotish",
+    "excerpt": "Практический порядок чтения Раху и Кету: сначала зафиксируйте расчёт, затем сопоставьте дома и знаки оси, проверьте диспозиторов и только после этого интерпретируйте связи."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/rahu-ketu-dostoinstva"
+  ],
+  "prohibited_claims": [
+    "обещания здоровья или медицинские диагнозы",
+    "гарантии денег, карьеры или юридического результата",
+    "точные события и даты по одной оси узлов",
+    "неизбежная судьба и фатальные выводы"
+  ],
+  "cover": {
+    "asset_id": "cover-rahu-i-ketu-v-dzhyotish",
+    "path": "content/astrology-guide/articles/rahu-i-ketu-v-dzhyotish/cover.webp",
+    "alt": "Абстрактная ось двух лунных узлов с тонкими орбитами и геометрией на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешняя лицензия и исходный URL не применяются.",
+    "status": "ready",
+    "sha256": "ec6b40f26d467c8df0582046fb749b6e912267900fac658ef1ab28e6808b341c",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/rahu-i-ketu-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Раху и Кету в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Раху и Кету в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://jihs.ut.ac.ir/article_102707_d7ed20c26f4e491a96722d963b07656d.pdf?lang=en"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

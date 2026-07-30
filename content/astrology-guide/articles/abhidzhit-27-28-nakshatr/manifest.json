@@ -1,0 +1,72 @@
+{
+  "slug": "abhidzhit-27-28-nakshatr",
+  "title": "Абхиджит: почему в джйотише говорят о 27 и 28 накшатрах",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A1",
+    "A3",
+    "A4"
+  ],
+  "seo": {
+    "seo_title": "Абхиджит: 27 или 28 накшатр в джйотише",
+    "meta_description": "Разбираем статус Абхиджит в 27- и 28-позиционных традициях и показываем, как не смешать расчёт Луны, ритуальный список и трактовку.",
+    "focus_keyphrase": "Абхиджит 27 или 28 накшатр",
+    "canonical_url": "https://vedicway.ru/guide/abhidzhit-27-28-nakshatr",
+    "excerpt": "Почему Абхиджит встречается в списках из 28 позиций, но не добавляется автоматически в стандартную натальную сетку из 27 накшатр."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/dzhanma-nakshatra-luny",
+      "anchor": "джанма-накшатра Луны"
+    },
+    {
+      "url": "/guide/nakshatra-v-dzhyotishe",
+      "anchor": "накшатры в джйотише"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционные трактовки Абхиджит за научно подтверждённую причинность.",
+    "Не обещать по Абхиджит неизбежное событие, здоровье, деньги или юридический результат.",
+    "Не смешивать 27-секторный натальный расчёт с 28-позиционным ритуальным или звёздным списком без указания школы и границ.",
+    "Не принимать координату звезды Абхиджит за границу лунного сектора без отдельного алгоритма."
+  ],
+  "cover": {
+    "asset_id": "cover-abhidzhit-27-28-nakshatr",
+    "path": "content/astrology-guide/articles/abhidzhit-27-28-nakshatr/cover.webp",
+    "alt": "Спокойная геометрическая схема лунной дуги и звёздных точек на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "597a93939be01783779e436d130b1a2bbe3d62eb8babbd685ee2270ff1274891",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/abhidzhit-27-28-nakshatr",
+  "tags": [
+    "Основы астрологии",
+    "Абхиджит 27 или 28 накшатр",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "Абхиджит 27 или 28 накшатр"
+      }
+    ],
+    "citation": [
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+      "https://vignanam.org/samskritam/nakshatra-suktam-nakshatreshti.html",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

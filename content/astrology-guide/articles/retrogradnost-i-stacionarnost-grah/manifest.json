@@ -1,0 +1,60 @@
+{
+  "slug": "retrogradnost-i-stacionarnost-grah",
+  "title": "Ретроградность и стационарность грах в джйотише",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Ретроградность и стационарность грах в джйотише",
+    "meta_description": "Как отличить ретроградность от стационарности грахи: знак скорости, отдельный порог, сидерические настройки и пример проверки в карте.",
+    "focus_keyphrase": "ретроградность и стационарность грах",
+    "canonical_url": "https://vedicway.ru/guide/retrogradnost-i-stacionarnost-grah",
+    "excerpt": "Ретроградность определяется знаком угловой скорости, а стационарность требует отдельного порога около нуля. При сравнении расчётов фиксируйте название аянамши и исходную сидерическую долготу: у границы знака даже небольшое расхождение может изменить раши, накшатру или паду."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/siderealnyj-i-tropicheskij-zodiak"
+  ],
+  "prohibited_claims": [
+    "Не выдавать ретроградность или стационарность за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, профессию, точное событие или неизбежную судьбу по статусу грахи.",
+    "Не смешивать тропическую и сидерическую системы, скрывать аянāмшу, систему домов, тип узлов или порог стационарности.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
+  ],
+  "cover": {
+    "asset_id": "cover-retrogradnost-i-stacionarnost-grah",
+    "path": "content/astrology-guide/articles/retrogradnost-i-stacionarnost-grah/cover.webp",
+    "alt": "Абстрактная круговая схема обратного движения и почти неподвижной грахи на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "6657dd1088eb21b6ebd2b16b23ece950e24b4ceb63cc8893715fd96ab7405ce1",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/retrogradnost-i-stacionarnost-grah",
+  "tags": [
+    "Планеты и дома",
+    "ретроградность и стационарность грах",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "ретроградность и стационарность грах"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/graha-v-dzhyotishe"
+    ]
+  }
+}

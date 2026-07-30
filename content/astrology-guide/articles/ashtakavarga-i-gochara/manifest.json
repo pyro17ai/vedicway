@@ -1,0 +1,163 @@
+{
+  "title": "Как соединять Ashtakavarga с гочаром",
+  "slug": "ashtakavarga-i-gochara",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_phaladeepika",
+    "src_brihat_gocara",
+    "src_jyotishganit"
+  ],
+  "seo_title": "Ashtakavarga и гочар: как читать транзиты",
+  "meta_description": "Как соединять Ashtakavarga с гочаром: выберите BAV планеты, проверьте SAV знака и уточните транзит после натальной карты и даша без фатальных выводов.",
+  "focus_keyphrase": "Ashtakavarga с гочаром",
+  "intent": {
+    "type": "informational_practical",
+    "primary": "Научиться применять Bhinna и Sarva Ashtakavarga как числовое уточнение гочара после натальной карты и даша.",
+    "wordstat": {
+      "exact_query": "аштаковарга и гочара",
+      "exact_total_count": 0,
+      "exact_top_requests": [],
+      "exact_associations": [],
+      "checked_variants": [
+        {
+          "query": "аштакаварга",
+          "total_count": 248,
+          "top_requests": [
+            {
+              "phrase": "аштакаварга",
+              "count": 248
+            },
+            {
+              "phrase": "аштакаварга джйотиш это",
+              "count": 30
+            },
+            {
+              "phrase": "аштакаварга сатурн",
+              "count": 22
+            },
+            {
+              "phrase": "аштакаварга расчет",
+              "count": 21
+            },
+            {
+              "phrase": "рассчитать аштакаваргу",
+              "count": 19
+            },
+            {
+              "phrase": "бхина аштакаварга сатурна",
+              "count": 18
+            }
+          ]
+        },
+        {
+          "query": "аштакаварга гочар",
+          "total_count": 0,
+          "top_requests": []
+        },
+        {
+          "query": "гочар джйотиш",
+          "total_count": 46,
+          "top_requests": [
+            {
+              "phrase": "гочара транзиты в джйотиш",
+              "count": 38
+            }
+          ]
+        }
+      ],
+      "noise_excluded": [
+        "нерелевантные ассоциации Wordstat для широких запросов"
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "Ashtakavarga с гочаром",
+      "аштакаварга",
+      "аштакаварга и транзиты"
+    ],
+    "close_formulations": [
+      "как читать аштакаваргу",
+      "аштакаварга расчёт",
+      "Bhinna Ashtakavarga",
+      "Sarvashtakavarga",
+      "бинду в аштакаварге",
+      "бхинна аштакаварга Сатурна",
+      "гочара транзиты в джйотиш"
+    ],
+    "reader_questions": [
+      "Какую таблицу Ashtakavarga брать для транзита планеты?",
+      "Чем Bhinna Ashtakavarga отличается от Sarvashtakavarga?",
+      "Что означают 0-8 бинду в знаке?",
+      "Что важнее: даша, гочар или Ashtakavarga?",
+      "Как читать высокий BAV при низком SAV?",
+      "Можно ли оценивать Раху и Кету по BAV?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/ashtakavarga-i-gochara",
+  "seo": {
+    "seo_title": "Ashtakavarga и гочар: как читать транзиты",
+    "meta_description": "Как соединять Ashtakavarga с гочаром: выберите BAV планеты, проверьте SAV знака и уточните транзит после натальной карты и даша без фатальных выводов.",
+    "focus_keyphrase": "Ashtakavarga с гочаром",
+    "canonical_url": "https://vedicway.ru/guide/ashtakavarga-i-gochara",
+    "excerpt": "Практический порядок чтения Ashtakavarga вместе с гочаром: приоритет натальной карты и даша, выбор BAV планеты, проверка SAV знака и разбор расхождений."
+  },
+  "cover": {
+    "asset_id": "cover-ashtakavarga-i-gochara",
+    "path": "content/astrology-guide/articles/ashtakavarga-i-gochara/cover.webp",
+    "alt": "Планета проходит по орбите вокруг зодиакального круга с рядами точек бинду на бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "4b7adacddba0548d30fdaa6dce3ea5a907c9e3d6ad2c0684ac63bc52bdbe6355",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты"
+    },
+    {
+      "url": "/guide/sopostavlenie-dashi-i-tranzita",
+      "anchor": "как сопоставлять даша и транзит"
+    },
+    {
+      "url": "/guide/gochara-transity-otnositelno-natalnoy-luny",
+      "anchor": "гочара относительно натальной Луны"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать Ashtakavarga за научно подтверждённый способ предсказания событий.",
+    "Не переводить бинду в проценты успеха, деньги, диагноз или гарантированный исход.",
+    "Не ставить BAV и SAV выше натальной карты и даша.",
+    "Не смешивать исходные и редуцированные таблицы без указания методики."
+  ],
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Ashtakavarga с гочаром"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Ashtakavarga с гочаром"
+      }
+    ],
+    "citation": [
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

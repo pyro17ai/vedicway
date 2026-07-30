@@ -1,0 +1,73 @@
+{
+  "slug": "vosmoy-dom",
+  "title": "Восьмой дом: кризис, наследство и продолжительность жизни",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "8 дом в ведической астрологии: как читать без фатализма",
+    "meta_description": "Что означает 8 дом в ведической астрологии: кризисы, наследство и долголетие. Пошаговое чтение карты без быстрых фатальных выводов.",
+    "focus_keyphrase": "8 дом в ведической астрологии",
+    "canonical_url": "https://vedicway.ru/guide/vosmoy-dom",
+    "excerpt": "Восьмой дом связывают с кризисами, наследством и продолжительностью жизни, но его читают только в связке с управителем, другими домами, силой планет и временем рождения."
+  },
+  "cover": {
+    "asset_id": "cover-vosmoy-dom",
+    "path": "content/astrology-guide/articles/vosmoy-dom/cover.webp",
+    "alt": "Глубокий восьмой сектор радиальной карты на тёплом бумажном фоне среди мягких созвездий",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1672,
+    "height": 941,
+    "format": "png",
+    "sha256": "5d805f94f627078a6ab77ad795ed162479189f2cae6135e4174db8ab6ac6edcc",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Проверка исходных параметров расчёта."
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава и лагна",
+      "reason": "Разъяснение базовых терминов карты."
+    },
+    {
+      "url": "/guide/sistemy-domov-v-sidereicheskoj-karte",
+      "anchor": "Сидерические дома в карте",
+      "reason": "Переход к выбору системы домов."
+    }
+  ],
+  "prohibited_claims": [
+    "Не объявлять по одному восьмому дому срок жизни, смерть, болезнь, наследство или финансовый результат.",
+    "Не выдавать традиционную астрологическую интерпретацию за медицинскую, юридическую или финансовую консультацию.",
+    "Не смешивать различия школ, аянамш, систем домов и неопределённость времени рождения."
+  ],
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/vosmoy-dom",
+  "tags": [
+    "Планеты и дома",
+    "8 дом в ведической астрологии",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "8 дом в ведической астрологии"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

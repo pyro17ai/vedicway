@@ -1,0 +1,35 @@
+{
+  "status": "valid",
+  "source": "VedicWay-work3/content/astrology-guide/articles",
+  "article_count": 202,
+  "category_counts": {
+    "Основы астрологии": 41,
+    "Планеты и дома": 55,
+    "Время и циклы": 44,
+    "Практика чтения карты": 62
+  },
+  "difficulty_counts": {
+    "beginner": 118,
+    "expert": 84
+  },
+  "minimum_plain_chars": 4293,
+  "covers": {
+    "count": 202,
+    "minimum_width": 1200,
+    "minimum_height": 630
+  },
+  "citations": 499,
+  "repairs": {
+    "slug": {
+      "лунная-priroda-natalnoy-karty": "lunnaya-priroda-natalnoy-karty"
+    },
+    "internal_links": {
+      "/guide/лунная-priroda-natalnoy-karty": "/guide/lunnaya-priroda-natalnoy-karty",
+      "/guide/dostoinstva-planet-v-dzhyotishe": "/guide/svakshetra-mulatrikona-uchcha",
+      "/guide/rashi-v-dzhyotish": "/guide/rashi-v-dzhyotishe"
+    },
+    "manifest_mojibake": [
+      "nakshatry-i-pady"
+    ]
+  }
+}

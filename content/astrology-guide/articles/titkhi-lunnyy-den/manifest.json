@@ -1,0 +1,60 @@
+{
+  "slug": "titkhi-lunnyy-den",
+  "title": "Титхи: как считается лунный день",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A2",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Титхи в джйотише: как рассчитать лунный день",
+    "meta_description": "Формула титхи через долготы Солнца и Луны, расчёт 30 лунных дней, пример, панчанга, переход границы и ограничения правила.",
+    "focus_keyphrase": "как считается титхи",
+    "canonical_url": "https://vedicway.ru/guide/titkhi-lunnyy-den",
+    "excerpt": "Разбираем угловую формулу титхи, деление круга на 30 частей, связь с пакшей и правила проверки перехода на местном восходе."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/muhurta-v-dzhyotish",
+    "/guide/dzhanma-nakshatra-luny"
+  ],
+  "prohibited_claims": [
+    "Не выдавать номер титхи за гарантию результата события.",
+    "Не смешивать тропические и сидерические долготы или менять аянāмшу после расчёта.",
+    "Не использовать традиционную классификацию для медицинских, финансовых и юридических решений."
+  ],
+  "cover": {
+    "asset_id": "cover-titkhi-lunnyy-den",
+    "path": "content/astrology-guide/articles/titkhi-lunnyy-den/cover.webp",
+    "alt": "Две тёплые орбитальные дуги и тридцать делений лунного цикла на бумажной фактуре",
+    "status": "ready",
+    "sha256": "dbe71318619543a5e6e7dcd44b323c19e6ecd71c61a7cfb45167cfee4009db36",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/titkhi-lunnyy-den",
+  "tags": [
+    "Время и циклы",
+    "как считается титхи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "как считается титхи"
+      }
+    ],
+    "citation": [
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

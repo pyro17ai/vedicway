@@ -1,0 +1,143 @@
+{
+  "title": "Дришти в парашари: базовая логика аспектов",
+  "slug": "drishti-v-parashari",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Аспекты в джйотише: дришти Парашари",
+  "meta_description": "Аспекты в джйотише по Парашари: как считать дришти от дома, различать аспект и соединение и читать специальный взгляд планет.",
+  "focus_keyphrase": "аспекты в джйотише",
+  "intent": {
+    "type": "informational_how_to",
+    "summary": "Читатель хочет понять базовую механику аспектов в джйотише, научиться считать дришти от положения планеты и не путать аспект с соединением.",
+    "wordstat": {
+      "exact_query": "дришти в парашари",
+      "exact_total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "related_queries": [
+        {
+          "phrase": "аспекты в джйотиш",
+          "count": 312
+        },
+        {
+          "phrase": "аспекты домов в джйотиш",
+          "count": 133
+        },
+        {
+          "phrase": "аспекты планет в джйотиш",
+          "count": 88
+        },
+        {
+          "phrase": "аспекты марса в джйотиш",
+          "count": 81
+        },
+        {
+          "phrase": "аспекты сатурна в джйотиш",
+          "count": 78
+        },
+        {
+          "phrase": "аспекты юпитера в джйотиш",
+          "count": 76
+        },
+        {
+          "phrase": "аспекты планет в джйотиш как смотреть",
+          "count": 8
+        }
+      ],
+      "region": "Россия, 225",
+      "period": "последние 30 дней"
+    }
+  },
+  "semantic_core": {
+    "status": "expanded_from_related_queries",
+    "primary": [
+      "аспекты в джйотише",
+      "дришти в парашари",
+      "аспекты планет в джйотише"
+    ],
+    "close_formulations": [
+      "аспекты домов в джйотише",
+      "аспекты в джйотиш",
+      "7-й аспект планеты",
+      "специальные аспекты Марса",
+      "аспекты Юпитера",
+      "аспекты Сатурна"
+    ],
+    "reader_questions": [
+      "Что такое дришти?",
+      "Как считать аспект планеты от дома?",
+      "Какая планета смотрит на 7-й дом?",
+      "Куда смотрят Марс, Юпитер и Сатурн?",
+      "Чем аспект отличается от соединения?"
+    ],
+    "noise_excluded": [
+      "общий гороскоп",
+      "гороскоп на сегодня",
+      "расчёт без интерпретации"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/drishti-v-parashari",
+  "seo": {
+    "seo_title": "Аспекты в джйотише: дришти Парашари",
+    "meta_description": "Аспекты в джйотише по Парашари: как считать дришти от дома, различать аспект и соединение и читать специальный взгляд планет.",
+    "focus_keyphrase": "аспекты в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/drishti-v-parashari",
+    "excerpt": "Дришти в парашари связывает планету с домом, который она видит. Сначала фиксируют исходное положение, затем считают 7-й аспект и специальные направления Марса, Юпитера и Сатурна."
+  },
+  "cover": {
+    "asset_id": "cover-drishti-v-parashari",
+    "path": "content/astrology-guide/articles/drishti-v-parashari/cover.webp",
+    "alt": "Центральная граха направляет мягкие лучи к секторам зодиакального круга на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения и материалы из поисковой выдачи не использовались.",
+    "format": "PNG",
+    "width": 1672,
+    "height": 941,
+    "sha256": "e62cf6c639a28c4e027a28961337131ee17188ea1cea238171c68a4a02a1ec5c",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "раши, бхава, лагна и дома"
+    },
+    {
+      "url": "/guide/dvenadcat-bhav",
+      "anchor": "значения двенадцати бхав"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно доказанный причинный механизм.",
+    "Не обещать гарантированный прогноз, медицинский, финансовый или психологический результат.",
+    "Не смешивать граха-дришти с соединением или раши-дришти без явной маркировки метода."
+  ],
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "аспекты в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "аспекты в джйотише"
+      }
+    ],
+    "citation": [
+      "https://www.astrojyoti.com/bphspage3-4.htm",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "bphs_sapta_comparative",
+    "url": "https://saptamatrika.ru/en/bphs",
+    "role": "Сверка разночтений редакций и базовых правил раши-дришти в парашарском контексте"
+  },
+  {
+    "source_id": "astrojyoti_bphs_ch7_8",
+    "url": "https://www.astrojyoti.com/bphspage1-3.htm",
+    "role": "Проверка классификации раши и направлений раши-дришти для подвижных, неподвижных и двойственных знаков"
+  },
+  {
+    "source_id": "astrojyoti_bphs_ch26",
+    "url": "https://www.astrojyoti.com/bphspage3-4.htm",
+    "role": "Проверка общего 7-го аспекта и специальных аспектов Марса, Юпитера и Сатурна"
+  }
+]

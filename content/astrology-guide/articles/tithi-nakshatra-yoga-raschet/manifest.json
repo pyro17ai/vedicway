@@ -1,0 +1,74 @@
+{
+  "slug": "tithi-nakshatra-yoga-raschet",
+  "title": "Расчёт титхи, накшатры и йоги",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S04",
+    "S11"
+  ],
+  "seo": {
+    "seo_title": "Титхи, накшатра и йога: расчёт в джйотише",
+    "meta_description": "Разбираем расчёт титхи, накшатры и йоги: входные данные, угловые формулы, аянāмшу, пример и границу между числом и трактовкой.",
+    "focus_keyphrase": "расчёт титхи, накшатры и йоги",
+    "canonical_url": "https://vedicway.ru/guide/tithi-nakshatra-yoga-raschet",
+    "excerpt": "Для проверки расчёта сохраните неокруглённые долготы Солнца и Луны, аянамшу и правило деления круга на секторы."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/nakshatra-v-dzhyotishe",
+      "anchor": "статья о nakṣatra"
+    },
+    {
+      "url": "/guide/data-rozhdeniya-julian-day",
+      "anchor": "материал о Julian Day"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать расчётные номера титхи, накшатры или йоги за гарантию события, здоровья, дохода или юридического результата.",
+    "Не скрывать часовой пояс, эфемериды, зодиак, аянāмшу, правило начала суток и систему домов при переходе к натальной карте.",
+    "На границе накшатры используйте исходную долготу без округления и заранее зафиксированное правило включения граничной точки."
+  ],
+  "cover": {
+    "asset_id": "cover-tithi-nakshatra-yoga-raschet",
+    "path": "content/astrology-guide/articles/tithi-nakshatra-yoga-raschet/cover.webp",
+    "alt": "Три концентрические небесные дуги и угловые деления на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "ai_generated",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения не использовались.",
+    "sha256": "c73225353ae091554590c3e169085484196e8a464c7a3c0f7be03b1ead349aee",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/tithi-nakshatra-yoga-raschet",
+  "tags": [
+    "Время и циклы",
+    "расчёт титхи, накшатры и йоги",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "расчёт титхи, накшатры и йоги"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/surysidu.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

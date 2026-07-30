@@ -1,0 +1,64 @@
+{
+  "slug": "dvenadcat-rashi",
+  "title": "Двенадцать раши: порядок и санскритские названия",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "S1",
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Двенадцать раши: порядок и санскритские названия",
+    "meta_description": "Порядок двенадцати раши от Меши до Мины: санскритские названия, границы сидерического зодиака и связь знаков с лагной, домами и чтением карты.",
+    "focus_keyphrase": "двенадцать раши",
+    "canonical_url": "https://vedicway.ru/guide/dvenadcat-rashi",
+    "excerpt": "Порядок 12 раши от Меши до Мины, санскритские названия знаков, границы сидерического зодиака и связь раши с лагной и домами."
+  },
+  "internal_links": [
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/dvenadcat-bhav",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать порядок раши за самостоятельный прогноз.",
+    "Не смешивать раши, бхавы и накшатры в одну систему делений.",
+    "Не обещать гарантированный медицинский, финансовый или событийный результат."
+  ],
+  "cover": {
+    "asset_id": "cover-dvenadcat-rashi",
+    "path": "content/astrology-guide/articles/dvenadcat-rashi/cover.webp",
+    "alt": "Круговая схема двенадцати раши на тёплой бумажной фактуре с мягкими созвездиями и знаками зодиака",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "format": "PNG",
+    "sha256": "0b5f3756176db41423f8f5769b01c6eee44563070fb680c74eea1284a2a4a916",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/dvenadcat-rashi",
+  "tags": [
+    "Основы астрологии",
+    "двенадцать раши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "двенадцать раши"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

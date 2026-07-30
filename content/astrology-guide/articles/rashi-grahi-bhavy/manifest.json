@@ -1,0 +1,79 @@
+{
+  "slug": "rashi-grahi-bhavy",
+  "title": "Раши, грахи и бхавы: базовый словарь карты",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2",
+    "EXA-1"
+  ],
+  "seo": {
+    "seo_title": "Раши, грахи и бхавы в натальной карте",
+    "meta_description": "В натальной карте джйотиша одна запись описывает три разных слоя: раши показывает знак зодиака, граха указывает действующий фактор, а бхава задаёт область.",
+    "focus_keyphrase": "раши грахи и бхавы в натальной карте",
+    "canonical_url": "https://vedicway.ru/guide/rashi-grahi-bhavy",
+    "excerpt": "Раши показывает знак, граха указывает действующий фактор, а бхава задаёт область карты. Статья объясняет связку на примере и обозначает границы метода."
+  },
+  "canonical": "https://vedicway.ru/guide/rashi-grahi-bhavy",
+  "intent": "informational",
+  "semantic_core": [
+    "раши",
+    "граха",
+    "бхава",
+    "натальная карта",
+    "знаки",
+    "планеты",
+    "дома",
+    "обозначения карты"
+  ],
+  "internal_links": [
+    "/guide/rashi-v-dzhyotishe",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не выдавать символическую интерпретацию за медицинский, финансовый или гарантированный прогноз.",
+    "Не смешивать раши, граху и бхаву в один показатель.",
+    "Не скрывать выбранную школу, аянāмшу, схему домов и неопределённость времени рождения."
+  ],
+  "cover": {
+    "asset_id": "cover-rashi-grahi-bhavy",
+    "path": "content/astrology-guide/articles/rashi-grahi-bhavy/cover.webp",
+    "alt": "Круг натальной карты с внешним кольцом знаков, внутренними планетарными мотивами и секторами домов на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано через OpenAI ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "1b3d10abfc85bb25032d6bf8c2a735e5c7b2b6e34cb821f9868aee1325a150c6",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": "26E8E2F8FD73358BA076B206BB12181CE2406B7C36D095EE48235127EBCC812D",
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "раши грахи и бхавы в натальной карте",
+    "натальная карта",
+    "грахи",
+    "бхавы"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "раши грахи и бхавы в натальной карте"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par0110.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

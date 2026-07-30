@@ -1,0 +1,88 @@
+{
+  "slug": "panchanga-dlya-muhurty",
+  "title": "Панчанг в мухурте: титхи, накшатра, йога, карана и вара",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_gret",
+    "src_jyotishganit",
+    "src_britannica_hindu_calendar",
+    "src_vedicdatetime",
+    "src_indian_astronomy_sourcebook"
+  ],
+  "seo": {
+    "seo_title": "Панчанг в мухурте: 5 компонентов для выбора времени",
+    "meta_description": "Панчанг в мухурте: разберите титхи, накшатру, йогу, карану и вару, узнайте нужные данные и порядок проверки времени для начала действия без догадок.",
+    "focus_keyphrase": "панчанг в мухурте",
+    "canonical_url": "https://vedicway.ru/guide/panchanga-dlya-muhurty",
+    "excerpt": "Пять компонентов панчанги для мухурты: что они рассчитывают, какие границы времени фиксировать и почему одного названия накшатры недостаточно для выбора момента."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/muhurta-v-dzhyotish",
+      "anchor": "Мухурта в джйотише"
+    },
+    {
+      "url": "/guide/bazovaya-muhurta-poryadok-proverki",
+      "anchor": "Базовая мухурта: порядок проверки панчанги"
+    },
+    {
+      "url": "/guide/tithi-nakshatra-yoga-raschet",
+      "anchor": "Расчёт титхи, накшатры и йоги"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать гарантированный исход события по выбранной мухурте.",
+    "Не выдавать традиционную интерпретацию за научно доказанную причинность.",
+    "Не давать медицинские, финансовые или юридические рекомендации по панчанге.",
+    "Не скрывать зависимость расчёта от места, часового пояса, восхода и аянамши."
+  ],
+  "cover": {
+    "asset_id": "cover-panchanga-dlya-muhurty",
+    "path": "content/astrology-guide/articles/panchanga-dlya-muhurty/cover.webp",
+    "alt": "Круговой инструмент из пяти секторов с Солнцем, Луной и созвездиями на тёплой бумажной фактуре",
+    "width": 1672,
+    "height": 941,
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения и поисковая выдача не использовались.",
+    "sha256": "183b51d9ef2d3171199c1896808f3447f91440ace79cb961f1f39834a4e4c32c"
+  },
+  "sha256": {
+    "article.html": "BF51F84824706AF89FE1268F03D31BB9AB123AA8C2785134782B94902EC9D90A",
+    "article.md": "9F85DD99F540965AAE3BEAAA900D40E2F9877186EE9462AF81CEAB7AD06416AE",
+    "sources.json": "74674DAEE116E06FA12DCD68249AED216068D220A0CADEF50C9553397F8440B1",
+    "cover.png": "4E0FCFFE3A1367D6A92A98E3D85067B95E225BE84E1B4170D50A1FCB84C7CF63"
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/panchanga-dlya-muhurty",
+  "tags": [
+    "Время и циклы",
+    "панчанг в мухурте",
+    "накшатры",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "панчанг в мухурте"
+      }
+    ],
+    "citation": [
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://www.britannica.com/topic/Hindu-calendar",
+      "https://doi.org/10.1007/s11042-023-16553-w",
+      "https://www.wisdomlib.org/hinduism/book/indian-astronomy-a-source-book/d/doc1621551.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

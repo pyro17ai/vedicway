@@ -1,0 +1,59 @@
+{
+  "slug": "how-to-read-mahadasha-with-natal-chart",
+  "title": "Как читать маха-дашу через натальную карту",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1"
+  ],
+  "seo": {
+    "seo_title": "Как читать маха-дашу по натальной карте",
+    "meta_description": "Пошагово разберите маха-дашу: положение управителя, его дома, достоинство, связи и антардашу с учётом школы и настроек карты.",
+    "focus_keyphrase": "как читать маха-дашу по натальной карте",
+    "canonical_url": "https://vedicway.ru/guide/how-to-read-mahadasha-with-natal-chart",
+    "excerpt": "Практический алгоритм чтения маха-даши через D1: от положения управителя и его владений до достоинства, связей, антардаши и проверки ограничений расчёта."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/kak-chitat-natalnuyu-kartu",
+    "/guide/vimshottari-balance-at-birth"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно подтверждённую причинность или гарантию будущего.",
+    "Не обещать смерть, болезнь, гарантированную прибыль, юридическую победу или другое неизбежное событие.",
+    "Не скрывать систему даши, аянāмшу, систему домов, редакцию источника и правило перевода периода в календарные даты."
+  ],
+  "cover": {
+    "asset_id": "cover-how-to-read-mahadasha-with-natal-chart",
+    "path": "content/astrology-guide/articles/how-to-read-mahadasha-with-natal-chart/cover.webp",
+    "alt": "Тёплая абстрактная схема натальной карты с орбитами и выделенной связью периода",
+    "status": "ready",
+    "sha256": "48d73b5b23673a17ad2ef7b778108d13ff0488ec8efdf893534d36f0cc929244",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/how-to-read-mahadasha-with-natal-chart",
+  "tags": [
+    "Практика чтения карты",
+    "как читать маха-дашу по натальной карте",
+    "натальная карта",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как читать маха-дашу по натальной карте"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

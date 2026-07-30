@@ -1,0 +1,65 @@
+{
+  "slug": "dasha-i-tranzity",
+  "title": "Даша и транзит: два слоя времени в одной карте",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_brihat_gocara",
+    "src_gret",
+    "src_jyotishganit"
+  ],
+  "seo": {
+    "seo_title": "Даша и транзит: как читать два слоя времени",
+    "meta_description": "Разберите дашу и транзит вместе: сначала натальный потенциал и активный период, затем гочара для уточнения временного окна, трактовки и границ метода.",
+    "focus_keyphrase": "даша и транзит",
+    "canonical_url": "https://vedicway.ru/guide/dasha-i-tranzity",
+    "excerpt": "Практический порядок совместного чтения натальной карты, активной даши и гочары без подмены прогноза одним ярким транзитом."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/how-to-read-mahadasha-with-natal-chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно доказанную причинность.",
+    "Не обещать медицинский, финансовый, юридический или гарантированный прогностический результат.",
+    "Не называть транзит самостоятельной причиной события без проверки натального потенциала и активной даши."
+  ],
+  "cover": {
+    "asset_id": "cover-dasha-i-tranzity",
+    "path": "content/astrology-guide/articles/dasha-i-tranzity/cover.webp",
+    "alt": "Два совмещённых небесных круга над схемой натальной карты на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано OpenAI ImageGen для VedicWay; внешние изображения не использованы.",
+    "width": 1730,
+    "height": 909,
+    "format": "png",
+    "status": "ready",
+    "sha256": "84018da472f3bdc11877d69d82b9a018589870cc03f7d5cec0c5ce9008e40144"
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/dasha-i-tranzity",
+  "tags": [
+    "Практика чтения карты",
+    "даша и транзит",
+    "даши",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "даша и транзит"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

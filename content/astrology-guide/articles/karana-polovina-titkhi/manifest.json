@@ -1,0 +1,63 @@
+{
+  "slug": "karana-polovina-titkhi",
+  "title": "Карана: половина титхи и 11 традиционных названий",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A2",
+    "A4",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Карана в панчанге: расчёт половины титхи",
+    "meta_description": "Что такое карана: формула через солнечно-лунный угол, 60 половин титхи, 11 традиционных названий, пример, границы и ограничения.",
+    "focus_keyphrase": "карана в панчанге",
+    "canonical_url": "https://vedicway.ru/guide/karana-polovina-titkhi",
+    "excerpt": "Объясняем шаг 6°, повторяющиеся и фиксированные караны, практический расчёт и границы традиционной таблицы панчанги."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/titkhi-lunnyy-den",
+    "/guide/muhurta-v-dzhyotish"
+  ],
+  "prohibited_claims": [
+    "Не выдавать карану за гарантию результата.",
+    "Не смешивать таблицы разных редакций и аянāмши.",
+    "Не использовать календарную характеристику для медицинских, финансовых или юридических решений."
+  ],
+  "cover": {
+    "asset_id": "cover-karana-polovina-titkhi",
+    "path": "content/astrology-guide/articles/karana-polovina-titkhi/cover.webp",
+    "alt": "Шестьдесят дуговых делений солнечно-лунного цикла на тёплой бумаге",
+    "status": "ready",
+    "sha256": "ea41d963840bf8ea7b92f0f6eb5aa8b0675ae40d716af00fdc8e9e8e97dc3edd",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/karana-polovina-titkhi",
+  "tags": [
+    "Время и циклы",
+    "карана в панчанге",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "карана в панчанге"
+      }
+    ],
+    "citation": [
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

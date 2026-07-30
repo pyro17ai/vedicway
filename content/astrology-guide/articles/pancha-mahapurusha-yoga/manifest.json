@@ -1,0 +1,64 @@
+{
+  "slug": "pancha-mahapurusha-yoga",
+  "title": "Pancha Mahapurusha Yoga: пять планетарных архетипов",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "phaladeepika_yogas",
+    "phaladeepika_yogas_siva"
+  ],
+  "canonical": "https://vedicway.ru/guide/pancha-mahapurusha-yoga",
+  "seo": {
+    "seo_title": "Pancha Mahapurusha Yoga: как проверить пять йог",
+    "meta_description": "Проверьте Pancha Mahapurusha Yoga в натальной карте: пять планет, кендры, собственные знаки, экзальтация и границы метода без фатальных обещаний.",
+    "focus_keyphrase": "Pancha Mahapurusha Yoga",
+    "canonical_url": "https://vedicway.ru/guide/pancha-mahapurusha-yoga",
+    "excerpt": "Практический алгоритм проверки Ruchaka, Bhadra, Hamsa, Malavya и Shasha по планете, кендре и достоинству в знаке."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/yoga-v-dzhyotishe",
+    "/guide/shodashavarga-drobnie-karty"
+  ],
+  "prohibited_claims": [
+    "гарантия здоровья или медицинский диагноз",
+    "гарантия дохода, карьеры или статуса",
+    "точная дата события по одному признаку",
+    "неизбежная судьба по наличию одной йоги"
+  ],
+  "cover": {
+    "asset_id": "cover-pancha-mahapurusha-yoga",
+    "path": "content/astrology-guide/articles/pancha-mahapurusha-yoga/cover.webp",
+    "width": 1729,
+    "height": 910,
+    "alt": "Пять планетарных медальонов вокруг геометрической схемы натальной карты на тёплой бумаге",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen специально для VedicWay; внешние изображения не использовались.",
+    "sha256": "dfe94be6a53fe77706f34c92d9202b0ba4b8af8b12f0df6d2b64d037c3efb06f"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Pancha Mahapurusha Yoga",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Pancha Mahapurusha Yoga"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://www.siva.sh/phaladeepika/6/1-5"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

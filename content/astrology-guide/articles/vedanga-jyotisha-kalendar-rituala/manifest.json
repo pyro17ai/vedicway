@@ -1,0 +1,75 @@
+{
+  "slug": "vedanga-jyotisha-kalendar-rituala",
+  "title": "Vedanga Jyotisha и календарь ритуала",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S01",
+    "S02"
+  ],
+  "seo": {
+    "seo_title": "Vedanga Jyotisha и календарь ритуала: как читать время",
+    "meta_description": "Разберите Vedanga Jyotisha: как связать титхи, накшатру, месяц, сезон и пятилетнюю yuga при определении времени ритуала и где границы метода.",
+    "focus_keyphrase": "Vedanga Jyotisha и календарь ритуала",
+    "canonical_url": "https://vedicway.ru/guide/vedanga-jyotisha-kalendar-rituala",
+    "excerpt": "Практическая схема чтения календаря Vedāṅga Jyotiṣa: титхи, накшатра, месяц, сезон и пятилетняя yuga в задаче определения времени обряда."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/nakshatra-v-dzhyotishe",
+      "anchor": "о накшатре в джйотише",
+      "reason": "Отдельное объяснение накшатры как положения светила."
+    },
+    {
+      "url": "/guide/muhurta-v-dzhyotish",
+      "anchor": "о мухурте",
+      "reason": "Переход к практическому выбору момента действия."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Разделение календаря ритуала и расчёта карты рождения."
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать по титхи, накшатре, месяцу, сезону или yuga здоровье, деньги, брак, карьерный результат или неизбежное событие.",
+    "Не выдавать традиционную оценку пригодности времени за научно доказанную причинность.",
+    "Не утверждать единственную историческую датировку Vedāṅga Jyotiṣa при спорности датировок и наличии двух редакций.",
+    "Не смешивать ранний календарный слой с поздней планетной астрономией и не подменять календарь натальной картой.",
+    "Не скрывать календарную школу, местное время, сидерический или тропический режим, аянāмшу и систему домов при переходе к расчёту карты."
+  ],
+  "cover": {
+    "asset_id": "cover-vedanga-jyotisha-kalendar-rituala",
+    "path": "content/astrology-guide/articles/vedanga-jyotisha-kalendar-rituala/cover.webp",
+    "alt": "Абстрактная схема лунных фаз, накшатр и сезонных циклов на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения не использовались.",
+    "sha256": "1bb9ed8de528501b44262b4a695a5ccf7ccb5bf09ad40ea40a8a32bf35eb2cc7",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/vedanga-jyotisha-kalendar-rituala",
+  "tags": [
+    "Время и циклы",
+    "Vedanga Jyotisha и календарь ритуала"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Vedanga Jyotisha и календарь ритуала"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.60018/acasva.nssz2549",
+      "https://doi.org/10.1017/S0252921100105809"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

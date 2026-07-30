@@ -1,0 +1,151 @@
+{
+  "title": "Dhana Yoga: богатство как система связей, а не один показатель",
+  "slug": "dhana-yoga",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_fulltext",
+    "phaladeepika_yogas",
+    "jataka_parijata_index",
+    "bphs_dhan_bhava_ch13"
+  ],
+  "seo_title": "Dhana Yoga в джйотише: финансовые связи карты",
+  "meta_description": "Dhana Yoga в джйотише: как связать 2-й и 11-й дома, оценить управителей, достоинства, варги и даши без обещаний гарантированного финансового результата.",
+  "focus_keyphrase": "Dhana Yoga",
+  "canonical": "https://vedicway.ru/guide/dhana-yoga",
+  "intent": {
+    "source": "yandex_wordstat",
+    "main_query": "дхана йога",
+    "type": "informational_how_to",
+    "status": "data_found",
+    "reader_need": "Понять, как образуется Dhana Yoga и как собрать финансовый анализ из домов, управителей, достоинств, варг и периодов.",
+    "wordstat": {
+      "period": "last_30_days",
+      "total_count": 113,
+      "top_requests": [
+        {
+          "phrase": "дхана йог",
+          "count": 113
+        },
+        {
+          "phrase": "дхана йога",
+          "count": 113
+        },
+        {
+          "phrase": "дхана йога джйотиш",
+          "count": 55
+        },
+        {
+          "phrase": "дхана йога джйотиш как образуется",
+          "count": 5
+        }
+      ],
+      "noise_note": "Ассоциации о телесной йоге исключены как относящиеся к другому значению слова."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "дхана йога",
+      "Dhana Yoga",
+      "дхана йога джйотиш",
+      "Dhana Yoga в джйотише"
+    ],
+    "related": [
+      "2-й дом в джйотише",
+      "11-й дом в джйотише",
+      "управители домов богатства",
+      "достоинство планет",
+      "D2 Hora",
+      "D9 Navamsha",
+      "Vargottama",
+      "даша и антардаша"
+    ],
+    "questions": [
+      "как образуется Dhana Yoga",
+      "какие дома создают Dhana Yoga",
+      "как проверить силу Dhana Yoga",
+      "когда проявляется Dhana Yoga",
+      "нужно ли смотреть Dhana Yoga в D2 и D9"
+    ]
+  },
+  "seo": {
+    "seo_title": "Dhana Yoga в джйотише: финансовые связи карты",
+    "meta_description": "Dhana Yoga в джйотише: как связать 2-й и 11-й дома, оценить управителей, достоинства, варги и даши без обещаний гарантированного финансового результата.",
+    "focus_keyphrase": "Dhana Yoga",
+    "canonical_url": "https://vedicway.ru/guide/dhana-yoga",
+    "excerpt": "Практический разбор Dhana Yoga: связи 2-го и 11-го домов, сила управителей, проверка через варги и время проявления по дашам."
+  },
+  "geo": {
+    "assessment_kind": "estimated_editorial_self_check",
+    "before_score": 3,
+    "after_score": 9,
+    "ai_query_coverage": [
+      "Что такое Dhana Yoga?",
+      "Как образуется Dhana Yoga?",
+      "Как проверить силу финансовой йоги?",
+      "Когда проявляется Dhana Yoga?",
+      "Нужно ли смотреть Dhana Yoga в дробных картах?"
+    ],
+    "core_eeat": {
+      "C02_direct_answer": "pass",
+      "O03_structured_comparison": "pass",
+      "O05_schema_readiness": "pass_visible_faq_and_semantic_html",
+      "E01_original_data": "not_applicable",
+      "Exp10_limitations": "pass"
+    }
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/ogranicheniya-rascheta-natalnoj-karty",
+    "/guide/proverka-yogi",
+    "/guide/dashi-kak-kalendar"
+  ],
+  "prohibited_claims": [
+    "гарантированный финансовый результат",
+    "точная сумма будущего дохода",
+    "научно доказанная причинность астрологии",
+    "финансовый совет на основании натальной карты",
+    "вывод по одной планете или названию йоги"
+  ],
+  "cover": {
+    "asset_id": "cover-dhana-yoga",
+    "path": "content/astrology-guide/articles/dhana-yoga/cover.webp",
+    "width": 1600,
+    "height": 900,
+    "aspect_ratio": "16:9",
+    "alt": "Два сосуда, соединённые потоком внутри геометрии натальной карты на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; изображения из поисковой выдачи не использовались.",
+    "sha256": "81ae1078f35fa8c8cbc419482a66d69e71f0cd907efb711ccbfb0747c7d2e642"
+  },
+  "sha256": {
+    "article_md": "8882FDB5765C9CFC86D8EFA1948C05AB85FDBFAA3C1A09BF5AE7282B8D31D4C8",
+    "article_html": "24A9E2D2FE548E0D7B041E0634881B559287E2D742F4C04EA0FD739BF91F9B0A",
+    "cover": "A275678215D4138EB8435FC34A34198906F4D6CEBD2E0AB862DD7D050FB16EEA"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Dhana Yoga"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Dhana Yoga"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://www.astrojyoti.com/jataka-parijata.htm",
+      "https://divyachadhava.com/en/sanatan-sahitya/bphs-chapter-13-effects-of-dhan-bhava"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

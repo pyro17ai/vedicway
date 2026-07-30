@@ -1,0 +1,50 @@
+[
+  {
+    "source_id": "S05",
+    "title": "Varahamihira: Brhatsamhita",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "role_in_article": "Историческая и текстовая рамка: три раздела jyotiḥśāstra и место horā в более широком корпусе Varāhamihira.",
+    "claims_used": [
+      "Первая глава формулирует трёхчастную структуру jyotiḥśāstra: gaṇita, horā и saṃhitā.",
+      "В тексте присутствуют темы движения graha, rāśi, horā, bhāva и yoga.",
+      "Электронная версия подготовлена по изданию A. V. Tripathi с учётом вариантов H. Kern и комментария Utpala."
+    ],
+    "limitations": "GRETIL помечает файл как reference only; разложение sandhi и варианты чтения требуют сверки с печатным изданием.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "S06",
+    "title": "The Brihat jataka",
+    "author_or_institution": "Varahamihira; перевод N. Chidambaram Aiyar",
+    "source_kind": "primary_text",
+    "url": "https://archive.org/details/brihatjataka00varaiala",
+    "role_in_article": "Основной рабочий скан старого английского перевода для знакомства с оглавлением, разделами и формой чтения шлок.",
+    "claims_used": [
+      "Internet Archive содержит скан английского перевода Brihat Jataka, опубликованного в Мадрасе в 1905 году.",
+      "В метаданных указаны 310 страниц скана и библиотечное происхождение экземпляра.",
+      "Оглавление охватывает определения, время рождения, даши, аспекты, бхавы, варги и йоги."
+    ],
+    "limitations": "Перевод старый, скан имеет OCR-ограничения и не сообщает о критической сверке санскритских рукописей.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified"
+  },
+  {
+    "source_id": "S07",
+    "title": "Sree Varaha Mihira's Brihat Jataka: English Translation with Original Slokas in Devanagari",
+    "author_or_institution": "Varāhamihira; Bangalore Suryanarain Rao; редакторы B. Lakshminarain Rao и B. V. Raman",
+    "source_kind": "technical_reference",
+    "url": "https://books.google.com/books/about/Sree_Varaha_Mihira_s_Brihat_Jataka.html?id=Bf7PKVpe3p4C",
+    "role_in_article": "Библиографическая и сравнительная опора для сопоставления оригинальных шлок на деванагари с английским переводом.",
+    "claims_used": [
+      "Библиографическая запись фиксирует переиздание Motilal Banarsidass 1986 года.",
+      "Запись указывает оригинальные шлоки на деванагари, английский перевод, редакторов, ISBN и объём 639 страниц.",
+      "Издание удобнее анонимной веб-перепечатки для проверки названия и состава корпуса."
+    ],
+    "limitations": "Google Books подтверждает библиографию, но не даёт полного доступа к тексту и не доказывает статус критического издания.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified_via_web_search"
+  }
+]

@@ -1,0 +1,61 @@
+{
+  "slug": "polozheniya-grah-v-sidereicheskoj-karte",
+  "title": "Как рассчитываются положения грах в сидерической карте",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "swisseph_general",
+    "pyswisseph_sidereal"
+  ],
+  "seo": {
+    "seo_title": "Положения грах в сидерической карте: расчёт",
+    "meta_description": "Разбираем, как эфемерида, аянāмша и настройки карты превращаются в сидерическую долготу грахи. Формула, пример и ошибки.",
+    "focus_keyphrase": "положения грах в сидерической карте",
+    "canonical_url": "https://vedicway.ru/guide/polozheniya-grah-v-sidereicheskoj-karte",
+    "excerpt": "Понятная схема расчёта положения грахи: исходная эфемеридная долгота, выбранная аянāмша, итоговая сидерическая координата, знак и дом."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/siderealnyj-i-tropicheskij-zodiak"
+  ],
+  "prohibited_claims": [
+    "Не выдавать расчётные параметры и астрологические интерпретации за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, неизбежное событие или точность времени рождения по положению грахи.",
+    "Не скрывать зодиак, режим аянāмши, временную шкалу, версию эфемерид или систему домов.",
+    "Не смешивать тропическую и сидерическую долготу в одной карте и не объявлять одну аянāмшу универсально правильной для всех школ."
+  ],
+  "cover": {
+    "asset_id": "cover-polozheniya-grah-v-sidereicheskoj-karte",
+    "path": "content/astrology-guide/articles/polozheniya-grah-v-sidereicheskoj-karte/cover.webp",
+    "alt": "Круговая схема сидерических координат с орбитами и планетными точками на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "a42df8f4dc921968a19ea0e40cc14d5f048f4c669c800b810b606f47a487a71e",
+    "width": 1536,
+    "height": 864
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/polozheniya-grah-v-sidereicheskoj-karte",
+  "tags": [
+    "Планеты и дома",
+    "положения грах в сидерической карте",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "положения грах в сидерической карте"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/siderealnyj-i-tropicheskij-zodiak"
+    ]
+  }
+}

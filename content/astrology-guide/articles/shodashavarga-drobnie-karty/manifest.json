@@ -1,0 +1,65 @@
+{
+  "slug": "shodashavarga-drobnie-karty",
+  "title": "Что такое varga и как устроена Shodashavarga",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_fulltext",
+    "bphs_varga_use",
+    "openastrology_vedic_docs"
+  ],
+  "seo": {
+    "seo_title": "Varga и Shodashavarga: как устроены дробные карты",
+    "meta_description": "Что такое varga, как 30-градусный знак делится на D9, D10 и другие карты, что входит в Shodashavarga и почему каждую варгу читают вместе с D1.",
+    "focus_keyphrase": "Shodashavarga",
+    "canonical_url": "https://vedicway.ru/guide/shodashavarga-drobnie-karty",
+    "excerpt": "Механика деления 30-градусного знака, полный состав Shodashavarga, мини-пример расчёта D9 и порядок совместного чтения дробной карты с D1."
+  },
+  "canonical": "https://vedicway.ru/guide/shodashavarga-drobnie-karty",
+  "internal_links": [
+    "/chart",
+    "/guide/vargi-drobnie-karty",
+    "/guide/rashi-i-navamsha"
+  ],
+  "prohibited_claims": [
+    "Не выдавать варги за научно подтверждённый способ прогноза.",
+    "Не обещать медицинский, финансовый или гарантированный событийный результат.",
+    "Не читать дробную карту как самостоятельную замену D1.",
+    "Не использовать D60 при непроверенном времени рождения без прямой оговорки о точности."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Астрологический круг с расходящимися слоями делений на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешнее изображение и поисковая выдача не использовались.",
+    "width": 1600,
+    "height": 900,
+    "sha256": "492895e5b40ede944da47b17ec1c59da64643c53b718f977027cf7d516c4c436",
+    "asset_id": "cover-shodashavarga-drobnie-karty",
+    "path": "content/astrology-guide/articles/shodashavarga-drobnie-karty/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "3BCE7015E71D92B81528F3064EB50C6B64DE8ABE143AA8D215EBC72D129B95AA",
+  "difficulty": "expert",
+  "tags": [
+    "Основы астрологии",
+    "Shodashavarga"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "Shodashavarga"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "slug": "nakshatra-v-dzhyotishe",
+  "title": "Nakshatra: лунные стоянки от календаря до натальной карты",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "monkiewicz-jyotisedanga-2021",
+    "achar-rgveda-nakshatras-2000",
+    "mak-gargiya-jyotisa-2020",
+    "swiss-ephemeris-documentation"
+  ],
+  "seo": {
+    "seo_title": "Nakshatra в джйотише: как найти накшатру Луны",
+    "meta_description": "Разбираем происхождение nakṣatra, различие 27 и 28 стоянок и даём пошаговый расчёт накшатры Луны в натальной карте с учётом ограничений метода.",
+    "focus_keyphrase": "накшатра в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/nakshatra-v-dzhyotishe",
+    "excerpt": "Что такое nakṣatra, почему в источниках встречаются 27 и 28 стоянок и как по сидерической долготе Луны найти накшатру и паду."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/dzhanma-nakshatra-luny"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционные трактовки накшатры за научно подтверждённые прогнозы.",
+    "Не обещать здоровье, деньги, неизбежные события или судьбу по одному положению Луны.",
+    "Не смешивать 27-секторный натальный расчёт с 28-позиционными ритуальными списками без указания контекста."
+  ],
+  "cover": {
+    "asset_id": "cover-nakshatra-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/nakshatra-v-dzhyotishe/cover.webp",
+    "alt": "Абстрактные лунные орбиты и тонкие небесные дуги на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "ai_generated",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешний лицензированный источник не используется.",
+    "sha256": "29389e1c19efa808a09182238288d94578b03f93b58870bd285d69234f34579e",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/nakshatra-v-dzhyotishe",
+  "tags": [
+    "Основы астрологии",
+    "накшатра в джйотише",
+    "натальная карта",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "накшатра в джйотише"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.60018/acasva.nssz2549",
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

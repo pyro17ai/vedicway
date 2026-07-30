@@ -1,0 +1,67 @@
+{
+  "slug": "kak-chitat-natalnuyu-kartu",
+  "title": "Как читать натальную карту: lagna, graha, bhava, yoga и daśā",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S05",
+    "S08",
+    "S11"
+  ],
+  "seo": {
+    "seo_title": "Как читать натальную карту: lagna, graha и daśā",
+    "meta_description": "Пошаговый алгоритм чтения натальной карты: от lagna и graha к bhava, yoga и daśā с фиксацией зодиака, ayanāṃśa и системы домов.",
+    "focus_keyphrase": "как читать натальную карту в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/kak-chitat-natalnuyu-kartu",
+    "excerpt": "Последовательная схема чтения натальной карты: проверьте расчёт, начните с lagna, соедините graha и bhava, проверьте yoga и подключите daśā после натальной основы."
+  },
+  "internal_links": [
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/graha-v-dzhyotishe",
+    "/guide/yoga-v-dzhyotishe",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно подтверждённую причинность.",
+    "Не обещать здоровье, доход, брак, карьерный или юридический результат.",
+    "Не объявлять неизбежное событие по одной graha, yoga или daśā.",
+    "Не смешивать сидерический и тропический зодиак, ayanāṃśa, системы домов и школы без маркировки.",
+    "Не выдумывать цитаты, положения планет, накшатру или текущий период для учебного примера."
+  ],
+  "cover": {
+    "asset_id": "cover-kak-chitat-natalnuyu-kartu",
+    "path": "content/astrology-guide/articles/kak-chitat-natalnuyu-kartu/cover.webp",
+    "alt": "Тёплая абстрактная схема чтения натальной карты с концентрическими орбитами и радиальными секторами",
+    "source_kind": "generated",
+    "source_url": null,
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "sha256": "d5df61d890bf633abddbabc09922adfef87c828d785e74074e2cf235f35e1879",
+    "width": 1680,
+    "height": 945
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/kak-chitat-natalnuyu-kartu",
+  "tags": [
+    "Практика чтения карты",
+    "как читать натальную карту в джйотише",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как читать натальную карту в джйотише"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

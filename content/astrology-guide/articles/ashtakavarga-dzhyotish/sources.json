@@ -1,0 +1,27 @@
+[
+  {
+    "source_id": "src_gret",
+    "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "role": "Проверка места Ashtakavarga в классическом корпусе hora и границы между расчётной техникой и интерпретацией."
+  },
+  {
+    "source_id": "src_phaladeepika",
+    "url": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Проверка терминов bindu, Sarvashtakavarga, shodhana и связи метода с чтением транзитов."
+  },
+  {
+    "source_id": "src_jyotishganit",
+    "url": "https://github.com/northtara/jyotishganit",
+    "role": "Техническая проверка разделения программного вывода на индивидуальные BAV и суммарную SAV."
+  },
+  {
+    "source_id": "EXA_BPHS_ASTROJYOTI",
+    "url": "http://www.astrojyoti.com/bphspage9.htm",
+    "role": "Проверка определения агрегированной таблицы, сложения по двенадцати знакам и традиционных диапазонов чтения SAV."
+  },
+  {
+    "source_id": "EXA_VEDASTRO_ASHTAKAVARGA",
+    "url": "https://vedastro.org/blog/Mastering-Ashtakavarga-Part-2-Building-Bhinnashtakavarga-Charts.html",
+    "role": "Проверка восьми вкладов в BAV, фиксированных сумм семи планетных таблиц и контрольного итога 337."
+  }
+]

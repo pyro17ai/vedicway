@@ -1,0 +1,143 @@
+{
+  "title": "Раху и Кету в гочаре: как объяснить ось узлов без фатализма",
+  "slug": "rahu-ketu-v-gochare",
+  "category": "Планеты и дома",
+  "seo_title": "Раху и Кету в гочаре: как читать ось узлов",
+  "meta_description": "Раху и Кету в гочаре читаются как единая ось. Разбираем расчёт по домам, роль Лагны и Луны, различия школ и ясные границы прогноза без фатализма.",
+  "focus_keyphrase": "Раху и Кету в гочаре",
+  "intent": {
+    "type": "informational_practical",
+    "status": "wordstat_zero_primary_broader_confirmed",
+    "summary": "Читатель хочет понять, почему Раху и Кету в транзите рассматривают вместе, как определить ось по домам от Лагны и Луны и почему вывод зависит от школы и настроек расчёта.",
+    "wordstat": {
+      "primary_query": "раху и кету в гочаре",
+      "period": "последние 30 дней",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "supporting_query": "транзит раху кету",
+      "supporting_total_count": 476,
+      "supporting_top_requests": [
+        {
+          "phrase": "транзит раху и кету",
+          "count": 293
+        },
+        {
+          "phrase": "транзиты раху и кету джйотиш",
+          "count": 108
+        },
+        {
+          "phrase": "транзиты раху кету в домах",
+          "count": 43
+        },
+        {
+          "phrase": "транзит раху по натальному кету",
+          "count": 15
+        },
+        {
+          "phrase": "транзит раху и кету по домам джйотиш",
+          "count": 9
+        }
+      ],
+      "excluded_calendar_queries": [
+        {
+          "phrase": "транзит раху кету 2026",
+          "count": 142
+        },
+        {
+          "phrase": "транзиты раху и кету джйотиш 2026",
+          "count": 53
+        },
+        {
+          "phrase": "транзит раху и кету в 2026 году",
+          "count": 44
+        }
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "Раху и Кету в гочаре",
+      "транзит Раху и Кету",
+      "транзиты Раху и Кету в джйотиш"
+    ],
+    "close_formulations": [
+      "транзиты Раху и Кету в домах",
+      "ось Раху Кету в транзите",
+      "гочара узлов",
+      "Раху и Кету по домам джйотиш",
+      "средний и истинный лунный узел"
+    ],
+    "reader_questions": [
+      "почему Раху и Кету нужно читать вместе",
+      "как определить дома транзитных узлов",
+      "считать гочару узлов от Лагны или Луны",
+      "почему разные школы трактуют узлы по-разному",
+      "можно ли предсказать событие по одной оси узлов"
+    ],
+    "cluster": "практическое чтение транзитной оси узлов с разделением расчёта, школы и интерпретации"
+  },
+  "canonical": "https://vedicway.ru/guide/rahu-ketu-v-gochare",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_gret",
+    "src_phaladeepika",
+    "exa_astropixels_lunar_nodes",
+    "exa_swiss_ephemeris_nodes"
+  ],
+  "seo": {
+    "seo_title": "Раху и Кету в гочаре: как читать ось узлов",
+    "meta_description": "Раху и Кету в гочаре читаются как единая ось. Разбираем расчёт по домам, роль Лагны и Луны, различия школ и ясные границы прогноза без фатализма.",
+    "focus_keyphrase": "Раху и Кету в гочаре",
+    "canonical_url": "https://vedicway.ru/guide/rahu-ketu-v-gochare",
+    "excerpt": "Практический порядок чтения Раху и Кету в гочаре: ось домов, две точки отсчёта, диспозиторы, даша и границы вывода без фатальных обещаний."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/tranzity-i-natalnaya-karta",
+    "/guide/sopostavlenie-dashi-i-tranzita",
+    "/guide/rahu-ketu-dostoinstva"
+  ],
+  "prohibited_claims": [
+    "неизбежное событие или точная дата по одной оси узлов",
+    "медицинский диагноз, лечение или обещание здоровья",
+    "гарантия дохода, сделки, должности или финансового результата",
+    "универсальное правило узлов без указания школы и настроек расчёта"
+  ],
+  "cover": {
+    "asset_id": "cover-rahu-ketu-v-gochare",
+    "path": "content/astrology-guide/articles/rahu-ketu-v-gochare/cover.webp",
+    "alt": "Диагональная ось с двумя противоположными дисками проходит через круг небесной карты на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано ImageGen по редакционному заданию VedicWay; внешние материалы, поисковые изображения и сторонняя лицензия не использовались.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "mime_type": "image/png",
+    "sha256": "af98977d0c4f242ea3a7b5a0c64d7ce4e6b1f0d3bfd293f2a409cd404bb712b2"
+  },
+  "sha256": "C13C37B23EC9EE1F09F76D14ABB2EBF7C224344EDEFB279643B55A043651BF86",
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "Раху и Кету в гочаре"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Раху и Кету в гочаре"
+      }
+    ],
+    "citation": [
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://astropixels.com/ephemeris/moon/moonnodes2001.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

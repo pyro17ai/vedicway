@@ -1,0 +1,84 @@
+{
+  "title": "Как сопоставить дашу и транзит",
+  "slug": "sopostavlenie-dashi-i-tranzita",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "seo_title": "Как сопоставить дашу и транзит в джйотише",
+  "meta_description": "Как сопоставить дашу и транзит: найдите повторение одной темы в натальной карте, активном периоде и гочаре, после чего сузьте окно для проверки.",
+  "focus_keyphrase": "как сопоставить дашу и транзит",
+  "intent": "Информационно-методический: читатель хочет понять, как совместить активную дашу с гочарой, найти повторение одной темы в двух временных слоях и отличить подтверждающий транзит от общего фона.",
+  "semantic_core": [
+    "как сопоставить дашу и транзит",
+    "даши и транзиты",
+    "транзиты джйотиш",
+    "транзиты по домам джйотиш",
+    "транзиты планет джйотиш",
+    "карта транзитов джйотиш",
+    "гочара транзиты в джйотиш",
+    "как читать транзиты вместе с дашей",
+    "повторение темы в даше и транзите",
+    "транзит управителя даши"
+  ],
+  "canonical": "https://vedicway.ru/guide/sopostavlenie-dashi-i-tranzita",
+  "source_ids": [
+    "S2",
+    "BPHS_VOL2",
+    "BRIHAT_SAMHITA_104"
+  ],
+  "seo": {
+    "seo_title": "Как сопоставить дашу и транзит в джйотише",
+    "meta_description": "Как сопоставить дашу и транзит: найдите повторение одной темы в натальной карте, активном периоде и гочаре, после чего сузьте окно для проверки.",
+    "focus_keyphrase": "как сопоставить дашу и транзит",
+    "canonical_url": "https://vedicway.ru/guide/sopostavlenie-dashi-i-tranzita",
+    "excerpt": "Практическая схема сопоставления даши и транзита: от натального обещания и управителей периода к повторению темы в гочаре и сужению временного окна."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/how-to-read-mahadasha-with-natal-chart",
+    "/guide/tranzity-i-natalnaya-karta",
+    "/guide/gochara-transity-otnositelno-natalnoy-luny"
+  ],
+  "prohibited_claims": [
+    "гарантированное событие или неизбежный исход",
+    "медицинский диагноз, лечение или обещание здоровья",
+    "гарантия дохода, сделки, должности или финансового результата",
+    "точная дата события без проверяемых расчётных оснований"
+  ],
+  "cover": {
+    "asset_id": "cover-sopostavlenie-dashi-i-tranzita",
+    "path": "content/astrology-guide/articles/sopostavlenie-dashi-i-tranzita/cover.webp",
+    "alt": "Два концентрических временных кольца сходятся в одной светлой точке на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешняя лицензия и поисковый источник не использовались.",
+    "width": 1200,
+    "height": 630,
+    "sha256": "59f6b27bcd6f1fa5b543836cc60a23262b42eef5ef5f2b4363b49f28db9d8f9f",
+    "status": "ready"
+  },
+  "sha256": "677F6B64886EC8D6850E5861B5A0A412C538CFB2CF341023EB6C03316A2BDAFD",
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "как сопоставить дашу и транзит",
+    "даши",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "как сопоставить дашу и транзит"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

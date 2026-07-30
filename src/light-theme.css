@@ -302,8 +302,6 @@ body {
 
 .submit-button,
 .primary-button,
-.admin-login__submit,
-.admin-editor__top button.is-primary,
 .cookie-consent__actions .cookie-consent__primary,
 .recovery-form button {
   color: #fffaf2;
@@ -900,187 +898,11 @@ body {
   border-top-color: rgba(98, 67, 43, 0.14);
 }
 
-/* Guide, articles and editor */
-
-.guide-site,
-.guide-page,
-.article-page,
-.editor-page {
-  color: var(--ink);
-  background: var(--paper);
-}
-
-.guide-site {
-  background: var(--paper);
-}
-
-.guide-hero::before {
-  background: rgba(251, 246, 238, 0.34);
-}
-
-.guide-hero__orb {
-  border-color: rgba(200, 93, 40, 0.22);
-  color: var(--ember);
-  background: #f2d5a5;
-  box-shadow:
-    inset 0 0 0 13px rgba(255, 253, 248, 0.38),
-    0 20px 50px rgba(109, 67, 34, 0.14);
-}
-
-.guide-kicker,
-.guide-article-card__content > span,
-.article-reading > header > span,
-.editor-form__header > div > span,
-.editor-seo > header span,
-.editor-preview > article > span {
-  color: var(--ember-deep);
-}
-
-.guide-hero h1,
-.guide-library h2,
-.guide-article-card h3,
-.article-reading h1,
-.article-reading__body h2,
-.article-reading__body h3,
-.article-not-found h1,
-.editor-form__header h1,
-.editor-card h2,
-.editor-seo > header h2,
-.editor-preview h1,
-.editor-preview article h2 {
-  color: var(--ink);
-}
-
-.guide-hero p,
-.guide-categories p,
-.guide-article-card__content > p,
-.article-reading > header > p,
-.article-reading__body p,
-.article-reading__body ul,
-.article-not-found p,
-.editor-form__header p,
-.editor-preview__lead,
-.editor-preview article p {
-  color: var(--ink-secondary);
-}
-
-.guide-categories,
-.guide-library,
-.article-reading > header,
-.editor-topbar,
-.editor-preview > header {
-  border-color: var(--line-soft);
-}
-
-.guide-editor-link,
-.guide-empty button,
-.guide-article-card__read,
-.article-page button,
-.editor-topbar button,
-.editor-form__header button,
-.editor-preview header button,
-.editor-new,
-.editor-media-upload {
-  border-color: var(--line);
-  color: var(--ember-deep);
-  background: rgba(255, 253, 248, 0.76);
-}
-
-.guide-empty,
-.guide-article-card,
-.article-not-found,
-.editor-sidebar,
-.editor-form,
-.editor-preview,
-.editor-card,
-.editor-body-media-list > article {
-  border-color: var(--line-soft);
-  color: var(--ink-secondary);
-  background: rgba(255, 253, 248, 0.94);
-  box-shadow: var(--paper-shadow-soft);
-}
-
-.guide-empty > span {
-  color: var(--honey-deep);
-  text-shadow: none;
-}
-
-.guide-empty h3 {
-  color: var(--ink);
-}
-
-.guide-empty p {
-  color: var(--ink-secondary);
-}
-
-.guide-article-card__cover,
-.article-cover,
-.article-reading__body figure img,
-.article-media__placeholder,
-.editor-cover-media__preview,
-.editor-preview__cover {
-  background: var(--paper-soft);
-}
-
-.editor-topbar {
-  background: rgba(251, 246, 238, 0.94);
-  backdrop-filter: blur(14px);
-}
-
-.editor-sidebar {
-  border-right-color: var(--line-soft);
-  box-shadow: none;
-}
-
-.editor-article-list button {
-  color: var(--ink-muted);
-}
-
-.editor-article-list button.is-active {
-  color: var(--ink);
-  background: rgba(200, 93, 40, 0.1);
-}
-
-.editor-field,
-.editor-field label,
-.editor-field input,
-.editor-field select,
-.editor-field textarea,
-.editor-slug,
-.editor-slug input {
-  color: var(--ink-secondary);
-}
-
-.editor-field input,
-.editor-field select,
-.editor-field textarea,
-.editor-slug {
-  border-color: var(--line);
-  background: var(--paper-raised);
-}
-
-.editor-field input:focus,
-.editor-field select:focus,
-.editor-field textarea:focus {
-  border-color: var(--ember);
-  box-shadow: var(--focus-ring);
-}
-
-.editor-media-hint,
-.editor-media-hint code {
-  color: var(--ink-muted);
-  background: var(--paper-soft);
-}
-
-/* Legal, cookie, admin and recovery surfaces */
+/* Legal, cookie and recovery surfaces */
 
 .legal-site,
 .legal-page,
-.recovery-site,
-.admin-loading,
-.admin-login,
-.admin-page,
-.admin-editor {
+.recovery-site {
   color: var(--ink);
   background: var(--paper);
 }
@@ -1100,40 +922,25 @@ body {
 }
 
 .legal-back,
-.recovery-back,
-.admin-login > button {
+.recovery-back {
   color: var(--ink-secondary);
   background: transparent;
 }
 
 .legal-heading > span,
-.recovery-kicker,
-.admin-login form > span,
-.admin-overview > header span,
-.admin-overview > header button,
-.admin-editor__top button,
-.admin-recent header button,
-.admin-upload {
+.recovery-kicker {
   color: var(--ember-deep);
 }
 
 .legal-heading h1,
 .legal-document h2,
-.recovery-card h1,
-.admin-login h1,
-.admin-brand,
-.admin-overview h1,
-.admin-card h2,
-.admin-recent h2 {
+.recovery-card h1 {
   color: var(--ink);
 }
 
 .legal-heading p,
 .legal-document p,
-.recovery-card > p,
-.admin-login form > p,
-.admin-overview > header p,
-.admin-card header p {
+.recovery-card > p {
   color: var(--ink-secondary);
 }
 
@@ -1141,11 +948,7 @@ body {
 .legal-production-warning,
 .recovery-card,
 .recovery-result,
-.recovery-error,
-.admin-login form,
-.admin-card,
-.admin-stats article,
-.admin-recent {
+.recovery-error {
   border-color: var(--line-soft);
   color: var(--ink-secondary);
   background: rgba(255, 253, 248, 0.94);
@@ -1197,10 +1000,6 @@ body {
   color: var(--ember-deep);
 }
 
-.admin-login input,
-.admin-form input,
-.admin-form select,
-.admin-form textarea,
 .recovery-form input,
 .recovery-form select {
   border-color: var(--line);
@@ -1208,69 +1007,14 @@ body {
   background: var(--paper-raised);
 }
 
-.admin-login input:focus,
-.admin-form input:focus,
-.admin-form textarea:focus,
-.admin-form select:focus,
 .recovery-form input:focus-visible,
 .recovery-form select:focus-visible {
   border-color: var(--ember);
   box-shadow: var(--focus-ring);
 }
 
-.admin-login label,
-.admin-form label,
 .recovery-form label {
   color: var(--ink-secondary);
-}
-
-.admin-rail,
-.admin-articles {
-  border-color: var(--line-soft);
-  background: #f3e3cd;
-}
-
-.admin-brand small,
-.admin-rail nav button,
-.admin-rail__user span,
-.admin-rail__user button,
-.admin-articles > button,
-.admin-card label > small {
-  color: var(--ink-muted);
-}
-
-.admin-rail nav button.is-active,
-.admin-articles > button.is-active {
-  color: var(--ink);
-  background: rgba(200, 93, 40, 0.1);
-}
-
-.admin-rail__user,
-.admin-overview > header,
-.admin-recent header,
-.admin-recent > button,
-.admin-editor__top {
-  border-color: var(--line-soft);
-}
-
-.admin-editor__top {
-  background: rgba(251, 246, 238, 0.95);
-  backdrop-filter: blur(14px);
-}
-
-.admin-recent > button {
-  color: var(--ink-secondary);
-}
-
-.admin-recent em {
-  color: var(--ink-muted);
-  background: var(--paper-soft);
-}
-
-.admin-slug,
-.admin-cover__preview {
-  border-color: var(--line);
-  background: var(--paper-soft);
 }
 
 .recovery-result {

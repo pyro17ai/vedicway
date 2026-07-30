@@ -1,0 +1,122 @@
+{
+  "slug": "shablon-chteniya-zhiznennoy-temy",
+  "title": "Практический шаблон чтения одной жизненной темы",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo_title": "Шаблон чтения одной жизненной темы в джйотише",
+  "meta_description": "Практический шаблон чтения одной темы в натальной карте: вопрос, дом, управитель, подтверждения и даша с примером, проверкой и границами метода.",
+  "focus_keyphrase": "шаблон чтения одной жизненной темы",
+  "intent": {
+    "type": "информационно-практический",
+    "primary_query": "джйотиш как читать натальную карту",
+    "wordstat_period": "последние 30 дней",
+    "wordstat_count": 12,
+    "reader_goal": "Самостоятельно разобрать один жизненный вопрос по натальной карте, связав дом, его управителя, подтверждения и временной фактор.",
+    "wordstat_note": "Точный запрос узкий; ассоциированный спрос сосредоточен вокруг натальной карты онлайн, джйотиша онлайн и накшатр."
+  },
+  "semantic_core": {
+    "primary": [
+      "джйотиш как читать натальную карту",
+      "шаблон чтения одной жизненной темы"
+    ],
+    "secondary": [
+      "как читать дома в натальной карте",
+      "управитель дома в джйотише",
+      "как читать даши",
+      "подтверждения в натальной карте",
+      "время рождения и Лагна"
+    ],
+    "reader_questions": [
+      "С какого дома начинать разбор жизненной темы?",
+      "Как связать дом с его управителем?",
+      "Сколько подтверждений нужно для вывода?",
+      "Когда добавлять дашу и транзиты?",
+      "Что делать при неточном времени рождения?"
+    ],
+    "associations": [
+      {
+        "phrase": "натальная карта онлайн",
+        "count": 186781
+      },
+      {
+        "phrase": "натальная карта онлайн бесплатно",
+        "count": 50896
+      },
+      {
+        "phrase": "джйотиш онлайн",
+        "count": 3672
+      },
+      {
+        "phrase": "накшатры джйотиш",
+        "count": 3826
+      },
+      {
+        "phrase": "джйотиш астрология",
+        "count": 2025
+      }
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/shablon-chteniya-zhiznennoy-temy",
+  "sha256": {
+    "article_md": "01E6B59A5EEDB4DD82A9B695C51CE143B12D5C0546C10E4F0BC9CDFFE099ECDB",
+    "article_html": "2907B2551147E415F6F4757DD182BBAD377AACF74E9C69599AC5213D23A64E20",
+    "cover": "7F69B7F98D440BAE1BAE9EEA214A07627F2028758C66590832BDC51D10FAFFDE"
+  },
+  "seo": {
+    "seo_title": "Шаблон чтения одной жизненной темы в джйотише",
+    "meta_description": "Практический шаблон чтения одной темы в натальной карте: вопрос, дом, управитель, подтверждения и даша с примером, проверкой и границами метода.",
+    "focus_keyphrase": "шаблон чтения одной жизненной темы",
+    "canonical_url": "https://vedicway.ru/guide/shablon-chteniya-zhiznennoy-temy",
+    "excerpt": "Пошаговый разбор одного вопроса по карте: выберите дом, прочитайте управителя, соберите повторные указания и только затем добавьте временной фактор."
+  },
+  "internal_links": [
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/dvenadcat-bhav",
+    "/guide/dashi-v-dzhyotish",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "медицинский диагноз или рекомендация",
+    "гарантированный финансовый результат",
+    "неизбежное событие или точный исход"
+  ],
+  "cover": {
+    "path": "content/astrology-guide/articles/shablon-chteniya-zhiznennoy-temy/cover.webp",
+    "filename": "cover.png",
+    "width": 1672,
+    "height": 941,
+    "aspect_ratio": "16:9",
+    "alt": "Схема джйотиш на тёплой бумаге: выделенный дом связан с планетой, подтверждающими знаками и кольцом времени",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано для VedicWay через OpenAI ImageGen; внешние изображения не использованы.",
+    "sha256": "24b04a6ee5bfc9ad12d3a2bb4c4f35938182be1a42839e0f4a5a0cfd8610306f",
+    "asset_id": "cover-shablon-chteniya-zhiznennoy-temy",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "шаблон чтения одной жизненной темы"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "шаблон чтения одной жизненной темы"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "src_gret",
+    "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "role": "Проверка места гочары в классическом корпусе и редакционного ограничения: правила конкретного текста нельзя выдавать за единую норму всех школ."
+  },
+  {
+    "source_id": "src_phaladeepika",
+    "url": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Опора для чтения транзитов от натальной Луны, совместного упоминания Раху и Кету и оговорки о различиях традиционных правил."
+  },
+  {
+    "source_id": "exa_astropixels_lunar_nodes",
+    "url": "https://astropixels.com/ephemeris/moon/moonnodes2001.html",
+    "role": "Астрономическая проверка определения восходящего и нисходящего лунных узлов как двух пересечений орбитальной плоскости Луны с эклиптикой."
+  },
+  {
+    "source_id": "exa_swiss_ephemeris_nodes",
+    "url": "https://www.astro.com/swisseph/swisseph.htm?nho2=1&nhor=1",
+    "role": "Техническая проверка различия среднего и истинного лунного узла и необходимости фиксировать вариант расчёта."
+  }
+]

@@ -42,6 +42,7 @@ const preludeStyle = `<style>.seo-prerender{min-height:100vh;padding:48px;color:
 const pages = [
   {
     output: "index.html",
+    preloadImage: "/assets/hero-space-light.avif",
     title: "Натальная карта онлайн с персональным разбором | VedicWay",
     description: "Рассчитайте натальную карту онлайн по дате, точному времени и месту рождения. Получите наглядную карту и подробное персональное объяснение VedicWay.",
     canonical: "https://vedicway.ru/",
@@ -76,8 +77,8 @@ const pages = [
   },
   {
     output: "guide/index.html",
-    title: "Натальная карта простыми словами — гид VedicWay",
-    description: "Понятные статьи о натальной карте: планеты, дома, аспекты и последовательное чтение астрологических символов в гиде VedicWay.",
+    title: "Гид по ведической астрологии | VedicWay",
+    description: "Практический гид по ведической астрологии с материалами о натальной карте, планетах, домах, аспектах и последовательном чтении джйотиш.",
     canonical: "https://vedicway.ru/guide",
     image: "https://vedicway.ru/assets/results-space-v2.png",
     body: guideBody(),
@@ -96,6 +97,32 @@ const pages = [
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Главная", item: "https://vedicway.ru/" },
           { "@type": "ListItem", position: 2, name: "Гид по астрологии", item: "https://vedicway.ru/guide" }
+        ]
+      }
+    ]
+  },
+  {
+    output: "blog/index.html",
+    title: "Блог об астрологии | VedicWay",
+    description: "Редакционные статьи VedicWay о ведической астрологии, прогностике, натальных картах и практике чтения символов.",
+    canonical: "https://vedicway.ru/blog",
+    image: "https://vedicway.ru/assets/hero-space-light.png",
+    body: blogBody(),
+    schema: [
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Блог VedicWay",
+        description: "Редакционные материалы VedicWay об астрологии и практике чтения натальной карты.",
+        url: "https://vedicway.ru/blog",
+        inLanguage: "ru-RU"
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Главная", item: "https://vedicway.ru/" },
+          { "@type": "ListItem", position: 2, name: "Блог", item: "https://vedicway.ru/blog" }
         ]
       }
     ]
@@ -138,7 +165,7 @@ const pages = [
     canonical: "https://vedicway.ru/404",
     image: "https://vedicway.ru/assets/hero-space.png",
     noindex: true,
-    body: `<main class="seo-prerender"><nav><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav><p>404</p><h1>Страница не найдена</h1><p>Адрес мог измениться или в ссылке есть ошибка.</p></main>`,
+    body: `<main class="seo-prerender"><nav><a href="/">Главная</a><a href="/guide">Гид по астрологии</a><a href="/blog">Блог</a></nav><p>404</p><h1>Страница не найдена</h1><p>Адрес мог измениться или в ссылке есть ошибка.</p></main>`,
     schema: []
   }
 ];
@@ -183,6 +210,12 @@ await rewritePublicOrigin("llms.txt");
 
 function renderPage(page) {
   let html = template;
+  if (page.preloadImage) {
+    html = html.replace(
+      "</head>",
+      `    <link rel="preload" as="image" href="${escapeHtml(page.preloadImage)}" type="image/avif" fetchpriority="high" />\n  </head>`,
+    );
+  }
   if (page.referrerPolicy) {
     html = html.replace(
       /<\/head>/i,
@@ -221,7 +254,7 @@ function replaceMeta(html, attribute, key, content) {
 function homeBody() {
   return `<main class="seo-prerender" data-yandex-first-screen>
     <section>
-      <nav aria-label="Основная навигация"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav>
+      <nav aria-label="Основная навигация"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a><a href="/blog">Блог</a></nav>
       <h1>ПОЗНАЙ СЕБЯ ЧЕРЕЗ КОСМОС</h1>
       <p>Натальная карта раскрывает ваш уникальный рисунок судьбы. Узнайте своё предназначение и скрытые ресурсы.</p>
       <p data-yandex-proof="calculation-inputs">Для расчёта нужны дата, точное время и место рождения.</p>
@@ -241,9 +274,29 @@ function guideBody() {
   return `<main class="seo-prerender" data-yandex-first-screen>
     <nav aria-label="Хлебные крошки"><a href="/">Главная</a><span>Гид по астрологии</span></nav>
     <h1>Гид по астрологии</h1>
-    <p>Спокойные и точные объяснения, которые помогают читать натальную карту по смыслу, а не заучивать отдельные символы.</p>
-    <section data-yandex-proof="guide-topics" aria-label="Темы гида"><h2>Материалы о натальной карте</h2><p>Планеты, знаки, дома, аспекты и последовательное чтение карты.</p></section>
+    <p>Практический гид по ведической астрологии с материалами о натальной карте, планетах, домах, аспектах и последовательном чтении джйотиш.</p>
+    <section data-yandex-proof="guide-topics" aria-labelledby="guide-topics-title">
+      <h2 id="guide-topics-title">Четыре раздела, единая библиотека</h2>
+      <p>Категория, уровень сложности и поиск помогают собрать точную подборку из 202 материалов.</p>
+      <ol>
+        <li><h3>Основы астрологии</h3><p>Термины, устройство сидерической карты и базовый язык джйотиша.</p></li>
+        <li><h3>Планеты и дома</h3><p>Грахи, бхавы и связи внутри натальной карты.</p></li>
+        <li><h3>Время и циклы</h3><p>Даши, транзиты, панчанга и расчётные правила.</p></li>
+        <li><h3>Практика чтения карты</h3><p>Алгоритмы, проверка гипотез и синтез показателей.</p></li>
+      </ol>
+      <p>Каждая статья заранее отмечена уровнем Новичок или Эксперт.</p>
+    </section>
     <a data-yandex-action="guide-calculate-link" href="/">Рассчитать карту</a>
+  </main>`;
+}
+
+function blogBody() {
+  return `<main class="seo-prerender" data-yandex-first-screen>
+    <nav aria-label="Хлебные крошки"><a href="/">Главная</a><span>Блог</span></nav>
+    <h1>Блог VedicWay</h1>
+    <p>Блог о ведической астрологии с материалами о натальных картах, планетах, прогнозах и практических методах чтения джйотиш.</p>
+    <section data-yandex-proof="blog-topics" aria-label="Темы блога"><h2>Редакционные материалы</h2><p>Прогностика, практика чтения натальной карты и разбор сложных астрологических приёмов.</p></section>
+    <a data-yandex-action="blog-calculate-link" href="/">Рассчитать карту</a>
   </main>`;
 }
 

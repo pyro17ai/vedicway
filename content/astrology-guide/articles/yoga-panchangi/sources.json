@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "A5",
+    "url": "https://www.astro.com/swisseph/swephprg.htm",
+    "title": "Swiss Ephemeris Programming Interface",
+    "role_in_article": "Технические соглашения о долготах, времени и сидерическом расчёте.",
+    "claims_used": [
+      "Долготы и временные шкалы должны быть частью конфигурации расчёта."
+    ],
+    "limits": "Документация библиотеки не выбирает школу интерпретации."
+  },
+  {
+    "source_id": "A6",
+    "url": "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt",
+    "title": "Muhurtha: Electional Astrology",
+    "role_in_article": "Календарный контекст йоги среди элементов панчанги.",
+    "claims_used": [
+      "Йога читается рядом с титхи, варой, накшатрой и караной."
+    ],
+    "limits": "Оцифрованный учебный текст не заменяет критическое издание."
+  }
+]

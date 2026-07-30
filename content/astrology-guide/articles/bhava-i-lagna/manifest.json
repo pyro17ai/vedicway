@@ -1,0 +1,81 @@
+{
+  "slug": "bhava-i-lagna",
+  "title": "Bhava и lagna: как из долготы получается система домов",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S05",
+    "S08",
+    "S11"
+  ],
+  "seo": {
+    "seo_title": "Bhava и lagna: как из долготы строятся дома",
+    "meta_description": "Разберите, как долгота превращается в rāśi, lagna и bhāva: пошаговый алгоритм, условный пример, параметры расчёта и ограничения метода.",
+    "focus_keyphrase": "bhava и lagna",
+    "canonical_url": "https://vedicway.ru/guide/bhava-i-lagna",
+    "excerpt": "Практическое объяснение цепочки от долготы до домов: как различать rāśi, lagna и bhāva, фиксировать систему домов и читать условный пример без фатальных прогнозов."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay",
+      "reason": "Переход к общему словарю и соседним материалам гида."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Переход от объяснения метода к проверке входных данных и результата расчёта."
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава и лагна",
+      "reason": "Соседний материал с разбором терминов и различий между знаком, лагной и домом."
+    },
+    {
+      "url": "/guide/sistemy-domov-v-sidereicheskoj-karte",
+      "anchor": "Сидерические дома",
+      "reason": "Расширение темы выбора метода домов, аянāмши и воспроизводимости карты."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную интерпретацию rāśi, lagna или bhāva за научно подтверждённый прогноз событий.",
+    "Не обещать здоровье, деньги, отношения, профессию или неизбежный исход по одному дому, знаку или долготе.",
+    "Не смешивать тропический и сидерический зодиак, аянāмши и системы домов без явной фиксации параметров.",
+    "Для проверки расчёта сохраните неокруглённые долготы Солнца и Луны, аянамшу и правило деления круга на секторы.",
+    "Не называть анонимную PDF-перепечатку S08 единственным историческим авторитетом и не выдумывать её переводчика или редакцию.",
+    "Не использовать карту вместо медицинской диагностики, финансовой или юридической консультации."
+  ],
+  "cover": {
+    "asset_id": "cover-bhava-i-lagna",
+    "path": "content/astrology-guide/articles/bhava-i-lagna/cover.webp",
+    "alt": "Радиальная схема восходящей точки, двенадцати секторов и орбитальных долгот на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "bb28ade0dee2e24d3cb2dc525f1d846100bc70b5e66a8c8945ceb33d58062951",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/bhava-i-lagna",
+  "tags": [
+    "Планеты и дома",
+    "bhava и lagna",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "bhava и lagna"
+      }
+    ],
+    "citation": [
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

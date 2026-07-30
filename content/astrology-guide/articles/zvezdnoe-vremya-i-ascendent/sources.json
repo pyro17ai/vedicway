@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая проверка цепочки местное время, UTC, Julian Day, звёздное время, координаты, асцендент и сидерический режим."
+  },
+  {
+    "source_id": "USNO-SIDEREAL",
+    "url": "https://aa.usno.navy.mil/data/siderealtime",
+    "role": "Определение местного и гринвичского звёздного времени, связь с долготой и длительность звёздных суток."
+  },
+  {
+    "source_id": "USNO-GAST",
+    "url": "https://aa.usno.navy.mil/faq/GAST",
+    "role": "Проверка формулы перехода от гринвичского к местному звёздному времени и роли UT1."
+  }
+]

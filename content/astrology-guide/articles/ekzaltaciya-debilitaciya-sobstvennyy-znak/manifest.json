@@ -1,0 +1,90 @@
+{
+  "slug": "ekzaltaciya-debilitaciya-sobstvennyy-znak",
+  "title": "Экзальтация, дебилитация и собственный знак",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Достоинство планеты: экзальтация, дебилитация, знак",
+  "meta_description": "Достоинство планеты в джйотише: чем отличаются экзальтация, дебилитация и собственный знак, как читать их вместе с домом и силой карты.",
+  "focus_keyphrase": "достоинство планеты",
+  "intent": {
+    "type": "informational",
+    "stage": "learning",
+    "goal": "Разобраться в значении экзальтации, дебилитации и собственного знака и научиться отличать достоинство планеты от её общей силы.",
+    "wordstat": {
+      "main_query": "экзальтация дебилитация собственный знак",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "note": "Wordstat MCP не вернул поисковые фразы по основному и уточняющему запросу; материал создан по заданной теме и вопросам читателя."
+    }
+  },
+  "semantic_core": [
+    "достоинство планеты",
+    "экзальтация планет",
+    "дебилитация планет",
+    "собственный знак планеты",
+    "учча и нича",
+    "мулатрикона",
+    "диспозитор",
+    "сила планеты в натальной карте",
+    "нича-бханга",
+    "как читать положение планеты в джйотише",
+    "влияние дома, аспекта и навамши",
+    "время рождения и граница знака"
+  ],
+  "canonical": "https://vedicway.ru/guide/ekzaltaciya-debilitaciya-sobstvennyy-znak",
+  "seo": {
+    "seo_title": "Достоинство планеты: экзальтация, дебилитация, знак",
+    "meta_description": "Достоинство планеты в джйотише: чем отличаются экзальтация, дебилитация и собственный знак, как читать их вместе с домом и силой карты.",
+    "focus_keyphrase": "достоинство планеты",
+    "canonical_url": "https://vedicway.ru/guide/ekzaltaciya-debilitaciya-sobstvennyy-znak",
+    "excerpt": "Практическое объяснение достоинства планеты: экзальтация, дебилитация и собственный знак рассматриваются вместе с домом, диспозитором, варгой и периодом."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не выдавать достоинство планеты за полную количественную силу карты.",
+    "Не обещать гарантированный прогностический, медицинский или финансовый результат.",
+    "Не смешивать правила разных школ и не объявлять дебилитацию безусловным приговором."
+  ],
+  "cover": {
+    "asset_id": "cover-ekzaltaciya-debilitaciya-sobstvennyy-znak",
+    "path": "content/astrology-guide/articles/ekzaltaciya-debilitaciya-sobstvennyy-znak/cover.webp",
+    "alt": "Центральная планета на трёхступенчатой шкале положения среди мягких созвездий на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1727,
+    "height": 911,
+    "sha256": "0cca059ab2148542cf4da2408feaa3a494830044a3efbeb92fba70d310b3f6ed",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "достоинство планеты",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "достоинство планеты"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://steer.coach/exaltation-debilitation/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

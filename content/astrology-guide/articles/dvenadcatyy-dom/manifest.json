@@ -1,0 +1,55 @@
+{
+  "title": "Двенадцатый дом: расходы, удаление и освобождение",
+  "slug": "dvenadcatyy-dom",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Двенадцатый дом в ведической астрологии: расходы",
+  "meta_description": "Как читать двенадцатый дом в ведической астрологии: расходы, уединение, удаление, освобождение, расчёт, пример и границы метода.",
+  "focus_keyphrase": "двенадцатый дом в ведической астрологии",
+  "canonical": "https://vedicway.ru/guide/dvenadcatyy-dom",
+  "seo": {
+    "seo_title": "Двенадцатый дом в ведической астрологии: расходы",
+    "meta_description": "Как читать двенадцатый дом в ведической астрологии: расходы, уединение, удаление, освобождение, расчёт, пример и границы метода.",
+    "focus_keyphrase": "двенадцатый дом в ведической астрологии",
+    "canonical_url": "https://vedicway.ru/guide/dvenadcatyy-dom",
+    "excerpt": "Практическое чтение двенадцатого дома через расходы, удаление, уединение и завершение цикла с примером расчёта и границами метода."
+  },
+  "cover": {
+    "asset_id": "cover-dvenadcatyy-dom",
+    "path": "content/astrology-guide/articles/dvenadcatyy-dom/cover.webp",
+    "alt": "Тёплая редакционная иллюстрация двенадцатого дома: круг карты растворяется в тихом горизонте, вокруг мягко расходятся линии созвездий",
+    "source_kind": "imagegen",
+    "license_note": "Создано генератором изображений OpenAI для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1727,
+    "height": 911,
+    "sha256": "a71cc27f58188b682790a2996c58a270668702df68634dff8b2e4d9f572b0ff6",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "двенадцатый дом в ведической астрологии",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "двенадцатый дом в ведической астрологии"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://divyachadhava.com/en/sanatan-sahitya/bphs-chapter-23-effects-of-vyaya-bhava",
+      "https://vedic-astrology.in/effects-of-the-twelfth-house-loss-liberation-and-expenditure-bphs-chapter-23/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

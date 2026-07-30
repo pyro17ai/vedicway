@@ -1,0 +1,103 @@
+{
+  "slug": "vremennoe-druzhestvo-grah",
+  "title": "Временное дружество грах в натальной карте",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_vedpuran_translation",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Временное дружество грах: расчёт по натальной карте",
+  "meta_description": "Как определить временное дружество грах по раши: правило подсчёта, связь с естественными отношениями, пример и границы метода в натальной карте.",
+  "focus_keyphrase": "временное дружество грах",
+  "intent": {
+    "status": "no_wordstat_data",
+    "type": "informational_how_to",
+    "query": "временное дружество грах",
+    "summary": "Читатель хочет понять правило расчёта временного дружества грах по взаимному положению раши и применить его к натальной карте.",
+    "wordstat": {
+      "top_requests": [],
+      "associations": [],
+      "total_count": 0
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "временное дружество грах"
+    ],
+    "related_formulations": [
+      "временные друзья и враги планет",
+      "дружество грах в джйотише",
+      "как определить временное дружество грах",
+      "отношения планет по домам и знакам"
+    ],
+    "reader_questions": [
+      "Как считать знаки между грахами?",
+      "Нужно ли считать расстояние в обе стороны?",
+      "Чем временное дружество отличается от естественного?",
+      "Зависит ли временное дружество от домов?"
+    ],
+    "entities": [
+      "граха",
+      "раши",
+      "бхава",
+      "натальная карта",
+      "естественное дружество",
+      "парашарский джйотиш"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/vremennoe-druzhestvo-grah",
+  "seo": {
+    "seo_title": "Временное дружество грах: расчёт по натальной карте",
+    "meta_description": "Как определить временное дружество грах по раши: правило подсчёта, связь с естественными отношениями, пример и границы метода в натальной карте.",
+    "focus_keyphrase": "временное дружество грах",
+    "canonical_url": "https://vedicway.ru/guide/vremennoe-druzhestvo-grah",
+    "excerpt": "Практическое правило расчёта временного дружества грах по раши, соединение с естественными отношениями, учебный пример и границы метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/dvenadcat-bhav"
+  ],
+  "prohibited_claims": [
+    "Не обещать гарантированное событие или точную дату.",
+    "Не выдавать традиционную интерпретацию за научно доказанную причинность.",
+    "Не заменять медицинскую, финансовую или профессиональную консультацию.",
+    "Не смешивать правила разных школ без явной пометки."
+  ],
+  "cover": {
+    "asset_id": "cover-vremennoe-druzhestvo-grah",
+    "path": "content/astrology-guide/articles/vremennoe-druzhestvo-grah/cover.webp",
+    "alt": "Две символические грахи, соединённые тонкой дугой внутри мягкой схемы раши на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и исходный URL не применяются.",
+    "status": "ready",
+    "sha256": "c7b0a3b9fd0de389bd511a9e55e4d0da6ebcf1d80cbf8c7f883177d4bddd160c",
+    "width": 1729,
+    "height": 910
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "временное дружество грах",
+    "натальная карта",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "временное дружество грах"
+      }
+    ],
+    "citation": [
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

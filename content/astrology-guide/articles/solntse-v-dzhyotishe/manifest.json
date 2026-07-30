@@ -1,0 +1,65 @@
+{
+  "slug": "solntse-v-dzhyotishe",
+  "title": "Солнце в джйотише: светило, власть и жизненная опора",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "phaladeepika_wisdomlib"
+  ],
+  "seo": {
+    "seo_title": "Солнце в джйотише: раши, бхава и сила светила",
+    "meta_description": "Разберите Солнце в джйотише по раши, бхаве, силе и связям. Практический алгоритм, учебный пример и границы традиционной трактовки.",
+    "focus_keyphrase": "Солнце в натальной карте джйотиш",
+    "canonical_url": "https://vedicway.ru/guide/solntse-v-dzhyotishe",
+    "excerpt": "Солнце в джйотише читают через раши, бхаву, достоинство, силу и связи. Статья показывает порядок анализа и ограничения традиционной интерпретации."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не сводить Солнце к одному ключевому слову, знаку или обещанию статуса.",
+    "Не выдавать традиционную интерпретацию за научно доказанную причинность, медицинский диагноз или психологическую оценку.",
+    "Не обещать по Солнцу здоровье, деньги, должность, точную дату события или неизбежную судьбу.",
+    "Не смешивать правила BPHS, Phaladeepika и разных школ дришти без явной маркировки текста и редакции."
+  ],
+  "cover": {
+    "asset_id": "cover-solntse-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/solntse-v-dzhyotishe/cover.webp",
+    "alt": "Тёплое Солнце с тонкими орбитами и геометрическими секторами на фактурном бумажном фоне",
+    "status": "ready",
+    "sha256": "62863a0f011f7c6e28306f43d8c7461a4820f97998923f9011b8280d5cd286c6",
+    "source_kind": "ai_generated",
+    "license_note": "Создано встроенным ImageGen для VedicWay; внешняя лицензия и исходный URL не применяются.",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/solntse-v-dzhyotishe",
+  "tags": [
+    "Планеты и дома",
+    "Солнце в натальной карте джйотиш",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Солнце в натальной карте джйотиш"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

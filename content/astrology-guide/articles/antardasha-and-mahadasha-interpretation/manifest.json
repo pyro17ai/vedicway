@@ -1,0 +1,60 @@
+{
+  "slug": "antardasha-and-mahadasha-interpretation",
+  "title": "Antardasha и mahadasha: как читать модификатор периода",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S3"
+  ],
+  "seo": {
+    "seo_title": "Antardasha и mahadasha: чтение периода",
+    "meta_description": "Как сопоставить планеты antardasha и mahadasha: определения, формула Vimshottari, проверяемый пример, аянāмша, дома и границы школ.",
+    "focus_keyphrase": "antardasha и mahadasha",
+    "canonical_url": "https://vedicway.ru/guide/antardasha-and-mahadasha-interpretation",
+    "excerpt": "Пошаговый способ читать antardasha как модификатор mahadasha: сначала определить тему управителя основной даши, затем проверить планету подпериода и сопоставить обе позиции в натальной карте."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/vimshottari-antardasha-calculation"
+  ],
+  "prohibited_claims": [
+    "фатальные события, дата смерти или неизбежный исход",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьеры, сделки или финансового результата",
+    "юридический результат или научно подтверждённая причинность астрологии"
+  ],
+  "cover": {
+    "asset_id": "cover-antardasha-and-mahadasha-interpretation",
+    "path": "content/astrology-guide/articles/antardasha-and-mahadasha-interpretation/cover.webp",
+    "alt": "Абстрактные вложенные круги периодов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "e6ff40be1c717761ea588b8bf9bd84ad51496cb881301b8bf808d3095918d226",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/antardasha-and-mahadasha-interpretation",
+  "tags": [
+    "Практика чтения карты",
+    "antardasha и mahadasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "antardasha и mahadasha"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://saravali.github.io/astrology/dasa_yogini.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

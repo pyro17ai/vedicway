@@ -1,0 +1,115 @@
+{
+  "title": "Душтханы: 6-й, 8-й и 12-й дома",
+  "slug": "dushtkhany",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Душтханы в джйотише: 6-й, 8-й и 12-й дома",
+  "meta_description": "Душтханы в джйотише: разбор 6-го, 8-го и 12-го домов, двойная классификация 6-го дома, порядок чтения карты и мини-пример.",
+  "focus_keyphrase": "душтханы в джйотише",
+  "intent": {
+    "type": "informational",
+    "status": "inferred",
+    "wordstat_query": "душтханы",
+    "wordstat": {
+      "top_requests": [],
+      "associations": [],
+      "total_count": 2,
+      "note": "Wordstat не вернул популярных запросов; семантика собрана по теме и вопросам читателя."
+    },
+    "reader_questions": [
+      "Что такое душтханы в джйотише?",
+      "Какие дома считаются душтханами?",
+      "Почему 6-й дом одновременно душтхана и упачая?",
+      "Как читать 6-й, 8-й и 12-й дома в натальной карте?"
+    ]
+  },
+  "semantic_core": {
+    "primary": [
+      "душтханы в джйотише",
+      "6 8 12 дома в джйотише"
+    ],
+    "related": [
+      "6 дом душтхана",
+      "8 дом душтхана",
+      "12 дом душтхана",
+      "упачаи",
+      "6 дом упачая",
+      "значение душтхан",
+      "как читать дома в натальной карте"
+    ],
+    "questions": [
+      "что такое душтханы",
+      "какие дома относятся к душтханам",
+      "почему 6 дом двойной",
+      "что означает 8 дом",
+      "что означает 12 дом"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/dushtkhany",
+  "seo": {
+    "seo_title": "Душтханы в джйотише: 6-й, 8-й и 12-й дома",
+    "meta_description": "Душтханы в джйотише: разбор 6-го, 8-го и 12-го домов, двойная классификация 6-го дома, порядок чтения карты и мини-пример.",
+    "focus_keyphrase": "душтханы в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/dushtkhany",
+    "excerpt": "Практический разбор 6-го, 8-го и 12-го домов в традиции джйотиша с объяснением двойного статуса 6-го дома и границ метода."
+  },
+  "cover": {
+    "asset_id": "cover-dushtkhany",
+    "path": "content/astrology-guide/articles/dushtkhany/cover.webp",
+    "alt": "Радиальная схема двенадцати домов с тремя выделенными секторами душтхан на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано OpenAI ImageGen для VedicWay; поисковые изображения не использовались.",
+    "mime_type": "image/png",
+    "width": 1672,
+    "height": 941,
+    "sha256": "5b5276b8280bc734dd38da77569a7eeaa627016b66c8fdfe0e90ba0e2d92b643",
+    "status": "ready"
+  },
+  "sha256": "A1D9F2743D4940B600D2AAFE722CE058747CBA77F08E185A2D1CF3728596D7AD",
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава, лагна и дома"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "Как читать натальную карту"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не превращать душтханы в гарантированный прогноз событий.",
+    "Не использовать 8-й дом для прямого предсказания смерти или катастрофы.",
+    "Не заменять астрологической интерпретацией медицинскую, финансовую или юридическую консультацию."
+  ],
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "душтханы в джйотише",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "душтханы в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

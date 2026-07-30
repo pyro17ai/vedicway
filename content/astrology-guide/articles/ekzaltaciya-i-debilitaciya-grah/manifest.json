@@ -1,0 +1,101 @@
+{
+  "slug": "ekzaltaciya-i-debilitaciya-grah",
+  "title": "Экзальтация и дебилитация семи грах",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_vedpuran_translation"
+  ],
+  "seo_title": "Экзальтация и дебилитация семи грах: знаки и градусы",
+  "meta_description": "Таблица экзальтации и дебилитации семи грах: знаки и градусы глубокой силы, правило противоположного падения и порядок чтения карты.",
+  "focus_keyphrase": "экзальтация и дебилитация грах",
+  "intent": {
+    "type": "informational",
+    "description": "Читатель ищет справочную таблицу знаков и градусов экзальтации семи классических грах, правило противоположного падения и способ применить его при чтении натальной карты.",
+    "wordstat": {
+      "query": "экзальтация и дебилитация грах",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "status": "empty"
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "экзальтация и дебилитация грах",
+      "экзальтация планет в джйотише"
+    ],
+    "related": [
+      "дебилитация планет",
+      "глубокая экзальтация планет",
+      "учча и нича",
+      "знаки экзальтации грах",
+      "градусы экзальтации планет",
+      "нича-бханга"
+    ],
+    "reader_questions": [
+      "В каком знаке экзальтируется каждая граха?",
+      "Какой градус глубокой экзальтации у планет?",
+      "Как найти знак дебилитации?",
+      "Отменяет ли одна комбинация дебилитацию?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/ekzaltaciya-i-debilitaciya-grah",
+  "seo": {
+    "seo_title": "Экзальтация и дебилитация семи грах: знаки и градусы",
+    "meta_description": "Таблица экзальтации и дебилитации семи грах: знаки и градусы глубокой силы, правило противоположного падения и порядок чтения карты.",
+    "focus_keyphrase": "экзальтация и дебилитация грах",
+    "canonical_url": "https://vedicway.ru/guide/ekzaltaciya-i-debilitaciya-grah",
+    "excerpt": "Справочная таблица знаков и градусов глубокой экзальтации семи классических грах, правило противоположного падения и границы интерпретации в натальной карте."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать экзальтацию или дебилитацию за научно подтверждённую причинность.",
+    "Не обещать медицинский, финансовый, юридический или гарантированный прогностический результат.",
+    "Не делать вывод по одному достоинству без дома, управителя и связей грахи."
+  ],
+  "cover": {
+    "asset_id": "cover-ekzaltaciya-i-debilitaciya-grah",
+    "path": "content/astrology-guide/articles/ekzaltaciya-i-debilitaciya-grah/cover.webp",
+    "alt": "Семь планетарных сфер на оси экзальтации и падения на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "f64a11ee2707d81690533dfd00761195a4d309ef181afc52d1a08433acb6a39b",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "экзальтация и дебилитация грах",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "экзальтация и дебилитация грах"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

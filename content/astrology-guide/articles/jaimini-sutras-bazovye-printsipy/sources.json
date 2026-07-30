@@ -1,0 +1,37 @@
+[
+  {
+    "source_id": "S10",
+    "url": "https://www.scribd.com/document/618163397/Jaimini-Sutras-B-Suryanarain-Rao-1949",
+    "title": "Jaimini Sutras - B. Suryanarain Rao 1949",
+    "author_or_institution": "B. Suryanarain Rao; поздняя редакторская работа B. V. Raman",
+    "source_kind": "community_context",
+    "quality": "low",
+    "role_in_article": "Навигация по терминологии и оглавлению поздней англоязычной редакции Jaimini Sutras.",
+    "claims_used": [
+      "Страница показывает английский перевод B. Suryanarain Rao и позднюю редакторскую работу B. V. Raman.",
+      "Оглавление включает chara karaka, pada lagna, rashi и разные daśā.",
+      "Scribd содержит пользовательскую перепечатку без надёжной библиографической проверки.",
+      "Проверочная архивная редакция из verified-reading-log: https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "limits": "S10 не подтверждает критическую редакцию санскритского текста и не используется как единственная основа алгоритма.",
+    "verified_reading": "URL открыт 2026-07-28; проверены название, объём страницы, сведения о переводе и редакторе, а также оглавление. verified-reading-log отдельно фиксирует архивную редакцию Jaimini Sutras как лично проверенную.",
+    "review_status": "agent_reviewed"
+  },
+  {
+    "source_id": "S13",
+    "url": "http://hdl.handle.net/2078.1/149862",
+    "title": "La Jaiminīyasaṃhitā du Brahmāṇḍapurāṇa",
+    "author_or_institution": "Christophe Vielle, Université catholique de Louvain",
+    "source_kind": "primary_text",
+    "quality": "high",
+    "role_in_article": "Текстологическая граница между Jaiminīyasaṃhitā и Jaimini Sutras.",
+    "claims_used": [
+      "Работа посвящена первым 15 главам Jaiminīyasaṃhitā из Brahmāṇḍapurāṇa.",
+      "Издание основано на сравнении пяти рукописей и включает санскритский текст, перевод и сведения о редакционных принципах.",
+      "Jaiminīyasaṃhitā нельзя использовать как подтверждение содержания или происхождения Jaimini Sutras."
+    ],
+    "limits": "Источник относится к отдельному произведению пуран̣ической традиции и не даёт правил для Jaimini Sutras.",
+    "verified_reading": "URL открыт 2026-07-28; ресурс перенаправляет на запись UCLouvain с названием работы Christophe Vielle и библиографическим описанием издания 2007 года.",
+    "review_status": "agent_reviewed"
+  }
+]

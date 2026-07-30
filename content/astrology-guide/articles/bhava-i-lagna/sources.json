@@ -1,0 +1,47 @@
+[
+  {
+    "source_id": "S05",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "title": "Varahamihira: Brhatsamhita",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "role_in_article": "Историческая и терминологическая опора для разделения jyotiḥśāstra на gaṇita, horā и saṃhitā, а также для употребления rāśi и bhāva.",
+    "claims_used": [
+      "Первая глава формулирует трёхчастную структуру jyotiḥśāstra.",
+      "В описании horā среди тем упоминаются rāśi и bhāva.",
+      "Цифровая версия подготовлена по изданию A. V. Tripathi с вариантами и комментарием Utpala."
+    ],
+    "limits": "GRETIL помечает файл как справочный reference only; электронная транслитерация и вариантные чтения не заменяют критическое печатное издание.",
+    "verified_reading": "URL лично открыт 2026-07-28; проверены заголовок, редакторская основа, статус reference only и строки 93–96 о gaṇita, horā и saṃhitā."
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Brihatparāśarahorāśāstra",
+    "author_or_institution": "Анонимная онлайн-перепечатка",
+    "source_kind": "primary_text",
+    "role_in_article": "Текстовая опора для связи восходящего rāśi с Tanu Bhava, последовательности предметов домов и различения дома как традиционного слоя интерпретации.",
+    "claims_used": [
+      "Глава о Tanu Bhava связывает его с восходящим rāśi.",
+      "В следующих пунктах последовательно перечисляются предметы Dhana, Sahaja, Bandhu и остальных домов.",
+      "Текст использует отдельные названия bhava и логику хозяев домов."
+    ],
+    "limits": "В PDF не указаны надёжные сведения о переводчике, редакции, издателе и рукописной базе; источник пригоден для сверки перевода, но не для единственных исторических выводов.",
+    "verified_reading": "URL лично открыт 2026-07-28; проверены PDF на 302 страницы и строки 933–967 о восходящем rāśi, Tanu Bhava и последовательности домов."
+  },
+  {
+    "source_id": "S11",
+    "url": "https://docs.rs/panchangam",
+    "title": "panchangam - High-Precision Vedic Calendar Library",
+    "author_or_institution": "Документация Rust-библиотеки Panchangam",
+    "source_kind": "technical_reference",
+    "role_in_article": "Технический пример разделения вычислений: планетарные положения, календарные показатели и географические расчёты требуют явной фиксации реализации.",
+    "claims_used": [
+      "Библиотека заявляет расчёт tithi, nakṣatra, yoga, karaṇa и vara по модели Drik Ganita.",
+      "Для планетарных положений используется Swiss Ephemeris.",
+      "Для восходов и закатов используется отдельный географический модуль spa."
+    ],
+    "limits": "Документация описывает конкретную библиотеку и не устанавливает нормативный канон джйотиша, аянāмшу или систему домов.",
+    "verified_reading": "URL лично открыт 2026-07-28; проверены текущая страница docs.rs, описание Drik Ganita, Swiss Ephemeris и отдельных географических расчётов."
+  }
+]

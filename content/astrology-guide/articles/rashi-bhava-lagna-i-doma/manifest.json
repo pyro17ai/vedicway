@@ -1,0 +1,74 @@
+{
+  "slug": "rashi-bhava-lagna-i-doma",
+  "title": "Раши, бхава и лагна: что именно называют домом",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "swisseph_general",
+    "pyjhora_readme",
+    "bphs_sapta_comparative"
+  ],
+  "seo": {
+    "seo_title": "Раши, бхава и лагна: как читать дома в D1",
+    "meta_description": "Разберите разницу между раши, лагной, первым домом и куспидом в D1: параметры расчёта, учебный пример и ограничения метода.",
+    "focus_keyphrase": "раши бхава лагна",
+    "canonical_url": "https://vedicway.ru/guide/rashi-bhava-lagna-i-doma",
+    "excerpt": "Практическое объяснение для чтения D1: раши обозначает знак, лагна — восходящую точку, а бхава зависит от выбранного способа построения домов."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "калькулятор натальной карты"
+    },
+    {
+      "url": "/guide/lagna-na-granice-znaka",
+      "anchor": "Лагна на границе знака",
+      "status": "planned"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традицию джйотиша за научно подтверждённый способ предсказания событий.",
+    "Не обещать здоровье, деньги, отношения или точный срок события по раши, лагне или бхаве.",
+    "Не смешивать целознаковую и куспидную систему домов без маркировки метода и входных параметров.",
+    "Не объявлять одну редакцию BPHS единственным каноном без указания текста и школы."
+  ],
+  "cover": {
+    "asset_id": "cover-rashi-bhava-lagna-i-doma",
+    "path": "content/astrology-guide/articles/rashi-bhava-lagna-i-doma/cover.webp",
+    "alt": "Абстрактные орбиты, знак зодиака и радиальная схема домов на светлом бумажном фоне",
+    "status": "ready",
+    "sha256": "4243df5cfebd02a99176a0f57f0fabf73eb7896b57e5c7dcfb84c08021fbd423",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/rashi-bhava-lagna-i-doma",
+  "tags": [
+    "Планеты и дома",
+    "раши бхава лагна",
+    "дома",
+    "бхавы",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "раши бхава лагна"
+      }
+    ],
+    "citation": [
+      "https://saptamatrika.ru/en/bphs"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

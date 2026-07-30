@@ -1,0 +1,32 @@
+[
+  {
+    "source_id": "A2",
+    "url": "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+    "title": "Muhūrta in Gārgīyajyotiṣa",
+    "role_in_article": "Исторический контекст караны в мухурте.",
+    "claims_used": [
+      "Карана входит в календарный набор выборного времени."
+    ],
+    "limits": "Исследование не устанавливает универсальную причинность."
+  },
+  {
+    "source_id": "A4",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+    "title": "Bṛhat-saṃhitā: English translation and chapter index",
+    "role_in_article": "Терминологический фон классического текста.",
+    "claims_used": [
+      "Классическая традиция использует связанные с панчангой термины."
+    ],
+    "limits": "Перевод и индекс не заменяют критическое издание."
+  },
+  {
+    "source_id": "A6",
+    "url": "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt",
+    "title": "Muhurtha: Electional Astrology",
+    "role_in_article": "Учебное место караны среди элементов панчанги.",
+    "claims_used": [
+      "Карана читается рядом с титхи и другими ангами."
+    ],
+    "limits": "Оцифрованная поздняя учебная традиция имеет редакционные ограничения."
+  }
+]

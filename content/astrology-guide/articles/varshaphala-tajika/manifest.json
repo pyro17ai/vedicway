@@ -1,0 +1,167 @@
+{
+  "title": "Varshaphala и Tajika: что такое годовая карта",
+  "slug": "varshaphala-tajika",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_tajika_academic",
+    "transits:TAJIKA_ACADEMIC",
+    "src_tajika_early_transmission"
+  ],
+  "seo_title": "Varshaphala и Tajika: что такое годовая карта",
+  "meta_description": "Что показывает годовая карта Varshaphala, как её рассчитывают и читают по правилам Tajika: Варша-лагна, Мунтха, управитель года и границы метода.",
+  "focus_keyphrase": "Varshaphala и Tajika",
+  "intent": {
+    "type": "informational_with_calculation_intent",
+    "primary": "Понять, что такое годовая карта Varshaphala, как она связана со школой Tajika и в каком порядке её рассчитывают и читают.",
+    "wordstat": {
+      "query": "варшапхала",
+      "total_count": 575,
+      "top_requests": [
+        {
+          "phrase": "варшапхала",
+          "count": 575
+        },
+        {
+          "phrase": "варшапхала рассчитать",
+          "count": 131
+        },
+        {
+          "phrase": "варшапхала онлайн",
+          "count": 112
+        },
+        {
+          "phrase": "варшапхала рассчитать онлайн",
+          "count": 78
+        },
+        {
+          "phrase": "варшапхала джйотиш онлайн",
+          "count": 50
+        },
+        {
+          "phrase": "варшапхала джйотиш рассчитать",
+          "count": 48
+        },
+        {
+          "phrase": "варшапхала построить",
+          "count": 27
+        },
+        {
+          "phrase": "варшапхала джйотиш что это",
+          "count": 19
+        },
+        {
+          "phrase": "предсказательные техники варшапхала",
+          "count": 5
+        }
+      ],
+      "associations_used": [],
+      "noise_excluded": [
+        "Нерелевантные географические и лексические ассоциации широкого запроса."
+      ],
+      "observed_at": "2026-07-30"
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "варшапхала",
+      "Varshaphala и Tajika",
+      "годовая карта"
+    ],
+    "close_formulations": [
+      "варшапхала рассчитать",
+      "варшапхала онлайн",
+      "варшапхала джйотиш",
+      "варшапхала построить",
+      "годовая карта джйотиш",
+      "таджика астрология",
+      "солнечное возвращение",
+      "карта на день рождения"
+    ],
+    "entities": [
+      "Варша-лагна",
+      "Мунтха",
+      "управитель года",
+      "таджика-йоги",
+      "сахамы",
+      "натальная карта",
+      "даша",
+      "гочара"
+    ],
+    "reader_questions": [
+      "Что такое варшапхала в джйотише?",
+      "Чем Varshaphala отличается от Tajika?",
+      "Как рассчитывают годовую карту?",
+      "Когда начинается год по варшапхале?",
+      "Как читать Варша-лагну и Мунтху?",
+      "Чем годовая карта отличается от транзитов?",
+      "Можно ли построить варшапхалу без точного времени рождения?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/varshaphala-tajika",
+  "seo": {
+    "seo_title": "Varshaphala и Tajika: что такое годовая карта",
+    "meta_description": "Что показывает годовая карта Varshaphala, как её рассчитывают и читают по правилам Tajika: Варша-лагна, Мунтха, управитель года и границы метода.",
+    "focus_keyphrase": "Varshaphala и Tajika",
+    "canonical_url": "https://vedicway.ru/guide/varshaphala-tajika",
+    "excerpt": "Годовая карта Varshaphala строится на момент возвращения Солнца к натальной долготе. Статья объясняет её историческую связь с таджикой и порядок чтения."
+  },
+  "cover": {
+    "asset_id": "cover-varshaphala-tajika",
+    "path": "content/astrology-guide/articles/varshaphala-tajika/cover.webp",
+    "alt": "Солнечная орбита замыкает круг вокруг тонкой годовой астрологической карты на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1600,
+    "height": 900,
+    "sha256": "2a5c3a17bc1478d77b3220d8c27a4b57a10883a18f8ba4e98a0030af1f620578",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "как читать натальную карту"
+    },
+    {
+      "url": "/guide/dasha-i-tranzity",
+      "anchor": "даша и транзиты"
+    },
+    {
+      "url": "/guide/tranzity-i-natalnaya-karta",
+      "anchor": "транзиты относительно натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Научно гарантированный прогноз событий по годовой карте.",
+    "Медицинский диагноз или решение о лечении по Varshaphala.",
+    "Гарантия дохода, должности, брака или иного конкретного результата.",
+    "Неизбежная дата события по одному годовому показателю."
+  ],
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "Varshaphala и Tajika"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Varshaphala и Tajika"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.1163/9789004433717",
+      "https://journals.library.ualberta.ca/hssa/index.php/hssa/article/download/34/91",
+      "https://brill.com/view/journals/saih/1/1/article-p79_4.xml"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

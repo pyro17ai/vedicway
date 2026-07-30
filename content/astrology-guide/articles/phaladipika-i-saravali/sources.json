@@ -1,0 +1,54 @@
+[
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Bṛhat Parāśara Horāśāstra",
+    "author_or_institution": "Анонимная онлайн-перепечатка",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "horā",
+      "gaṇita",
+      "saṃhitā",
+      "graha",
+      "rāśi",
+      "lagna",
+      "bhāva",
+      "йоги",
+      "daśā"
+    ],
+    "role_in_article": "Терминологическая и структурная опора для описания парашарского корпуса и границ сравнения.",
+    "claims_used": [
+      "Во вводной главе перечислены horā, gaṇita и saṃhitā как разделы jyotiṣa.",
+      "Оглавление и текст разворачивают темы graha, rāśi, lagna, bhāva, делительных карт, йог и daśā."
+    ],
+    "observed_at": "2026-07-28",
+    "review_status": "agent_reviewed",
+    "verified_reading": "URL открыт напрямую 2026-07-28; PDF содержит 302 страницы, прочитаны вводная глава и оглавление.",
+    "limits": "Нет имени переводчика, редакции, издателя, датировки и сведений о санскритской рукописной базе; исторические выводы по этому файлу не делаются. В локальном verified-reading-log отдельной строки S08 нет."
+  },
+  {
+    "source_id": "S12",
+    "url": "https://doi.org/10.5281/zenodo.20649051",
+    "title": "Contradictions in Vedic Astrology: BPHS vs Jaimini, Saravali & Phaladeepika",
+    "author_or_institution": "Subhamoy Bhattacharjee",
+    "source_kind": "community_context",
+    "publication_or_revision_date": "2024-02-10",
+    "topics": [
+      "BPHS",
+      "Jaimini",
+      "Saravali",
+      "Phaladipika",
+      "сравнение правил"
+    ],
+    "role_in_article": "Указатель на проблему расхождений между школами и основание для алгоритма раздельной фиксации правил.",
+    "claims_used": [
+      "Препринт заявляет сравнительный анализ BPHS, Jaimini, Saravali и Phaladeepika.",
+      "Источник используется как указатель на спорные места, но не как первичное доказательство содержания или статуса текстов."
+    ],
+    "observed_at": "2026-07-28",
+    "review_status": "agent_reviewed",
+    "verified_reading": "Исходный DOI открыт напрямую 2026-07-28; он перенаправляет на запись Zenodo 20649052 с тем же названием и автором, где доступны библиографические метаданные и PDF.",
+    "limits": "Современный препринт без достаточной библиометрической истории; не заменяет первичные тексты, критические издания и исследование датировки. Отдельной строки S12 в локальном verified-reading-log нет."
+  }
+]

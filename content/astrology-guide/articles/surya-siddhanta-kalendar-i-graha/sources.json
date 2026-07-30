@@ -1,0 +1,50 @@
+[
+  {
+    "source_id": "S04",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/surysidu.htm",
+    "title": "Suryasiddhanta",
+    "author_or_institution": "GRETIL; текст подготовлен Michio Yano",
+    "source_kind": "primary_text",
+    "role_in_article": "Опора для единиц времени, календарных типов, среднего движения graha и описания коррекций.",
+    "claims_used": [
+      "Электронная версия содержит определения времени от prāṇa и vināḍī до суток, месяца и года.",
+      "Текст различает sāvana, aindava и saura, описывает adhimāsa и tithi-kṣaya.",
+      "Среднее положение graha связывается с числом прошедших дней и средней скоростью.",
+      "Текст описывает śīghra, manda, ucca, pāta и последующее уточнение положения."
+    ],
+    "verification": {
+      "verified_reading_log_id": "canon:GRETIL_SURYA",
+      "review_status": "personally_verified",
+      "observed_at": "2026-07-28",
+      "checked_claims": [
+        "электронная версия Sūryasiddhānta содержит определения временных единиц и tithi",
+        "страница указывает редакторскую основу и статус reference only"
+      ]
+    },
+    "limits": "GRETIL прямо обозначает файл как справочный; это цифровая компиляция нескольких изданий без полноценного критического аппарата и современного аннотированного перевода. Источник не используется как единственная основа современного расчёта координат."
+  },
+  {
+    "source_id": "S05",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "title": "Varahamihira: Brhatsamhita",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "role_in_article": "Опора для разделения jyotiḥśāstra на saṃhitā, gaṇita и horā и для связи gaṇita с календарём и движением graha.",
+    "claims_used": [
+      "Первая глава формулирует трёхчастную структуру jyotiḥśāstra: gaṇita, horā и saṃhitā.",
+      "Раздел grahagaṇita связан с yuga, годом, ayana, сезоном, месяцем, сутками и малыми единицами времени.",
+      "В тексте отдельно названы движение graha, календарные единицы и темы horā."
+    ],
+    "verification": {
+      "ledger_review_status": "agent_reviewed",
+      "verified_reading_log_id": "canon:GRETIL_BS",
+      "direct_reading_status": "personally_verified",
+      "observed_at": "2026-07-28",
+      "checked_claims": [
+        "текст Bṛhat-saṃhitā разделяет saṃhitā, gaṇita и horā",
+        "страница указывает редакторскую основу, вариантные чтения и статус reference only"
+      ]
+    },
+    "limits": "Это справочный цифровой текст; формат, разложение sandhi и варианты чтения требуют сверки с печатным изданием. Текст не используется для утверждений о современной точности или прогностической силе астрологии."
+  }
+]

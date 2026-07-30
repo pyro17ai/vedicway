@@ -1,0 +1,100 @@
+{
+  "title": "Четыре слоя чтения дома",
+  "slug": "chetyre-sloya-chteniya-doma",
+  "category": "Практика чтения карты",
+  "seo_title": "Как читать дома в ведической астрологии: 4 слоя",
+  "meta_description": "Как читать дома в ведической астрологии: соедините знак, управителя, планеты в доме и караку, проверьте мини-пример и границы метода.",
+  "focus_keyphrase": "как читать дома в ведической астрологии",
+  "intent": {
+    "type": "informational",
+    "status": "exact_query_zero",
+    "primary_query": "чтение дома в ведической астрологии",
+    "wordstat": {
+      "total_count": 0,
+      "top_requests": [],
+      "associations": []
+    },
+    "expanded_cluster": "дома в ведической астрологии",
+    "reader_task": "Понять и применить порядок чтения отдельного дома в натальной карте."
+  },
+  "semantic_core": {
+    "main": [
+      "дома в ведической астрологии",
+      "дома в натальной карте ведическая астрология"
+    ],
+    "close_formulations": [
+      "управители домов в ведической астрологии",
+      "планеты в домах в ведической астрологии",
+      "что означают дома в ведической астрологии",
+      "значение домов в ведической астрологии"
+    ],
+    "reader_questions": [
+      "Как читать дом по знаку?",
+      "Что делать, если дом пустой?",
+      "Что важнее: карака или управитель?",
+      "Можно ли читать дом без точного времени рождения?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/chetyre-sloya-chteniya-doma",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз",
+    "медицинский, финансовый или юридический результат",
+    "точное событие по одному показателю"
+  ],
+  "cover": {
+    "asset_id": "cover-chetyre-sloya-chteniya-doma",
+    "path": "content/astrology-guide/articles/chetyre-sloya-chteniya-doma/cover.webp",
+    "alt": "Четыре концентрических слоя вокруг схемы астрологического дома на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Изображение сгенерировано ImageGen для VedicWay; внешние изображения не использовались.",
+    "status": "ready",
+    "sha256": "044e10a4182a7a41287dbe6150128d278cc34e3c051f7a6050f0ca7b8b740068",
+    "width": 1727,
+    "height": 910
+  },
+  "sha256": {
+    "article_md": "b8268a7f25443c65137fdd482c69176325d0832f9735269ab7d6e149376a50a6",
+    "article_html": "ff1067e43ede19c883785bc8fcdbeb1bf581092e9ebd39c0df9357284e5ad8ed",
+    "sources_json": "db1d5aa57cad12b18a6512957672c6ea561794fe43fcb844fbe13693f0ae1849"
+  },
+  "difficulty": "beginner",
+  "seo": {
+    "seo_title": "Как читать дома в ведической астрологии: 4 слоя",
+    "meta_description": "Как читать дома в ведической астрологии: соедините знак, управителя, планеты в доме и караку, проверьте мини-пример и границы метода.",
+    "focus_keyphrase": "как читать дома в ведической астрологии",
+    "canonical_url": "https://vedicway.ru/guide/chetyre-sloya-chteniya-doma",
+    "excerpt": "Как читать дома в ведической астрологии? Соедините четыре ответа: какой знак стоит в начале дома, где находится его управитель, какие планеты заняли дом и какая карака описывает ту же тему. Знак задаёт стиль, управитель показывает маршрут, планеты дают действующих участников, а."
+  },
+  "tags": [
+    "Практика чтения карты",
+    "как читать дома в ведической астрологии",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как читать дома в ведической астрологии"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "slug": "siderealnyj-i-tropicheskij-zodiak",
+  "title": "Сидерический и тропический зодиак: почему карты расходятся",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_general",
+    "dieter_ayanamsha",
+    "swisseph_programming"
+  ],
+  "seo": {
+    "seo_title": "Сидерический и тропический зодиак: почему расходятся карты",
+    "meta_description": "Разбираем, откуда считают тропический и сидерический зодиак, что такое аянамша и как не смешать долготы при чтении карты.",
+    "focus_keyphrase": "Сидерический и тропический зодиак",
+    "canonical_url": "https://vedicway.ru/guide/siderealnyj-i-tropicheskij-zodiak",
+    "excerpt": "Сидерический и тропический зодиак считают долготу от разных исходных точек. Разбираем прецессию, аянамшу и проверку карты без смешения систем."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/ayanamsha-lahiri-raman-true-chitra"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологические интерпретации за научно подтверждённые прогнозы.",
+    "Не обещать здоровье, деньги или неизбежную судьбу по положению планет.",
+    "Не называть одну аянамшу универсально правильной для всех школ джйотиша."
+  ],
+  "cover": {
+    "asset_id": "cover-siderealnyj-i-tropicheskij-zodiak",
+    "path": "content/astrology-guide/articles/siderealnyj-i-tropicheskij-zodiak/cover.webp",
+    "alt": "Абстрактные небесные орбиты на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "3556964dad5756c19ed8d82bacf33e66562fb5de4085555fb86bd39ff2f0c692",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/siderealnyj-i-tropicheskij-zodiak",
+  "tags": [
+    "Основы астрологии",
+    "Сидерический и тропический зодиак"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "Сидерический и тропический зодиак"
+      }
+    ],
+    "citation": [
+      "https://www.astro.com/astrology/in_ayanamsha_e.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

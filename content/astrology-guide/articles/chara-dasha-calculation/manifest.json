@@ -1,0 +1,64 @@
+{
+  "slug": "chara-dasha-calculation",
+  "title": "Chara Dasha: стартовый знак, направление и длительность",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "S4",
+    "S5"
+  ],
+  "seo": {
+    "seo_title": "Chara Dasha: стартовый знак, направление и срок",
+    "meta_description": "Как рассчитать Chara Dasha: выбрать школу, определить стартовый знак и направление, посчитать длительность и проверить расхождения на учебной карте.",
+    "focus_keyphrase": "расчёт Chara Dasha",
+    "canonical_url": "https://vedicway.ru/guide/chara-dasha-calculation",
+    "excerpt": "Пошаговый расчёт Chara Dasha с разделением вариантов S2 и S4: исходные данные, старт от Лагны, направление по девятому знаку, длительность и проверяемый пример."
+  },
+  "internal_links": [
+    "/guide/jaimini-sutras-bazovye-printsipy",
+    "/chart",
+    "/guide/sistemy-domov-v-sidereicheskoj-karte",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "фатальные события, дата смерти или неизбежная судьба по Chara Dasha",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьеры, сделки или материального результата",
+    "юридический исход или научно подтверждённый прогноз",
+    "универсальная каноничность одной школы расчёта без названия источника",
+    "скрытые аянāмша, тип зодиака, система домов или точность времени рождения"
+  ],
+  "cover": {
+    "asset_id": "cover-chara-dasha-calculation",
+    "path": "content/astrology-guide/articles/chara-dasha-calculation/cover.webp",
+    "alt": "Спокойная абстрактная схема последовательности знаковых периодов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "439fe25cb6eca09e07f696f23e4ecfe43604366e6e627751794517df63919c5a",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/chara-dasha-calculation",
+  "tags": [
+    "Практика чтения карты",
+    "расчёт Chara Dasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "расчёт Chara Dasha"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "source_id": "src_gret",
+    "url": "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "role": "Терминологический и исторический контекст мухурты в корпусе джйотиша."
+  },
+  {
+    "source_id": "src_jyotishganit",
+    "url": "https://github.com/northtara/jyotishganit",
+    "role": "Современный технический пример вычисления компонентов панчанги и фиксации расчётных входов."
+  },
+  {
+    "source_id": "src_britannica_hindu_calendar",
+    "url": "https://www.britannica.com/topic/Hindu-calendar",
+    "role": "Проверка состава пяти частей панчанги и календарного контекста."
+  },
+  {
+    "source_id": "src_vedicdatetime",
+    "url": "https://doi.org/10.1007/s11042-023-16553-w",
+    "role": "Формулы титхи, накшатры, йоги и караны, а также зависимость расчёта от восхода и места."
+  },
+  {
+    "source_id": "src_indian_astronomy_sourcebook",
+    "url": "https://www.wisdomlib.org/hinduism/book/indian-astronomy-a-source-book/d/doc1621551.html",
+    "role": "Сверка классических определений пяти компонентов и угловых делений."
+  }
+]

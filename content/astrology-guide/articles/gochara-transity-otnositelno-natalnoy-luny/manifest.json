@@ -1,0 +1,133 @@
+{
+  "title": "Гочара: как читать текущие транзиты относительно натальной Луны",
+  "slug": "gochara-transity-otnositelno-natalnoy-luny",
+  "category": "Основы астрологии",
+  "seo_title": "Гочара относительно натальной Луны: как читать транзиты",
+  "meta_description": "Гочара в джйотише: как найти дом транзитной планеты от Janma Rashi, сверить Лагну и дашу и не смешать метод с западными аспектами и фатальными прогнозами.",
+  "focus_keyphrase": "гочара относительно натальной Луны",
+  "intent": {
+    "type": "informational_how_to",
+    "status": "supported_by_adjacent_queries",
+    "summary": "Читатель хочет понять отличие гочары от западных транзитов и самостоятельно посчитать дом текущей планеты от знака натальной Луны.",
+    "wordstat": {
+      "phrase": "гочара транзиты относительно натальной луны",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "note": "Главная длинная формулировка не получила показов за последние 30 дней. Интент подтверждён соседними запросами.",
+      "adjacent_queries": [
+        {
+          "phrase": "гочара",
+          "count": 378
+        },
+        {
+          "phrase": "гочара транзиты",
+          "count": 46
+        },
+        {
+          "phrase": "гочара транзиты в джйотиш",
+          "count": 38
+        },
+        {
+          "phrase": "транзиты планет джйотиш",
+          "count": 468
+        },
+        {
+          "phrase": "джйотиш транзиты планет по домам",
+          "count": 17
+        }
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "гочара относительно натальной Луны",
+      "гочара транзиты",
+      "гочара транзиты в джйотиш",
+      "транзиты планет джйотиш"
+    ],
+    "close_formulations": [
+      "транзиты планет по домам в джйотиш",
+      "Janma Rashi",
+      "транзит от натальной Луны",
+      "дом транзитной планеты от Луны",
+      "как считать гочару"
+    ],
+    "reader_questions": [
+      "чем гочара отличается от западных транзитов",
+      "как определить дом транзитной планеты от Луны",
+      "считать ли знак Луны первым домом",
+      "нужно ли учитывать Лагну и дашу",
+      "почему программы показывают разные транзиты"
+    ],
+    "entities": [
+      "гочара",
+      "натальная Луна",
+      "Janma Rashi",
+      "раши",
+      "Лагна",
+      "даша",
+      "ведха",
+      "аянāмша"
+    ],
+    "cluster": "практическое чтение транзитов в джйотише от лунного знака рождения"
+  },
+  "canonical": "https://vedicway.ru/guide/gochara-transity-otnositelno-natalnoy-luny",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_gret",
+    "src_brihat_gocara"
+  ],
+  "seo": {
+    "seo_title": "Гочара относительно натальной Луны: как читать транзиты",
+    "meta_description": "Гочара в джйотише: как найти дом транзитной планеты от Janma Rashi, сверить Лагну и дашу и не смешать метод с западными аспектами и фатальными прогнозами.",
+    "focus_keyphrase": "гочара относительно натальной Луны",
+    "canonical_url": "https://vedicway.ru/guide/gochara-transity-otnositelno-natalnoy-luny",
+    "excerpt": "Практическая схема гочары: как взять Janma Rashi за первый дом, посчитать позицию текущей грахи и сверить результат с Лагной и дашей."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз события по одному транзиту",
+    "медицинский или финансовый вывод по гочаре",
+    "универсальность правил одной школы для всего джйотиша"
+  ],
+  "cover": {
+    "asset_id": "cover-gochara-transity-otnositelno-natalnoy-luny",
+    "path": "content/astrology-guide/articles/gochara-transity-otnositelno-natalnoy-luny/cover.webp",
+    "alt": "Натальная Луна в центре двенадцатисекторного круга и транзитная планета на внешней орбите",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешние изображения, логотипы и материалы поисковой выдачи не использовались.",
+    "width": 1600,
+    "height": 900,
+    "status": "ready",
+    "sha256": "d940a73242da11009dfe8f495ea8531ec4385db5b0a1ded90ec99017a889f3fa"
+  },
+  "sha256": "7A628E8F45B36EC442541F7A4E170429F64164778B0F027A23697E8BD111E95B",
+  "difficulty": "beginner",
+  "tags": [
+    "Основы астрологии",
+    "гочара относительно натальной Луны",
+    "натальная карта",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "гочара относительно натальной Луны"
+      }
+    ],
+    "citation": [
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

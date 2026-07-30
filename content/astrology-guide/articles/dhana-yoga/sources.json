@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка структуры анализа домов богатства, достоинств управителей, дробных карт, йог и периодов; источник использован без названия и атрибуции в тексте статьи."
+  },
+  {
+    "source_id": "phaladeepika_yogas",
+    "url": "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+    "role": "Проверка условного характера йог и зависимости результата от положения планет; источник использован без названия и атрибуции в тексте статьи."
+  },
+  {
+    "source_id": "jataka_parijata_index",
+    "url": "https://www.astrojyoti.com/jataka-parijata.htm",
+    "role": "Проверка наличия независимой классической линии правил о финансовых комбинациях; источник использован без названия и атрибуции в тексте статьи."
+  },
+  {
+    "source_id": "bphs_dhan_bhava_ch13",
+    "url": "https://divyachadhava.com/en/sanatan-sahitya/bphs-chapter-13-effects-of-dhan-bhava",
+    "role": "Проверка конкретных связей управителей 2-го и 11-го домов, влияния достоинства и неблагоприятных домов; источник использован без названия и атрибуции в тексте статьи."
+  }
+]

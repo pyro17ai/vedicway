@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая основа сидерического режима, расчёта аянамши и разделения расчётных параметров карты."
+  },
+  {
+    "source_id": "EXA_SWISSEPH_PDF",
+    "url": "https://www.astro.com/ftp/swisseph/doc/swisseph.pdf",
+    "role": "Проверка связи прецессии с расхождением тропического и сидерического отсчёта, а также существования разных моделей аянамши."
+  },
+  {
+    "source_id": "EXA_PYSWISSEPH_SIDEREAL",
+    "url": "https://github.com/astrorigin/pyswisseph/blob/master/docs/programmers_manual/sidereal_mode.rst",
+    "role": "Формула перехода к сидерической долготе, перечень отдельных режимов и требования к явной фиксации выбранной настройки."
+  }
+]

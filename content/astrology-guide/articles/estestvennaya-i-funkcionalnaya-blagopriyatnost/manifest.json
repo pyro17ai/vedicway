@@ -1,0 +1,103 @@
+{
+  "title": "Естественная и функциональная благоприятность в синтезе",
+  "slug": "estestvennaya-i-funkcionalnaya-blagopriyatnost",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Функциональная благоприятность планет в джйотише",
+  "meta_description": "Разберите функциональную благоприятность планет в джйотише: почему Юпитер, Сатурн и Венера меняют роль при другой лагне.",
+  "focus_keyphrase": "функциональная благоприятность планет",
+  "intent": {
+    "type": "informational",
+    "label": "Объяснить разницу между естественной природой грахи и её функциональной ролью при конкретной лагне, с практическим порядком чтения карты.",
+    "wordstat": {
+      "main_query": "естественная и функциональная благоприятность в ведической астрологии",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "status": "no_matching_queries_returned"
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "функциональная благоприятность планет",
+      "естественная и функциональная благоприятность",
+      "функциональные благодетели и вредители",
+      "благоприятность планет по лагне"
+    ],
+    "related_formulations": [
+      "естественные благодетели и вредители в джйотише",
+      "почему планета меняет функцию при другой лагне",
+      "йога-карака в ведической астрологии",
+      "функциональный вредитель Юпитер",
+      "функциональный благодетель Сатурн",
+      "Меркурий благодетель или вредитель"
+    ],
+    "reader_questions": [
+      "Чем естественная благоприятность отличается от функциональной?",
+      "Почему Юпитер может быть трудным для одной лагны?",
+      "Как определить функциональную роль планеты по домам?",
+      "Что делать, если время рождения неточное?"
+    ],
+    "demand_note": "Wordstat по главному запросу не вернул поисковых фраз; ядро дополнено близкими формулировками темы и вопросами, которые покрывает статья."
+  },
+  "canonical": "https://vedicway.ru/guide/estestvennaya-i-funkcionalnaya-blagopriyatnost",
+  "seo": {
+    "seo_title": "Функциональная благоприятность планет в джйотише",
+    "meta_description": "Разберите функциональную благоприятность планет в джйотише: почему Юпитер, Сатурн и Венера меняют роль при другой лагне.",
+    "focus_keyphrase": "функциональная благоприятность планет",
+    "canonical_url": "https://vedicway.ru/guide/estestvennaya-i-funkcionalnaya-blagopriyatnost",
+    "excerpt": "Практический разбор двух слоёв оценки планеты: естественной природы грахи и функциональной роли, которую она получает от лагны и домов."
+  },
+  "internal_links": [
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную классификацию за научно подтверждённый прогноз.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не оценивать планету без проверки лагны, домов, силы и связей.",
+    "Не смешивать правила парашарской и джайминиевской школ без явной оговорки."
+  ],
+  "cover": {
+    "asset_id": "cover-estestvennaya-i-funkcionalnaya-blagopriyatnost",
+    "path": "content/astrology-guide/articles/estestvennaya-i-funkcionalnaya-blagopriyatnost/cover.webp",
+    "alt": "Астрологические весы, где сияющий планетарный символ сопоставлен с геометрией домов на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; внешняя поисковая выдача и сторонние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "57703c48819aaf9d553e159df7588aab6b22a6bc4cd6eb4fa1ad4ad9c14b01a8",
+    "status": "ready"
+  },
+  "sha256": {
+    "cover.png": "9ECD542684CA264F7A68BA797802654100C89311E54D675E50EE54C15E285AD8"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "функциональная благоприятность планет",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "функциональная благоприятность планет"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://www.astrojyoti.com/bphspage4-3.htm",
+      "https://www.vedicplanet.com/jyotish/learn-jyotish/functional-benefic-and-malefic-planets/",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

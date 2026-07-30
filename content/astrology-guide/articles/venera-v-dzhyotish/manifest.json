@@ -1,0 +1,73 @@
+{
+  "slug": "venera-v-dzhyotish",
+  "title": "Венера в джйотише: отношения, удовольствие и ценность",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "phaladeepika_yogas"
+  ],
+  "seo": {
+    "seo_title": "Венера в джйотише: отношения и ценность",
+    "meta_description": "Как читать Венеру в джйотише через дом, знак, достоинство и связи: учебный пример, правила Phaladeepika и границы метода без обещаний.",
+    "focus_keyphrase": "Венера в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/venera-v-dzhyotish",
+    "excerpt": "Практический разбор Венеры в джйотише: отношения, удовольствие и ценность читаются через дом, знак, достоинство, связи и редакцию текста."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/svakshetra-mulatrikona-uchcha",
+      "anchor": "Достоинства планет в джйотише",
+      "status": "planned"
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать по Венере здоровье, доход, брак, точную дату события или неизбежную судьбу.",
+    "Не считать знак Венеры готовым прогнозом без дома, достоинства, управления и связей.",
+    "Не смешивать правила BPHS, Phaladeepika и поздних школ без указания текста, редакции или метода.",
+    "Не выдавать традиционные значения Малáвья-йоги за подтверждённый финансовый или семейный результат.",
+    "Не подменять расчётные входные данные интерпретацией и не скрывать аянамшу или систему домов."
+  ],
+  "cover": {
+    "asset_id": "cover-venera-v-dzhyotish",
+    "path": "content/astrology-guide/articles/venera-v-dzhyotish/cover.webp",
+    "alt": "Тонкие орбиты, круги и абстрактная геометрия на светлой бумажной фактуре в терракотовой и охристой палитре",
+    "status": "ready",
+    "sha256": "97101237c2ceb4110451368dc0e59048e22b8780fcc4b4990712da09eb423341",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/venera-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Венера в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Венера в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

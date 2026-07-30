@@ -1,0 +1,114 @@
+{
+  "title": "Раши-даши в системе Джаймини",
+  "slug": "rashi-dashi-dzhaymini",
+  "category": "Время и циклы",
+  "seo_title": "Раши-даши Джаймини: периоды знаков и порядок чтения",
+  "meta_description": "Раши-даши Джаймини делят время на периоды знаков. Разбираем отличие от планетных даш, порядок расчёта, мини-пример и границы метода в натальной карте.",
+  "focus_keyphrase": "раши-даши Джаймини",
+  "intent": {
+    "type": "informational_educational",
+    "status": "wordstat_no_data",
+    "summary": "Читатель хочет понять, что в системе Джаймини период может принадлежать знаку, научиться отличать такую дашу от планетного периода и увидеть безопасный порядок чтения активного раши.",
+    "wordstat": {
+      "phrase": "раши даши джаймини",
+      "regions": [],
+      "period": "last_30_days",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "note": "Wordstat не вернул запросов или ассоциаций. Интент и близкие формулировки ниже собраны редакционно по теме и не выдаются за измеренную частотность."
+    }
+  },
+  "semantic_core": {
+    "source": "editorial_inference_after_empty_wordstat",
+    "primary": [
+      "раши-даши Джаймини",
+      "раши даша",
+      "периоды знаков"
+    ],
+    "close_formulations": [
+      "знаковые даши в джйотише",
+      "раши даша и планетная даша",
+      "Чара-даша Джаймини",
+      "как читать период знака",
+      "расчёт раши-даши",
+      "варианты Чара-даши"
+    ],
+    "reader_questions": [
+      "чем период знака отличается от периода планеты",
+      "является ли Чара-даша единственной раши-дашей",
+      "как определить длительность периода знака",
+      "почему разные школы дают разные даты Чара-даши",
+      "как читать активный раши в натальной карте",
+      "как неточное время рождения влияет на раши-дашу"
+    ],
+    "cluster": "знаковые системы периодов Джаймини и их отличие от планетных даш"
+  },
+  "canonical": "https://vedicway.ru/guide/rashi-dashi-dzhaymini",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "S3",
+    "S4"
+  ],
+  "seo": {
+    "seo_title": "Раши-даши Джаймини: периоды знаков и порядок чтения",
+    "meta_description": "Раши-даши Джаймини делят время на периоды знаков. Разбираем отличие от планетных даш, порядок расчёта, мини-пример и границы метода в натальной карте.",
+    "focus_keyphrase": "раши-даши Джаймини",
+    "canonical_url": "https://vedicway.ru/guide/rashi-dashi-dzhaymini",
+    "excerpt": "Раши-даши делят время на периоды знаков. Материал показывает отличие от планетных даш, порядок чтения активного раши и границы метода."
+  },
+  "internal_links": [
+    "/guide/chara-dasha",
+    "/guide/dashi-v-dzhyotish",
+    "/guide/chara-dasha-calculation",
+    "/guide/chara-dasha-variants",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "гарантированное событие или точная дата исхода по одному периоду",
+    "медицинский диагноз, лечение или обещание здоровья",
+    "гарантия дохода, сделки, должности или финансового результата",
+    "универсальная каноничность одного варианта расчёта без названия школы",
+    "смешение знаковой и планетной даши без раздельной фиксации правил",
+    "скрытая аянāмша, неточное время рождения или неуказанный стартовый знак"
+  ],
+  "cover": {
+    "asset_id": "cover-rashi-dashi-dzhaymini",
+    "path": "content/astrology-guide/articles/rashi-dashi-dzhaymini/cover.webp",
+    "width": 1672,
+    "height": 941,
+    "aspect_ratio": "16:9",
+    "alt": "Круг из двенадцати знаковых периодов с терракотовой дугой движения на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано через OpenAI ImageGen для VedicWay; сторонние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "sha256": "ff4f94df0f6879d9c1f47b8cd5fb39ec613b3f18ee4cb23c6c9530cd3287971a"
+  },
+  "sha256": "0C7D6DA4C3E68F5522B2743E0B89DA3686C9662561D60BDE00E19D23493CB552",
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "раши-даши Джаймини",
+    "даши",
+    "Джаймини"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "раши-даши Джаймини"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saravali.github.io/astrology/dasa_yogini.html",
+      "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

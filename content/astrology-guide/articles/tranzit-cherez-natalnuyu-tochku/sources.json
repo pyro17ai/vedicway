@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Поддерживает порядок натального синтеза: дома, управители, аспекты и сила читаются до временных прогностических факторов."
+  },
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Подтверждает расчёт сидерических долгот, выбор аянамши и технический поиск прохождения планеты через заданную позицию."
+  },
+  {
+    "source_id": "EXA_PHALADEEPIKA_26",
+    "url": "https://www.siva.sh/phaladeepika/26/",
+    "role": "Поддерживает традиционный знаковый отсчёт гочары от положения натальной Луны и необходимость учитывать ведху."
+  },
+  {
+    "source_id": "EXA_BRIHAT_SAMHITA_104",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+    "role": "Поддерживает чтение транзита от натальной Луны и ограничение результатов транзита действующим периодом и масштабом натальной карты."
+  }
+]

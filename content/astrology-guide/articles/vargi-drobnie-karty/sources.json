@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Локально указанный первичный текст; использован для методической оговорки о различии школ и необходимости отделять общие правила от специальных."
+  },
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://divyachadhava.com/en/sanatan-sahitya/bphs-chapter-7-divisional-considerations",
+    "role": "Проверка классического перечня функций варг и идеи совместной оценки делений."
+  },
+  {
+    "source_id": "exa_framework",
+    "url": "https://jagannathhora.com/divisional-charts-interpretation-framework/",
+    "role": "Проверка практического порядка: сначала D1, затем профильная варга и только потом дополнительные слои; также проверка ограничений при неточном времени рождения."
+  }
+]

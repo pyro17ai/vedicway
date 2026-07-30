@@ -1,0 +1,75 @@
+{
+  "title": "Как работать с противоречивыми показателями",
+  "slug": "protivorechivye-pokazateli",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo_title": "Противоречивые показатели в натальной карте: разбор",
+  "meta_description": "Разберите противоречивые показатели в натальной карте по силе, повторяемости, области и времени проявления на понятном примере для самостоятельного чтения.",
+  "focus_keyphrase": "противоречивые показатели в натальной карте",
+  "intent": "Информационно-практический интент: читатель ищет порядок разбора конфликтующих указаний натальной карты и способ понять, какой вывод считать рабочим.",
+  "semantic_core": [
+    "противоречивые показатели в натальной карте",
+    "как читать противоречия в гороскопе",
+    "конфликт показателей в натальной карте",
+    "сила показателя в джйотише",
+    "повторяемость показателей",
+    "влияние даши на результат",
+    "неопределённое время рождения",
+    "границы интерпретации карты"
+  ],
+  "canonical": "https://vedicway.ru/guide/protivorechivye-pokazateli",
+  "seo": {
+    "seo_title": "Противоречивые показатели в натальной карте: разбор",
+    "meta_description": "Разберите противоречивые показатели в натальной карте по силе, повторяемости, области и времени проявления на понятном примере для самостоятельного чтения.",
+    "focus_keyphrase": "противоречивые показатели в натальной карте",
+    "canonical_url": "https://vedicway.ru/guide/protivorechivye-pokazateli",
+    "excerpt": "Практический порядок чтения конфликтующих указаний карты: сила, повторяемость, область действия и время проявления."
+  },
+  "cover": {
+    "file": "cover.png",
+    "alt": "Астрологическая карта, в центре которой два противоположных потока сходятся в одном созвездии",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "eedde3ebaa39a2711c178654f24112da1cac210c22520822edc65dbb4d886cf7",
+    "asset_id": "cover-protivorechivye-pokazateli",
+    "path": "content/astrology-guide/articles/protivorechivye-pokazateli/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "e28d5a1bb7fc3219a451dd9056ccca322c2a3fc7a504bf89cd89441920ee9de0",
+  "internal_links": [
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/funkcionalnaya-rol-planety"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз события",
+    "медицинская диагностика",
+    "финансовая гарантия"
+  ],
+  "difficulty": "beginner",
+  "tags": [
+    "Практика чтения карты",
+    "противоречивые показатели в натальной карте",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "противоречивые показатели в натальной карте"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая опора для разделения расчёта планетных долгот, местного времени и UTC, сидерического режима, Лагны и куспидов домов."
+  },
+  {
+    "source_id": "WEB-PARASARA-L44",
+    "url": "https://parasara.net/learn/chart-accuracy-reference-points-l44",
+    "role": "Проверка чувствительности лагн дробных карт к минутной погрешности и метода сравнения граничных вариантов времени."
+  }
+]

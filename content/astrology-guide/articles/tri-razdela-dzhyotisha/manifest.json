@@ -1,0 +1,64 @@
+{
+  "slug": "tri-razdela-dzhyotisha",
+  "title": "Три раздела джйотиша: gaṇita, horā и saṃhitā",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S01",
+    "S05",
+    "S08"
+  ],
+  "seo": {
+    "seo_title": "Три раздела джйотиша: gaṇita, horā и saṃhitā",
+    "meta_description": "Разбираем три раздела джйотиша: gaṇita для расчётов, horā для натальной карты и saṃhitā для знамений. Алгоритм выбора метода и ограничения.",
+    "focus_keyphrase": "три раздела джйотиша",
+    "canonical_url": "https://vedicway.ru/guide/tri-razdela-dzhyotisha",
+    "excerpt": "Gaṇita считает календарные данные, horā читает натальную карту, а saṃhitā работает со знамениями. Разбираем границы разделов и алгоритм выбора метода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/chto-izuchaet-dzhyotisha",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно подтверждённую причинность или прогноз.",
+    "Не обещать неизбежные события, здоровье, деньги, карьерный или юридический результат по карте или знамению.",
+    "Не смешивать ранний календарный слой Jyotiṣavedāṅga с поздней натальной horā без указания источника и школы.",
+    "Не скрывать аянāмшу, сидерическую или тропическую основу и систему домов при обсуждении натальной карты.",
+    "Не называть анонимную PDF-перепечатку S08 критическим или единственным каноническим изданием."
+  ],
+  "cover": {
+    "asset_id": "cover-tri-razdela-dzhyotisha",
+    "path": "content/astrology-guide/articles/tri-razdela-dzhyotisha/cover.webp",
+    "alt": "Три спокойные орбитальные схемы на тёплом бумажном фоне, символизирующие расчёт, натальную карту и знамения",
+    "status": "ready",
+    "sha256": "0b253d36f08ba1ad7cd1c89efeb57c846424df42b31ea09acb54ba0c19de236d",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/tri-razdela-dzhyotisha",
+  "tags": [
+    "Основы астрологии",
+    "три раздела джйотиша"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "три раздела джйотиша"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.60018/acasva.nssz2549",
+      "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "title": "Другие йоги: Gajakesari, Amala, Kemadruma и Nabhasa",
+  "slug": "drugie-klassicheskie-yogi",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "phaladeepika_yogas",
+    "bphs_fulltext",
+    "bphs_yogas_ch36_37",
+    "bphs_nabhasa_ch35"
+  ],
+  "seo_title": "Gajakesari, Amala, Kemadruma и Nabhasa: условия йог",
+  "meta_description": "Точные условия Gajakesari, Amala, Kemadruma и Nabhasa: как проверить комбинации, прочитать мини-пример и не переносить одну йогу на всю карту.",
+  "focus_keyphrase": "Gajakesari, Amala, Kemadruma и Nabhasa",
+  "canonical": "https://vedicway.ru/guide/drugie-klassicheskie-yogi",
+  "intent": {
+    "source": "wordstat",
+    "main_query": "Гаджакесари Амала Кемадрума Набхаса йоги",
+    "type": "informational_how_to",
+    "status": "no_data_for_combined_query_data_found_for_subqueries",
+    "combined_query_total": 0,
+    "reader_need": "Понять точное условие каждой классической йоги, проверить её вручную и не переносить частный эффект комбинации на всю натальную карту.",
+    "top_requests": [
+      {
+        "phrase": "набхаса йоги",
+        "count": 37
+      },
+      {
+        "phrase": "кемадрума йога",
+        "count": 30
+      },
+      {
+        "phrase": "кемадрума йога джйотиш что это",
+        "count": 7
+      }
+    ],
+    "low_volume_queries": [
+      {
+        "phrase": "амала йога джйотиш",
+        "total_count": 4,
+        "expanded_phrases": []
+      },
+      {
+        "phrase": "гаджакесари йога",
+        "total_count": 1,
+        "expanded_phrases": []
+      }
+    ],
+    "wordstat_period": "last_30_days",
+    "observed_at": "2026-07-30"
+  },
+  "semantic_core": {
+    "primary": [
+      "Gajakesari, Amala, Kemadruma и Nabhasa",
+      "кемадрума йога",
+      "набхаса йоги"
+    ],
+    "related": [
+      "гаджакесари йога",
+      "амала йога джйотиш",
+      "классические йоги в джйотише",
+      "йоги в натальной карте",
+      "условия образования йоги",
+      "кендра от Луны",
+      "кендра от лагны",
+      "как проверить йогу"
+    ],
+    "entities": [
+      "Юпитер",
+      "Луна",
+      "лагна",
+      "10-й дом",
+      "семь грах",
+      "Nabhasa yoga"
+    ],
+    "questions": [
+      "что такое кемадрума йога в джйотиш",
+      "как образуется Gajakesari yoga",
+      "как проверить Amala yoga от лагны и Луны",
+      "сколько существует Nabhasa yoga",
+      "какие планеты учитывать в Nabhasa",
+      "может ли программа ошибочно показать йогу",
+      "почему одна йога не описывает всю карту"
+    ]
+  },
+  "seo": {
+    "seo_title": "Gajakesari, Amala, Kemadruma и Nabhasa: условия йог",
+    "meta_description": "Точные условия Gajakesari, Amala, Kemadruma и Nabhasa: как проверить комбинации, прочитать мини-пример и не переносить одну йогу на всю карту.",
+    "focus_keyphrase": "Gajakesari, Amala, Kemadruma и Nabhasa",
+    "canonical_url": "https://vedicway.ru/guide/drugie-klassicheskie-yogi",
+    "excerpt": "Четыре классические йоги разбираются по точным условиям: от кендры Юпитера и 10-го дома до окружения Луны и полного рисунка семи грах."
+  },
+  "internal_links": [
+    "/guide/yoga-v-dzhyotishe",
+    "/guide/proverka-yogi",
+    "/guide/algoritm-chteniya-luny-v-dzhyotishe",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогностический результат",
+    "медицинский или психологический диагноз",
+    "обещание дохода, должности или общественного статуса",
+    "научно доказанная причинность астрологии",
+    "перенос эффекта одной йоги на всю карту"
+  ],
+  "cover": {
+    "asset_id": "cover-drugie-klassicheskie-yogi",
+    "path": "content/astrology-guide/articles/drugie-klassicheskie-yogi/cover.webp",
+    "alt": "Круг натальной карты, разделённый на четыре геометрические конфигурации грах, на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen специально для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "format": "png",
+    "sha256": "bfce9bb9ae523230511642d931b29f8c3b669cc3b8f927fff227f4e47e8d866a"
+  },
+  "sha256": {
+    "article_md": "0C635082608147C29DA6EBC7EE48176F0EFE3ED244D557EB7E778D7A15E81E34",
+    "article_html": "8A821406FADF1B811EBFA41CEF7AD0ED42C409F5C8F81F7E862EE0AFAD789363",
+    "sources_json": "F92FBDB415810EA2091B3A81F14CA64CA829C532F209AEFE66BCC63CACFA855D",
+    "cover": "87C48448166424C2E86BD4399AB756AD4A47ED782BB0332DE6155D93F9AD5476"
+  },
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Gajakesari, Amala, Kemadruma и Nabhasa"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Gajakesari, Amala, Kemadruma и Nabhasa"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "http://www.astrojyoti.com/bphspage4-4.htm",
+      "https://www.astrojyoti.com/bphspage4-3.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -38,9 +38,6 @@ export default defineConfig({
         VEDICWAY_OFFER_VERSION: "development",
         VEDICWAY_OFFER_URL: `${frontendOrigin}/legal/offer`,
         VEDICWAY_PRIVACY_URL: `${frontendOrigin}/legal/privacy`,
-        VEDICWAY_BOOTSTRAP_ADMIN_EMAIL: "editor@vedicway.ru",
-        VEDICWAY_BOOTSTRAP_ADMIN_PASSWORD: "playwright-admin-password-2026",
-        VEDICWAY_BOOTSTRAP_ADMIN_NAME: "Редактор VedicWay",
       },
     },
     {

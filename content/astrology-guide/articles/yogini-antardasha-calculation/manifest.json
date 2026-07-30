@@ -1,0 +1,62 @@
+{
+  "slug": "yogini-antardasha-calculation",
+  "title": "Antardasha в Yogini Dasha: расчёт пропорциональных подпериодов",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S3",
+    "S1"
+  ],
+  "seo": {
+    "seo_title": "Antardasha в Yogini Dasha: расчёт подпериодов",
+    "meta_description": "Пошаговый расчёт Antardasha в Yogini Dasha: входные данные, формула пропорций, пример на 720 днях и границы сравнения с Vimshottari.",
+    "focus_keyphrase": "Antardasha в Yogini Dasha",
+    "canonical_url": "https://vedicway.ru/guide/yogini-antardasha-calculation",
+    "excerpt": "Как разделить основную Yogini Dasha на восемь antardasha: выбрать порядок от управителя mahadasha, применить веса 1–8 к циклу 36 и проверить сумму без переноса шкалы Vimshottari."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/antardasha-and-mahadasha-interpretation"
+  ],
+  "prohibited_claims": [
+    "фатальные события, дата смерти или неизбежный исход по Yogini Dasha",
+    "медицинская диагностика, лечение или обещание здоровья",
+    "гарантия дохода, карьеры, сделки или финансового результата",
+    "юридический исход или научно подтверждённая причинность астрологии",
+    "универсальная каноничность формулы M × W / 36 без указания варианта S3 и общей схемы S1",
+    "скрытая аянāмша, тип зодиака, система домов или календарное правило округления"
+  ],
+  "cover": {
+    "asset_id": "cover-yogini-antardasha-calculation",
+    "path": "content/astrology-guide/articles/yogini-antardasha-calculation/cover.webp",
+    "alt": "Спокойная геометрическая схема вложенных периодов Yogini на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "3cdd3811c0fed8d5a1840c9475d5377b476144d2883d1ec583744baa68e90382",
+    "width": 1680,
+    "height": 945
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/yogini-antardasha-calculation",
+  "tags": [
+    "Время и циклы",
+    "Antardasha в Yogini Dasha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Antardasha в Yogini Dasha"
+      }
+    ],
+    "citation": [
+      "https://saravali.github.io/astrology/dasa_yogini.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

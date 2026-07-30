@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "bphs_varga_use",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+    "role": "Подтверждает тематическое назначение D24 для знания и обучения в системе шестнадцати варг."
+  },
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Использован для проверки места D24 в Shodashavarga и общего порядка оценки дробных карт."
+  },
+  {
+    "source_id": "exa_para_d24_calculation",
+    "url": "https://vedicastrologer.org/articles/para_d24.pdf",
+    "role": "Использован для проверки деления знака на 24 части и расчётного правила D24 для нечётных и чётных знаков."
+  }
+]

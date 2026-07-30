@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "bphs_varga_use",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+    "role": "Проверка традиционного назначения D30 для неблагоприятных проявлений и места Trimshamsha среди шестнадцати варг."
+  },
+  {
+    "source_id": "bphs_fulltext",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка состава Shodashavarga и классического описания расчёта Trimshamsha в полной английской редакции текста."
+  },
+  {
+    "source_id": "d30_varga_derivation_2023",
+    "url": "https://doi.org/10.22271/24564427.2023.v8.i2b.181",
+    "role": "Независимая сверка неравных участков 5°, 5°, 8°, 7° и 5°, обратного порядка для чётных знаков и примера построения D30."
+  }
+]

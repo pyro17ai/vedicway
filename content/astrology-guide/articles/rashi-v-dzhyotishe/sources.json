@@ -1,0 +1,75 @@
+[
+  {
+    "source_id": "S05",
+    "url": "http://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+    "title": "Varahamihira: Brhatsamhita",
+    "author_or_institution": "GRETIL; Michio Yano и Mizue Sugita",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": "1998-05-08",
+    "topics": [
+      "rāśi",
+      "gaṇita",
+      "horā",
+      "bhāva",
+      "jyotiṣa"
+    ],
+    "claims": [
+      "Первая глава формулирует трёхчастную структуру jyotiḥśāstra: gaṇita, horā и saṃhitā.",
+      "В тексте рядом упоминаются rāśi, horā, bhāva и yoga.",
+      "Электронная версия подготовлена по изданию A. V. Tripathi с вариантами H. Kern и комментарием Utpala."
+    ],
+    "quality": "medium",
+    "limitations": "GRETIL прямо называет файл справочным; формат, sandhi и варианты чтения требуют сверки с печатным изданием.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "notes": "URL прочитан напрямую; совпадает с лично подтверждённой записью canon:GRETIL_BS в verified-reading-log."
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Brihatparāśarahorāśāstra",
+    "author_or_institution": "Анонимная онлайн-перепечатка",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "rāśi",
+      "graha",
+      "bhāva",
+      "деление зодиака"
+    ],
+    "claims": [
+      "В переводе двенадцать rāśi описаны как знаки по 30 градусов каждый.",
+      "Текст связывает знак с его владельцем и отдельно описывает положение graha в rāśi.",
+      "PDF содержит главы о graha, rāśi, lagna и bhāva."
+    ],
+    "quality": "medium",
+    "limitations": "У PDF нет имени переводчика, редакции, издателя, датировки и сведений о санскритской рукописной базе; исторические выводы по нему не делаются.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "notes": "PDF прочитан напрямую; отдельной записи S08 в локальном verified-reading-log нет, поэтому использован только для ограниченных текстовых и терминологических утверждений."
+  },
+  {
+    "source_id": "S11",
+    "url": "https://docs.rs/panchangam",
+    "title": "panchangam — High-Precision Vedic Calendar Library",
+    "author_or_institution": "Документация Rust-библиотеки Panchangam",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": null,
+    "topics": [
+      "сидерические положения",
+      "Swiss Ephemeris",
+      "Drik Ganita",
+      "panchanga"
+    ],
+    "claims": [
+      "Документация описывает расчёт vara, karana, yoga, nakṣatra и tithi по модели Drik Ganita.",
+      "Для планетарных положений библиотека использует Swiss Ephemeris.",
+      "Функция calculate_planets описана как расчёт сидерических положений девяти основных планет."
+    ],
+    "quality": "medium",
+    "limitations": "Документация описывает реализацию конкретной библиотеки, а не нормативный канон; ayanāṃśa, эфемериды и правила начала суток требуют отдельной фиксации.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "notes": "Страница docs.rs прочитана напрямую; отдельной записи S11 в локальном verified-reading-log нет. Технические возможности библиотеки не выдаются за доказательство интерпретаций."
+  }
+]

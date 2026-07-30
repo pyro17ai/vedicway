@@ -1,0 +1,65 @@
+{
+  "slug": "yoga-v-dzhyotishe",
+  "title": "Yoga в джйотише: как читать сочетания грах в карте",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "phaladeepika_yogas",
+    "bphs_fulltext",
+    "bphs_varga_use"
+  ],
+  "seo": {
+    "seo_title": "Yoga в джйотише: как читать сочетания грах",
+    "meta_description": "Разберите yoga в джйотише как конфигурацию карты: проверьте положение, силу грах, дома, варги, редакцию текста и пределы метода.",
+    "focus_keyphrase": "yoga в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/yoga-v-dzhyotishe",
+    "excerpt": "Yoga в джйотише требует проверки положения, силы и контекста. Статья показывает порядок чтения сочетаний грах на учебном примере без персональной карты."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/pancha-mahapurusha-yoga"
+  ],
+  "prohibited_claims": [
+    "гарантии здоровья или медицинские диагнозы",
+    "гарантии денег, карьеры, брака или точного события",
+    "научно подтверждённые предсказания по одной yoga",
+    "неизбежная судьба и фиксированный сценарий жизни"
+  ],
+  "cover": {
+    "asset_id": "cover-yoga-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/yoga-v-dzhyotishe/cover.webp",
+    "alt": "Тонкие орбиты и геометрические связи вокруг условной схемы грах на светлом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения не использовались.",
+    "sha256": "c0682eb213b6ef200211ad9549a05454c82c8c41e7edab441d8eee95b891ea68",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/yoga-v-dzhyotishe",
+  "tags": [
+    "Планеты и дома",
+    "yoga в джйотише",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "yoga в джйотише"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

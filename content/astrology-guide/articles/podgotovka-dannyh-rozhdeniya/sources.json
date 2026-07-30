@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://saptarishisshop.com/what-is-the-correct-procedure-for-computing-jaiminis-chara-dasa-by-uk-jha/",
+    "role": "Проверка релевантности исходной записи topic-map; материал относится к Чара-даше и не использован для тезисов статьи."
+  },
+  {
+    "source_id": "exa-astro-com-swephprg",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=f&nhor=1",
+    "role": "Проверка технических положений о переводе времени, юлианском дне, сидерическом режиме, айанамше и расчёте домов."
+  },
+  {
+    "source_id": "exa-kerykeion-subject-factory",
+    "url": "https://kerykeion.net/content/docs/astrological_subject_factory",
+    "role": "Проверка состава входных данных: дата, местное время, координаты, часовой пояс, зодиак и система домов."
+  }
+]

@@ -28,7 +28,9 @@ def _owned_path(value: str, data_dir: Path) -> Path:
     try:
         resolved.relative_to(data_dir)
     except ValueError as exc:
-        raise LedgerError("Publication media must stay inside VEDICWAY_SEO_DATA_DIR") from exc
+        raise LedgerError(
+            "Publication media must stay inside VEDICWAY_SEO_DATA_DIR"
+        ) from exc
     if not resolved.is_file():
         raise LedgerError(f"Publication media is missing: {resolved}")
     return resolved
@@ -36,18 +38,25 @@ def _owned_path(value: str, data_dir: Path) -> Path:
 
 def _article_payload(article: dict[str, Any]) -> tuple[dict[str, Any], str]:
     try:
-        from vedicway_backend.admin_api import ArticlePayload, _article_payload_hash
+        from vedicway_backend.content_api import (
+            ContentArticlePayload,
+            _content_payload_hash,
+        )
     except ImportError as exc:
-        raise LedgerError("vedicway_backend must be installed in the SEO agent runtime") from exc
-    parsed = ArticlePayload.model_validate(article)
-    return parsed.model_dump(mode="json"), _article_payload_hash(parsed)
+        raise LedgerError(
+            "vedicway_backend must be installed in the SEO agent runtime"
+        ) from exc
+    parsed = ContentArticlePayload.model_validate(article)
+    return parsed.model_dump(mode="json"), _content_payload_hash(parsed)
 
 
 def _media_request_hash(item: dict[str, Any], content_sha256: str) -> str:
     try:
-        from vedicway_backend.admin_api import _media_payload_hash
+        from vedicway_backend.content_api import _media_payload_hash
     except ImportError as exc:
-        raise LedgerError("vedicway_backend must be installed in the SEO agent runtime") from exc
+        raise LedgerError(
+            "vedicway_backend must be installed in the SEO agent runtime"
+        ) from exc
     return _media_payload_hash(
         content_sha256,
         str(item["purpose"]),
@@ -66,12 +75,16 @@ def _validate_media_file(item: dict[str, Any]) -> None:
             image_format = source.format
             width, height = source.size
             if width * height > 40_000_000:
-                raise LedgerError(f"Publication media exceeds 40 million pixels: {path.name}")
+                raise LedgerError(
+                    f"Publication media exceeds 40 million pixels: {path.name}"
+                )
             source.verify()
     except LedgerError:
         raise
     except (Image.DecompressionBombError, UnidentifiedImageError, OSError) as exc:
-        raise LedgerError(f"Publication media is not a valid supported image: {path.name}") from exc
+        raise LedgerError(
+            f"Publication media is not a valid supported image: {path.name}"
+        ) from exc
     if image_format not in ALLOWED_IMAGE_FORMATS:
         raise LedgerError(f"Publication media format is not supported: {path.name}")
     if item.get("purpose") == "cover" and width < 1200:
@@ -83,12 +96,21 @@ def _validate_manifest_claim(
     manifest: dict[str, Any],
     resolved_media: list[dict[str, Any]],
 ) -> None:
-    expected_keys = {"schema_version", "draft_id", "claim_token", "content_hash", "article", "media"}
-    if set(manifest) != expected_keys or manifest.get("schema_version") != "1.0":
-        raise LedgerError("Publication manifest does not match schema version 1.0")
+    expected_keys = {
+        "schema_version",
+        "draft_id",
+        "claim_token",
+        "content_hash",
+        "article",
+        "media",
+    }
+    if set(manifest) != expected_keys or manifest.get("schema_version") != "2.0":
+        raise LedgerError("Publication manifest does not match schema version 2.0")
     report = evaluate(manifest)
     if not report["passed"]:
-        raise LedgerError("Publication manifest failed quality gate: " + ", ".join(report["failed"]))
+        raise LedgerError(
+            "Publication manifest failed quality gate: " + ", ".join(report["failed"])
+        )
     if manifest.get("content_hash") != report["content_hash"]:
         raise LedgerError("Manifest content_hash differs from its article content")
     article = manifest["article"]
@@ -109,12 +131,14 @@ def _validate_manifest_claim(
         ):
             raise LedgerError("Publication manifest requires the active draft claim")
         if draft["content_hash"] != manifest["content_hash"]:
-            raise LedgerError("Publication manifest does not match the claimed draft hash")
+            raise LedgerError(
+                "Publication manifest does not match the claimed draft hash"
+            )
         fields = {
             "slug": "slug",
             "title": "title",
             "excerpt": "excerpt",
-            "content": "content_markdown",
+            "content_html": "content_markdown",
             "seo_title": "seo_title",
             "meta_description": "meta_description",
             "focus_keyphrase": "focus_keyphrase",
@@ -122,11 +146,16 @@ def _validate_manifest_claim(
             "author_name": "author_name",
         }
         if any(article.get(name) != draft[column] for name, column in fields.items()):
-            raise LedgerError("Publication article fields differ from the claimed draft")
-        recorded_media = [dict(row) for row in connection.execute(
-            "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum FROM article_media WHERE draft_id=?",
-            (manifest["draft_id"],),
-        )]
+            raise LedgerError(
+                "Publication article fields differ from the claimed draft"
+            )
+        recorded_media = [
+            dict(row)
+            for row in connection.execute(
+                "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum FROM article_media WHERE draft_id=?",
+                (manifest["draft_id"],),
+            )
+        ]
     for item in resolved_media:
         digest = hashlib.sha256(item["resolved_path"].read_bytes()).hexdigest()
         match = next(
@@ -135,7 +164,8 @@ def _validate_manifest_claim(
                 for record in recorded_media
                 if record["purpose"] == item.get("purpose")
                 and record["checksum"] == digest
-                and _owned_path(record["local_path"], ledger.data_dir) == item["resolved_path"]
+                and _owned_path(record["local_path"], ledger.data_dir)
+                == item["resolved_path"]
             ),
             None,
         )
@@ -159,7 +189,13 @@ def publish_bundle(
     if not isinstance(manifest, dict) or not isinstance(manifest.get("article"), dict):
         raise LedgerError("Publication manifest must contain an article object")
     media = manifest.get("media", [])
-    if not isinstance(media, list) or sum(item.get("purpose") == "cover" for item in media if isinstance(item, dict)) != 1:
+    if (
+        not isinstance(media, list)
+        or sum(
+            item.get("purpose") == "cover" for item in media if isinstance(item, dict)
+        )
+        != 1
+    ):
         raise LedgerError("Publication manifest must contain exactly one cover")
     required_media_keys = {
         "local_path",
@@ -186,17 +222,21 @@ def publish_bundle(
         for item in media
         if item.get("purpose") == "body"
     ]
-    if (
-        any(not re.fullmatch(r"\{\{media:body-[1-9][0-9]*\}\}", value) for value in placeholders)
-        or len(placeholders) != len(set(placeholders))
-    ):
+    if any(
+        not re.fullmatch(r"\{\{media:body-[1-9][0-9]*\}\}", value)
+        for value in placeholders
+    ) or len(placeholders) != len(set(placeholders)):
         raise LedgerError("Body media requires unique {{media:body-N}} placeholders")
-    article_content = str(manifest["article"].get("content", ""))
-    content_placeholders = re.findall(r"\{\{media:body-[1-9][0-9]*\}\}", article_content)
+    article_content = str(manifest["article"].get("content_html", ""))
+    content_placeholders = re.findall(
+        r"\{\{media:body-[1-9][0-9]*\}\}", article_content
+    )
     if set(content_placeholders) != set(placeholders) or any(
         content_placeholders.count(value) != 1 for value in placeholders
     ):
-        raise LedgerError("Every body media placeholder must occur exactly once in the article")
+        raise LedgerError(
+            "Every body media placeholder must occur exactly once in the article"
+        )
     resolved_media = [
         {**item, "resolved_path": _owned_path(str(item["local_path"]), data_dir)}
         for item in media
@@ -213,16 +253,26 @@ def publish_bundle(
     if dry_run:
         return {"dry_run": True, **preview}
     token = os.environ.get("VEDICWAY_SEO_AGENT_TOKEN", "")
-    base_url = os.environ.get("VEDICWAY_SEO_AGENT_BASE_URL", "http://backend:8000").rstrip("/")
+    base_url = os.environ.get(
+        "VEDICWAY_SEO_AGENT_BASE_URL", "http://backend:8000"
+    ).rstrip("/")
     public_origin = os.environ.get("VEDICWAY_PUBLIC_ORIGIN", "").rstrip("/")
     if len(token) < 32 or not public_origin.startswith("https://"):
-        raise LedgerError("SEO agent token and HTTPS VEDICWAY_PUBLIC_ORIGIN are required")
-    timeout = httpx.Timeout(float(os.environ.get("VEDICWAY_SEO_HTTP_TIMEOUT_SECONDS", "30")))
+        raise LedgerError(
+            "SEO agent token and HTTPS VEDICWAY_PUBLIC_ORIGIN are required"
+        )
+    timeout = httpx.Timeout(
+        float(os.environ.get("VEDICWAY_SEO_HTTP_TIMEOUT_SECONDS", "30"))
+    )
     article = dict(manifest["article"])
-    article["body_media_ids"] = []
     uploaded: list[dict[str, Any]] = []
-    with httpx.Client(timeout=timeout, follow_redirects=True, transport=transport) as client:
-        health = client.get(f"{base_url}/internal/seo-agent/health", headers={"Authorization": f"Bearer {token}"})
+    with httpx.Client(
+        timeout=timeout, follow_redirects=True, transport=transport
+    ) as client:
+        health = client.get(
+            f"{base_url}/internal/content-agent/health",
+            headers={"Authorization": f"Bearer {token}"},
+        )
         health.raise_for_status()
         for index, item in enumerate(resolved_media, start=1):
             raw = item["resolved_path"].read_bytes()
@@ -233,7 +283,7 @@ def publish_bundle(
                 f"media:{index}:{media_request_hash[:32]}"
             )
             response = client.post(
-                f"{base_url}/internal/seo-agent/media",
+                f"{base_url}/internal/content-agent/media",
                 headers={
                     "Authorization": f"Bearer {token}",
                     "Idempotency-Key": key,
@@ -243,7 +293,8 @@ def publish_bundle(
                     "file": (
                         item["resolved_path"].name,
                         raw,
-                        mimetypes.guess_type(item["resolved_path"].name)[0] or "application/octet-stream",
+                        mimetypes.guess_type(item["resolved_path"].name)[0]
+                        or "application/octet-stream",
                     )
                 },
                 data={
@@ -262,31 +313,37 @@ def publish_bundle(
                 article["cover_image_alt"] = item["alt_text"]
             else:
                 placeholder = str(item.get("placeholder", ""))
-                if not placeholder or placeholder not in str(article.get("content", "")):
-                    raise LedgerError(f"Body media placeholder is missing from article: {placeholder}")
-                article["content"] = str(article["content"]).replace(
-                    placeholder, f"{{{{media:{asset['id']}}}}}", 1
+                if not placeholder or placeholder not in str(
+                    article.get("content_html", "")
+                ):
+                    raise LedgerError(
+                        f"Body media placeholder is missing from article: {placeholder}"
+                    )
+                article["content_html"] = str(article["content_html"]).replace(
+                    placeholder,
+                    f'<figure data-media-id="{asset["id"]}"></figure>',
+                    1,
                 )
-                article["body_media_ids"].append(asset["id"])
         normalized, request_hash = _article_payload(article)
         slug = str(normalized["slug"])
+        section = str(normalized["section"])
         headers = {
             "Authorization": f"Bearer {token}",
             "Idempotency-Key": f"{manifest.get('draft_id', slug)}:article:{request_hash[:32]}",
             "X-Content-SHA256": request_hash,
         }
-        current = client.get(f"{base_url}/api/v1/content/articles/{slug}")
+        current = client.get(f"{base_url}/api/v1/content/{section}/articles/{slug}")
         if current.status_code == 200:
             headers["If-Match"] = str(current.json()["revision"])
         elif current.status_code != 404:
             current.raise_for_status()
         published = client.put(
-            f"{base_url}/internal/seo-agent/articles/{slug}",
+            f"{base_url}/internal/content-agent/{section}/articles/{slug}",
             headers=headers,
             json=normalized,
         )
         published.raise_for_status()
-        public_url = f"{public_origin}/guide/{slug}"
+        public_url = f"{public_origin}/{section}/{slug}"
         page = client.get(public_url)
         page.raise_for_status()
         sitemap = client.get(f"{public_origin}/sitemap.xml")
@@ -297,16 +354,23 @@ def publish_bundle(
         cover_response = client.get(cover_url)
         cover_response.raise_for_status()
     checks = {
-        "canonical": str(page.url).rstrip("/") == public_url and f'<link rel="canonical" href="{public_url}"' in page.text,
-        "article_schema": '"@type":"Article"' in page.text,
+        "canonical": str(page.url).rstrip("/") == public_url
+        and f'<link rel="canonical" href="{public_url}"' in page.text,
+        "article_schema": (
+            '"@type":"BlogPosting"' in page.text
+            if str(normalized["section"]) == "blog"
+            else '"@type":"Article"' in page.text
+        ),
         "title": str(normalized["title"]) in page.text,
-        "request_hash": f'<meta name="vedicway-article-request-sha256" content="{request_hash}"' in page.text,
         "sitemap": public_url in sitemap.text,
-        "dzen_feed": public_url in feed.text and f"vedicway-request-sha256:{request_hash}" in feed.text,
+        "dzen_feed": public_url in feed.text,
         "cover": cover_response.headers.get("content-type", "").startswith("image/"),
     }
     if not all(checks.values()):
-        raise LedgerError("Public verification failed: " + ", ".join(name for name, ok in checks.items() if not ok))
+        raise LedgerError(
+            "Public verification failed: "
+            + ", ".join(name for name, ok in checks.items() if not ok)
+        )
     return {
         **preview,
         "request_hash": request_hash,
@@ -314,7 +378,11 @@ def publish_bundle(
         "public_url": public_url,
         "article": published.json()["article"],
         "uploaded_media": [
-            {"id": item["asset"]["id"], "url": item["asset"]["url"], "sha256": item["sha256"]}
+            {
+                "id": item["asset"]["id"],
+                "url": item["asset"]["url"],
+                "sha256": item["sha256"],
+            }
             for item in uploaded
         ],
         "evidence": {
@@ -323,20 +391,42 @@ def publish_bundle(
             "sitemap_sha256": hashlib.sha256(sitemap.content).hexdigest(),
             "dzen_feed_sha256": hashlib.sha256(feed.content).hexdigest(),
         },
-        "manifest_hash": hashlib.sha256(canonical_json(manifest).encode("utf-8")).hexdigest(),
+        "manifest_hash": hashlib.sha256(
+            canonical_json(manifest).encode("utf-8")
+        ).hexdigest(),
     }
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Publish one approved VedicWay SEO article")
+    parser = argparse.ArgumentParser(
+        description="Publish one approved VedicWay SEO article"
+    )
     parser.add_argument("manifest")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     try:
-        print(json.dumps(publish_bundle(args.manifest, dry_run=args.dry_run), ensure_ascii=False, sort_keys=True))
+        print(
+            json.dumps(
+                publish_bundle(args.manifest, dry_run=args.dry_run),
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 0
-    except (LedgerError, OSError, ValueError, json.JSONDecodeError, httpx.HTTPError) as error:
-        print(json.dumps({"status": "error", "error": str(error)}, ensure_ascii=False, sort_keys=True))
+    except (
+        LedgerError,
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+        httpx.HTTPError,
+    ) as error:
+        print(
+            json.dumps(
+                {"status": "error", "error": str(error)},
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
         return 2
 
 

@@ -1,0 +1,60 @@
+{
+  "slug": "chetyre-pady-nakshatry",
+  "title": "Четыре пади накшатры: границы 13°20′ и расчёт Луны",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A1",
+    "A5"
+  ],
+  "seo": {
+    "seo_title": "Четыре пади накшатры: расчёт по Луне",
+    "meta_description": "Разбираем четыре пади накшатры: как разделить 13°20′, вычислить сегмент по сидерической долготе Луны и проверить границу.",
+    "focus_keyphrase": "четыре пади накшатры",
+    "canonical_url": "https://vedicway.ru/guide/chetyre-pady-nakshatry",
+    "excerpt": "Формула для четырёх пад накшатры: 27 участков по 13°20′, четыре границы по 3°20′, расчёт по сидерической долготе Луны и проверка аянамши."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide",
+    "/guide/dzhanma-nakshatra-luny"
+  ],
+  "prohibited_claims": [
+    "Не выдавать выбранную сетку из 27 накшатр и четыре пады за единственную историческую редакцию.",
+    "Не обещать по одной паде здоровье, деньги, юридический исход, точные события или неизбежную судьбу.",
+    "Не смешивать сидерический и тропический расчёт и не скрывать выбранную аянамшу.",
+    "Не добавлять Абхиджит к 27-дольной формуле без отдельной фиксации школы и новых границ."
+  ],
+  "cover": {
+    "asset_id": "cover-chetyre-pady-nakshatry",
+    "path": "content/astrology-guide/articles/chetyre-pady-nakshatry/cover.webp",
+    "alt": "Спокойная бумажная геометрия с кругом, четырьмя секторами и тонкими орбитальными линиями в терракотовой палитре",
+    "status": "ready",
+    "sha256": "71fb63d614fb96620f3fd93225faf4ef5fd068ec3db720122a66e0cc52155988",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/chetyre-pady-nakshatry",
+  "tags": [
+    "Планеты и дома",
+    "четыре пади накшатры",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "четыре пади накшатры"
+      }
+    ],
+    "citation": [
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

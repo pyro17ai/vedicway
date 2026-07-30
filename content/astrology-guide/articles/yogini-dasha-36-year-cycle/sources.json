@@ -1,0 +1,47 @@
+[
+  {
+    "source_id": "S3",
+    "url": "https://saravali.github.io/astrology/dasa_yogini.html",
+    "title": "Yogini Dasa",
+    "author_or_institution": "Saravali",
+    "source_kind": "educational_secondary",
+    "quality": "medium",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "role_in_article": "Текстовая таблица Yogini Dasha и граница утверждений о пропорциональной antardasha.",
+    "claims_used": [
+      "Yogini Dasa основана на положении Луны в накшатре.",
+      "Система содержит восемь йогини и полный цикл 36 лет.",
+      "Таблица связывает йогини, управителя, длительность и номера накшатр.",
+      "Первым управителем antardasha идёт управитель основной даши, а длительность описана как пропорциональная."
+    ],
+    "limitations": "Образовательная страница не раскрывает происхождение таблицы, полное правило остатка первой mahadasha и единообразие школ; она не доказывает прогностическую точность.",
+    "verified_reading": {
+      "log_source_id": "dasha:YOGINI",
+      "status": "personally_verified",
+      "note": "URL лично открыт 2026-07-28; запись verified-reading-log сопоставлена по URL под source_id dasha:YOGINI."
+    }
+  },
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "quality": "high",
+    "review_status": "personally_verified",
+    "observed_at": "2026-07-28",
+    "role_in_article": "Технический контракт воспроизводимого входа и граница между программной реализацией и текстовым правилом школы.",
+    "claims_used": [
+      "Yogini входит в число лунных систем и требует сидерической долготы Луны.",
+      "Вход включает birth_jd в TDB и moon_longitude в диапазоне 0°–360°.",
+      "Параметр levels ограничен диапазоном от 1 до 5 для вложенных периодов.",
+      "Код возвращает дерево периодов, но сам по себе не доказывает каноничность алгоритма."
+    ],
+    "limitations": "Исходный код показывает поведение конкретной реализации, её валидацию входов и дерево периодов; он не заменяет проверку текстовой школы Yogini и не раскрывает единый канонический порядок всех редакций.",
+    "verified_reading": {
+      "status": "personally_verified",
+      "note": "URL и raw-файл лично открыты 2026-07-28; локальная запись source-ledger помечена agent_reviewed, но текущая статья содержит отдельную авторскую проверку."
+    }
+  }
+]

@@ -1,0 +1,64 @@
+{
+  "slug": "chto-izuchaet-dzhyotisha",
+  "title": "Что изучает джйотиша: от веданги к натальной карте",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_jyotivedanga_calendrical_2021",
+    "src_manuscripts_astronomy_2019",
+    "src_brihatsamhita_gretil",
+    "src_wellcome_jyotisha_review_2005"
+  ],
+  "seo": {
+    "seo_title": "Что изучает джйотиша: от веданги к натальной карте",
+    "meta_description": "Разбираем, что изучает джйотиша: от календаря веданги и расчёта времени до horā и натальной карты, с оговорками о школах и методе.",
+    "focus_keyphrase": "что изучает джйотиша",
+    "canonical_url": "https://vedicway.ru/guide/chto-izuchaet-dzhyotisha",
+    "excerpt": "Джйотиша прошла путь от календарно-ритуального расчёта времени к gaṇita, saṃhitā и horā. Разбираем, как этот переход связан с натальной картой и где заканчивается факт расчёта."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/tri-razdela-dzhyotisha"
+  ],
+  "prohibited_claims": [
+    "Не выдавать астрологическую интерпретацию за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, отношения или неизбежные события по натальной карте.",
+    "Не переносить правила поздней horā-астрологии на раннее календарно-ритуальное jyotiṣa без указания источника и школы."
+  ],
+  "cover": {
+    "asset_id": "cover-chto-izuchaet-dzhyotisha",
+    "path": "content/astrology-guide/articles/chto-izuchaet-dzhyotisha/cover.webp",
+    "alt": "Абстрактные небесные орбиты и тонкие линии на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "fac57c2ae065110b230a36ec1f1617eb6147ed8944bc3d466e95ed3be6de0f94",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/chto-izuchaet-dzhyotisha",
+  "tags": [
+    "Основы астрологии",
+    "что изучает джйотиша",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "что изучает джйотиша"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.60018/acasva.nssz2549",
+      "https://doi.org/10.16943/ijhs/2019/v54i3/49738",
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC1172313/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "title": "Upapada Lagna: отдельный показатель в системе Джаймини",
+  "slug": "upapada-lagna",
+  "category": "Практика чтения карты",
+  "seo_title": "Upapada Lagna: расчёт и отличие от седьмого дома",
+  "meta_description": "Upapada Lagna в системе Джаймини: как рассчитать показатель, чем он отличается от седьмого дома и как читать карту без смешения разных методов.",
+  "focus_keyphrase": "Upapada Lagna",
+  "intent": {
+    "type": "informational_practical",
+    "status": "displayed_data",
+    "summary": "Читатель хочет понять значение Upapada Lagna, рассчитать её по натальной карте и отделить этот показатель от седьмого дома.",
+    "wordstat": {
+      "phrase": "упапада лагна",
+      "total_count": 366,
+      "period": "last_30_days",
+      "top_requests": [
+        {
+          "phrase": "упапада лагна",
+          "count": 366
+        },
+        {
+          "phrase": "упапада лагна рассчитать",
+          "count": 94
+        },
+        {
+          "phrase": "упапада лагна в домах",
+          "count": 86
+        },
+        {
+          "phrase": "упапада лагна джйотиш что это",
+          "count": 26
+        },
+        {
+          "phrase": "упапада лагна как анализировать",
+          "count": 5
+        }
+      ],
+      "associations_note": "Ассоциации Wordstat преимущественно нерелевантны теме и не включены в семантическое ядро."
+    },
+    "reader_questions": [
+      "Что такое Upapada Lagna в джйотише?",
+      "Как рассчитать Upapada Lagna вручную?",
+      "Чем Upapada отличается от седьмого дома?",
+      "В каком порядке анализировать знак UL и его управителя?",
+      "Как учитывать разные правила исключений для арудхи?"
+    ]
+  },
+  "semantic_core": {
+    "primary": [
+      "Upapada Lagna",
+      "упапада лагна",
+      "упапада лагна джйотиш",
+      "упапада лагна рассчитать"
+    ],
+    "close_formulations": [
+      "что такое упапада лагна",
+      "как рассчитать упапада лагна",
+      "упапада лагна как анализировать",
+      "упапада лагна в домах",
+      "Upapada Lagna и седьмой дом",
+      "UL в натальной карте",
+      "A12 в джаймини"
+    ],
+    "reader_questions": [
+      "от какого дома рассчитывается Upapada",
+      "почему Upapada не совпадает с седьмым домом",
+      "как читать управителя Upapada",
+      "что показывает второй знак от UL",
+      "как проверить расчёт в двух программах"
+    ],
+    "entities": [
+      "Джаймини",
+      "арудха",
+      "двенадцатый дом",
+      "седьмой дом",
+      "Darapada",
+      "даракарака",
+      "раши-дришти",
+      "лагна"
+    ],
+    "cluster": "специализированные показатели партнёрства и проявленного образа в системе Джаймини"
+  },
+  "canonical": "https://vedicway.ru/guide/upapada-lagna",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_jaimini",
+    "exa_astrojyoti_upapada",
+    "exa_uk_jha_arudha"
+  ],
+  "seo": {
+    "seo_title": "Upapada Lagna: расчёт и отличие от седьмого дома",
+    "meta_description": "Upapada Lagna в системе Джаймини: как рассчитать показатель, чем он отличается от седьмого дома и как читать карту без смешения разных методов.",
+    "focus_keyphrase": "Upapada Lagna",
+    "canonical_url": "https://vedicway.ru/guide/upapada-lagna",
+    "excerpt": "Практическое объяснение Upapada Lagna: место показателя в системе Джаймини, порядок расчёта, мини-пример и граница с обычным седьмым домом."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/sedmoy-dom",
+    "/guide/jaimini-sutras-bazovye-printsipy"
+  ],
+  "prohibited_claims": [
+    "Гарантированная дата брака или другого события по Upapada.",
+    "Неизбежный разрыв отношений по одному показателю карты.",
+    "Медицинский, финансовый или психологический диагноз по UL.",
+    "Смешение Upapada, Darapada и седьмого дома без маркировки метода."
+  ],
+  "cover": {
+    "asset_id": "cover-upapada-lagna",
+    "path": "content/astrology-guide/articles/upapada-lagna/cover.webp",
+    "alt": "Двенадцатый сектор круговой карты отражается в отдельный светящийся знак на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано генератором изображений OpenAI для VedicWay; сторонние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "width": 1672,
+    "height": 941,
+    "sha256": "bd25ee33a4afe978ffa72bc911918b10851b01e53be4154094146938a14523e8"
+  },
+  "sha256": "858ad3a496227fa1d85dfe194361e5d9c88c207d4dde53fb7ce246cf2761bed6",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Upapada Lagna",
+    "Джаймини"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Upapada Lagna"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://www.astrojyoti.com/jaiminisutraspage3-4.htm",
+      "https://saptarishisshop.com/arudha-and-its-evaluation-by-uk-jha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

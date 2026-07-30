@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "src_brihat_gocara",
+    "url": "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+    "role": "Проверка лунной точки отсчёта и благоприятных домов транзита для семи грах."
+  },
+  {
+    "source_id": "src_phaladeepika",
+    "url": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Указанный в карте тем источник по гочаре, Vedha и дополнительным транзитным методам."
+  },
+  {
+    "source_id": "WEB-PHALADEEPIKA-CH26",
+    "url": "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621598.html",
+    "role": "Точная сверка пар благоприятный дом и дом Vedha, исключений между планетами и оговорки по Раху и Кету."
+  },
+  {
+    "source_id": "WEB-BRIHAT-SAMHITA-104-4",
+    "url": "https://www.siva.sh/brihat-samhita/104/4",
+    "role": "Сверка санскритской строфы и перевода базового перечня благоприятных транзитных домов от Луны."
+  }
+]

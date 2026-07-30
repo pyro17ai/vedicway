@@ -1,0 +1,75 @@
+{
+  "slug": "sistemy-domov-v-sidereicheskoj-karte",
+  "title": "Сидерические дома: как выбрать систему домов в карте джйотиша",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "swisseph_general",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Сидерические дома: выбор системы в джйотише",
+    "meta_description": "Как выбрать аянāмшу и систему домов для сидерической карты джйотиша: пошаговая фиксация настроек, пример и ограничения метода.",
+    "focus_keyphrase": "сидерические дома",
+    "canonical_url": "https://vedicway.ru/guide/sistemy-domov-v-sidereicheskoj-karte",
+    "excerpt": "Для воспроизводимого расчёта домов записывайте систему домов, аянамшу и точные координаты; трактовку начинайте только после проверки этих параметров."
+  },
+  "internal_links": [
+    {
+      "url": "/guide",
+      "anchor": "Гид по астрологии VedicWay"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Раши, бхава и лагна"
+    },
+    {
+      "url": "/guide/ayanamsha-lahiri-raman-true-chitra",
+      "anchor": "Лахири, Раман и True Chitra"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать сидерическую карту или джйотиш за научно доказанный способ предсказания событий.",
+    "Не обещать здоровье, деньги, отношения или точный срок события по дому, знаку или аянāмше.",
+    "Не смешивать тропический и сидерический зодиак, а также целознаковую и куспидную систему без маркировки параметров.",
+    "Отделяйте вычисленные долготы от трактовки: сначала фиксируйте параметры карты, затем применяйте правила школы.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
+  ],
+  "cover": {
+    "asset_id": "cover-sistemy-domov-v-sidereicheskoj-karte",
+    "path": "content/astrology-guide/articles/sistemy-domov-v-sidereicheskoj-karte/cover.webp",
+    "alt": "Радиальная схема сидерической карты с равномерными и смещёнными границами домов на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "b14b361ffa13f6fa2947ab494fcd79edaf727f8f3e495648280f2d52a8784efa",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/sistemy-domov-v-sidereicheskoj-karte",
+  "tags": [
+    "Планеты и дома",
+    "сидерические дома",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "сидерические дома"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/bhava-i-lagna"
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "slug": "vimshottari-balance-at-birth",
+  "title": "Баланс первой Vimshottari-даши при рождении",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs-santham-vimshottari",
+    "pyjhora-repository",
+    "vedaksha-compute-dasha"
+  ],
+  "seo": {
+    "seo_title": "Баланс первой Vimshottari-даши при рождении",
+    "meta_description": "Формула остатка первой Vimshottari-даши: сидерическая долгота Луны, пройденная часть накшатры и учебный пример с ограничениями.",
+    "focus_keyphrase": "баланс первой Vimshottari-даши при рождении",
+    "canonical_url": "https://vedicway.ru/guide/vimshottari-balance-at-birth",
+    "excerpt": "Пошаговый расчёт оставшейся части стартовой Vimshottari-даши по сидерической долготе Луны и пройденному отрезку накшатры."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/vimshottari-start-nakshatra",
+    "/guide/vimshottari-antardasha-calculation"
+  ],
+  "prohibited_claims": [
+    "Не выдавать джйотиш и Vimshottari за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, точные события или неизбежную судьбу по балансу даши.",
+    "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные.",
+    "Не смешивать тропическую долготу с сидерическим входом Vimshottari."
+  ],
+  "cover": {
+    "asset_id": "cover-vimshottari-balance-at-birth",
+    "path": "content/astrology-guide/articles/vimshottari-balance-at-birth/cover.webp",
+    "alt": "Абстрактная орбитальная схема с выделенным сегментом на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "86c974dd204962154ad9d09fe42c189663ed823b0aee5873591c92092d7ac0e7",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/vimshottari-balance-at-birth",
+  "tags": [
+    "Время и циклы",
+    "баланс первой Vimshottari-даши при рождении",
+    "даши"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "баланс первой Vimshottari-даши при рождении"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

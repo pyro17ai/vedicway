@@ -1,0 +1,101 @@
+{
+  "title": "Когда подключать другие варги",
+  "slug": "kogda-podklyuchat-drugie-vargi",
+  "category": "Практика чтения карты",
+  "seo_title": "Когда подключать другие варги: как читать дробные карты",
+  "meta_description": "Когда подключать другие варги в джйотише: выбираем D9, D10 или D7 по вопросу, читаем их вместе с D1 и учитываем точность времени рождения.",
+  "focus_keyphrase": "когда подключать другие варги",
+  "canonical": "https://vedicway.ru/guide/kogda-podklyuchat-drugie-vargi",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "intent": {
+    "source": "wordstat",
+    "query": "когда подключать другие варги",
+    "type": "informational_how_to",
+    "status": "no_data",
+    "total_count": 0,
+    "top_requests": [],
+    "associations": [],
+    "reader_need": "Выбрать одну варгу по вопросу и понять порядок чтения вместе с D1, не пересказывая все дробные карты сразу.",
+    "wordstat_notes": "Точный запрос не дал результатов за последние 30 дней; семантика расширена по близкому кластеру дробных карт джйотиша."
+  },
+  "semantic_core": {
+    "primary": [
+      "когда подключать другие варги",
+      "как читать варги",
+      "дробные карты джйотиша"
+    ],
+    "related": [
+      "D1 и D9",
+      "D9 навамша",
+      "D10 дашамша",
+      "D7 саптамша",
+      "за что отвечает дробная карта",
+      "порядок чтения варг",
+      "точность времени рождения",
+      "D60 и варги"
+    ],
+    "questions": [
+      "Когда подключать другие варги?",
+      "Как выбрать варгу по вопросу?",
+      "Нужно ли читать D9 и D10 вместе с D1?",
+      "Почему время рождения влияет на дробные карты?",
+      "Как не пересказывать все варги сразу?"
+    ]
+  },
+  "seo": {
+    "seo_title": "Когда подключать другие варги: как читать дробные карты",
+    "meta_description": "Когда подключать другие варги в джйотише: выбираем D9, D10 или D7 по вопросу, читаем их вместе с D1 и учитываем точность времени рождения.",
+    "focus_keyphrase": "когда подключать другие варги",
+    "canonical_url": "https://vedicway.ru/guide/kogda-podklyuchat-drugie-vargi",
+    "excerpt": "Практический порядок чтения варг: сначала вопрос и D1, затем одна подходящая дробная карта, проверка расчёта и возврат к исходной теме."
+  },
+  "internal_links": [
+    "/guide/vargi-drobnie-karty",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "гарантированный прогноз",
+    "медицинская диагностика",
+    "гарантия дохода или брака",
+    "точный вывод по D60 при неопределённом времени рождения"
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Натальная карта с выделенным сектором и переходом к одной выбранной дробной карте на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1729,
+    "height": 910,
+    "sha256": "67ba332603695e9996432ff918d840abbdf752f83b26cf36086ff2132454586a",
+    "asset_id": "cover-kogda-podklyuchat-drugie-vargi",
+    "path": "content/astrology-guide/articles/kogda-podklyuchat-drugie-vargi/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "7CD3A73B7C5A6794AA3FEBA5BAB38D44D272994E9BC6E3F728FBF0F4E945C7F3",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "когда подключать другие варги",
+    "варги"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "когда подключать другие варги"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

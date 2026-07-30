@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "src_brihat_gocara",
+    "URL": "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+    "role": "Проверка знакового отсчёта гочары от натальной Луны и границ переноса общей таблицы транзитов на личный прогноз."
+  },
+  {
+    "source_id": "src_phaladeepika",
+    "URL": "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+    "role": "Проверка места лунного отсчёта, ведхи и дополнительных методов в традиционном разборе транзитов."
+  },
+  {
+    "source_id": "EXA_PHALADEEPIKA_26",
+    "URL": "https://www.siva.sh/phaladeepika/26/",
+    "role": "Проверка принципа счёта положений транзитных грах от знака натальной Луны и правил для Сатурна."
+  },
+  {
+    "source_id": "EXA_SADE_SATI_METHOD",
+    "URL": "https://www.tempora.ltd/findings/sadesati",
+    "role": "Проверка современного методического определения Саде-сати как трёх фаз по 12-му, 1-му и 2-му знакам от Луны с приблизительной длительностью каждой фазы."
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "slug": "brihat-parashara-hora-shastra-struktura",
+  "title": "Brihat Parashara Hora Shastra: структура чтения карты",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S08",
+    "S09"
+  ],
+  "seo": {
+    "seo_title": "Brihat Parashara Hora Shastra: порядок чтения карты",
+    "meta_description": "Разберите структуру Brihat Parashara Hora Shastra для начинающих: graha, rāśi, bhāva, yoga и daśā, порядок изучения и границы метода.",
+    "focus_keyphrase": "структура Brihat Parashara Hora Shastra",
+    "canonical_url": "https://vedicway.ru/guide/brihat-parashara-hora-shastra-struktura",
+    "excerpt": "Практическая карта BPHS: в каком порядке изучать graha, rāśi, bhāva, yoga и daśā, как читать их в натальной карте и где заканчиваются возможности традиционного метода."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/rashi-bhava-lagna-i-doma",
+      "anchor": "Rāśi, bhāva, lagna и дома",
+      "reason": "Переход к базовым определениям знака, дома и восходящего знака."
+    },
+    {
+      "url": "/guide/yoga-v-dzhyotishe",
+      "anchor": "Yoga в джйотише",
+      "reason": "Переход к отдельному разбору конфигураций и границам их интерпретации."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Естественная точка перехода от учебной схемы к карте с зафиксированными параметрами расчёта."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционные значения graha, rāśi, bhāva, yoga и daśā за научно подтверждённую причинность.",
+    "Не обещать здоровье, доход, брак, карьерный результат или неизбежное событие по одной конфигурации карты.",
+    "Не смешивать сидерический и тропический зодиаки, аянāмшу, системы домов и правила разных школ без явной маркировки.",
+    "Не называть анонимную онлайн-перепечатку S08 единственным бесспорным историческим каноном BPHS.",
+    "Не выдумывать цитаты, положения планет, дату события или точность времени рождения."
+  ],
+  "cover": {
+    "asset_id": "cover-brihat-parashara-hora-shastra-struktura",
+    "path": "content/astrology-guide/articles/brihat-parashara-hora-shastra-struktura/cover.webp",
+    "alt": "Абстрактная схема чтения натальной карты с концентрическими орбитами и геометрическими секторами на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "source_url": null,
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения, логотипы и водяные знаки не использованы.",
+    "status": "ready",
+    "sha256": "44b4aa74e897681fc88efb5895376ac34ad10151c7b203aa4ab621a24dad1ac5",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/brihat-parashara-hora-shastra-struktura",
+  "tags": [
+    "Практика чтения карты",
+    "структура Brihat Parashara Hora Shastra"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "структура Brihat Parashara Hora Shastra"
+      }
+    ],
+    "citation": [
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC1172313/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

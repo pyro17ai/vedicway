@@ -1,0 +1,67 @@
+{
+  "slug": "ogranicheniya-rascheta-natalnoj-karty",
+  "title": "Ограничения расчёта натальной карты: эфемериды, высокие широты и версии",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "swisseph_programming",
+    "swisseph_general",
+    "pyjhora_readme"
+  ],
+  "seo": {
+    "seo_title": "Ограничения расчёта натальной карты: эфемериды и версии",
+    "meta_description": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные. Что сохранить вместе с результатом: TT, UT, аянāмшу и дома.",
+    "focus_keyphrase": "ограничения расчёта натальной карты",
+    "canonical_url": "https://vedicway.ru/guide/ogranicheniya-rascheta-natalnoj-karty",
+    "excerpt": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/data-rozhdeniya-julian-day",
+    "/guide/ayanamsha-lahiri-raman-true-chitra",
+    "/guide/sistemy-domov-v-sidereicheskoj-karte"
+  ],
+  "prohibited_claims": [
+    "Не выдавать численный расчёт эфемерид, аянāмши или системы домов за доказательство астрологической причинности.",
+    "Не смешивать тропический и сидерический зодиак, аянāмшу и систему домов из разных конфигураций без явной пометки.",
+    "Не скрывать автоматическую замену системы домов на высоких широтах и не выдавать её за исходно выбранный метод.",
+    "Не обещать точность времени рождения, неизбежные события, медицинские результаты или финансовый исход по карте.",
+    "Для повторной проверки запишите название и дату набора эфемерид; внутренние сведения о хранении данных читателю не нужны."
+  ],
+  "cover": {
+    "asset_id": "cover-ogranicheniya-rascheta-natalnoj-karty",
+    "path": "content/astrology-guide/articles/ogranicheniya-rascheta-natalnoj-karty/cover.webp",
+    "alt": "Абстрактная схема эфемеридных шкал, орбиты и полярных широт на тёплом бумажном фоне",
+    "source_kind": "generated",
+    "source_url": null,
+    "license_note": "Создано встроенным ImageGen для VedicWay; текст, логотипы и водяные знаки не использовались.",
+    "status": "ready",
+    "sha256": "aa79767c61d761c2356a127158de2106210452e9f30d6d4fe9f33f626f7806ad",
+    "width": 1200,
+    "height": 675
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/ogranicheniya-rascheta-natalnoj-karty",
+  "tags": [
+    "Практика чтения карты",
+    "ограничения расчёта натальной карты",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "ограничения расчёта натальной карты"
+      }
+    ],
+    "learningResourceType": "Guide",
+    "citation": [
+      "https://vedicway.ru/guide/proverka-raschyota-karty"
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "slug": "d12-dvadashamsha-roditeli",
+  "title": "D12 Dvadashamsha: родители и родовая линия",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_varga_use",
+    "bphs_varga_construction"
+  ],
+  "seo_title": "D12 Dvadashamsha: родители и родовая линия",
+  "meta_description": "D12 Dvadashamsha показывает тему родителей и семейной линии. Разбираем расчёт по 2°30′, чтение вместе с D1, мини-пример и границы метода на практике.",
+  "focus_keyphrase": "D12 Dvadashamsha",
+  "intent": {
+    "source": "wordstat",
+    "primary_query": "D12 Двадашамша родители",
+    "type": "informational_definition_and_method",
+    "status": "empty",
+    "total_count": 0,
+    "top_requests": [],
+    "associations": [],
+    "reader_need": "Понять классическое назначение D12, порядок её расчёта и совместного чтения с D1 без превращения дробной карты в самостоятельный гороскоп."
+  },
+  "semantic_core": {
+    "source_status": "wordstat_empty_editorial_inference",
+    "primary": [
+      "D12 Dvadashamsha",
+      "D12 родители",
+      "двадашамша"
+    ],
+    "related": [
+      "D12 в джйотише",
+      "карта родителей в ведической астрологии",
+      "родовая линия в D12",
+      "как читать D12",
+      "расчёт Dvadashamsha",
+      "D1 и D12",
+      "четвёртый дом и Луна",
+      "девятый дом и Солнце",
+      "Shodashavarga"
+    ],
+    "questions": [
+      "Что показывает D12 в джйотише?",
+      "Как рассчитывается Dvadashamsha?",
+      "Можно ли читать D12 отдельно от D1?",
+      "Какие показатели D12 связаны с матерью и отцом?",
+      "Показывает ли D12 родовую карму?",
+      "Насколько D12 зависит от времени рождения?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/d12-dvadashamsha-roditeli",
+  "seo": {
+    "seo_title": "D12 Dvadashamsha: родители и родовая линия",
+    "meta_description": "D12 Dvadashamsha показывает тему родителей и семейной линии. Разбираем расчёт по 2°30′, чтение вместе с D1, мини-пример и границы метода на практике.",
+    "focus_keyphrase": "D12 Dvadashamsha",
+    "canonical_url": "https://vedicway.ru/guide/d12-dvadashamsha-roditeli",
+    "excerpt": "Классическое назначение D12, деление знака на участки по 2°30′, порядок чтения родителей через D1 и D12, условный пример и строгие границы метода."
+  },
+  "internal_links": [
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/chetvertyy-dom",
+    "/guide/devyatyy-dom",
+    "/guide/d1-i-drobnie-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не читать D12 как самостоятельный гороскоп вместо D1.",
+    "Не выводить из D12 диагнозы, наследственные риски или срок жизни родителей.",
+    "Не объявлять напряжённую комбинацию родовым проклятием.",
+    "Не обещать гарантированное событие или точный срок по статичной D12."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Двенадцатичастный астрологический круг, соединённый с ветвящимся родовым деревом на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешнее изображение и поисковая выдача не использовались.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "7b858af14ed286d9b0aef7219ee4f913ef58201b9b1fcc78ccbf719f2949ba47",
+    "asset_id": "cover-d12-dvadashamsha-roditeli",
+    "path": "content/astrology-guide/articles/d12-dvadashamsha-roditeli/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "8DCB313D9B6D4E7EF431B256B34EBC5E951A549C96214954437B323D20D6894E",
+  "difficulty": "expert",
+  "tags": [
+    "Планеты и дома",
+    "D12 Dvadashamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "D12 Dvadashamsha"
+      }
+    ],
+    "citation": [
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/6/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

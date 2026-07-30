@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://doi.org/10.60018/acasva.nssz2549",
+    "role": "Исторический контекст раннего jyotisha и границы обобщений о традиции"
+  },
+  {
+    "source_id": "S2",
+    "url": "https://doi.org/10.1017/S0252921100105809",
+    "role": "Исторический контекст развития индийской астрономии и расчётного слоя"
+  },
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "role": "Традиционная рамка чтения лагны, первого дома и управителей"
+  },
+  {
+    "source_id": "EXA-LAGNAPRAKARANA-V",
+    "url": "https://insa.nic.in/(S(p3b42vmk5crtmmkeovu3oa14))/writereaddata/UpLoadedFiles/IJHS/IJHS_60_2_1.pdf",
+    "role": "Проверка расчётного смысла восходящей точки и зависимости лагны от астрономических параметров"
+  }
+]

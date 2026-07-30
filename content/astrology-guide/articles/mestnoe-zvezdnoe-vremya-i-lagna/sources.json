@@ -1,0 +1,21 @@
+[
+  {
+    "source_id": "swisseph_programming",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=e&nhor=1",
+    "title": "swephprg programming interface: Swiss Ephemeris Programmer's Manual",
+    "author_or_institution": "Astrodienst AG",
+    "source_kind": "technical_reference",
+    "role_in_article": "Технический источник для перевода местного времени в UTC, преобразования UTC в Julian Day для UT1, расчёта звёздного времени, записи географических координат и получения Асцендента через функции домов.",
+    "claims_used": [
+      "Для перевода местного времени в UTC восточный часовой пояс задают положительным смещением, а для домов используют Julian Day в UT.",
+      "Функция swe_sidtime получает Julian Day в UT и возвращает звёздное время на гринвичском меридиане; переменная armc выражается в градусах.",
+      "Для функций домов восточная долгота положительна, западная отрицательна, северная географическая широта положительна, южная отрицательна.",
+      "swe_houses_ex принимает UT, географическую широту и долготу, а сидерический результат требует явного sidereal mode; без него используется Fagan/Bradley.",
+      "Документация разделяет тропические и сидерические положения и описывает API, а не канонический выбор аянāмши для школы джйотиша."
+    ],
+    "limits": "Документ описывает интерфейс Swiss Ephemeris и численные соглашения. Он не выбирает аянāмшу, систему домов или единственную интерпретацию лагны в традиции джйотиша.",
+    "review_status": "personally_verified",
+    "reviewed_at": "2026-07-28",
+    "external_reading": "https://www.astro.com/swisseph/swephprg.htm?lang=e&nhor=1"
+  }
+]

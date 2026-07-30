@@ -104,12 +104,11 @@ function safePagePath(value: unknown) {
     return "/404";
   }
   if (/^\/chart\/[^/]+$/.test(pathname)) return "/chart/:id";
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "/admin";
-  if (pathname === "/guide/editor") return "/admin";
-  if (/^\/guide\/[a-z0-9-]+$/.test(pathname)) return pathname;
+  if (/^\/(?:guide|blog)\/[a-z0-9-]+$/.test(pathname)) return pathname;
   if ([
     "/",
     "/guide",
+    "/blog",
     "/legal/offer",
     "/legal/privacy",
     "/legal/user-agreement",

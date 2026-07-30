@@ -1,0 +1,22 @@
+[
+  {
+    "source_id": "ext:swisseph-programming",
+    "url": "https://www.astro.com/swisseph-download/doc/swephprg.2.10.htm",
+    "role": "Проверка технических границ расчёта сидерических положений, времени и домов."
+  },
+  {
+    "source_id": "ext:swisseph-general",
+    "url": "https://www.astro.com/swisseph/swisseph.htm?lang=s&nho2=9500037&nhor=9500037",
+    "role": "Проверка различий аянāмш и зависимости результата от расчётной настройки."
+  },
+  {
+    "source_id": "ext:bphs-chapter-7",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+    "role": "Проверка традиционного разделения карты и дробных карт по тематическим областям."
+  },
+  {
+    "source_id": "ext:jaimini-sutras",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка отличий джайминиевского корпуса правил и необходимости разделять школы."
+  }
+]

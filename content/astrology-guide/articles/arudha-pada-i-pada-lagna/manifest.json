@@ -1,0 +1,160 @@
+{
+  "title": "Arudha Pada и Pada Lagna: как читать проявленный образ карты",
+  "slug": "arudha-pada-i-pada-lagna",
+  "category": "Практика чтения карты",
+  "seo_title": "Arudha Pada и Pada Lagna: расчёт и чтение",
+  "meta_description": "Arudha Pada и Pada Lagna: как рассчитать Арудха-лагну, прочитать проявленный образ карты и не спутать производный знак с домом или планетой.",
+  "focus_keyphrase": "Arudha Pada и Pada Lagna",
+  "intent": {
+    "type": "informational_practical",
+    "status": "wordstat_confirmed",
+    "summary": "Читатель хочет понять, что такое Арудха-лагна, вручную проверить расчёт, разобрать значение проявленного образа и отличить производный показатель от дома или планеты.",
+    "wordstat": {
+      "period": "last_30_days",
+      "phrases": [
+        {
+          "phrase": "арудха пада",
+          "total_count": 29,
+          "top_requests": [
+            {
+              "phrase": "арудха пада",
+              "count": 29
+            }
+          ]
+        },
+        {
+          "phrase": "арудха лагна",
+          "total_count": 497,
+          "top_requests": [
+            {
+              "phrase": "арудха лагна",
+              "count": 497
+            },
+            {
+              "phrase": "арудха лагна в домах",
+              "count": 112
+            },
+            {
+              "phrase": "арудха лагна джйотиш что это",
+              "count": 51
+            },
+            {
+              "phrase": "арудха лагна как рассчитать",
+              "count": 46
+            },
+            {
+              "phrase": "как рассчитать арудха лагну джйотиш",
+              "count": 20
+            },
+            {
+              "phrase": "как найти арудха лагну",
+              "count": 12
+            }
+          ]
+        },
+        {
+          "phrase": "пада лагна",
+          "total_count": 93,
+          "top_requests": [
+            {
+              "phrase": "пада лагны",
+              "count": 93
+            }
+          ]
+        }
+      ],
+      "note": "Ассоциации с устройствами, именами и созвучными словами исключены как нерелевантные. Доминирует информационный интент с практическим запросом на расчёт."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "арудха лагна",
+      "Arudha Pada",
+      "Pada Lagna"
+    ],
+    "close_formulations": [
+      "арудха лагна джйотиш что это",
+      "арудха лагна как рассчитать",
+      "как найти арудха лагну",
+      "арудха лагна в домах",
+      "пада лагны"
+    ],
+    "reader_questions": [
+      "что показывает Арудха-лагна",
+      "как считать Arudha Pada вручную",
+      "чем Pada Lagna отличается от обычной лагны",
+      "можно ли считать арудху физическим домом",
+      "как проверять исключения при расчёте"
+    ],
+    "entities": [
+      "лагна",
+      "хозяин лагны",
+      "раши",
+      "бхава",
+      "Arudha Lagna",
+      "Arudha Pada",
+      "Pada Lagna",
+      "Upapada Lagna",
+      "раши-дришти"
+    ],
+    "cluster": "производные показатели джайминиевского чтения натальной карты"
+  },
+  "canonical": "https://vedicway.ru/guide/arudha-pada-i-pada-lagna",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_jaimini"
+  ],
+  "seo": {
+    "seo_title": "Arudha Pada и Pada Lagna: расчёт и чтение",
+    "meta_description": "Arudha Pada и Pada Lagna: как рассчитать Арудха-лагну, прочитать проявленный образ карты и не спутать производный знак с домом или планетой.",
+    "focus_keyphrase": "Arudha Pada и Pada Lagna",
+    "canonical_url": "https://vedicway.ru/guide/arudha-pada-i-pada-lagna",
+    "excerpt": "Практический разбор Арудха-лагны: терминология, двойной отсчёт, учебный пример, порядок чтения проявленного образа и границы метода."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/argala-pada-karaki"
+  ],
+  "prohibited_claims": [
+    "гарантия славы, дохода или должности по Арудха-лагне",
+    "медицинский диагноз или финансовое решение по карте",
+    "приравнивание арудхи к физическому дому или планете",
+    "универсальность одного правила исключений для всех школ"
+  ],
+  "cover": {
+    "asset_id": "cover-arudha-pada-i-pada-lagna",
+    "path": "content/astrology-guide/articles/arudha-pada-i-pada-lagna/cover.webp",
+    "width": 1600,
+    "height": 900,
+    "aspect_ratio": "16:9",
+    "alt": "Круг натальной карты отбрасывает на тёплую бумагу смещённое отражение среди тонких линий созвездий",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано генератором ImageGen по редакционному описанию VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "e6bd5a6478bee2d098e52e5e52e7d1593d81644dc15a2f3b42afe073e742c92c"
+  },
+  "sha256": "D8F94F30FAF398DD37A17AFB24F7F23F0EA19DD0F29B484A8A1B978480CAB66D",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Arudha Pada и Pada Lagna"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Arudha Pada и Pada Lagna"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://saptarishisastrology.com/the-arudha-chapter-of-bphs-by-madura-krishnamurthi-sastri/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

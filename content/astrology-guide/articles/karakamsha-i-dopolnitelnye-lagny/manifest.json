@@ -1,0 +1,190 @@
+{
+  "title": "Karakamsha и дополнительные лагны: когда их подключать",
+  "slug": "karakamsha-i-dopolnitelnye-lagny",
+  "category": "Практика чтения карты",
+  "seo_title": "Karakamsha и дополнительные лагны: когда подключать",
+  "meta_description": "Karakamsha и дополнительные лагны: когда применять Varnada и Ghatika Lagna, как проверять их расчёт после D1 и где проходят границы метода на практике.",
+  "focus_keyphrase": "Karakamsha и дополнительные лагны",
+  "intent": {
+    "type": "informational_practical",
+    "status": "wordstat_confirmed",
+    "summary": "Читатель хочет понять, что такое Karakamsha, чем она отличается от обычной Лагны, когда подключать Varnada Lagna и Ghatika Lagna и почему эти техники требуют проверенной базовой карты.",
+    "wordstat": {
+      "phrase": "каракамша",
+      "total_count": 507,
+      "top_requests": [
+        {
+          "phrase": "каракамша",
+          "count": 507
+        },
+        {
+          "phrase": "каракамша в домах",
+          "count": 137
+        },
+        {
+          "phrase": "каракамша лагна",
+          "count": 74
+        },
+        {
+          "phrase": "каракамша джйотиш что это",
+          "count": 45
+        },
+        {
+          "phrase": "каракамша лагна джйотиш что это",
+          "count": 16
+        }
+      ],
+      "additional_queries": [
+        {
+          "phrase": "варнада лагна",
+          "total_count": 31,
+          "top_requests": [
+            {
+              "phrase": "варнада лагна",
+              "count": 31
+            },
+            {
+              "phrase": "варнада лагна джйотиш",
+              "count": 9
+            }
+          ]
+        },
+        {
+          "phrase": "гхатика лагна",
+          "total_count": 24,
+          "top_requests": [
+            {
+              "phrase": "гхатика лагна",
+              "count": 24
+            }
+          ]
+        }
+      ],
+      "associations_note": "Автоматические ассоциации Wordstat оказались нерелевантными теме и в семантическое ядро не включены."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "каракамша",
+      "каракамша лагна",
+      "каракамша в домах",
+      "каракамша в джйотише"
+    ],
+    "secondary": [
+      "варнада лагна",
+      "Varnada Lagna",
+      "гхатика лагна",
+      "Ghatika Lagna",
+      "дополнительные лагны в джйотише"
+    ],
+    "close_formulations": [
+      "что такое каракамша",
+      "как рассчитать каракамшу",
+      "как читать каракамшу в домах",
+      "когда смотреть дополнительные лагны",
+      "чем каракамша отличается от лагны",
+      "как рассчитать варнада лагну",
+      "как рассчитать гхатика лагну"
+    ],
+    "reader_questions": [
+      "Можно ли начинать разбор карты с Karakamsha?",
+      "Какую карту читать от Karakamsha: D1 или D9?",
+      "Почему разные школы дают разную Varnada Lagna?",
+      "Насколько Ghatika Lagna зависит от точности времени рождения?",
+      "Что делать, если дополнительная лагна противоречит D1?"
+    ],
+    "entities": [
+      "Karakamsha",
+      "Atmakaraka",
+      "Navamsha D9",
+      "Varnada Lagna",
+      "Hora Lagna",
+      "Ghatika Lagna",
+      "натальная Лагна"
+    ],
+    "cluster": "дополнительные точки отсчёта после базового чтения натальной карты"
+  },
+  "canonical": "https://vedicway.ru/guide/karakamsha-i-dopolnitelnye-lagny",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_jaimini",
+    "src_bphs_special_lagnas",
+    "src_varnada_methods"
+  ],
+  "seo": {
+    "seo_title": "Karakamsha и дополнительные лагны: когда подключать",
+    "meta_description": "Karakamsha и дополнительные лагны: когда применять Varnada и Ghatika Lagna, как проверять их расчёт после D1 и где проходят границы метода на практике.",
+    "focus_keyphrase": "Karakamsha и дополнительные лагны",
+    "canonical_url": "https://vedicway.ru/guide/karakamsha-i-dopolnitelnye-lagny",
+    "excerpt": "Порядок подключения Karakamsha, Varnada Lagna и Ghatika Lagna после базового чтения D1: расчётная логика, мини-пример и границы метода."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёте VedicWay"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритма чтения натальной карты"
+    },
+    {
+      "url": "/guide/rashi-i-navamsha",
+      "anchor": "как сопоставляются раши и навамша"
+    },
+    {
+      "url": "/guide/argala-pada-karaki",
+      "anchor": "аргала, пада и караки"
+    }
+  ],
+  "prohibited_claims": [
+    "гарантированный прогностический результат по дополнительной лагне",
+    "медицинский, финансовый или юридический вывод по Karakamsha, Varnada Lagna или Ghatika Lagna",
+    "единственная профессия, духовный статус или общественное положение по одной специальной точке",
+    "смешение формул разных школ без явной маркировки"
+  ],
+  "structured_data": {
+    "types": [
+      "Article",
+      "FAQPage"
+    ],
+    "visible_faq_match": true,
+    "in_language": "ru"
+  },
+  "cover": {
+    "asset_id": "cover-karakamsha-i-dopolnitelnye-lagny",
+    "path": "content/astrology-guide/articles/karakamsha-i-dopolnitelnye-lagny/cover.webp",
+    "alt": "Натальная карта с тремя отдельными точками отсчёта на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано генератором ImageGen по редакционному описанию VedicWay; внешние изображения не использовались, атрибуция не требуется.",
+    "width": 1672,
+    "height": 941,
+    "format": "png",
+    "status": "ready",
+    "sha256": "c0273770b0e8e0fd0f137457e98a10aba9c933d4525db91234986ae1220e2b91"
+  },
+  "sha256": "ACE447D5E36BC672B2C2D893867C885AD51A849A167CE805BF4CE25D96777186",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Karakamsha и дополнительные лагны",
+    "лагна"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Karakamsha и дополнительные лагны"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/5/6-10",
+      "https://saptarishisshop.com/a-look-at-the-calculation-of-varnada-lagna-by-abhishekha/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

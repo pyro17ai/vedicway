@@ -1,0 +1,70 @@
+{
+  "slug": "inventarizaciya-domov",
+  "title": "Инвентаризация домов перед синтезом",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S1",
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Дома в натальной карте: инвентаризация перед синтезом",
+    "meta_description": "Дома в натальной карте: как записать тему, управителя, планеты и аспекты по каждой бхаве перед самостоятельным синтезом карты.",
+    "focus_keyphrase": "дома в натальной карте",
+    "canonical_url": "https://vedicway.ru/guide/inventarizaciya-domov",
+    "excerpt": "Практическая форма инвентаризации домов: для каждой бхавы фиксируются предмет, знак, управитель, его положение, планеты и аспекты до начала синтеза карты."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/bhava-i-lagna",
+      "anchor": "о лагне, знаках и домах"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритмом чтения натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную интерпретацию домов за научно доказанную причинность.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не смешивать системы аспектов, зодиак и методы домов без явной фиксации параметров.",
+    "Не называть внешние источники, библиографию или URL в тексте статьи."
+  ],
+  "cover": {
+    "asset_id": "cover-inventarizaciya-domov",
+    "path": "content/astrology-guide/articles/inventarizaciya-domov/cover.webp",
+    "alt": "Круг натальной карты с двенадцатью секторами и условными отметками планет на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано генератором изображений OpenAI для VedicWay; внешние изображения не использовались.",
+    "width": 1672,
+    "height": 941,
+    "mime_type": "image/png",
+    "sha256": "4d05c605e12a3c36600bfb584969c0e100d4785852ba68a3496c8b373ab4701d",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/inventarizaciya-domov",
+  "tags": [
+    "Практика чтения карты",
+    "дома в натальной карте",
+    "натальная карта",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "дома в натальной карте"
+      }
+    ],
+    "citation": [
+      "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par1120.html",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

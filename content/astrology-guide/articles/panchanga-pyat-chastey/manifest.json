@@ -1,0 +1,69 @@
+{
+  "slug": "panchanga-pyat-chastey",
+  "title": "Панчанга: пять частей одного временного среза",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A2",
+    "A4",
+    "A6"
+  ],
+  "seo": {
+    "seo_title": "Панчанга в джйотише: титхи, вара, накшатра, йога, карана",
+    "meta_description": "Панчанга в джйотише: разберём титхи, вара, накшатру, йогу и карану, их расчёт, порядок чтения и границы применения в мухурте.",
+    "focus_keyphrase": "панчанга",
+    "canonical_url": "https://vedicway.ru/guide/panchanga-pyat-chastey",
+    "excerpt": "Пять показателей панчанги описывают один момент с разных сторон: от фазы Луны и дня недели до накшатры, йоги и половины титхи."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/dzhanma-nakshatra-luny"
+  ],
+  "prohibited_claims": [
+    "Не обещать гарантированный исход события по панчанге.",
+    "Не выдавать традиционную интерпретацию за медицинский, финансовый или юридический совет.",
+    "Не смешивать 27-накшатрную разметку с системой из 28 позиций без указания школы."
+  ],
+  "cover": {
+    "asset_id": "cover-panchanga-pyat-chastey",
+    "path": "content/astrology-guide/articles/panchanga-pyat-chastey/cover.webp",
+    "alt": "Круговая схема пяти временных ритмов панчанги с Луной, Солнцем и созвездиями на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "456d1ee51ba71883cd0d91ed4b7b7c4dbe0b490f8669c508bcf2ed1beafe8669",
+    "width": 1672,
+    "height": 941
+  },
+  "sha256": {
+    "article.md": "8DDD372D5376D2CA9DE1104879B70101FB69B61AE14233870A309B662E71E80F",
+    "article.html": "CDE79C0FED0F70C3295DA382FADB619C4B8F1D41A1C2D9B471D7927C148053E3",
+    "sources.json": "9CD54648D81F6CA1339C8BC4AE6806A136D89CAC450E1B684D9B19C0656E3529",
+    "cover.png": "DF3B1314BD2833B403810279900C120BF514591FF76787697D6F8604B07CDF51"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/panchanga-pyat-chastey",
+  "tags": [
+    "Время и циклы",
+    "панчанга"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "панчанга"
+      }
+    ],
+    "citation": [
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita",
+      "https://archive.org/stream/MuhurthaJyotisVedicAstrology/Muhurtha%20Jyotis%20Vedic%20Astrology_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

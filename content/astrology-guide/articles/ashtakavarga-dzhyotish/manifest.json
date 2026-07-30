@@ -1,0 +1,182 @@
+{
+  "title": "Ashtakavarga: bindu, Bhinnashtakavarga и Sarvashtakavarga",
+  "slug": "ashtakavarga-dzhyotish",
+  "category": "Основы астрологии",
+  "seo_title": "Ashtakavarga: bindu, BAV и SAV в джйотише",
+  "meta_description": "Разбираем Ashtakavarga в джйотише: что означает bindu, как строятся Bhinnashtakavarga и Sarvashtakavarga, почему сумма SAV равна 337 и как читать баллы.",
+  "focus_keyphrase": "Ashtakavarga",
+  "canonical": "https://vedicway.ru/guide/ashtakavarga-dzhyotish",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_gret",
+    "src_phaladeepika",
+    "src_jyotishganit",
+    "EXA_BPHS_ASTROJYOTI",
+    "EXA_VEDASTRO_ASHTAKAVARGA"
+  ],
+  "intent": {
+    "status": "wordstat_confirmed",
+    "primary": "Информационно-практический интент: понять смысл bindu, различить индивидуальную Bhinnashtakavarga и суммарную Sarvashtakavarga, затем научиться читать числа в связи со знаком, домом и выбранной планетой.",
+    "reader_questions": [
+      "Что такое аштакаварга в джйотише?",
+      "Что означают баллы и bindu в таблице?",
+      "Чем Bhinnashtakavarga отличается от Sarvashtakavarga?",
+      "Как рассчитывают аштакаваргу?",
+      "Почему сумма Sarvashtakavarga равна 337?",
+      "Как использовать аштакаваргу для чтения транзита Сатурна?"
+    ],
+    "wordstat": {
+      "observed_at": "2026-07-30",
+      "main_query": {
+        "query": "аштакаварга",
+        "total_count": 248,
+        "top_requests": [
+          {
+            "phrase": "аштакаварга",
+            "count": 248
+          },
+          {
+            "phrase": "аштакаварга джйотиш это",
+            "count": 30
+          },
+          {
+            "phrase": "аштакаварга сатурн",
+            "count": 22
+          },
+          {
+            "phrase": "аштакаварга расчет",
+            "count": 21
+          },
+          {
+            "phrase": "рассчитать аштакаваргу",
+            "count": 19
+          },
+          {
+            "phrase": "бхина аштакаварга сатурна",
+            "count": 18
+          }
+        ]
+      },
+      "variant_query": {
+        "query": "аштаковарга",
+        "total_count": 9,
+        "top_requests": [
+          {
+            "phrase": "аштаковарга",
+            "count": 9
+          }
+        ]
+      },
+      "note": "Ассоциации Wordstat отсечены как нерелевантный лексический шум. Ядро собрано из подтверждённых формулировок и вопросов, без которых нельзя объяснить структуру расчёта."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "аштакаварга",
+      "Ashtakavarga",
+      "аштакаварга джйотиш это",
+      "аштакаварга расчёт",
+      "рассчитать аштакаваргу"
+    ],
+    "close_formulations": [
+      "аштаковарга",
+      "bindu в аштакаварге",
+      "баллы аштакаварги",
+      "Bhinnashtakavarga",
+      "Бхиннаштакаварга",
+      "Sarvashtakavarga",
+      "Сарваштакаварга",
+      "BAV и SAV",
+      "бхина аштакаварга Сатурна"
+    ],
+    "related": [
+      "семь классических планет",
+      "лагна",
+      "двенадцать раши",
+      "гочара",
+      "транзит Сатурна",
+      "натальная карта",
+      "shodhana",
+      "pinda"
+    ],
+    "questions": [
+      "что именно считают bindu",
+      "сколько точек может получить знак",
+      "сколько таблиц Bhinnashtakavarga строят",
+      "почему SAV складывается в 337",
+      "как связать знак с домом",
+      "почему программы показывают разные числа"
+    ],
+    "entities": [
+      "Ashtakavarga",
+      "bindu",
+      "rekha",
+      "Bhinnashtakavarga",
+      "Sarvashtakavarga",
+      "лагна",
+      "раши",
+      "гочара"
+    ]
+  },
+  "seo": {
+    "seo_title": "Ashtakavarga: bindu, BAV и SAV в джйотише",
+    "meta_description": "Разбираем Ashtakavarga в джйотише: что означает bindu, как строятся Bhinnashtakavarga и Sarvashtakavarga, почему сумма SAV равна 337 и как читать баллы.",
+    "focus_keyphrase": "Ashtakavarga",
+    "canonical_url": "https://vedicway.ru/guide/ashtakavarga-dzhyotish",
+    "excerpt": "Понятное чтение аштакаварги: восемь источников bindu, индивидуальные BAV, суммарная SAV, контрольная сумма 337 и учебный пример без фатальных прогнозов."
+  },
+  "schema": {
+    "primary_type": "Article",
+    "additional_type": "FAQPage",
+    "faq_supported_by_visible_content": true
+  },
+  "internal_links": [
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/guide/tranzity-i-natalnaya-karta",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать баллы аштакаварги за физически измеренную силу планет или научно подтверждённую вероятность события.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не толковать SAV как индивидуальную таблицу конкретной планеты.",
+    "Не смешивать исходные таблицы с результатами shodhana и pinda без маркировки этапа.",
+    "Не включать Раху и Кету в стандартный восьмичастный расчёт без явного указания школы."
+  ],
+  "cover": {
+    "asset_id": "cover-ashtakavarga-dzhyotish",
+    "path": "content/astrology-guide/articles/ashtakavarga-dzhyotish/cover.webp",
+    "alt": "Двенадцатисекторный круг, где планетные орбиты с точками собираются в единое кольцо на тёплой бумаге",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "width": 1616,
+    "height": 909,
+    "sha256": "41e95c2c95bf552dc9722832322c7216fba372e81b1bdbfab56dc2935e550269"
+  },
+  "sha256": "A3EF848A7DE691FC8BC6D30E5305E4286127D1C1E3EA8EEB2023C1A9DB34D34F",
+  "difficulty": "expert",
+  "tags": [
+    "Основы астрологии",
+    "Ashtakavarga"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "Ashtakavarga"
+      }
+    ],
+    "citation": [
+      "https://gretil.sub.uni-goettingen.de/gretil/1_sanskr/6_sastra/8_jyot/brhats_u.htm",
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "http://www.astrojyoti.com/bphspage9.htm",
+      "https://vedastro.org/blog/Mastering-Ashtakavarga-Part-2-Building-Bhinnashtakavarga-Charts.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

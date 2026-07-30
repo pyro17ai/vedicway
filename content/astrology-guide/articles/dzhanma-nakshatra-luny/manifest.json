@@ -1,0 +1,61 @@
+{
+  "slug": "dzhanma-nakshatra-luny",
+  "title": "Как определить джанма-накшатру Луны в карте рождения",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "a1_heidelberg_nakshatras",
+    "a5_swisseph_general",
+    "a2_jstage_gargiya_muhurta"
+  ],
+  "seo": {
+    "seo_title": "Как определить джанма-накшатру Луны: расчёт",
+    "meta_description": "Пошагово определите джанма-накшатру и паду Луны по сидерической долготе: формулы, учебный пример, аянамша и границы метода.",
+    "focus_keyphrase": "как определить джанма-накшатру Луны",
+    "canonical_url": "https://vedicway.ru/guide/dzhanma-nakshatra-luny",
+    "excerpt": "Переведите сидерическую долготу Луны в номер накшатры и паду: 27 участков по 13°20′, четыре сегмента по 3°20′, проверка аянамши и границ."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/chetyre-pady-nakshatry"
+  ],
+  "prohibited_claims": [
+    "Не выдавать джанма-накшатру за научно подтверждённый прогноз.",
+    "Не обещать здоровье, деньги, точные события или неизбежную судьбу по одной накшатре.",
+    "Не смешивать сидерический и тропический расчёт и не добавлять Абхиджит к сетке из 27 участков без указания редакции или школы."
+  ],
+  "cover": {
+    "asset_id": "cover-dzhanma-nakshatra-luny",
+    "path": "content/astrology-guide/articles/dzhanma-nakshatra-luny/cover.webp",
+    "alt": "Тонкие орбиты и геометрические сегменты на светлом бумажном фоне в терракотовой палитре",
+    "status": "ready",
+    "sha256": "58c12f055af8492fa1323e7df6e7d32bfe6c56cc20d1152ae0396fcf1a083482",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/dzhanma-nakshatra-luny",
+  "tags": [
+    "Планеты и дома",
+    "как определить джанма-накшатру Луны",
+    "накшатры"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "как определить джанма-накшатру Луны"
+      }
+    ],
+    "citation": [
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+      "https://www.jstage.jst.go.jp/article/ibk/68/3/68_1114/_pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

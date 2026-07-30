@@ -1,0 +1,91 @@
+{
+  "title": "Естественное дружество и вражда грах",
+  "slug": "estestvennoe-druzhestvo-grah",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "seo_title": "Естественное дружество грах: как считать отношения",
+  "meta_description": "Разбираем естественную дружбу и вражду грах: отсчёт от мулатриконы, таблица отношений, пример для Солнца и границы метода.",
+  "focus_keyphrase": "естественное дружество грах",
+  "intent": {
+    "type": "informational",
+    "summary": "Учебный запрос: читатель хочет понять естественную дружбу и вражду грах, восстановить таблицу через мулатрикону и применить её к карте.",
+    "wordstat": {
+      "main_query": "естественное дружество и вражда грах",
+      "total_count": 0,
+      "top_requests": [],
+      "associations": [],
+      "related_query": {
+        "phrase": "дружба и вражда планет в джйотиш",
+        "count": 13
+      }
+    }
+  },
+  "semantic_core": [
+    "естественная дружба грах",
+    "вражда планет в джйотише",
+    "дружба и вражда планет в джйотиш",
+    "мулатрикона",
+    "отношения планет",
+    "временная дружба грах",
+    "таблица естественных отношений",
+    "как считать дружбу планет"
+  ],
+  "canonical": "https://vedicway.ru/guide/estestvennoe-druzhestvo-grah",
+  "seo": {
+    "seo_title": "Естественное дружество грах: как считать отношения",
+    "meta_description": "Разбираем естественную дружбу и вражду грах: отсчёт от мулатриконы, таблица отношений, пример для Солнца и границы метода.",
+    "focus_keyphrase": "естественное дружество грах",
+    "canonical_url": "https://vedicway.ru/guide/estestvennoe-druzhestvo-grah",
+    "excerpt": "Естественное дружество и вражда грах выводятся через отсчёт знаков от мулатриконы. Материал даёт таблицу, пример для Солнца и границы метода."
+  },
+  "source_ids": [
+    "bphs_vedpuran_translation",
+    "phaladeepika_kapoor"
+  ],
+  "internal_links": [
+    "/guide/graha-v-dzhyotishe",
+    "/chart",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не выдавать естественное отношение грах за самостоятельный прогноз.",
+    "Не смешивать естественную дружбу с временной без отдельной маркировки.",
+    "Не приписывать Раху и Кету единую таблицу без указания выбранной школы.",
+    "Не обещать медицинский, финансовый или гарантированный результат."
+  ],
+  "cover": {
+    "asset_id": "cover-estestvennoe-druzhestvo-grah",
+    "path": "content/astrology-guide/articles/estestvennoe-druzhestvo-grah/cover.webp",
+    "alt": "Два контрастных солнечных символа, соединённые орбитами и созвездиями на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1672,
+    "height": 941,
+    "status": "ready",
+    "sha256": "34628c2b12ff256eb5586ad33177eb2a2f3c4338cea19861f5e3ef8548653715"
+  },
+  "sha256": "054751d1f348cc138afbe5091ba658a41dad8230ed1238afe86c0efb496ce0df",
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "естественное дружество грах",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "естественное дружество грах"
+      }
+    ],
+    "citation": [
+      "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

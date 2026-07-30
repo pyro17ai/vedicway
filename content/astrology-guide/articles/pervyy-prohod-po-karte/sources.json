@@ -1,0 +1,27 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Локальная исследовательская запись: контекст традиции джйотиша и разграничение натального чтения с временными методами."
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Локальная исследовательская запись: необходимость разделять школы, общие и специальные правила чтения."
+  },
+  {
+    "source_id": "S2-bphs",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка базовых понятий лагны, домов, управителей и ограничений перевода."
+  },
+  {
+    "source_id": "WEB-1",
+    "url": "https://www.astro.com/swisseph/swisseph.htm",
+    "role": "Проверка технической зависимости расчёта сидерических положений, аянамши, асцендента и домов от настроек."
+  },
+  {
+    "source_id": "WEB-2",
+    "url": "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/horaashaastraEng34-45.html",
+    "role": "Проверка терминов, связанных с лагной, её управителем и связями управителей домов в традиционной интерпретации."
+  }
+]

@@ -1,0 +1,62 @@
+{
+  "slug": "solntse-i-luna-v-dzhyotishe",
+  "title": "Солнце и Луна как светила натальной карты",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo": {
+    "seo_title": "Солнце и Луна в джйотише: как читать светила",
+    "meta_description": "Солнце и Луна в джйотише задают два разных слоя чтения натальной карты. Солнце показывает источник собранности, волю к самостоятельному действию и отношение к.",
+    "focus_keyphrase": "Солнце и Луна в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/solntse-i-luna-v-dzhyotishe",
+    "excerpt": "Солнце и Луна в джйотише выполняют разные функции: статья показывает, как отделить естественные караки грах от значения раши, бхавы и связей в натальной карте."
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty"
+  ],
+  "prohibited_claims": [
+    "Не сводить Солнце к одному слову и Луну к одному эмоциональному ярлыку.",
+    "Не выдавать традиционную интерпретацию за научно доказанную причинность.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не выносить суждение по одному знаку или соединению без проверки бхавы, управителя и связей."
+  ],
+  "cover": {
+    "asset_id": "cover-solntse-i-luna-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/solntse-i-luna-v-dzhyotishe/cover.webp",
+    "alt": "Солнце и Луна как два разных светила внутри тонкой геометрии натальной карты на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "29efcbfcc031ba699106deed7555bf990ec22e33d96c0d0a90a1ff5620118afd",
+    "status": "ready",
+    "width": 1730,
+    "height": 909
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/solntse-i-luna-v-dzhyotishe",
+  "tags": [
+    "Планеты и дома",
+    "Солнце и Луна в джйотише",
+    "натальная карта"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Солнце и Луна в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "slug": "estestvennye-blagotvornye-i-vredonosnye-grahi",
+  "title": "Естественные благотворные и вредоносные грахи",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo": {
+    "seo_title": "Естественные благотворные и вредоносные грахи",
+    "meta_description": "Разберите естественные благотворные и вредоносные грахи: базовую классификацию, функциональную роль, чтение домов, пример и границы метода.",
+    "focus_keyphrase": "естественные благотворные и вредоносные грахи",
+    "canonical_url": "https://vedicway.ru/guide/estestvennye-blagotvornye-i-vredonosnye-grahi",
+    "excerpt": "Практическое объяснение естественной благотворности и вредоносности грах в парашарском джйотише: как отличать базовую природу от роли в конкретной карте."
+  },
+  "internal_links": [
+    "/guide/graha-v-dzhyotishe",
+    "/guide/dvenadcat-bhav",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать традиционную классификацию за научно подтверждённый прогноз.",
+    "Не обещать здоровье, доход, отношения или точную дату события по одной грахе.",
+    "Не смешивать естественную природу грахи с её функциональной ролью от Лагны.",
+    "Не называть вредоносную граху автоматически вредной для любой карты."
+  ],
+  "cover": {
+    "asset_id": "cover-estestvennye-blagotvornye-i-vredonosnye-grahi",
+    "path": "content/astrology-guide/articles/estestvennye-blagotvornye-i-vredonosnye-grahi/cover.webp",
+    "alt": "Сбалансированная круговая астрологическая схема с мягким светлым и тёмным мотивами на тёплом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения из поисковой выдачи не использовались.",
+    "sha256": "e6ccdb1b08f0a728bace1a2cef4028e49f7b05bb10ef9285959579f77e815f51",
+    "width": 1200,
+    "height": 675
+  },
+  "sha256": {
+    "article_md": "3A8A283A24A4192ADD11B0E2FB9877D81A78AE6AB6A92EB9BD1922E49FBA05D4",
+    "article_html": "E03E23693F69E8BA05F2216CFCC48C538F292422640AA656BF53C4631845C0AE",
+    "cover": "943891C11E48A4651D34A7F765CA64508E0C882C3CFB8377568538F3F5B3BAB1"
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/estestvennye-blagotvornye-i-vredonosnye-grahi",
+  "tags": [
+    "Планеты и дома",
+    "естественные благотворные и вредоносные грахи",
+    "грахи"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "естественные благотворные и вредоносные грахи"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Исходная линия для правил чтения домов, управителей и соединения показателей в парашарийской традиции."
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Сопоставительная линия для фиксации различий школ и ограничения переноса правил между системами."
+  }
+]

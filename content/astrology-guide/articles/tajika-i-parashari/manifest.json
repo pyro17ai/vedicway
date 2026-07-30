@@ -1,0 +1,140 @@
+{
+  "title": "Tajika и Parashari: какие правила нельзя смешивать",
+  "slug": "tajika-i-parashari",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_tajika_academic",
+    "src_phaladeepika",
+    "transits:TAJIKA_ACADEMIC",
+    "varga:BPHS_ARCHIVE_1",
+    "dasha:BPHS_ARCHIVE_2"
+  ],
+  "seo_title": "Tajika и Parashari: какие правила нельзя смешивать",
+  "meta_description": "Tajika и Parashari используют разные правила. Узнайте, где работают аспекты и Мунтха таджики, а где даша, варги и Ashtakavarga в системе Parashari.",
+  "focus_keyphrase": "Tajika и Parashari",
+  "intent": {
+    "type": "informational_comparison",
+    "primary": "Отличить правила годовой школы Tajika от натальных и временных методов Parashari, чтобы не смешивать расчёты.",
+    "wordstat": {
+      "exact_query": "Таджика и Парашари",
+      "exact_total_count": 0,
+      "exact_top_requests": [],
+      "exact_associations": [],
+      "checked_variants": [
+        {
+          "query": "таджика астрология",
+          "total_count": 1,
+          "top_requests": [],
+          "associations": []
+        },
+        {
+          "query": "парашари астрология",
+          "total_count": 1,
+          "top_requests": [],
+          "associations": []
+        }
+      ],
+      "result": "По главному запросу и вариантам Wordstat не вернул фраз или ассоциаций; редакционное семантическое ядро собрано по теме материала."
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "Tajika и Parashari",
+      "таджика и парашари",
+      "правила таджики и парашари"
+    ],
+    "close_formulations": [
+      "Tajika астрология",
+      "Parashari астрология",
+      "Varshaphala и Parashari",
+      "таджика и варшапхала",
+      "даша и годовая карта",
+      "варги в Parashari",
+      "Ashtakavarga и Varshaphala",
+      "Мунтха и управитель года",
+      "панча-варгия в таджике",
+      "таджикские аспекты"
+    ],
+    "reader_questions": [
+      "Чем Tajika отличается от Parashari?",
+      "Можно ли применять парашарийские аспекты в Varshaphala?",
+      "Можно ли считать Ashtakavarga по годовой карте?",
+      "Чем панча-варгия Tajika отличается от дробных карт?",
+      "Как сопоставить управителя года с махадашей и антардашей?",
+      "Какие правила годовой карты нельзя переносить в D1 и D10?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/tajika-i-parashari",
+  "seo": {
+    "seo_title": "Tajika и Parashari: какие правила нельзя смешивать",
+    "meta_description": "Tajika и Parashari используют разные правила. Узнайте, где работают аспекты и Мунтха таджики, а где даша, варги и Ashtakavarga в системе Parashari.",
+    "focus_keyphrase": "Tajika и Parashari",
+    "canonical_url": "https://vedicway.ru/guide/tajika-i-parashari",
+    "excerpt": "Граница между годовой школой Tajika и натальным контуром Parashari: аспекты, Мунтха и панча-варгия отдельно от даша, дробных карт и Ashtakavarga."
+  },
+  "cover": {
+    "asset_id": "cover-tajika-i-parashari",
+    "path": "content/astrology-guide/articles/tajika-i-parashari/cover.webp",
+    "alt": "Два раздельных астрологических круга на тёплой бумаге: годовой солнечный цикл и система вложенных натальных периодов",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1600,
+    "height": 900,
+    "sha256": "083b7a55df9de0fcd5e032e48f5d178da28d8f1495445450dcfaac41c473d04b",
+    "status": "ready"
+  },
+  "internal_links": [
+    {
+      "url": "/guide/varshaphala-tajika",
+      "anchor": "Varshaphala и Tajika"
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты"
+    },
+    {
+      "url": "/guide/antardasha-and-mahadasha-interpretation",
+      "anchor": "махадаша и антардаша"
+    },
+    {
+      "url": "/guide/ashtakavarga-i-gochara",
+      "anchor": "Ashtakavarga и гочара"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать Tajika или Parashari за научно подтверждённый способ предсказания событий.",
+    "Не переносить таджикские аспекты, достоинства и йоги в D1 или варги.",
+    "Не рассчитывать BAV и SAV от положений Varshaphala.",
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат."
+  ],
+  "difficulty": "expert",
+  "tags": [
+    "Время и циклы",
+    "Tajika и Parashari"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "Tajika и Parashari"
+      }
+    ],
+    "citation": [
+      "https://doi.org/10.1163/9789004433717",
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://journals.library.ualberta.ca/hssa/index.php/hssa/article/download/34/91",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

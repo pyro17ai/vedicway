@@ -1,0 +1,114 @@
+{
+  "$schema": "../../research/article-record.schema.json",
+  "slug": "upachayi",
+  "title": "Упачаи: 3-й, 6-й, 10-й и 11-й дома",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "phaladeepika_kapoor"
+  ],
+  "seo_title": "Упачаи в джйотише: 3-й, 6-й, 10-й и 11-й дома",
+  "meta_description": "Что такое упачаи в джйотише: разбор 3-го, 6-го, 10-го и 11-го домов, порядок чтения карты, пример и границы метода.",
+  "focus_keyphrase": "упачаи в джйотише",
+  "intent": {
+    "type": "informational",
+    "description": "Читатель ищет объяснение термина, список домов упачайи в джйотише и порядок их интерпретации.",
+    "wordstat_main_query": "упачаи 3 6 10 11 дома",
+    "wordstat_result": "0 запросов за последние 30 дней",
+    "wordstat_related_queries": [
+      {
+        "phrase": "упачаи",
+        "count": 24
+      },
+      {
+        "phrase": "дома упачайи",
+        "count": 58
+      },
+      {
+        "phrase": "дома упачайи джйотиш",
+        "count": 30
+      },
+      {
+        "phrase": "дома упачайя в джйотиш",
+        "count": 23
+      },
+      {
+        "phrase": "дома упачайя в джйотиш какие",
+        "count": 5
+      }
+    ],
+    "reader_questions": [
+      "Какие дома относятся к упачаям?",
+      "Почему 6-й дом считают одновременно трудным и растущим?",
+      "Чем упачаи отличаются от благотворных домов?",
+      "Как читать упачаи в натальной карте?"
+    ]
+  },
+  "semantic_core": [
+    "упачаи в джйотише",
+    "дома упачайи",
+    "дома упачайя",
+    "3 дом упачая",
+    "6 дом упачая",
+    "10 дом упачая",
+    "11 дом упачая",
+    "дома роста в джйотише",
+    "упачаи и благотворные дома",
+    "как читать упачаи в натальной карте",
+    "упачаи джйотиш"
+  ],
+  "canonical": "https://vedicway.ru/guide/upachayi",
+  "seo": {
+    "seo_title": "Упачаи в джйотише: 3-й, 6-й, 10-й и 11-й дома",
+    "meta_description": "Упачаи в джйотише называют 3-й, 6-й, 10-й и 11-й дома. Их связывают с ростом через повторяемое действие: человек учится, выдерживает сопротивление, закрепляет.",
+    "focus_keyphrase": "упачаи в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/upachayi",
+    "excerpt": "Упачаи в джйотише показывают рост через опыт и действие. Разбираем 3-й, 6-й, 10-й и 11-й дома и отделяем их от благотворных домов."
+  },
+  "internal_links": [
+    "/guide/dvenadcat-bhav",
+    "/guide/hozyain-doma-ot-lagny",
+    "/guide/rashi-bhava-lagna-i-doma",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Не выдавать упачаи за гарантированный прогноз событий, дохода или здоровья.",
+    "Не смешивать классификацию упачай с благотворными домами, кендрами, триконами и душтханами.",
+    "Не помещать источники, названия книг, библиографические ссылки или внешние URL в article.md и article.html."
+  ],
+  "cover": {
+    "asset_id": "cover-upachayi",
+    "path": "content/astrology-guide/articles/upachayi/cover.webp",
+    "alt": "Четыре терракотовые ступени роста с мягкими дугами созвездий на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано локально через ImageGen для VedicWay; внешние изображения не использовались.",
+    "width": 1721,
+    "height": 914,
+    "sha256": "e9efe1e478c718f1d440b7f26edacaae57198ff236eb507a641fdbbc2e3739a8",
+    "status": "ready"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "упачаи в джйотише",
+    "дома"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "упачаи в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://vedicilluminations.com/spiritual-library/Society%20Science%20Art/Astronomy%20astrology/Classics/Vedic%20Astrology%20ebooks%20pdf/Phaladeepika%20of%20Mantreswara.pdf"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

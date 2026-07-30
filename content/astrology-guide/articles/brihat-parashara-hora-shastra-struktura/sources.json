@@ -1,0 +1,55 @@
+[
+  {
+    "source_id": "S08",
+    "url": "https://vedpuran.net/wp-content/uploads/2021/04/brihat_parashara_hora_shastra_english_v.pdf",
+    "title": "Brihatparāśarahorāśāstra",
+    "author_or_institution": "Анонимная онлайн-перепечатка английского перевода",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "Brihat Parashara Hora Shastra",
+      "graha",
+      "rāśi",
+      "lagna",
+      "bhāva",
+      "yoga",
+      "daśā"
+    ],
+    "claims": [
+      "Оглавление PDF ведёт от глав о graha и rāśi к lagna, делениям, аспектам, bhāva, yoga и daśā.",
+      "В PDF главы 3–4 посвящены graha и rāśi, главы 5–8 вводят lagna и аспекты, главы 11–32 разбирают bhāva, главы 34–44 собраны вокруг yoga, главы 45–65 посвящены daśā и подпериодам.",
+      "Текст содержит отдельные разделы о Vimśottarī и других системах daśā, а также об antardaśā."
+    ],
+    "quality": "medium",
+    "limitations": "У PDF нет имени переводчика, издателя, датировки и сведений о санскритской рукописной базе; его используют для карты тем и проверки перевода, но не для единоличных исторических выводов.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "notes": "Лично прочитаны оглавление и начальные главы PDF через веб-доступ; ориентиры: страницы 0–2 оглавления, страницы 5–10 для graha и rāśi."
+  },
+  {
+    "source_id": "S09",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC1172313/",
+    "title": "Book Review: Catalogue of Jyotiṣa manuscripts in the Wellcome Library",
+    "author_or_institution": "Christopher Minkowski; Cambridge University Press",
+    "source_kind": "scholarly_secondary",
+    "publication_or_revision_date": "2005-07-01",
+    "topics": [
+      "история джйотиша",
+      "рукописи",
+      "gaṇita",
+      "saṃhitā",
+      "horā",
+      "текстовые редакции"
+    ],
+    "claims": [
+      "Рецензия описывает каталог 959 индийских рукописей Wellcome, представляющих более 500 текстов и примерно 250 авторов.",
+      "В рецензии корпус Jyotiṣa разделён на gaṇita, saṃhitā и horā.",
+      "Описание рукописей учитывает название, автора, датировку, начало текста, колофоны и физические особенности отдельных рукописей."
+    ],
+    "quality": "high",
+    "limitations": "Это рецензия на каталог Wellcome, а не каталог всех индийских рукописей и не критическое издание BPHS; она нужна для исторической оговорки о множественности текстовых свидетельств.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "notes": "Лично прочитан полный доступный текст записи через поисковую выдачу и страницу PubMed Central; проверены сведения о 959 рукописях, более чем 500 текстах, примерно 250 авторах и трёх разделах Jyotiṣa."
+  }
+]

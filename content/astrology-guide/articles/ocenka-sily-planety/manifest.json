@@ -1,0 +1,74 @@
+{
+  "title": "Как оценивать силу планеты",
+  "slug": "ocenka-sily-planety",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2",
+    "bphs_santhanam_archive"
+  ],
+  "seo": {
+    "seo_title": "Как оценивать силу планеты в джйотише",
+    "meta_description": "Разбираем, как оценивать силу планеты в джйотише: достоинство, дом, управительство, шадбалу, варги, аспекты и границы метода.",
+    "focus_keyphrase": "как оценивать силу планеты",
+    "canonical_url": "https://vedicway.ru/guide/ocenka-sily-planety",
+    "excerpt": "Практический порядок оценки силы планеты: сначала достоинство, затем дом и управительство, после этого количественные показатели, варги, аспекты и границы точности времени рождения."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "Как читать натальную карту",
+      "reason": "Переход к общему порядку чтения карты."
+    },
+    {
+      "url": "/guide/ekzaltaciya-i-debilitaciya-grah",
+      "anchor": "Экзальтация и дебилитация грах",
+      "reason": "Углубление в достоинство планеты по знаку."
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты",
+      "reason": "Получение исходных положений перед интерпретацией."
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать гарантированный прогноз по одному показателю силы.",
+    "Не выдавать астрологическую интерпретацию за медицинскую, финансовую или научно доказанную причинность.",
+    "Не смешивать правила разных школ и расчётных алгоритмов без обозначения различий."
+  ],
+  "cover": {
+    "asset_id": "cover-ocenka-sily-planety",
+    "path": "content/astrology-guide/articles/ocenka-sily-planety/cover.webp",
+    "alt": "Светящаяся планета на чаше весов рядом с кругом натальной карты на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "status": "ready",
+    "sha256": "608b7c20a3c3a1d3b28b4c8b09eadd3ca4220d98124ac1c95262cc5a10417326",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/ocenka-sily-planety",
+  "tags": [
+    "Практика чтения карты",
+    "как оценивать силу планеты",
+    "планеты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "как оценивать силу планеты"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

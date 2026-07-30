@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "role": "Фоновая проверка парашарской терминологии, структуры чтения карты и ограничения перевода одной редакцией."
+  },
+  {
+    "source_id": "S2",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка необходимости отделять школу Джаймини от общей вводной схемы чтения."
+  },
+  {
+    "source_id": "EXA-1",
+    "url": "https://sanskritdocuments.org/doc_z_misc_sociology_astrology/par0110.pdf",
+    "role": "Первичная проверка определения грах, двенадцати раши и Лагны в тексте Брихат-парашара-хора-шастры."
+  }
+]

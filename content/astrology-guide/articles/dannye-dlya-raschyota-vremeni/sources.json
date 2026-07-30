@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=r&nho2=1&nhor=1&pa=nmo",
+    "role": "Техническая проверка преобразования местного времени в UTC, расчёта юлианского дня, сидерического режима, аянамши, координат и домов."
+  },
+  {
+    "source_id": "exa-swephprg-pdf",
+    "url": "https://www.astro.com/ftp/swisseph/doc/swephprg.pdf",
+    "role": "Дополнительная проверка цепочки местное время, UTC, UT и TT, а также перечня параметров, необходимых для повторения вычисления."
+  }
+]

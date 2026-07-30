@@ -1,0 +1,213 @@
+{
+  "title": "Саде-сати как трёхфазный транзит Сатурна",
+  "slug": "sade-sati-tri-fazy",
+  "category": "Планеты и дома",
+  "seo_title": "Саде-сати: три фазы транзита Сатурна по Луне",
+  "meta_description": "Саде-сати по шагам: как найти три фазы Сатурна от натальной Луны, рассчитать последовательность знаков и оценить период без фатальных выводов.",
+  "focus_keyphrase": "Саде-сати",
+  "intent": {
+    "type": "informational_calculation",
+    "status": "wordstat_confirmed",
+    "summary": "Читатель хочет понять значение Саде-сати, рассчитать период по дате рождения или знаку натальной Луны, увидеть три фазы и получить расшифровку без фатального обещания.",
+    "wordstat": {
+      "phrase": "саде сати",
+      "regions": [],
+      "period": "last_30_days",
+      "total_count": 4787,
+      "top_requests": [
+        {
+          "phrase": "саде сати",
+          "count": 4787
+        },
+        {
+          "phrase": "саде сати рассчитать",
+          "count": 1374
+        },
+        {
+          "phrase": "период саде сати",
+          "count": 1041
+        },
+        {
+          "phrase": "саде сати онлайн",
+          "count": 824
+        },
+        {
+          "phrase": "саде сати рассчитать онлайн",
+          "count": 576
+        },
+        {
+          "phrase": "саде сати джйотиш",
+          "count": 243
+        },
+        {
+          "phrase": "саде сати расчет",
+          "count": 237
+        },
+        {
+          "phrase": "саде сати луна",
+          "count": 212
+        },
+        {
+          "phrase": "саде сати калькулятор",
+          "count": 189
+        },
+        {
+          "phrase": "саде сати сатурн",
+          "count": 162
+        },
+        {
+          "phrase": "саде сати даты",
+          "count": 122
+        },
+        {
+          "phrase": "саде сати в домах",
+          "count": 122
+        },
+        {
+          "phrase": "фазы саде сати",
+          "count": 41
+        },
+        {
+          "phrase": "как определить саде сати",
+          "count": 35
+        },
+        {
+          "phrase": "сколько длится саде сати",
+          "count": 22
+        }
+      ],
+      "excluded_clusters": [
+        "запросы по отдельным лунным знакам без расчётной задачи",
+        "форумные истории без проверяемых параметров карты",
+        "нерелевантные ассоциации Wordstat со словом сад"
+      ]
+    }
+  },
+  "semantic_core": {
+    "primary": [
+      "Саде-сати",
+      "период Саде-сати",
+      "Саде-сати рассчитать",
+      "фазы Саде-сати"
+    ],
+    "close_formulations": [
+      "Саде-сати в джйотиш",
+      "Саде-сати и Луна",
+      "транзит Сатурна по Луне",
+      "три фазы Саде-сати",
+      "Саде-сати по дате рождения",
+      "Саде-сати по домам",
+      "даты Саде-сати",
+      "сколько длится Саде-сати"
+    ],
+    "reader_questions": [
+      "что такое Саде-сати простыми словами",
+      "как определить начало и конец Саде-сати",
+      "какие три фазы проходит Сатурн",
+      "почему Саде-сати считают от натальной Луны",
+      "обязательно ли средняя фаза самая тяжёлая",
+      "как ретроградность меняет границы фаз",
+      "можно ли рассчитать период без точного времени рождения",
+      "почему Саде-сати не даёт готовый прогноз"
+    ],
+    "entities": [
+      "Саде-сати",
+      "Сатурн",
+      "натальная Луна",
+      "гочара",
+      "даша",
+      "айанамша",
+      "Ashtakavarga",
+      "ретроградное движение"
+    ],
+    "cluster": "расчёт и чтение трёх фаз Саде-сати по знакам от натальной Луны"
+  },
+  "canonical": "https://vedicway.ru/guide/sade-sati-tri-fazy",
+  "status": "ready_for_import",
+  "source_ids": [
+    "src_brihat_gocara",
+    "src_phaladeepika",
+    "EXA_PHALADEEPIKA_26",
+    "EXA_SADE_SATI_METHOD"
+  ],
+  "seo": {
+    "seo_title": "Саде-сати: три фазы транзита Сатурна по Луне",
+    "meta_description": "Саде-сати по шагам: как найти три фазы Сатурна от натальной Луны, рассчитать последовательность знаков и оценить период без фатальных выводов.",
+    "focus_keyphrase": "Саде-сати",
+    "canonical_url": "https://vedicway.ru/guide/sade-sati-tri-fazy",
+    "excerpt": "Практическая схема Саде-сати: 12-й, 1-й и 2-й знаки от натальной Луны, расчёт границ при ретроградности и проверка периода через карту и даша."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    },
+    {
+      "url": "/guide/sopostavlenie-dashi-i-tranzita",
+      "anchor": "как сопоставлять даша и транзит"
+    },
+    {
+      "url": "/guide/ashtakavarga-i-gochara",
+      "anchor": "Ashtakavarga и гочары"
+    },
+    {
+      "url": "/guide/gochara-transity-otnositelno-natalnoy-luny",
+      "anchor": "гочара относительно натальной Луны"
+    }
+  ],
+  "schema_types": [
+    "Article",
+    "FAQPage"
+  ],
+  "prohibited_claims": [
+    "гарантированное несчастье или обязательное событие по факту Саде-сати",
+    "медицинский диагноз либо обещание здоровья",
+    "финансовый результат или точная сумма",
+    "неизбежный разрыв отношений",
+    "единая тяжесть периода для всех карт и даша"
+  ],
+  "cover": {
+    "asset_id": "cover-sade-sati-tri-fazy",
+    "path": "content/astrology-guide/articles/sade-sati-tri-fazy/cover.webp",
+    "alt": "Сатурн движется по трёхчастной терракотово-охристой дуге вокруг натальной Луны на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения, логотипы и водяные знаки не использовались.",
+    "width": 1672,
+    "height": 941,
+    "aspect_ratio": "16:9",
+    "mime_type": "image/png",
+    "sha256": "bb031d65002ef02b8dc7f54c8eed0382653118245b91fe56549179599a794ac2",
+    "status": "ready"
+  },
+  "sha256": {
+    "article_md": "688E7E5C2E6B46DF81ECB6597E3E57005A8C1FD699F6E4B8ED102DED1FF02EAB",
+    "article_html": "459914BFDF6D46C0DD99CFD032FAB81D4E173141847B1454D5F832473D162297",
+    "sources_json": "7DE6044CEE3D547A8D5051A0AB256A4DB3A4DEBD61715176622DFDF0AC63C24C",
+    "cover": "0A446FE9D769496EF3651278E4AD2A74B4B54E85A96D55D21FF1A3466DC4C303"
+  },
+  "difficulty": "beginner",
+  "tags": [
+    "Планеты и дома",
+    "Саде-сати",
+    "транзиты"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Саде-сати"
+      }
+    ],
+    "citation": [
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html",
+      "https://jyotishvidya.com/HTMLobj-9415/Mantreswara_s__Phaladeeplka_.pdf",
+      "https://www.siva.sh/phaladeepika/26/",
+      "https://www.tempora.ltd/findings/sadesati"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

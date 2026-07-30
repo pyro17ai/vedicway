@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph-download/doc/swephprg.2.10.htm",
+    "role": "Проверка технической фиксации сидерического режима, аянамши, времени UT и расчёта куспидов домов."
+  },
+  {
+    "source_id": "S6",
+    "url": "https://www.astro.com/swisseph/sweph_ht_e.htm?lang=j&nho2=2&nhor=10",
+    "role": "Проверка различия Whole Sign и других способов разбиения карты на дома."
+  },
+  {
+    "source_id": "swisseph_sidereal_reference",
+    "url": "https://www.astro.com/swisseph/swephprg.htm?lang=j&nhor=432667btyp%3Dvip",
+    "role": "Проверка определения аянамши и связи сидерических долгот с тропическими."
+  }
+]

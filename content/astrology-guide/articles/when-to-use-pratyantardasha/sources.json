@@ -1,0 +1,57 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "Vimshottari",
+      "antardasha",
+      "pratyantardasha",
+      "вложенные периоды",
+      "трактовка по натальной карте"
+    ],
+    "claims": [
+      "Оглавление выделяет главу 51 о расчёте antardasha в Vimshottari и главу 61 о расчёте pratyantardasha внутри antardasha.",
+      "Глава 61 использует для pratyantardasha произведение длины antardasha в днях и полной длительности планеты, разделённое на 120 лет Vimshottari.",
+      "В примере главы 61 antardasha Солнца длится 108 дней; pratyantardasha Солнца равна 108 × 6 / 120 = 5 дней 24 гхатики, а pratyantardasha Луны — 108 × 10 / 120 = 9 дней.",
+      "Главы о результатах даши связывают чтение периода с достоинством, силой, размещением планеты и её отношением к асценденту.",
+      "Глава 62 показывает следующий вложенный уровень sookshma-dasha внутри pratyantardasha."
+    ],
+    "quality": "high",
+    "limitations": "Использован английский перевод и OCR-текст редакции R. Santhanam с редакторскими комментариями; он не заменяет критическое сопоставление санскритских редакций и не устанавливает единственную школу календарного округления.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": "dasha:BPHS_ARCHIVE_2",
+    "notes": "URL лично прочитан через поиск по тексту и фрагменты глав 51, 61 и 62. В verified-reading-log.jsonl источник записан под нормализованным идентификатором dasha:BPHS_ARCHIVE_2. Цитаты не использованы; факты пересказаны своими словами."
+  },
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": null,
+    "topics": [
+      "программный расчёт",
+      "сидерическая долгота Луны",
+      "Vimshottari",
+      "Julian Day",
+      "вложенные уровни"
+    ],
+    "claims": [
+      "Реализация относит Vimshottari, Ashtottari и Yogini к системам, использующим сидерическую долготу натальной Луны, а Chara и Narayana — к системам на основе знака лагны.",
+      "Контракт входа принимает дату рождения как birth_jd, долготу Луны в диапазоне [0, 360) и число вложенных уровней от 1 до 5 для лунных систем.",
+      "Инструмент возвращает иерархическое дерево периодов с началом и концом в Julian Day.",
+      "Проверка полей и число уровней описывают одну программную реализацию и не доказывают каноничность алгоритма или единственную школу трактовки."
+    ],
+    "quality": "high",
+    "limitations": "Исходный код показывает поведение конкретной программы и её валидацию; он не выбирает за читателя аянамшу, систему домов, школу накшатр или правило календарного года.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": null,
+    "notes": "URL и raw-представление файла лично прочитаны 2026-07-28 через GitHub/Search. Отдельная запись S5 в verified-reading-log.jsonl не найдена, поэтому источник использован только для описания программного контракта и ограничений реализации."
+  }
+]

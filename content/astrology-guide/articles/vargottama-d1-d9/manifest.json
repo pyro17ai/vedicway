@@ -1,0 +1,134 @@
+{
+  "title": "Vargottama: совпадение D1 и D9 без обещания автоматического успеха",
+  "slug": "vargottama-d1-d9",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "mystery_navamsa",
+    "bphs_varga_use",
+    "exa_horaratnam_vargottama"
+  ],
+  "seo_title": "Vargottama D1 и D9: как оценить силу планеты",
+  "meta_description": "Vargottama в D1 и D9: как найти совпадение знака и оценить планету по достоинству, дому и управлению без обещания успеха по одному показателю.",
+  "focus_keyphrase": "Vargottama D1 D9",
+  "intent": {
+    "source": "wordstat",
+    "type": "informational_practical",
+    "status": "broader_query_data_found",
+    "primary_query": "варготтама D1 D9",
+    "primary_query_total_count": 0,
+    "primary_query_top_requests": [],
+    "primary_query_associations": [],
+    "broader_query": "варготтама",
+    "broader_query_total_count": 164,
+    "reader_need": "Понять, что означает совпадение знака в D1 и D9, научиться находить Vargottama и отличать повторяющуюся силу от автоматической благоприятности.",
+    "top_requests": [
+      {
+        "phrase": "варготтама",
+        "count": 164
+      },
+      {
+        "phrase": "варготтама джйотиш что это",
+        "count": 19
+      },
+      {
+        "phrase": "венера варготтама",
+        "count": 13
+      }
+    ],
+    "excluded_associations_note": "Автоматические ассоциации Wordstat не относились к джйотишу и исключены из семантического ядра."
+  },
+  "semantic_core": {
+    "primary": [
+      "Vargottama D1 D9",
+      "варготтама",
+      "варготтама джйотиш что это"
+    ],
+    "related": [
+      "планета варготтама",
+      "лагна варготтама",
+      "Венера варготтама",
+      "совпадение знака в D1 и D9",
+      "раши и навамша",
+      "сила планеты в D9",
+      "варготтама в дебилитации",
+      "как определить варготтаму"
+    ],
+    "questions": [
+      "Что означает Vargottama в D1 и D9?",
+      "Как определить планету vargottama?",
+      "Всегда ли vargottama делает планету сильной и благоприятной?",
+      "Что означает vargottama в знаке дебилитации?",
+      "Может ли vargottama отменить слабость D1?",
+      "Как читать дом планеты vargottama?"
+    ]
+  },
+  "canonical": "https://vedicway.ru/guide/vargottama-d1-d9",
+  "seo": {
+    "seo_title": "Vargottama D1 и D9: как оценить силу планеты",
+    "meta_description": "Vargottama в D1 и D9: как найти совпадение знака и оценить планету по достоинству, дому и управлению без обещания успеха по одному показателю.",
+    "focus_keyphrase": "Vargottama D1 D9",
+    "canonical_url": "https://vedicway.ru/guide/vargottama-d1-d9",
+    "excerpt": "Vargottama фиксирует один знак планеты в D1 и D9. Разбираем расчёт, достоинство, дома и пример Марса без автоматического обещания успеха."
+  },
+  "internal_links": [
+    {
+      "url": "/guide/d1-i-drobnie-karty",
+      "anchor": "D1 и дробные карты"
+    },
+    {
+      "url": "/guide/d9-navamsha",
+      "anchor": "D9 Navamsha"
+    },
+    {
+      "url": "/guide/rashi-i-navamsha",
+      "anchor": "Раши и навамша"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Vargottama автоматически гарантирует успех, богатство, статус или счастливый брак.",
+    "Совпадение D1 и D9 отменяет дебилитацию, трудное управление домами или повреждение планеты.",
+    "Один показатель Vargottama заменяет полную оценку карты или временные методы."
+  ],
+  "cover": {
+    "asset_id": "cover-vargottama-d1-d9",
+    "file": "cover.png",
+    "path": "content/astrology-guide/articles/vargottama-d1-d9/cover.webp",
+    "alt": "Два совмещённых астрологических круга D1 и D9 с планетой в одинаковом секторе на тёплой бумаге",
+    "source_kind": "imagegen",
+    "license_note": "Создано встроенным ImageGen специально для VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "width": 1600,
+    "height": 900,
+    "format": "png",
+    "sha256": "5dea3e965c5ec3fc1ce7eac66f9aab07123af5859ffeaf15f9b791cfed738176",
+    "status": "ready"
+  },
+  "sha256": "18E6BDB3897CBD6A531488E8FEEA74933D7266472706D6B51215A8E552718B7B",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "Vargottama D1 D9"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "Vargottama D1 D9"
+      }
+    ],
+    "citation": [
+      "https://ijirah.dvpublication.com/uploads/666dbcc893bf7_340.pdf",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/",
+      "https://www.astrojyoti.com/horaratnam-chapter-one-4.htm"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

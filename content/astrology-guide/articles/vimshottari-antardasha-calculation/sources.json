@@ -1,0 +1,55 @@
+[
+  {
+    "source_id": "S1",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%202%20RSanthanam_djvu.txt",
+    "title": "Full text of Brihat Parashara Hora Shastra",
+    "author_or_institution": "R. Santhanam, перевод и комментарии",
+    "source_kind": "primary_text",
+    "publication_or_revision_date": null,
+    "topics": [
+      "Vimshottari",
+      "antardasha",
+      "порядок управителей",
+      "длительности маха-даш",
+      "интерпретация периодов"
+    ],
+    "claims": [
+      "Глава 46 перечисляет порядок управителей Vimshottari и длительности 6, 10, 7, 18, 16, 19, 17, 7 и 20 лет; их сумма равна 120 годам.",
+      "Глава 51 задаёт пропорцию длительности antardasha как произведение длительности маха-даши и длительности управителя подпериода, делённое на 120.",
+      "Глава 51 начинает antardasha с управителя текущей маха-даши и продолжает порядок планет по кругу.",
+      "Главы 47–60 описывают чтение результатов периодов через положение, достоинство и силу планет в натальной карте."
+    ],
+    "quality": "high",
+    "limitations": "Использован английский перевод и OCR-текст редакции R. Santhanam с редакторскими комментариями; он не заменяет критическое сопоставление санскритских редакций и не устанавливает единственную школу календарного округления.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": "dasha:BPHS_ARCHIVE_2",
+    "notes": "URL лично прочитан по оглавлению и фрагментам глав 46 и 51. В verified-reading-log.jsonl источник записан под нормализованным идентификатором dasha:BPHS_ARCHIVE_2, а не S1. Цитаты не использованы; факты пересказаны своими словами."
+  },
+  {
+    "source_id": "S5",
+    "url": "https://github.com/arthiqlabs/vedaksha/blob/main/crates/vedaksha-mcp/src/tools/compute_dasha.rs",
+    "title": "compute_dasha.rs",
+    "author_or_institution": "ArthiQLabs",
+    "source_kind": "technical_reference",
+    "publication_or_revision_date": null,
+    "topics": [
+      "программный расчёт",
+      "сидерическая долгота Луны",
+      "Vimshottari",
+      "Julian Day",
+      "вложенные уровни"
+    ],
+    "claims": [
+      "Реализация относит Vimshottari к лунным системам и требует сидерическую долготу натальной Луны.",
+      "Контракт входа принимает долготу Луны в диапазоне [0, 360), дату рождения как birth_jd и число вложенных уровней от 1 до 5.",
+      "Инструмент возвращает иерархическое дерево периодов с началом и концом в Julian Day."
+    ],
+    "quality": "high",
+    "limitations": "Исходный код показывает поведение конкретной программы и её валидацию; он не доказывает каноничность алгоритма и не выбирает за читателя аянамшу, систему домов или правило календарного года.",
+    "observed_at": "2026-07-28",
+    "review_status": "personally_verified",
+    "verified_reading_log": null,
+    "notes": "URL и raw-представление файла лично прочитаны 2026-07-28. Отдельная запись S5 в verified-reading-log.jsonl не найдена, поэтому источник использован только для описания программного контракта и ограничений реализации."
+  }
+]

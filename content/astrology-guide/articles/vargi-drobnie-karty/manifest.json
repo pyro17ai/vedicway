@@ -1,0 +1,147 @@
+{
+  "slug": "vargi-drobnie-karty",
+  "title": "Варги: зачем нужны дробные карты",
+  "category": "Основы астрологии",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S2"
+  ],
+  "seo": {
+    "seo_title": "Дробные карты джйотиш: зачем нужны варги",
+    "meta_description": "Дробные карты джйотиш уточняют отдельные темы натальной карты. Разбираем D1, D9, D10, D7 и D16, порядок чтения, расчёт и границы метода.",
+    "focus_keyphrase": "дробные карты джйотиш",
+    "canonical_url": "https://vedicway.ru/guide/vargi-drobnie-karty",
+    "excerpt": "Варга уточняет отдельную область натальной карты, но не заменяет D1. Разбираем назначение D9, D10, D7 и D16, порядок чтения и ограничения расчёта."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "дробные карты джйотиш",
+    "type": "informational_definition_and_how_to",
+    "status": "data_found",
+    "total_count": 200,
+    "top_requests": [
+      {
+        "phrase": "дробные карты джйотиш",
+        "count": 200
+      },
+      {
+        "phrase": "значения дробных карт джйотиш",
+        "count": 21
+      },
+      {
+        "phrase": "дробная карта д16 джйотиш",
+        "count": 12
+      },
+      {
+        "phrase": "дробная карта детей джйотиш",
+        "count": 9
+      },
+      {
+        "phrase": "дробная карта д7 в джйотиш",
+        "count": 8
+      },
+      {
+        "phrase": "дробные карты в джйотиш за что отвечает",
+        "count": 7
+      },
+      {
+        "phrase": "дробная карта д10 джйотиш",
+        "count": 4
+      }
+    ],
+    "associations": [
+      {
+        "phrase": "ведическая астрология",
+        "count": 13626
+      },
+      {
+        "phrase": "ведическая натальная карта",
+        "count": 3330
+      },
+      {
+        "phrase": "ведическая астрология рассчитать",
+        "count": 948
+      },
+      {
+        "phrase": "накшатры джйотиш",
+        "count": 3750
+      }
+    ],
+    "reader_need": "Понять, что такое варги, за какую область отвечает каждая основная дробная карта и в каком порядке сопоставлять её с D1.",
+    "wordstat_notes": "Запрос «варги в ведической астрологии» дал 0 найденных фраз при total_count 3; запрос «дробные карты в ведической астрологии» дал 5."
+  },
+  "semantic_core": {
+    "primary": [
+      "дробные карты джйотиш",
+      "варги в джйотиш",
+      "дробные карты в ведической астрологии"
+    ],
+    "related": [
+      "значения дробных карт джйотиш",
+      "навамша что это",
+      "D1 раши",
+      "D9 навамша",
+      "D10 дашамша",
+      "D7 саптамша",
+      "D16 шодашамша",
+      "шодашаварга",
+      "как читать варги",
+      "за что отвечает дробная карта"
+    ],
+    "questions": [
+      "Что такое дробные карты в джйотиш?",
+      "За что отвечает каждая варга?",
+      "Заменяет ли D9 натальную карту D1?",
+      "Как читать D9 и D10 вместе с раши?",
+      "Почему дробная карта меняется при неточном времени рождения?"
+    ]
+  },
+  "internal_links": [
+    "/chart",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/guide/rashi-bhava-lagna-i-doma"
+  ],
+  "prohibited_claims": [
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не выдавать варгу за самостоятельную замену D1.",
+    "Не делать точный вывод по D60 и другим тонким картам при непроверенном времени рождения."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Круг натальной карты с выделенным внутренним сектором дробной карты на тёплом бумажном фоне",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1200,
+    "height": 630,
+    "sha256": "c87ab3fc9bb7cb9be1482125764431fa38e3578c8afa387a5bea31b542a36e97",
+    "asset_id": "cover-vargi-drobnie-karty",
+    "path": "content/astrology-guide/articles/vargi-drobnie-karty/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "A2B4F655DCCECA546841E3865BF9488675872F9FFC15A11CFBF5A9FB8C4518A0",
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/vargi-drobnie-karty",
+  "tags": [
+    "Основы астрологии",
+    "дробные карты джйотиш",
+    "варги"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Основы астрологии"
+      },
+      {
+        "@type": "Thing",
+        "name": "дробные карты джйотиш"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+      "https://divyachadhava.com/en/sanatan-sahitya/bphs-chapter-7-divisional-considerations",
+      "https://jagannathhora.com/divisional-charts-interpretation-framework/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

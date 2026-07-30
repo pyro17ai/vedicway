@@ -1,0 +1,131 @@
+{
+  "slug": "istoricheskiy-chasovoy-poyas",
+  "title": "Исторический часовой пояс и переходы времени",
+  "category": "Время и циклы",
+  "status": "ready_for_import",
+  "source_ids": [
+    "S4",
+    "IANA_TZDB_THEORY_2025C",
+    "IANA_TZDB_HOW_TO"
+  ],
+  "seo": {
+    "seo_title": "Исторический часовой пояс и переходы времени",
+    "meta_description": "Как найти исторический часовой пояс по месту и дате рождения, проверить переход часов, перевести местное время в UTC и избежать ошибки в карте.",
+    "focus_keyphrase": "исторический часовой пояс",
+    "canonical_url": "https://vedicway.ru/guide/istoricheskiy-chasovoy-poyas",
+    "excerpt": "Практический порядок проверки исторического часового пояса: географическая зона, переходы часов, перевод в UTC и работа с неоднозначным временем рождения."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "исторический часовой пояс",
+    "type": "informational_how_to",
+    "status": "low_volume",
+    "total_count": 17,
+    "top_requests": [],
+    "associations": [],
+    "secondary_queries": [
+      {
+        "query": "часовой пояс дата рождения",
+        "total_count": 73,
+        "top_requests": [
+          {
+            "phrase": "часовой пояс по дате рождения",
+            "count": 24
+          }
+        ]
+      },
+      {
+        "query": "как узнать часовой пояс в прошлом",
+        "total_count": 0,
+        "top_requests": []
+      }
+    ],
+    "reader_need": "Восстановить действовавшее смещение UTC для конкретного места и даты рождения, распознать переходный час и получить воспроизводимое время для расчёта натальной карты."
+  },
+  "semantic_core": {
+    "primary": [
+      "исторический часовой пояс",
+      "часовой пояс по дате рождения"
+    ],
+    "related": [
+      "история часовых поясов",
+      "переход на летнее время",
+      "смещение UTC по дате",
+      "местное время рождения",
+      "перевод местного времени в UTC",
+      "географическая часовая зона",
+      "исторические переходы времени"
+    ],
+    "questions": [
+      "как узнать часовой пояс по дате рождения",
+      "как проверить часовой пояс в прошлом",
+      "что делать при переводе часов назад",
+      "как перевести время рождения в UTC",
+      "почему программы показывают разное время",
+      "можно ли использовать современный часовой пояс для старой даты"
+    ]
+  },
+  "internal_links": [
+    {
+      "url": "/guide/podgotovka-dannyh-rozhdeniya",
+      "anchor": "Как подготовить исходные данные рождения"
+    },
+    {
+      "url": "/guide/koordinaty-mesta-rozhdeniya-v-karte",
+      "anchor": "Место рождения и координаты в натальной карте"
+    },
+    {
+      "url": "/guide/letnee-vremya-i-natalnaya-karta",
+      "anchor": "Летнее время в натальной карте"
+    },
+    {
+      "url": "/chart",
+      "anchor": "расчёт натальной карты"
+    }
+  ],
+  "prohibited_claims": [
+    "Не обещать медицинский, финансовый или гарантированный прогностический результат.",
+    "Не выдавать проверку UTC за доказательство точности минуты рождения.",
+    "Не называть ранние исторические данные безусловно точными для любого места региона.",
+    "Не исправлять ошибку часового пояса сменой аянамши или системы домов."
+  ],
+  "cover": {
+    "asset_id": "cover-istoricheskiy-chasovoy-poyas",
+    "path": "content/astrology-guide/articles/istoricheskiy-chasovoy-poyas/cover.webp",
+    "alt": "Часовой диск с двумя расходящимися стрелками и линией перехода на тёплой бумажной фактуре",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Изображение создано встроенным ImageGen для VedicWay; сторонние изображения из поисковой выдачи не использовались.",
+    "sha256": "1890dcb19dfab2a4f43492de6edbbb04733829d9c10fcaa233b9630f0da3ab3d",
+    "width": 1729,
+    "height": 910
+  },
+  "sha256": {
+    "article_md": "95124131CC286807BB394BFFF8FAB770CE0273DE52F95C53B33453E4DF06CA0F",
+    "article_html": "56E00481E6B03A0ABBD45782ADEDF22D708ACBAAD7A4EEE7D01BFE206D85E585",
+    "cover": "7BC2CC9713C9D5205D51E46CABFE0D3B711D8446BFF8B2C8A7BD7AD6FCFC69B2"
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/istoricheskiy-chasovoy-poyas",
+  "tags": [
+    "Время и циклы",
+    "исторический часовой пояс"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Время и циклы"
+      },
+      {
+        "@type": "Thing",
+        "name": "исторический часовой пояс"
+      }
+    ],
+    "citation": [
+      "https://ftp.iana.org/tz/tzdb-2025c/theory.html",
+      "https://data.iana.org/time-zones/tzdb/tz-how-to.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "bphs_santhanam_archive",
+    "url": "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+    "role": "Проверка базовой схемы парашарского джйотиша: девять грах, 12 раши, лагна и 12 домов."
+  },
+  {
+    "source_id": "bphs_sapta_comparative",
+    "url": "https://saptamatrika.ru/en/bphs",
+    "role": "Сверка терминов раши и оговорки о различиях редакций при работе с парашарским корпусом."
+  }
+]

@@ -1,0 +1,62 @@
+{
+  "slug": "saturn-v-dzhyotish",
+  "title": "Сатурн в джйотише: время, ограничение и устойчивость",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "transits:BRHAT_GOCARA"
+  ],
+  "seo": {
+    "seo_title": "Сатурн в джйотише: время, ограничение и устойчивость",
+    "meta_description": "Разбираем Сатурн в джйотише через дома, знаки и гочара: как читать время, ограничения и устойчивость без фатальных обещаний.",
+    "focus_keyphrase": "Сатурн в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/saturn-v-dzhyotish",
+    "excerpt": "Сатурн в джйотише связывают с временем, ответственностью и устойчивостью. Статья показывает порядок чтения карты, учебный пример и границы метода."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/rashi-v-dzhyotishe"
+  ],
+  "prohibited_claims": [
+    "Не выдавать интерпретацию Сатурна за медицинскую, психологическую или финансовую диагностику.",
+    "Не обещать по Сатурну точную дату, неизбежную потерю, гарантированный успех или фатальный исход.",
+    "Не смешивать правила разных редакций BPHS, школ, айанамш и систем домов без явной маркировки.",
+    "Не выдавать условный учебный пример за фактическое положение планет в реальной карте."
+  ],
+  "cover": {
+    "asset_id": "cover-saturn-v-dzhyotish",
+    "path": "content/astrology-guide/articles/saturn-v-dzhyotish/cover.webp",
+    "alt": "Сатурн как символ времени и устойчивости: тёмная планета, строгие орбиты и каменная фактура на тёплом бумажном фоне",
+    "status": "ready",
+    "sha256": "ce83cd870cf5b3ccf52e3403ca5d0d0fc4a0c4c0ab7674dd91e2ff40a73b9197",
+    "width": 1600,
+    "height": 900
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/saturn-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Сатурн в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Сатурн в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc229368.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

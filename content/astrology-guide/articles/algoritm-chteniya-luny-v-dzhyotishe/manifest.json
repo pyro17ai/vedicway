@@ -1,0 +1,76 @@
+{
+  "slug": "algoritm-chteniya-luny-v-dzhyotishe",
+  "title": "Минимальный алгоритм чтения Луны в карте рождения",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "A1",
+    "A5",
+    "A7"
+  ],
+  "seo": {
+    "seo_title": "Алгоритм чтения Луны в джйотише: накшатра и пада",
+    "meta_description": "Пошагово найдите накшатру и паду Луны по сидерической долготе, проверьте контекст карты и учтите границу между 27 и 28 секторами.",
+    "focus_keyphrase": "алгоритм чтения Луны в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/algoritm-chteniya-luny-v-dzhyotishe",
+    "excerpt": "Минимальный путь от сидерической долготы Луны к раши, накшатре и паде с учебным примером, проверкой контекста карты и оговоркой о 27- и 28-секторных школах."
+  },
+  "internal_links": [
+    {
+      "url": "/chart",
+      "anchor": "калькулятор натальной карты",
+      "reason": "Переход к расчёту исходной карты перед чтением Луны."
+    },
+    {
+      "url": "/guide/algoritm-chteniya-natalnoy-karty",
+      "anchor": "алгоритм чтения натальной карты",
+      "reason": "Продолжение проверки контекста за пределами одной планеты."
+    },
+    {
+      "url": "/guide/dzhanma-nakshatra-luny",
+      "anchor": "материал о джанма-накшатре Луны",
+      "reason": "Углубление темы лунной накшатры после базового расчёта."
+    }
+  ],
+  "prohibited_claims": [
+    "Не выдавать расчёт долготы, накшатры или пады за научно подтверждённый прогноз.",
+    "Не обещать по Луне здоровье, деньги, юридический результат, профессию или неизбежное событие.",
+    "Не смешивать 27-секторную формулу с 28-позиционной традицией без указания школы и границ.",
+    "Не приписывать архивной копии BPHS конкретное правило без ручной проверки текста и редакции.",
+    "Не скрывать дату, время, место, зодиак, аянāмшу и способ округления, от которых зависит расчёт."
+  ],
+  "cover": {
+    "asset_id": "cover-algoritm-chteniya-luny-v-dzhyotishe",
+    "path": "content/astrology-guide/articles/algoritm-chteniya-luny-v-dzhyotishe/cover.webp",
+    "alt": "Спокойная геометрическая схема лунной орбиты и дуг накшатры на тёплой бумаге",
+    "status": "ready",
+    "source_kind": "ai_generated",
+    "license_note": "Создано встроенным ImageGen для проекта VedicWay; внешние изображения и поисковая выдача не использовались.",
+    "sha256": "838552f263f93dc2419ae06351ca3095a0eedf6b64bc188085b47d257602af9c",
+    "width": 1664,
+    "height": 936
+  },
+  "difficulty": "expert",
+  "canonical": "https://vedicway.ru/guide/algoritm-chteniya-luny-v-dzhyotishe",
+  "tags": [
+    "Практика чтения карты",
+    "алгоритм чтения Луны в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "алгоритм чтения Луны в джйотише"
+      }
+    ],
+    "citation": [
+      "https://hasp.ub.uni-heidelberg.de/journals/ejvs/article/download/1522/10436/23236",
+      "https://archive.org/details/brihat-parashara-hora-shastra"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

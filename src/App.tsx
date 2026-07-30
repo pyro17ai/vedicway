@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { AstrologyWheel } from "./components/AstrologyWheel";
-import { AdminPage } from "./components/AdminPage";
 import { ArticlePage } from "./components/ArticlePage";
 import { BirthChartForm } from "./components/BirthChartForm";
+import { BlogPage } from "./components/BlogPage";
 import { ChartWorkspace } from "./components/ChartWorkspace";
 import { FaqSection } from "./components/FaqSection";
 import { GuidePage } from "./components/GuidePage";
@@ -42,14 +42,6 @@ function ChartScreen({ chartId, onNavigate }: ChartScreenProps) {
   }), [chartId]);
 
   return <ChartWorkspace chartId={chartId} onBackToLanding={() => onNavigate("/")} />;
-}
-
-function GuideEditorRedirect({ onNavigate }: { onNavigate: (path: string) => void }) {
-  useEffect(() => {
-    window.history.replaceState({}, "", "/admin");
-  }, []);
-
-  return <AdminPage onNavigate={onNavigate} />;
 }
 
 function LandingSeam({ label }: { label?: string }) {
@@ -164,10 +156,13 @@ function chartIdFromPath(pathname: string) {
   return matched ? decodeURIComponent(matched[1]) : null;
 }
 
-function guideSlugFromPath(pathname: string) {
-  const matched = pathname.match(/^\/guide\/([^/]+)$/);
-  if (!matched || matched[1] === "editor") return null;
-  return decodeURIComponent(matched[1]);
+function contentArticleFromPath(pathname: string) {
+  const matched = pathname.match(/^\/(guide|blog)\/([^/]+)$/);
+  if (!matched) return null;
+  return {
+    section: matched[1] as "guide" | "blog",
+    slug: decodeURIComponent(matched[2]),
+  };
 }
 
 const legalRoutes: Record<string, LegalDocumentKind> = {
@@ -212,9 +207,8 @@ function App() {
     return <ChartScreen chartId={chartId} onNavigate={navigate} />;
   }
 
-  if (pathname === "/guide/editor") return <GuideEditorRedirect onNavigate={navigate} />;
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return <AdminPage onNavigate={navigate} />;
   if (pathname === "/guide") return <GuidePage onNavigate={navigate} />;
+  if (pathname === "/blog") return <BlogPage onNavigate={navigate} />;
   if (pathname === "/access/recovery") {
     return <LandingScreen onNavigate={navigate} onChartCreated={openChart} initialFormMode="recovery" />;
   }
@@ -224,8 +218,16 @@ function App() {
   const legalKind = legalRoutes[pathname];
   if (legalKind) return <LegalPage kind={legalKind} onNavigate={navigate} />;
 
-  const guideSlug = guideSlugFromPath(pathname);
-  if (guideSlug) return <ArticlePage slug={guideSlug} onNavigate={navigate} />;
+  const contentArticle = contentArticleFromPath(pathname);
+  if (contentArticle) {
+    return (
+      <ArticlePage
+        section={contentArticle.section}
+        slug={contentArticle.slug}
+        onNavigate={navigate}
+      />
+    );
+  }
 
   if (pathname !== "/") return <NotFoundPage onNavigate={navigate} />;
 

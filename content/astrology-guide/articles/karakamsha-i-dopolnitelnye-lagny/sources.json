@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "src_jaimini",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка места Karakamsha в джайминиевском комплексе правил, наличия специальных точек отсчёта и необходимости читать краткие сутры через выбранную традицию комментария."
+  },
+  {
+    "source_id": "src_bphs_special_lagnas",
+    "url": "https://www.siva.sh/brihat-parashara-hora-shastra/5/6-10",
+    "role": "Проверка расчётной логики Ghatika Lagna от восхода, скорости один знак за одну гхати и перехода к правилам Varnada."
+  },
+  {
+    "source_id": "src_varnada_methods",
+    "url": "https://saptarishisshop.com/a-look-at-the-calculation-of-varnada-lagna-by-abhishekha/",
+    "role": "Проверка расхождений между знаковым и градусным расчётом Varnada Lagna, а также вариантов определения направления финального отсчёта."
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "S4",
+    "url": "https://www.astro.com/swisseph/swephprg.htm",
+    "role": "Техническая проверка зависимости расчёта планет, лагны и домов от юлианского дня, времени UT и координат места."
+  },
+  {
+    "source_id": "WEB-ASTRO-FAQ",
+    "url": "https://www.astro.com/faq/fq_de_time_e.htm",
+    "role": "Проверка практики условной полуденной карты без домов и ограничений ректификации при неизвестном времени рождения."
+  },
+  {
+    "source_id": "WEB-NRAO-MOON",
+    "url": "https://public.nrao.edu/ask/variability-of-the-moons-apparent-motion-through-the-sky/",
+    "role": "Проверка среднего суточного смещения Луны и изменчивости её видимой угловой скорости."
+  }
+]

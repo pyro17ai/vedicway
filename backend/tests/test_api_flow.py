@@ -8,18 +8,21 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from vedicway_backend.legal_config import LEGAL_DOCUMENT_VERSIONS
 from vedicway_backend.main import create_app
 from vedicway_backend.pdf import report_html
 from vedicway_backend.schemas import PdfRenderPreferences
 from vedicway_backend.store import Store
 from vedicway_backend.worker import ChartWorker
 
-PYJHORA_SOURCE = Path(os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src"))
+PYJHORA_SOURCE = Path(
+    os.environ.get("VEDICWAY_PYJHORA_SOURCE", r"C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src")
+)
 LEGAL = {
     "personal_data": True,
-    "personal_data_version": "2026-07-19-v2",
+    "personal_data_version": LEGAL_DOCUMENT_VERSIONS["personal_data_consent"],
     "terms": True,
-    "terms_version": "2026-07-19",
+    "terms_version": LEGAL_DOCUMENT_VERSIONS["terms"],
 }
 
 
@@ -41,12 +44,22 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
     store = Store(tmp_path / "runtime")
     app = create_app(store=store, worker=ChartWorker(store))
     with TestClient(app) as client:
-        payload = {"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901", "time_accuracy": "exact", "legal": LEGAL}
-        first = client.post("/api/v1/charts", json=payload, headers={"Idempotency-Key": "chart-idempotency"})
+        payload = {
+            "local_date": "2006-10-16",
+            "local_time": "13:30",
+            "place_id": "ru-moscow-524901",
+            "time_accuracy": "exact",
+            "legal": LEGAL,
+        }
+        first = client.post(
+            "/api/v1/charts", json=payload, headers={"Idempotency-Key": "chart-idempotency"}
+        )
         assert first.status_code == 202
         chart_id = first.json()["chart_id"]
         assert client.cookies.get("vw_session")
-        duplicate = client.post("/api/v1/charts", json=payload, headers={"Idempotency-Key": "chart-idempotency"})
+        duplicate = client.post(
+            "/api/v1/charts", json=payload, headers={"Idempotency-Key": "chart-idempotency"}
+        )
         assert duplicate.json()["chart_id"] == chart_id
         resource = _wait_for(client, chart_id, lambda item: item["interpretation"] is not None)
         assert resource["sections"]["d1"] == "ready"
@@ -56,7 +69,11 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         question = resource["interpretation"]["questions"][0]
         saved = client.put(
             f"/api/v1/charts/{chart_id}/questions/{question['id']}",
-            json={"saved": True, "reflection_status": "thinking", "note": "Вернуться к этой теме после разговора."},
+            json={
+                "saved": True,
+                "reflection_status": "thinking",
+                "note": "Вернуться к этой теме после разговора.",
+            },
         )
         assert saved.status_code == 200
         assert saved.json()["reflection_status"] == "thinking"
@@ -78,11 +95,17 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         assert "Тестовая оплата YooKassa" in checkout.text
         confirmation = client.post(f"{checkout_url}/complete", follow_redirects=False)
         assert confirmation.status_code == 303
-        assert f"payment_return={purchase.json()['purchase_id']}" in confirmation.headers["location"]
+        assert (
+            f"payment_return={purchase.json()['purchase_id']}" in confirmation.headers["location"]
+        )
         resource = _wait_for(
             client,
             chart_id,
-            lambda item: item["interpretation"] is not None and item["interpretation"]["schema_version"] == "interpretation.paid.v1" and item["pdf"]["status"] == "ready",
+            lambda item: (
+                item["interpretation"] is not None
+                and item["interpretation"]["schema_version"] == "interpretation.paid.v1"
+                and item["pdf"]["status"] == "ready"
+            ),
         )
         assert resource["entitlement"]["report_full"] is True
         assert resource["entitlement"]["report_ready"] is True
@@ -90,19 +113,24 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         assert resource["interpretation"]["domains"][0]["paragraphs"]
         requested = client.post(
             f"/api/v1/charts/{chart_id}/reports/pdf",
-            json={"preferences": {
-                "schema_version": "pdf-render-preferences.v1",
-                "varga": "D24",
-                "mode": "expert",
-                "chart_style": "south_indian",
-            }},
+            json={
+                "preferences": {
+                    "schema_version": "pdf-render-preferences.v1",
+                    "varga": "D24",
+                    "mode": "expert",
+                    "chart_style": "south_indian",
+                }
+            },
         )
         assert requested.status_code == 202
         render_request_id = requested.json()["render_request_id"]
         resource = _wait_for(
             client,
             chart_id,
-            lambda item: item["pdf"]["status"] == "ready" and item["pdf"].get("render_request_id") == render_request_id,
+            lambda item: (
+                item["pdf"]["status"] == "ready"
+                and item["pdf"].get("render_request_id") == render_request_id
+            ),
         )
         assert resource["pdf"]["render_preferences"]["varga"] == "D24"
         assert resource["pdf"]["render_preferences"]["mode"] == "expert"
@@ -118,7 +146,9 @@ def test_complete_chart_payment_and_pdf_flow(tmp_path) -> None:
         snapshot = store.get_snapshot(chart_id)
         bundle = store.get_bundle(chart_id, paid=True)
         assert snapshot is not None and bundle is not None
-        html = report_html(snapshot, bundle, PdfRenderPreferences.model_validate(immutable_request["preferences"]))
+        html = report_html(
+            snapshot, bundle, PdfRenderPreferences.model_validate(immutable_request["preferences"])
+        )
         assert "Натальная карта · D24" in html
         assert "Профессиональный" in html
         pdf = client.get(
@@ -143,13 +173,20 @@ def test_magic_link_grants_new_browser_session(tmp_path) -> None:
     with TestClient(app) as owner:
         created = owner.post(
             "/api/v1/charts",
-            json={"local_date": "2006-10-16", "local_time": "13:30", "place_id": "ru-moscow-524901", "legal": LEGAL},
+            json={
+                "local_date": "2006-10-16",
+                "local_time": "13:30",
+                "place_id": "ru-moscow-524901",
+                "legal": LEGAL,
+            },
             headers={"Idempotency-Key": "magic-chart"},
         )
         chart_id = created.json()["chart_id"]
         token = store.create_magic_link(chart_id)
         with store._connection() as connection:
-            magic_link = connection.execute("SELECT created_at, expires_at FROM magic_links").fetchone()
+            magic_link = connection.execute(
+                "SELECT created_at, expires_at FROM magic_links"
+            ).fetchone()
         assert magic_link is not None
         assert (
             datetime.fromisoformat(magic_link["expires_at"])

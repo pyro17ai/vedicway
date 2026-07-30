@@ -17,7 +17,6 @@ import "./chart-workspace.css";
 import "./site-shell.css";
 import "./guide.css";
 import "./legal.css";
-import "./admin.css";
 import "./recovery.css";
 import "./light-theme.css";
 

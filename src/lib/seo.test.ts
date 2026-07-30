@@ -28,9 +28,9 @@ describe("applySeo", () => {
 
   it("marks private routes noindex and emits only the current schemas", () => {
     const cleanup = applySeo({
-      title: "Редактор — VedicWay",
+      title: "Восстановление доступа — VedicWay",
       description: "Служебная страница",
-      path: "/admin",
+      path: "/access/recovery",
       noindex: true,
       structuredData: [{ "@context": "https://schema.org", "@type": "WebPage" }],
     });

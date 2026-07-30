@@ -1,0 +1,105 @@
+{
+  "slug": "d10-dashamsha-karera",
+  "title": "D10 Dashamsha: профессия, статус и карьера",
+  "category": "Практика чтения карты",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_fulltext",
+    "bphs_varga_use"
+  ],
+  "seo_title": "D10 Dashamsha: профессия, статус и карьера",
+  "meta_description": "D10 Dashamsha помогает связать 10-й дом D1 с профессией и статусом. Пошагово разбираем лагну, 10-й дом D10, мини-пример и границы метода в джйотише.",
+  "focus_keyphrase": "D10 Dashamsha",
+  "canonical": "https://vedicway.ru/guide/d10-dashamsha-karera",
+  "seo": {
+    "seo_title": "D10 Dashamsha: профессия, статус и карьера",
+    "meta_description": "D10 Dashamsha помогает связать 10-й дом D1 с профессией и статусом. Пошагово разбираем лагну, 10-й дом D10, мини-пример и границы метода в джйотише.",
+    "focus_keyphrase": "D10 Dashamsha",
+    "canonical_url": "https://vedicway.ru/guide/d10-dashamsha-karera",
+    "excerpt": "Свяжите 10-й дом D1 с лагной и 10-м домом D10, чтобы описать профессиональную реализацию, рабочий статус и условия карьерного пути без обещаний должности."
+  },
+  "intent": {
+    "source": "wordstat",
+    "query": "D10 Дашамша карьера",
+    "type": "informational_how_to",
+    "status": "no_keyword_data",
+    "total_count": 1,
+    "reader_need": "Понять назначение D10 и построить первичную связку D1-D10 для анализа профессии, общественного положения и условий карьерной реализации.",
+    "top_requests": [],
+    "associations": []
+  },
+  "semantic_core": {
+    "primary": [
+      "D10 Dashamsha",
+      "D10 дашамша",
+      "D10 карьера"
+    ],
+    "related": [
+      "дробная карта D10",
+      "профессия в джйотише",
+      "статус в D10",
+      "карьера по натальной карте",
+      "связка D1-D10",
+      "10-й дом D1",
+      "10-й дом D10",
+      "лагна D10",
+      "управитель 10-го дома",
+      "Shodashavarga",
+      "профессиональная реализация"
+    ],
+    "questions": [
+      "За что отвечает D10 Dashamsha?",
+      "Как связать D1 и D10 при анализе профессии?",
+      "Что смотреть в лагне и 10-м доме D10?",
+      "Показывает ли D10 конкретную профессию?",
+      "Как трактовать расхождение D1 и D10?",
+      "Насколько D10 чувствительна ко времени рождения?"
+    ]
+  },
+  "internal_links": [
+    "/guide/shodashavarga-drobnie-karty",
+    "/guide/d1-i-drobnie-karty",
+    "/guide/algoritm-chteniya-natalnoy-karty",
+    "/chart"
+  ],
+  "prohibited_claims": [
+    "Одна планета или комбинация в D10 гарантирует профессию, должность либо высокий статус.",
+    "Сильная D10 отменяет слабые или противоречивые показатели D1.",
+    "Дашамша гарантирует доход, повышение или дату карьерного события."
+  ],
+  "cover": {
+    "file": "cover.png",
+    "alt": "Десятичастное астрологическое колесо над ступенями на тёплой бумажной фактуре",
+    "source_kind": "imagegen",
+    "license_note": "Создано ImageGen для VedicWay; внешняя лицензия и атрибуция не требуются.",
+    "width": 1672,
+    "height": 941,
+    "sha256": "d3ae58003a15ff0867c8c40684e1132f32c64519053c027662a0b8a5877602ac",
+    "asset_id": "cover-d10-dashamsha-karera",
+    "path": "content/astrology-guide/articles/d10-dashamsha-karera/cover.webp",
+    "status": "ready"
+  },
+  "sha256": "32812376947941aa7d395c7ba9c81cdb5314ca863c7d07407f9d4c8ee50d91b3",
+  "difficulty": "expert",
+  "tags": [
+    "Практика чтения карты",
+    "D10 Dashamsha"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Практика чтения карты"
+      },
+      {
+        "@type": "Thing",
+        "name": "D10 Dashamsha"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://www.siva.sh/brihat-parashara-hora-shastra/7/"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "slug": "yupiter-v-dzhyotish",
+  "title": "Юпитер в джйотише: знание, наставник и расширение",
+  "category": "Планеты и дома",
+  "status": "ready_for_import",
+  "source_ids": [
+    "bphs_santhanam_archive",
+    "bphs_sapta_comparative",
+    "phaladeepika_yogas"
+  ],
+  "seo": {
+    "seo_title": "Юпитер в джйотише: как читать силу и влияние",
+    "meta_description": "Разберите Юпитер в джйотише по силе, знаку, дому и аспектам. Учебный алгоритм показывает защитную роль без обещаний событий.",
+    "focus_keyphrase": "Юпитер в джйотише",
+    "canonical_url": "https://vedicway.ru/guide/yupiter-v-dzhyotish",
+    "excerpt": "Практический разбор Юпитера в джйотише: как проверить силу, дом, знак, управление и аспекты, чтобы отделить традиционную интерпретацию от расчётного факта."
+  },
+  "internal_links": [
+    "/guide",
+    "/chart",
+    "/guide/graha-drishti-parashara"
+  ],
+  "prohibited_claims": [
+    "обещания здоровья или медицинские диагнозы",
+    "гарантии денег, карьеры, брака или точного события",
+    "неизбежная судьба и фиксированный сценарий жизни",
+    "научно подтверждённые выводы по одному положению Юпитера"
+  ],
+  "cover": {
+    "asset_id": "cover-yupiter-v-dzhyotish",
+    "path": "content/astrology-guide/articles/yupiter-v-dzhyotish/cover.webp",
+    "alt": "Янтарный круглый объект в тонких орбитах и абстрактной геометрии на светлом бумажном фоне",
+    "status": "ready",
+    "source_kind": "imagegen",
+    "license_note": "Сгенерировано встроенным ImageGen для VedicWay; внешние изображения не использовались.",
+    "sha256": "781d9453edeb9190b4ba4d71d9edb21d3ba71b1e9ea879330df8196659ba7405",
+    "width": 1672,
+    "height": 941
+  },
+  "difficulty": "beginner",
+  "canonical": "https://vedicway.ru/guide/yupiter-v-dzhyotish",
+  "tags": [
+    "Планеты и дома",
+    "Юпитер в джйотише"
+  ],
+  "schema_extra": {
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "Планеты и дома"
+      },
+      {
+        "@type": "Thing",
+        "name": "Юпитер в джйотише"
+      }
+    ],
+    "citation": [
+      "https://archive.org/stream/BPHSEnglish/BPHS%20-%201%20RSanthanam_djvu.txt",
+      "https://saptamatrika.ru/en/bphs",
+      "https://www.wisdomlib.org/hinduism/book/phaladeepika-by-mantreswara-text-and-translation/d/doc1621578.html"
+    ],
+    "learningResourceType": "Guide"
+  }
+}

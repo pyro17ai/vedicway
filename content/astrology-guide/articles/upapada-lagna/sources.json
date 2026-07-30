@@ -1,0 +1,17 @@
+[
+  {
+    "source_id": "src_jaimini",
+    "url": "https://archive.org/stream/Jaiminisutras1955EditionByBSRao/Jaiminisutras%201955%20Edition%20by%20B%20S%20Rao_djvu.txt",
+    "role": "Проверка места Upapada Lagna в отдельной системе Джаймини, структуры издания и зависимости кратких сутр от комментаторской линии."
+  },
+  {
+    "source_id": "exa_astrojyoti_upapada",
+    "url": "https://www.astrojyoti.com/jaiminisutraspage3-4.htm",
+    "role": "Проверка определения Upapada как pada двенадцатого дома и базовой последовательности двойного отсчёта от его управителя."
+  },
+  {
+    "source_id": "exa_uk_jha_arudha",
+    "url": "https://saptarishisshop.com/arudha-and-its-evaluation-by-uk-jha/",
+    "role": "Проверка спорности специальных правил арудхи при положении управителя в кендрах и необходимости фиксировать выбранную линию расчёта."
+  }
+]
