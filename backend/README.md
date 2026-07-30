@@ -58,7 +58,7 @@ backend/migrations/003_pdf_render_preferences.sql
 backend/migrations/004_runtime_rate_limits.sql
 ```
 
-SQLite остаётся локальным runnable-контуром и обновляет старую базу совместимыми `ALTER TABLE`. Перед production необходимо подключить PostgreSQL-backed store согласно основной backend-спецификации; сама платёжная доменная модель и DDL уже подготовлены.
+SQLite остаётся runnable-контуром для текущего production-профиля `single-node-sqlite` и обновляет старую базу совместимыми `ALTER TABLE`. Файлы `backend/migrations/*.sql` остаются заготовкой для будущего PostgreSQL-backed Store и не запускаются в production до появления этого adapter.
 
 ## Границы
 

@@ -112,31 +112,6 @@ services:
     restart: unless-stopped
     stop_grace_period: 60s
 
-  migrate:
-    image: postgres:17.5-alpine@sha256:6567bca8d7bc8c82c5922425a0baee57be8402df92bae5eacad5f01ae9544daa
-    entrypoint: ["/bin/sh", "/opt/vedicway/run-migrations.sh"]
-    environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: ${POSTGRES_DB:-vedicway}
-      POSTGRES_USER: ${POSTGRES_USER:-vedicway}
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets:
-      - postgres_password
-    volumes:
-      - ./backend/migrations:/migrations:ro
-      - ./docker/postgres/run-migrations.sh:/opt/vedicway/run-migrations.sh:ro
-    networks:
-      - data
-    depends_on:
-      postgres:
-        condition: service_healthy
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    restart: "no"
-
   content-migrate:
     image: ${BACKEND_IMAGE:-vedicway-backend}:${RELEASE_TAG:-local}
     entrypoint: ["/usr/local/bin/vedicway-run-alembic"]
@@ -159,8 +134,8 @@ services:
     cap_drop:
       - ALL
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
     restart: "no"
 
   backend:

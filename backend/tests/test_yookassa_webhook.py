@@ -104,7 +104,13 @@ def _intent(purchase: dict[str, object], **changes: object) -> PaymentIntent:
     return PaymentIntent(**values)  # type: ignore[arg-type]
 
 
-def _setup(tmp_path, intent_factory=None, *, trusted_proxy: bool = False):  # type: ignore[no-untyped-def]
+def _setup(  # type: ignore[no-untyped-def]
+    tmp_path,
+    intent_factory=None,
+    *,
+    trusted_proxy: bool = False,
+    link_provider_payment: bool = True,
+):
     store = Store(tmp_path / "runtime")
     session_id, token = store.create_session()
     chart_id, _ = store.create_chart(session_id, _birth(), "chart-key")
@@ -115,13 +121,14 @@ def _setup(tmp_path, intent_factory=None, *, trusted_proxy: bool = False):  # ty
         provider="yookassa",
         offer_version="development",
     )
-    store.set_provider_payment(
-        str(purchase["id"]),
-        "yookassa",
-        "payment_123",
-        status="pending",
-        provider_status="pending",
-    )
+    if link_provider_payment:
+        store.set_provider_payment(
+            str(purchase["id"]),
+            "yookassa",
+            "payment_123",
+            status="pending",
+            provider_status="pending",
+        )
     intent = intent_factory(purchase) if intent_factory else _intent(purchase)
     provider = LookupProvider(intent)
     settings = PaymentSettings.from_environment()
@@ -162,6 +169,20 @@ def test_verified_success_webhook_refetches_and_grants_entitlement(tmp_path) -> 
     assert duplicate.status_code == 200
     assert duplicate.json()["status"] == "duplicate"
     assert provider.lookup_calls == ["payment_123"]
+    assert store.has_entitlement(str(purchase["chart_id"])) is True
+
+
+def test_success_webhook_can_attach_purchase_from_verified_metadata(tmp_path) -> None:
+    app, store, _, purchase, provider = _setup(tmp_path, link_provider_payment=False)
+    with TestClient(app, client=("185.71.76.3", 50000)) as client:
+        response = client.post("/api/v1/webhooks/payments/yookassa", json=_notification())
+
+    assert response.status_code == 200
+    assert provider.lookup_calls == ["payment_123"]
+    saved = store.get_purchase(str(purchase["id"]))
+    assert saved is not None
+    assert saved["provider_payment_id"] == "payment_123"
+    assert saved["status"] == "succeeded"
     assert store.has_entitlement(str(purchase["chart_id"])) is True
 
 

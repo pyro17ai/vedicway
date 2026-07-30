@@ -108,7 +108,6 @@ def main() -> None:
     services = payload.get("services", {})
     required = {
         "postgres",
-        "migrate",
         "content-migrate",
         "backend",
         "worker",
@@ -125,6 +124,10 @@ def main() -> None:
     missing = required.difference(services)
     if missing:
         raise SystemExit(f"Missing production services: {', '.join(sorted(missing))}")
+    if "migrate" in services:
+        raise SystemExit(
+            "production must not run chart/payment PostgreSQL migrations while runtime is single-node-sqlite"
+        )
 
     for service_name, contract in ROLE_CONTRACTS.items():
         service = services[service_name]
@@ -195,6 +198,9 @@ def main() -> None:
     if "worker-egress" in backend_networks or not {"edge", "data", "api-egress", "ops"}.issubset(backend_networks):
         raise SystemExit("backend API network separation is incomplete")
 
+    content_dependencies = services["content-migrate"].get("depends_on", {})
+    if "postgres" not in content_dependencies:
+        raise SystemExit("content-migrate must wait for postgres")
     dependencies = services["backend"].get("depends_on", {})
     if "content-migrate" not in dependencies:
         raise SystemExit("backend must wait for content-migrate")

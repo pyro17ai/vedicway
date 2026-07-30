@@ -1012,6 +1012,33 @@ class Store:
                        WHERE id = (SELECT render_request_id FROM reports WHERE chart_id = ?)""",
                     (chart_id,),
                 )
+                active = connection.execute(
+                    """SELECT id, job_id, preferences_checksum FROM pdf_render_requests
+                       WHERE chart_id = ? AND status IN ('queued', 'generating')
+                       ORDER BY created_at DESC LIMIT 1""",
+                    (chart_id,),
+                ).fetchone()
+                if active:
+                    if active["preferences_checksum"] == checksum and active["job_id"]:
+                        connection.commit()
+                        return str(active["job_id"]), str(active["id"])
+                    raise DomainError(
+                        "PDF_RENDER_IN_PROGRESS",
+                        "Дождитесь завершения текущего PDF",
+                        status_code=409,
+                    )
+                recent_renders = connection.execute(
+                    """SELECT COUNT(*) FROM pdf_render_requests
+                       WHERE chart_id = ? AND created_at >= ?""",
+                    (chart_id, _iso(_utc_now() - timedelta(days=1))),
+                ).fetchone()[0]
+                if recent_renders >= 10:
+                    raise DomainError(
+                        "PDF_RENDER_LIMIT",
+                        "За сутки можно подготовить не больше 10 PDF",
+                        status_code=429,
+                        detail={"limit": 10, "window_seconds": 86_400},
+                    )
                 connection.execute(
                     """INSERT INTO pdf_render_requests
                        (id, chart_id, preferences_json, preferences_checksum, status, created_at, updated_at)

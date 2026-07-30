@@ -58,6 +58,8 @@ from .worker import ChartWorker
 LOGGER = logging.getLogger("vedicway.api")
 SESSION_COOKIE = "vw_session"
 MAGIC_CONFIRMATION_TTL_SECONDS = 10 * 60
+SSE_CONNECTION_LIMIT = 3
+SSE_MAX_LIFETIME_SECONDS = 15 * 60
 ALLOWED_SECTIONS = {
     "d1",
     "vargas",
@@ -371,6 +373,8 @@ def create_app(
     )
     app.state.payment_tasks = set()
     app.state.production = os.environ.get("VEDICWAY_ENV", "development").casefold() == "production"
+    app.state.sse_connections = {}
+    app.state.sse_connections_lock = asyncio.Lock()
 
     app.add_middleware(
         CORSMiddleware,
@@ -537,6 +541,80 @@ def create_app(
                 recoverable=False,
                 status_code=409,
             )
+
+    def resolve_verified_payment_purchase(
+        provider_payment_id: str,
+        intent: Any,
+        *,
+        trace_id: str,
+    ) -> dict[str, Any]:
+        purchase = app.state.store.get_purchase_by_provider_payment_id(
+            "yookassa", provider_payment_id
+        )
+        if purchase and intent.provider_payment_id != provider_payment_id:
+            app.state.store.record_payment_incident(
+                str(purchase["id"]),
+                "webhook_mismatch",
+                {"code": "PAYMENT_MISMATCH", "field": "provider_payment_id"},
+                trace_id,
+            )
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Платёжный сервис вернул другую операцию",
+                recoverable=False,
+                status_code=409,
+            )
+        if purchase:
+            return purchase
+        metadata_purchase_id = intent.metadata.get("purchase_id")
+        if not isinstance(metadata_purchase_id, str) or not metadata_purchase_id:
+            raise DomainError(
+                "PURCHASE_NOT_FOUND",
+                "Платёж не найден",
+                recoverable=False,
+                status_code=404,
+            )
+        purchase = app.state.store.get_purchase(metadata_purchase_id)
+        if not purchase or purchase.get("provider") != "yookassa":
+            raise DomainError(
+                "PURCHASE_NOT_FOUND",
+                "Платёж не найден",
+                recoverable=False,
+                status_code=404,
+            )
+        existing_payment_id = purchase.get("provider_payment_id")
+        if existing_payment_id and existing_payment_id != provider_payment_id:
+            app.state.store.record_payment_incident(
+                str(purchase["id"]),
+                "webhook_mismatch",
+                {"code": "PAYMENT_MISMATCH", "field": "provider_payment_id"},
+                trace_id,
+            )
+            raise DomainError(
+                "PAYMENT_MISMATCH",
+                "Платёжный сервис вернул другую операцию",
+                recoverable=False,
+                status_code=409,
+            )
+        required_metadata = {
+            "chart_id": str(purchase["chart_id"]),
+            "product_code": str(purchase["product_code"]),
+        }
+        for key, expected in required_metadata.items():
+            if intent.metadata.get(key) != expected:
+                app.state.store.record_payment_incident(
+                    str(purchase["id"]),
+                    "webhook_mismatch",
+                    {"code": "PAYMENT_MISMATCH", "field": f"metadata.{key}"},
+                    trace_id,
+                )
+                raise DomainError(
+                    "PAYMENT_MISMATCH",
+                    f"Поле metadata.{key} не совпадает с заказом",
+                    recoverable=False,
+                    status_code=409,
+                )
+        return purchase
 
     async def apply_verified_payment(
         purchase: dict[str, Any],
@@ -904,18 +982,38 @@ def create_app(
         except ValueError:
             last_id = 0
 
+        async with app.state.sse_connections_lock:
+            active_connections = app.state.sse_connections.get(current_session, 0)
+            if active_connections >= SSE_CONNECTION_LIMIT:
+                raise DomainError(
+                    "SSE_CONNECTION_LIMIT",
+                    "Слишком много открытых подключений к событиям",
+                    status_code=429,
+                    detail={"limit": SSE_CONNECTION_LIMIT},
+                )
+            app.state.sse_connections[current_session] = active_connections + 1
+
         async def stream() -> AsyncIterator[str]:
             nonlocal last_id
-            while True:
-                if await request.is_disconnected():
-                    return
-                events = await asyncio.to_thread(app.state.store.events_since, chart_id, last_id)
-                for item in events:
-                    last_id = item.id
-                    yield _sse_frame(event=item.event, data=item.data, event_id=item.id, retry=3000)
-                if not events:
-                    yield _sse_frame(comment="keepalive")
-                await asyncio.sleep(15)
+            started_at = time.monotonic()
+            try:
+                while time.monotonic() - started_at < SSE_MAX_LIFETIME_SECONDS:
+                    if await request.is_disconnected():
+                        return
+                    events = await asyncio.to_thread(app.state.store.events_since, chart_id, last_id)
+                    for item in events:
+                        last_id = item.id
+                        yield _sse_frame(event=item.event, data=item.data, event_id=item.id, retry=3000)
+                    if not events:
+                        yield _sse_frame(comment="keepalive")
+                    await asyncio.sleep(15)
+            finally:
+                async with app.state.sse_connections_lock:
+                    remaining = app.state.sse_connections.get(current_session, 1) - 1
+                    if remaining > 0:
+                        app.state.sse_connections[current_session] = remaining
+                    else:
+                        app.state.sse_connections.pop(current_session, None)
 
         return StreamingResponse(
             stream(),
@@ -1585,11 +1683,13 @@ def create_app(
         purchase = app.state.store.get_purchase_by_provider_payment_id(
             "yookassa", provider_payment_id
         )
-        if not purchase:
-            raise DomainError(
-                "PURCHASE_NOT_FOUND", "Платёж не найден", recoverable=False, status_code=404
-            )
         intent = await app.state.payment_provider.get_payment(provider_payment_id)
+        if not purchase:
+            purchase = resolve_verified_payment_purchase(
+                provider_payment_id,
+                intent,
+                trace_id=_trace_id(request),
+            )
         expected_status = (
             PaymentStatus.SUCCEEDED
             if event_type == "payment.succeeded"

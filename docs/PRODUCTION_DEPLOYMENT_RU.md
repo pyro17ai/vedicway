@@ -4,7 +4,7 @@ SEO-agent запускается отдельным Compose profile `seo` и н�
 
 ## Контур
 
-`compose.production.yml` поднимает PostgreSQL, две последовательные цепочки миграций, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
+`compose.production.yml` поднимает PostgreSQL, Alembic-миграции content store, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
 
 Сейчас действует split storage. PostgreSQL хранит статьи, комментарии, media metadata и журнал согласий. Расчёты, purchases, entitlements, PDF metadata и очередь писем остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно по одному API, worker и email-consumer. Масштабирование этих процессов и rolling update с двумя активными экземплярами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
 
@@ -33,12 +33,12 @@ Copy-Item .env.production.example .env.production
 # Заполнить .env.production, secrets/*, runtime/places.json и wheelhouse.
 python scripts/check_production_release.py --env-file .env.production
 docker compose --env-file .env.production -f compose.production.yml build --pull
-docker compose --env-file .env.production -f compose.production.yml up -d postgres migrate content-migrate
+docker compose --env-file .env.production -f compose.production.yml up -d postgres content-migrate
 docker compose --env-file .env.production -f compose.production.yml up -d backend worker email frontend
 docker compose --env-file .env.production -f compose.production.yml ps
 ```
 
-Bash использует те же команды после `cp .env.production.example .env.production`. Сервис `migrate` создаёт `schema_migrations`, исполняет все `backend/migrations/*.sql` по имени файла и сохраняет SHA-256. Изменённая задним числом миграция завершает запуск кодом 65. Затем `content-migrate` выполняет `alembic upgrade head` для статей, комментариев, медиа и журнала согласий. Backend и worker не стартуют, пока обе цепочки не завершатся без ошибки.
+Bash использует те же команды после `cp .env.production.example .env.production`. `content-migrate` выполняет `alembic upgrade head` для статей, комментариев, медиа и журнала согласий. Runtime-таблицы chart/payment в production остаются в SQLite `runtime_data`, поэтому `backend/migrations/*.sql` не запускаются до появления PostgreSQL-adapter для Store. Backend и worker не стартуют, пока content schema не находится на текущем Alembic head.
 
 FastAPI запускается одним Uvicorn process. `VEDICWAY_INLINE_WORKER=0` отключает обработку очереди внутри API, поэтому jobs исполняет отдельный `worker`. Named volume `runtime_data` обязателен и не удаляется командой `down -v`. PostgreSQL readiness не доказывает сохранность chart/payment Store: отдельно проверяйте SQLite volume и runtime backup.
 
@@ -91,7 +91,7 @@ Runtime lifecycle запускается сервисами `retention-dry-run` 
 
 - [ ] `.env.production` не содержит `.example`, `REPLACE_*`, тестовых payment flags и чужих CIDR; `check_production_release.py` завершился кодом 0.
 - [ ] Image tags привязаны к Git SHA, wheelhouse PyJHora имеет сохранённый `SHA256SUMS`, лицензированный `places.json` прошёл загрузку, Codex API key принадлежит отдельному service account.
-- [ ] `migrate` и `content-migrate` завершились кодом 0; Alembic находится на `head`, content store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
+- [ ] `content-migrate` завершился кодом 0; Alembic находится на `head`, content store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
 - [ ] TLS ingress передаёт `X-Forwarded-Proto=https`, порт Compose слушает loopback, `/internal` закрыт, CSP report в браузере пуст, HSTS присутствует на HTTPS-ответе. URI `/api/v1/magic-links/*` отключён или отредактирован во всех внешних access/error logs; тестовый токен-маркер не найден в CDN, ingress и SIEM.
 - [ ] Опубликованы актуальные оферта, политика и согласие; реквизиты `VEDICWAY_INTERPRETATION_PROCESSOR_*` совпадают с договором, юрист проверил трансграничный флаг и уведомительный порядок Роскомнадзора. `VEDICWAY_OFFER_VERSION` совпадает с текстом, YooKassa webhook и возврат проверены из разрешённых сетей без ручного SQL.
 - [ ] SMTP secret смонтирован, SPF/DKIM/DMARC проходят внешний тест, одноразовые chart/PDF ссылки не попадают в access log и не принимают replay.
