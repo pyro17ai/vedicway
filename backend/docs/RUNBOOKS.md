@@ -22,7 +22,7 @@ Redirect браузера не меняет entitlement. YooKassa не прик�
 
 При задержке проверить доступность webhook URL, ответ 200 и provider payment ID. Повтор одного уведомления безопасен: `payment_events` дедуплицирует событие. Для ручной сверки support вызывает `POST /internal/payments/{purchase_id}/reconcile` из разрешённой сети с `X-Operations-Token`. Browser query, ручной `UPDATE` и повторная покупка не служат способом выдать entitlement.
 
-При `PAYMENT_MISMATCH` оставить доступ закрытым. Сверить server catalog `99000 RUB`, metadata `purchase_id`, `chart_id`, `product_code`, provider payment ID и финальный статус. Запись `payment_incidents` вместе с trace ID сохраняет причину; исправление требует отдельного расследования, а не нового webhook из браузера.
+При `PAYMENT_MISMATCH` оставить доступ закрытым. Сверить цену выбранного товара в server catalog, metadata `purchase_id`, `chart_id`, `product_code`, provider payment ID и финальный статус. Запись `payment_incidents` вместе с trace ID сохраняет причину; исправление требует отдельного расследования, а не нового webhook из браузера.
 
 ## YooKassa API недоступен или отвечает 429/5xx
 

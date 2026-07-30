@@ -30,6 +30,19 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
     paid_session, _ = store.create_session()
     paid_chart, _ = store.create_chart(paid_session, _birth(), "paid")
     purchase, _ = store.create_purchase(paid_chart, "purchase", "receipt@example.ru")
+    with store._connection() as connection:
+        connection.execute(
+            """INSERT INTO rectifications
+               (chart_id, status, answers_ciphertext, result_ciphertext, created_at, updated_at)
+               VALUES (?, 'ready', ?, ?, ?, ?)""",
+            (
+                paid_chart,
+                store._encrypt({"events": [{"event_type": "career", "year": 2020}]}),
+                store._encrypt({"selected_time": "17:30"}),
+                "2026-07-30T00:00:00+00:00",
+                "2026-07-30T00:00:00+00:00",
+            ),
+        )
     paid_result = store.erase_chart_personal_data(paid_chart)
 
     assert paid_result["financial_records_retained"] is True
@@ -41,7 +54,12 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
             "SELECT encrypted_payload FROM birth_profiles WHERE id = ?",
             (chart["birth_profile_id"],),
         ).fetchone()
+        rectification = connection.execute(
+            "SELECT 1 FROM rectifications WHERE chart_id = ?",
+            (paid_chart,),
+        ).fetchone()
     assert chart["status"] == "erased"
     assert chart["soft_deleted_at"] is not None
     assert chart["snapshot_json"] is None
+    assert rectification is None
     assert store._decrypt(profile["encrypted_payload"]) == {"erased": True}

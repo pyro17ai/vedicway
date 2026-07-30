@@ -322,6 +322,69 @@ svg {
   gap: 0;
 }
 
+.rectification-offer {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid rgba(231, 120, 50, 0.34);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(231, 120, 50, 0.12), rgba(231, 120, 50, 0.025)),
+    rgba(10, 9, 8, 0.76);
+}
+
+.rectification-offer::after {
+  position: absolute;
+  top: -46px;
+  right: -34px;
+  width: 124px;
+  height: 124px;
+  border: 1px solid rgba(231, 120, 50, 0.2);
+  border-radius: 50%;
+  content: "";
+}
+
+.rectification-offer > span {
+  color: var(--ember-bright);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+}
+
+.rectification-offer h3 {
+  max-width: 330px;
+  margin: 0;
+  color: var(--ink);
+  font: 500 22px/1.05 "Cormorant Garamond", Georgia, serif;
+}
+
+.rectification-offer p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rectification-offer > div {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-top: 3px;
+}
+
+.rectification-offer strong {
+  color: var(--ink);
+  font: 500 25px/1 Georgia, serif;
+}
+
+.rectification-offer small {
+  color: var(--faint);
+  font-size: 11px;
+}
+
 .chart-card--recovery {
   min-height: 560px;
 }

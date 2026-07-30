@@ -16,9 +16,17 @@ import {
   MapPin,
 } from "lucide-react";
 
-import { ApiError, createChart } from "../lib/chart-api";
+import {
+  ApiError,
+  createChart,
+  createPurchase,
+  getPaymentConfig,
+  type PaymentPublicConfig,
+} from "../lib/chart-api";
 import { trackWorkspaceEvent } from "../lib/analytics";
 import { searchCities, type CityOption } from "../lib/city-search";
+import { savePaymentReturnState } from "../lib/payment-return";
+import { PaymentPaywall } from "./PaymentPaywall";
 
 type FieldName = "birthDate" | "birthTime" | "birthPlace";
 
@@ -46,12 +54,13 @@ function errorForField(
   field: FieldName,
   values: FormValues,
   selectedCity: CityOption | null,
+  requireTime = true,
 ) {
   if (field === "birthDate" && !values.birthDate) return "Укажите дату рождения";
   if (field === "birthDate" && values.birthDate > new Date().toISOString().slice(0, 10)) {
     return "Дата рождения должна быть в прошлом";
   }
-  if (field === "birthTime" && !values.birthTime) return "Укажите время рождения";
+  if (field === "birthTime" && requireTime && !values.birthTime) return "Укажите время рождения";
   if (field === "birthPlace" && !selectedCity) return "Выберите город из списка";
   return "";
 }
@@ -76,6 +85,9 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [recoveryState, setRecoveryState] = useState<"idle" | "sending" | "accepted" | "error">("idle");
   const [recoveryError, setRecoveryError] = useState("");
+  const [rectificationChartId, setRectificationChartId] = useState("");
+  const [rectificationPayment, setRectificationPayment] = useState<PaymentPublicConfig | null>(null);
+  const [rectificationPaywallOpen, setRectificationPaywallOpen] = useState(false);
 
   const birthDateRef = useRef<HTMLInputElement>(null);
   const birthTimeRef = useRef<HTMLInputElement>(null);
@@ -136,7 +148,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
   };
 
   function validateField(field: FieldName) {
-    const message = errorForField(field, values, selectedCity);
+    const message = errorForField(field, values, selectedCity, timeAccuracy !== "unknown");
     setErrors((current) => ({ ...current, [field]: message || undefined }));
     return !message;
   }
@@ -151,7 +163,12 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
     setValues(nextValues);
 
     if (touched[field]) {
-      const message = errorForField(field, nextValues, selectedCity);
+      const message = errorForField(
+        field,
+        nextValues,
+        selectedCity,
+        timeAccuracy !== "unknown",
+      );
       setErrors((current) => ({ ...current, [field]: message || undefined }));
     }
   }
@@ -198,9 +215,11 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
     event.preventDefault();
     setSubmitMessage("");
 
-    const fields: FieldName[] = ["birthDate", "birthTime", "birthPlace"];
+    const fields: FieldName[] = timeAccuracy === "unknown"
+      ? ["birthDate", "birthPlace"]
+      : ["birthDate", "birthTime", "birthPlace"];
     const nextErrors = fields.reduce<Errors>((result, field) => {
-      const message = errorForField(field, values, selectedCity);
+      const message = errorForField(field, values, selectedCity, timeAccuracy !== "unknown");
       if (message) result[field] = message;
       return result;
     }, {});
@@ -224,7 +243,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
     try {
       const result = await createChart({
         localDate: values.birthDate,
-        localTime: values.birthTime,
+        localTime: timeAccuracy === "unknown" ? "12:00" : values.birthTime,
         placeId: selectedCity!.id,
         place: {
           displayName: selectedCity!.label,
@@ -237,14 +256,48 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
         personalDataConsent,
         termsAccepted,
       });
-      trackWorkspaceEvent("chart_create_accepted", { time_accuracy: timeAccuracy });
-      setSubmitMessage("Карта принята. Переходим к расчёту.");
-      onChartCreated?.(result.chart_id);
+      if (timeAccuracy === "unknown") {
+        const config = await getPaymentConfig("birth_time_rectification_v1");
+        setRectificationChartId(result.chart_id);
+        setRectificationPayment(config);
+        setRectificationPaywallOpen(true);
+        setIsSubmitting(false);
+        setSubmitMessage("");
+        trackWorkspaceEvent("rectification_checkout_opened", { price_minor: config.price_minor });
+      } else {
+        trackWorkspaceEvent("chart_create_accepted", { time_accuracy: timeAccuracy });
+        setSubmitMessage("Карта принята. Переходим к расчёту.");
+        onChartCreated?.(result.chart_id);
+      }
     } catch (error) {
       setIsSubmitting(false);
       setSubmitMessage(error instanceof ApiError ? error.message : "Не удалось отправить данные. Проверьте соединение и повторите.");
       trackWorkspaceEvent("chart_create_failed", { code: error instanceof ApiError ? error.code ?? "api" : "network" });
     }
+  }
+
+  async function startRectificationCheckout(email: string) {
+    if (!rectificationPayment || !rectificationChartId) {
+      throw new Error("Не удалось подготовить заказ. Закройте окно и повторите.");
+    }
+    const purchase = await createPurchase(rectificationChartId, {
+      email,
+      offerVersion: rectificationPayment.offer_version,
+      productCode: "birth_time_rectification_v1",
+    });
+    savePaymentReturnState(window.sessionStorage, {
+      purchaseId: purchase.purchase_id,
+      chartId: rectificationChartId,
+      domain: null,
+    });
+    trackWorkspaceEvent("checkout_started", {
+      price_minor: purchase.price_minor,
+      access: "birth_time_rectification",
+    });
+    if (!purchase.checkout_url) {
+      throw new Error("Платёж создан без адреса YooKassa. Повторите попытку.");
+    }
+    window.location.assign(purchase.checkout_url);
   }
 
   async function handleRecoverySubmit(event: FormEvent<HTMLFormElement>) {
@@ -417,11 +470,12 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
               type="time"
               step="60"
               value={values.birthTime}
+              disabled={timeAccuracy === "unknown"}
               onChange={(event) => updateValue("birthTime", event.target.value)}
               onBlur={() => handleBlur("birthTime")}
               aria-invalid={Boolean(errors.birthTime)}
               aria-describedby={errors.birthTime ? "birthTime-error" : undefined}
-              required
+              required={timeAccuracy !== "unknown"}
             />
             <Clock3 aria-hidden="true" />
           </div>
@@ -550,9 +604,34 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
               <input type="radio" name="timeAccuracy" value="approximate_hour" checked={timeAccuracy === "approximate_hour"} onChange={() => setTimeAccuracy("approximate_hour")} />
               Примерно
             </label>
+            <label>
+              <input
+                type="radio"
+                name="timeAccuracy"
+                value="unknown"
+                checked={timeAccuracy === "unknown"}
+                onChange={() => {
+                  setTimeAccuracy("unknown");
+                  setErrors((current) => ({ ...current, birthTime: undefined }));
+                }}
+              />
+              Не знаю
+            </label>
           </div>
           <small id="time-accuracy-hint">Лагна, дома и дробные карты чувствительны к минутам рождения.</small>
         </fieldset>
+
+        {timeAccuracy === "unknown" && (
+          <section className="rectification-offer" aria-labelledby="rectification-offer-title">
+            <span>ВОССТАНОВЛЕНИЕ ВРЕМЕНИ</span>
+            <h3 id="rectification-offer-title">Уточним время по событиям вашей жизни</h3>
+            <p>
+              После оплаты откроется последовательный опрос. Код проверит варианты времени
+              по периодам и положениям планет, затем покажет лучший диапазон и альтернативы.
+            </p>
+            <div><strong>300 ₽</strong><small>разовый платёж</small></div>
+          </section>
+        )}
 
         <div className="legal-acceptance" aria-label="Правовые согласия">
           <label>
@@ -566,7 +645,13 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
         </div>
 
         <button className="submit-button" type="submit" disabled={isSubmitting || !personalDataConsent || !termsAccepted}>
-          <span>{isSubmitting ? "РАССЧИТЫВАЕМ..." : "РАССЧИТАТЬ КАРТУ"}</span>
+          <span>
+            {isSubmitting
+              ? "ПОДГОТАВЛИВАЕМ..."
+              : timeAccuracy === "unknown"
+                ? "ВОССТАНОВИТЬ ВРЕМЯ"
+                : "РАССЧИТАТЬ КАРТУ"}
+          </span>
           <span className="submit-button__star" aria-hidden="true">
             <img src="/assets/celestial-star-light.png" alt="" />
           </span>
@@ -588,6 +673,22 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
           </button>
         </div>
       </form>
+      )}
+      {rectificationPaywallOpen && rectificationPayment && (
+        <PaymentPaywall
+          title="Восстановление времени рождения"
+          summary="Оплата откроет персональный опрос. На его основе сервис переберёт допустимые варианты времени и рассчитает наиболее согласованный результат."
+          config={rectificationPayment}
+          kicker="Ректификация по жизненным событиям"
+          closeLabel="Вернуться к форме"
+          features={[
+            "Один понятный вопрос на каждом шаге",
+            "Серверный расчёт по фиксированным правилам",
+            "Лучшее время, диапазон уверенности и альтернативы",
+          ]}
+          onClose={() => setRectificationPaywallOpen(false)}
+          onCheckout={startRectificationCheckout}
+        />
       )}
     </aside>
   );

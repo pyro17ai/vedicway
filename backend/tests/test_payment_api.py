@@ -106,6 +106,69 @@ def _payload(settings: PaymentSettings) -> dict[str, object]:
     }
 
 
+def test_rectification_uses_own_server_price_and_entitlement(tmp_path) -> None:
+    provider = RecordingProvider()
+    client, store, chart_id, settings = _client(tmp_path, provider)
+    with client:
+        locked = client.get(f"/api/v1/charts/{chart_id}/rectification")
+        config = client.get(
+            "/api/v1/payments/config",
+            params={"product_code": "birth_time_rectification_v1"},
+        )
+        purchase = client.post(
+            f"/api/v1/charts/{chart_id}/purchases",
+            json={
+                **_payload(settings),
+                "product_code": "birth_time_rectification_v1",
+            },
+            headers={"Idempotency-Key": "rectification-checkout"},
+        )
+        confirmed = client.post(
+            f"/api/v1/test/purchases/{purchase.json()['purchase_id']}/confirm"
+        )
+        opened = client.get(f"/api/v1/charts/{chart_id}/rectification")
+
+    assert locked.status_code == 402
+    assert locked.json()["error"]["code"] == "RECTIFICATION_PAYMENT_REQUIRED"
+    assert config.status_code == 200
+    assert config.json()["price_minor"] == 30_000
+    assert config.json()["product_code"] == "birth_time_rectification_v1"
+    assert purchase.status_code == 202
+    assert purchase.json()["price_minor"] == 30_000
+    assert provider.calls[0]["amount_minor"] == 30_000
+    assert confirmed.status_code == 202
+    assert store.has_entitlement(chart_id, "birth_time_rectification")
+    assert not store.has_entitlement(chart_id)
+    assert store.get_rectification(chart_id)["status"] == "awaiting_answers"  # type: ignore[index]
+    assert opened.status_code == 200
+    assert opened.json()["status"] == "awaiting_answers"
+
+
+def test_idempotency_key_cannot_be_reused_for_another_product(tmp_path) -> None:
+    provider = RecordingProvider()
+    client, _, chart_id, settings = _client(tmp_path, provider)
+    headers = {"Idempotency-Key": "shared-checkout-key"}
+    with client:
+        report = client.post(
+            f"/api/v1/charts/{chart_id}/purchases",
+            json=_payload(settings),
+            headers=headers,
+        )
+        rectification = client.post(
+            f"/api/v1/charts/{chart_id}/purchases",
+            json={
+                **_payload(settings),
+                "product_code": "birth_time_rectification_v1",
+            },
+            headers=headers,
+        )
+
+    assert report.status_code == 202
+    assert rectification.status_code == 409
+    assert rectification.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"
+    assert len(provider.calls) == 1
+
+
 def test_purchase_requires_email_and_current_offer(tmp_path) -> None:
     provider = RecordingProvider()
     client, _, chart_id, settings = _client(tmp_path, provider)

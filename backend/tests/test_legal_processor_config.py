@@ -46,8 +46,8 @@ def test_public_legal_config_names_the_actual_interpretation_processor(
         "связи между показателями",
     ]
     assert config["interpretation_processor_cross_border"] is True
-    assert config["versions"]["privacy"] == "2026-07-28"
-    assert config["versions"]["personal_data_consent"] == "2026-07-28"
+    assert config["versions"]["privacy"] == "2026-07-30"
+    assert config["versions"]["personal_data_consent"] == "2026-07-30"
 
 
 def test_codex_production_readiness_fails_closed_without_processor_disclosure(

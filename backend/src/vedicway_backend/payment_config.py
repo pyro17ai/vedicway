@@ -35,11 +35,25 @@ class PaymentCatalog:
             receipt_description="Полный персональный отчёт VedicWay",
         )
     )
+    birth_time_rectification: PaymentProduct = field(
+        default_factory=lambda: PaymentProduct(
+            code="birth_time_rectification_v1",
+            amount_minor=30_000,
+            currency="RUB",
+            title="Восстановление времени рождения",
+            receipt_description="Ректификация времени рождения VedicWay",
+        )
+    )
 
     def get(self, product_code: str) -> PaymentProduct:
-        if product_code != self.full_report.code:
-            raise KeyError(product_code)
-        return self.full_report
+        products = {
+            self.full_report.code: self.full_report,
+            self.birth_time_rectification.code: self.birth_time_rectification,
+        }
+        try:
+            return products[product_code]
+        except KeyError:
+            raise KeyError(product_code) from None
 
 
 def _required(name: str) -> str:

@@ -90,6 +90,7 @@ class PaymentProvider(ABC):
         currency: str,
         email: str,
         reason: str,
+        product_code: str = "full_report_v1",
     ) -> RefundIntent:
         raise NotImplementedError
 
@@ -154,6 +155,7 @@ class TestPaymentProvider(PaymentProvider):
         currency: str,
         email: str,
         reason: str,
+        product_code: str = "full_report_v1",
     ) -> RefundIntent:
         return RefundIntent(
             provider=self.name,

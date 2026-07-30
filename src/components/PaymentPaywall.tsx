@@ -9,6 +9,9 @@ type PaymentPaywallProps = {
   summary: string;
   config: PaymentPublicConfig;
   evidence?: ReactNode;
+  features?: string[];
+  kicker?: string;
+  closeLabel?: string;
   initialMessage?: string | null;
   onClose: () => void;
   onCheckout: (email: string) => Promise<void>;
@@ -29,6 +32,13 @@ export function PaymentPaywall({
   summary,
   config,
   evidence,
+  features = [
+    "Восемь подробных жизненных тем",
+    "Общий синтез карты и двенадцать вопросов",
+    "PDF с южноиндийской картой",
+  ],
+  kicker = "Продолжение вашей темы",
+  closeLabel = "Вернуться к карте",
   initialMessage,
   onClose,
   onCheckout,
@@ -129,13 +139,13 @@ export function PaymentPaywall({
       >
         <header className="workspace-modal__header">
           <div>
-            <span className="workspace-modal__kicker">Продолжение вашей темы</span>
+            <span className="workspace-modal__kicker">{kicker}</span>
             <h2 ref={titleRef} id="paywall-title" tabIndex={-1}>{title}</h2>
           </div>
           <button
             type="button"
             className="icon-button"
-            aria-label="Вернуться к карте"
+            aria-label={closeLabel}
             disabled={state === "pending"}
             onClick={onClose}
           >
@@ -148,9 +158,9 @@ export function PaymentPaywall({
             <p>{summary}</p>
             {evidence}
             <ul className="paywall__list">
-              <li><Check aria-hidden="true" /> Восемь подробных жизненных тем</li>
-              <li><Check aria-hidden="true" /> Общий синтез карты и двенадцать вопросов</li>
-              <li><Check aria-hidden="true" /> PDF с южноиндийской картой</li>
+              {features.map((feature) => (
+                <li key={feature}><Check aria-hidden="true" /> {feature}</li>
+              ))}
             </ul>
             <div className="paywall__price">
               <strong>{formatPrice(config.price_minor, config.currency)}</strong>

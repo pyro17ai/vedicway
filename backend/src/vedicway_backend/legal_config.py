@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 
 LEGAL_DOCUMENT_VERSIONS = {
-    "terms": "2026-07-28",
-    "privacy": "2026-07-28",
-    "personal_data_consent": "2026-07-28",
+    "terms": "2026-07-30",
+    "privacy": "2026-07-30",
+    "personal_data_consent": "2026-07-30",
     "cookies": "2026-07-19",
 }
 

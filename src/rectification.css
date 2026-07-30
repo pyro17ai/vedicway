@@ -1,0 +1,526 @@
+.rectification-page {
+  position: relative;
+  display: grid;
+  min-height: calc(100vh - 78px);
+  min-height: calc(100dvh - 78px);
+  place-items: center;
+  overflow: hidden;
+  padding: 64px 24px;
+  color: #f6eee4;
+  background:
+    radial-gradient(circle at 76% 20%, rgba(193, 83, 34, 0.2), transparent 28rem),
+    linear-gradient(145deg, #120d0a, #070605 58%, #100a07);
+}
+
+.rectification-page__sky {
+  position: absolute;
+  inset: 0;
+  opacity: 0.24;
+  background-image:
+    radial-gradient(circle at 20% 24%, rgba(255, 237, 210, 0.7) 0 1px, transparent 1.4px),
+    radial-gradient(circle at 72% 68%, rgba(255, 237, 210, 0.55) 0 1px, transparent 1.5px);
+  background-size: 143px 143px, 211px 211px;
+  pointer-events: none;
+}
+
+.rectification-question,
+.rectification-result,
+.rectification-state {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 840px);
+  border: 1px solid rgba(241, 161, 102, 0.28);
+  border-radius: 24px;
+  background: rgba(15, 12, 10, 0.96);
+  box-shadow: 0 38px 110px rgba(0, 0, 0, 0.48);
+}
+
+.rectification-question {
+  overflow: hidden;
+}
+
+.rectification-question__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 25px 32px 20px;
+}
+
+.rectification-question__top div > span,
+.rectification-question__body > span,
+.rectification-result header > span,
+.rectification-state > span {
+  color: #ed9358;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.rectification-question__top p {
+  margin: 6px 0 0;
+  color: rgba(246, 238, 228, 0.54);
+  font-size: 12px;
+}
+
+.rectification-question__top > strong {
+  color: rgba(246, 238, 228, 0.72);
+  font: 500 18px/1 "Cormorant Garamond", Georgia, serif;
+}
+
+.rectification-progress {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rectification-progress span {
+  display: block;
+  height: 100%;
+  background: #e77832;
+  transition: width 220ms ease;
+}
+
+.rectification-question__body {
+  min-height: 410px;
+  padding: 56px 72px 48px;
+}
+
+.rectification-question__body h1,
+.rectification-state h1 {
+  max-width: 650px;
+  margin: 13px 0 12px;
+  color: #f6eee4;
+  font: 500 clamp(34px, 5vw, 52px)/0.98 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -0.025em;
+}
+
+.rectification-question__body > p,
+.rectification-state > p {
+  max-width: 610px;
+  margin: 0;
+  color: rgba(246, 238, 228, 0.61);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.rectification-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.rectification-options label {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.rectification-options label:last-child {
+  grid-column: 1 / -1;
+}
+
+.rectification-options label:hover,
+.rectification-options label.is-selected {
+  border-color: rgba(237, 147, 88, 0.58);
+  background: rgba(231, 120, 50, 0.09);
+}
+
+.rectification-options label:active {
+  transform: translateY(1px);
+}
+
+.rectification-options input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #e77832;
+}
+
+.rectification-options label > span {
+  display: grid;
+  gap: 3px;
+}
+
+.rectification-options strong {
+  color: #f6eee4;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rectification-options small {
+  color: rgba(246, 238, 228, 0.48);
+  font-size: 11px;
+}
+
+.rectification-select {
+  display: grid;
+  gap: 9px;
+  width: min(100%, 440px);
+  margin-top: 36px;
+  color: rgba(246, 238, 228, 0.65);
+  font-size: 12px;
+}
+
+.rectification-select select {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: #f6eee4;
+  background: #18130f;
+  font: 400 15px/1 Inter, Arial, sans-serif;
+}
+
+.rectification-select option {
+  color: #f6eee4;
+  background: #18130f;
+}
+
+.rectification-question__error {
+  margin: 16px 0 0 !important;
+  color: #f0aaa0 !important;
+  font-size: 12px !important;
+}
+
+.rectification-question__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 32px 26px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rectification-primary,
+.rectification-secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 21px;
+  border-radius: 9px;
+  font: 600 12px/1 Inter, Arial, sans-serif;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.rectification-primary {
+  border: 1px solid #e77832;
+  color: #fff8ef;
+  background: #d96326;
+}
+
+.rectification-primary:hover {
+  background: #e77832;
+}
+
+.rectification-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(246, 238, 228, 0.76);
+  background: transparent;
+}
+
+.rectification-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #f6eee4;
+}
+
+.rectification-primary:active,
+.rectification-secondary:active {
+  transform: translateY(1px);
+}
+
+.rectification-primary:disabled,
+.rectification-secondary:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.rectification-primary svg,
+.rectification-secondary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.rectification-primary:focus-visible,
+.rectification-secondary:focus-visible,
+.rectification-select select:focus-visible,
+.rectification-options input:focus-visible {
+  outline: 2px solid #f0a16c;
+  outline-offset: 3px;
+}
+
+.rectification-state {
+  display: grid;
+  min-height: 430px;
+  place-items: center;
+  align-content: center;
+  padding: 54px;
+  text-align: center;
+}
+
+.rectification-state > svg {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 22px;
+  color: #ed9358;
+}
+
+.rectification-state h1 {
+  max-width: 620px;
+}
+
+.rectification-state > p {
+  max-width: 560px;
+}
+
+.rectification-state .rectification-primary {
+  margin-top: 28px;
+}
+
+.rectification-spinner {
+  animation: rectification-spin 900ms linear infinite;
+}
+
+.rectification-orbit {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(237, 147, 88, 0.22);
+  border-radius: 50%;
+}
+
+.rectification-orbit::before,
+.rectification-orbit::after {
+  position: absolute;
+  inset: 18px;
+  border: 1px solid rgba(237, 147, 88, 0.16);
+  border-radius: 50%;
+  content: "";
+}
+
+.rectification-orbit::after {
+  inset: 38px;
+}
+
+.rectification-orbit span {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ed9358;
+  box-shadow: 0 0 18px rgba(237, 147, 88, 0.72);
+  transform-origin: 0 49px;
+  animation: rectification-orbit 2.4s linear infinite;
+}
+
+.rectification-result {
+  overflow: hidden;
+  padding: 48px 54px 42px;
+}
+
+.rectification-result header {
+  padding-bottom: 32px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  text-align: center;
+}
+
+.rectification-result__time {
+  margin: 10px 0 4px;
+  color: #f7ede1;
+  font: 500 clamp(70px, 12vw, 116px)/0.9 "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -0.05em;
+}
+
+.rectification-result header p {
+  margin: 12px 0 0;
+  color: rgba(246, 238, 228, 0.58);
+  font-size: 13px;
+}
+
+.rectification-result__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.rectification-result__metrics article {
+  display: grid;
+  gap: 6px;
+  padding: 25px 18px;
+  text-align: center;
+}
+
+.rectification-result__metrics article + article {
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.rectification-result__metrics strong {
+  color: #f4e9dc;
+  font: 500 27px/1 "Cormorant Garamond", Georgia, serif;
+}
+
+.rectification-result__metrics span {
+  color: rgba(246, 238, 228, 0.45);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.rectification-result__validation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 17px 18px;
+  border: 1px solid rgba(237, 147, 88, 0.18);
+  border-radius: 10px;
+  background: rgba(231, 120, 50, 0.055);
+}
+
+.rectification-result__validation svg {
+  flex: 0 0 auto;
+  width: 18px;
+  color: #ed9358;
+}
+
+.rectification-result__validation p {
+  margin: 0;
+  color: rgba(246, 238, 228, 0.65);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.rectification-alternatives {
+  margin-top: 28px;
+}
+
+.rectification-alternatives h2 {
+  margin: 0 0 10px;
+  color: #f4e9dc;
+  font: 500 24px/1 "Cormorant Garamond", Georgia, serif;
+}
+
+.rectification-alternatives > div {
+  display: grid;
+  grid-template-columns: 86px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.rectification-alternatives strong {
+  color: #f4e9dc;
+  font-size: 15px;
+}
+
+.rectification-alternatives span,
+.rectification-alternatives small {
+  color: rgba(246, 238, 228, 0.5);
+  font-size: 12px;
+}
+
+.rectification-disclaimer {
+  margin: 25px 0 0;
+  color: rgba(246, 238, 228, 0.4);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.rectification-result footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+@keyframes rectification-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rectification-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .rectification-page {
+    min-height: calc(100dvh - 64px);
+    padding: 20px 12px;
+  }
+
+  .rectification-question,
+  .rectification-result,
+  .rectification-state {
+    border-radius: 18px;
+  }
+
+  .rectification-question__top {
+    padding: 20px 20px 17px;
+  }
+
+  .rectification-question__body {
+    min-height: 430px;
+    padding: 42px 20px 34px;
+  }
+
+  .rectification-options {
+    grid-template-columns: 1fr;
+  }
+
+  .rectification-options label:last-child {
+    grid-column: auto;
+  }
+
+  .rectification-question__footer {
+    padding: 16px 20px 20px;
+  }
+
+  .rectification-primary,
+  .rectification-secondary {
+    flex: 1 1 0;
+    padding: 0 13px;
+  }
+
+  .rectification-state,
+  .rectification-result {
+    padding: 40px 22px 30px;
+  }
+
+  .rectification-result__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .rectification-result__metrics article + article {
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    border-left: 0;
+  }
+
+  .rectification-result footer {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rectification-progress span,
+  .rectification-options label,
+  .rectification-primary,
+  .rectification-secondary {
+    transition: none;
+  }
+
+  .rectification-spinner,
+  .rectification-orbit span {
+    animation: none;
+  }
+}

@@ -43,9 +43,9 @@ C:\Users\Huawei\.codex\mcp\pyjhora-mcp\.venv\Scripts\python.exe -m uvicorn vedic
 - return: `https://<домен>/chart/<chartId>?payment_return=<purchaseId>`;
 - открытая конфигурация товара: `https://<домен>/api/v1/payments/config`.
 
-Создание заказа принимает email для чека и принятую версию оферты. Цена `99000 RUB` читается из серверного каталога. Backend сохраняет provider idempotency key до запроса, поэтому сетевой повтор использует тот же объект YooKassa. Browser получает только внутренний ID заказа, статус, цену и `confirmation_url`; платёжные реквизиты VedicWay не собирает.
+Создание заказа принимает email для чека, код товара и принятую версию оферты. Серверный каталог хранит две цены: `99000 RUB` за полный отчёт и `30000 RUB` за ректификацию времени рождения. Backend сохраняет provider idempotency key до запроса, поэтому сетевой повтор использует тот же объект YooKassa. Browser получает только внутренний ID заказа, статус, цену и `confirmation_url`; платёжные реквизиты VedicWay не собирает.
 
-YooKassa не присылает пользовательскую HMAC-подпись для уведомлений этого типа. Backend допускает webhook только из опубликованных сетей YooKassa, учитывает `X-Forwarded-For` лишь от `VEDICWAY_TRUSTED_PROXY_CIDRS`, затем повторно запрашивает payment или refund через API v3. Entitlement появляется после сверки provider ID, `99000 RUB`, metadata и признаков `paid/captured`.
+YooKassa не присылает пользовательскую HMAC-подпись для уведомлений этого типа. Backend допускает webhook только из опубликованных сетей YooKassa, учитывает `X-Forwarded-For` лишь от `VEDICWAY_TRUSTED_PROXY_CIDRS`, затем повторно запрашивает payment или refund через API v3. Entitlement появляется после сверки provider ID, серверной цены выбранного товара, metadata и признаков `paid/captured`.
 
 Внутренние `reconcile` и `refund` закрыты токеном `VEDICWAY_OPERATIONS_TOKEN` и сетями `VEDICWAY_OPERATIONS_CIDRS`. Причина возврата и email шифруются `VEDICWAY_DATA_KEY`; audit хранит fingerprint токена, trace ID и результат. Частичный возврат оставляет entitlement, полный помечает его отозванным.
 
@@ -56,6 +56,9 @@ backend/migrations/001_chart_result.sql
 backend/migrations/002_yookassa_production.sql
 backend/migrations/003_pdf_render_preferences.sql
 backend/migrations/004_runtime_rate_limits.sql
+backend/migrations/005_recovery_retention.sql
+backend/migrations/006_magic_link_confirmation.sql
+backend/migrations/007_birth_time_rectification.sql
 ```
 
 SQLite остаётся runnable-контуром для текущего production-профиля `single-node-sqlite` и обновляет старую базу совместимыми `ALTER TABLE`. Файлы `backend/migrations/*.sql` остаются заготовкой для будущего PostgreSQL-backed Store и не запускаются в production до появления этого adapter.

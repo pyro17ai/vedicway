@@ -38,7 +38,7 @@ def _production(monkeypatch: pytest.MonkeyPatch) -> None:
         "VEDICWAY_ENV": "production",
         "VEDICWAY_PAYMENT_PROVIDER": "yookassa",
         "VEDICWAY_PUBLIC_BASE_URL": "https://vedicway.example",
-        "VEDICWAY_OFFER_VERSION": "2026-07-28",
+        "VEDICWAY_OFFER_VERSION": "2026-07-30",
         "VEDICWAY_OFFER_URL": "https://vedicway.example/legal/offer",
         "VEDICWAY_PRIVACY_URL": "https://vedicway.example/legal/privacy",
         "VEDICWAY_OPERATIONS_TOKEN": "ops_" + "x" * 48,
