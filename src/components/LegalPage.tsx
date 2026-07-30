@@ -30,11 +30,11 @@ type LegalConfig = {
 };
 
 const fallback: LegalConfig = {
-  operator_name: "[НАИМЕНОВАНИЕ ОПЕРАТОРА]",
-  operator_address: "[ЮРИДИЧЕСКИЙ АДРЕС]",
-  inn: "[ИНН]",
-  ogrn: "[ОГРН/ОГРНИП]",
-  privacy_email: "[EMAIL ДЛЯ ОБРАЩЕНИЙ]",
+  operator_name: "ИП Корольский Владимир Васильевич",
+  operator_address: "625504 Тюменская область, Тюменский район, п. Боровский, ул. Сибирская, 0.32",
+  inn: "722407070173",
+  ogrn: "311723232700200",
+  privacy_email: "vedicway-ru@yandex.com",
   configured: false,
   interpretation_processor_enabled: false,
   interpretation_processor_configured: false,

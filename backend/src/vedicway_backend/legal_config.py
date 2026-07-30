@@ -70,13 +70,16 @@ def interpretation_processor_config() -> dict[str, object]:
 
 def public_legal_config() -> dict[str, object]:
     values = {
-        "operator_name": os.environ.get("VEDICWAY_LEGAL_OPERATOR_NAME", "[НАИМЕНОВАНИЕ ОПЕРАТОРА]"),
-        "operator_address": os.environ.get(
-            "VEDICWAY_LEGAL_OPERATOR_ADDRESS", "[ЮРИДИЧЕСКИЙ АДРЕС]"
+        "operator_name": os.environ.get(
+            "VEDICWAY_LEGAL_OPERATOR_NAME", "ИП Корольский Владимир Васильевич"
         ),
-        "inn": os.environ.get("VEDICWAY_LEGAL_OPERATOR_INN", "[ИНН]"),
-        "ogrn": os.environ.get("VEDICWAY_LEGAL_OPERATOR_OGRN", "[ОГРН/ОГРНИП]"),
-        "privacy_email": os.environ.get("VEDICWAY_PRIVACY_EMAIL", "[EMAIL ДЛЯ ОБРАЩЕНИЙ]"),
+        "operator_address": os.environ.get(
+            "VEDICWAY_LEGAL_OPERATOR_ADDRESS",
+            "625504 Тюменская область, Тюменский район, п. Боровский, ул. Сибирская, 0.32",
+        ),
+        "inn": os.environ.get("VEDICWAY_LEGAL_OPERATOR_INN", "722407070173"),
+        "ogrn": os.environ.get("VEDICWAY_LEGAL_OPERATOR_OGRN", "311723232700200"),
+        "privacy_email": os.environ.get("VEDICWAY_PRIVACY_EMAIL", "vedicway-ru@yandex.com"),
     }
     processor = interpretation_processor_config()
     processor_enabled = (

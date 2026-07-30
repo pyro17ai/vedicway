@@ -12,6 +12,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .env.production
+.env.local
 backups/
 runtime/*
 !runtime/README.md

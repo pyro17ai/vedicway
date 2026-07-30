@@ -55,7 +55,7 @@ const pages = [
         name: "VedicWay",
         url: "https://vedicway.ru/",
         logo: "https://vedicway.ru/assets/brand-mark.png",
-        email: "support@vedicway.ru"
+        email: "vedicway-ru@yandex.ru"
       },
       {
         "@context": "https://schema.org",

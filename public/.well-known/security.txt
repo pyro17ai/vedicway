@@ -1,4 +1,4 @@
-Contact: mailto:support@vedicway.ru
+Contact: mailto:vedicway-ru@yandex.ru
 Preferred-Languages: ru, en
 Canonical: https://vedicway.ru/.well-known/security.txt
 Expires: 2027-07-19T00:00:00Z
