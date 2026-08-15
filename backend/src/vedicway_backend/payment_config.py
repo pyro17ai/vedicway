@@ -117,10 +117,16 @@ class PaymentSettings:
         environment = os.getenv("VEDICWAY_ENV", "development").strip().casefold() or "development"
         production = environment == "production"
         test_payments = os.getenv("VEDICWAY_TEST_PAYMENTS", "0").strip() == "1"
+        allow_production_test_payments = (
+            os.getenv("VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS", "0").strip() == "1"
+        )
         configured_provider = os.getenv("VEDICWAY_PAYMENT_PROVIDER", "").strip().casefold()
 
-        if production and test_payments:
-            raise PaymentConfigurationError("VEDICWAY_TEST_PAYMENTS cannot be enabled in production")
+        if production and test_payments and not allow_production_test_payments:
+            raise PaymentConfigurationError(
+                "VEDICWAY_TEST_PAYMENTS in production requires "
+                "VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS=1"
+            )
         if test_payments:
             provider: Literal["disabled", "test", "yookassa"] = "test"
         elif configured_provider in {"", "disabled"}:
@@ -129,7 +135,7 @@ class PaymentSettings:
             provider = "yookassa"
         else:
             raise PaymentConfigurationError("VEDICWAY_PAYMENT_PROVIDER must be disabled or yookassa")
-        if production and provider != "yookassa":
+        if production and provider != "yookassa" and not allow_production_test_payments:
             raise PaymentConfigurationError("VEDICWAY_PAYMENT_PROVIDER=yookassa is required in production")
 
         raw_base_url = os.getenv("YOOKASSA_API_BASE_URL", OFFICIAL_YOOKASSA_API_BASE_URL).strip().rstrip("/")

@@ -2,9 +2,9 @@
 
 ## Что хранится где
 
-SQLAlchemy-контур хранит в PostgreSQL статьи гида и блога, публичные комментарии, метаданные изображений и журнал согласий. Схему создаёт Alembic. Переменная `VEDICWAY_DATABASE_URL` действительно используется приложением; SQLite остаётся локальным вариантом разработки.
+PostgreSQL хранит все постоянные данные проекта. Схема `runtime` содержит расчёты, задания, покупки и очереди, Alembic управляет контентными таблицами в `public`, а служебный реестр SEO живёт в схеме `seo_agent`. Приложение получает одно подключение через `DATABASE_URL` или `VEDICWAY_DATABASE_URL`.
 
-Расчёты, задания, покупки, outbox и PDF пока обслуживает класс `Store` через зашифрованный SQLite-файл. Поэтому поддерживаемый production-профиль называется `single-node-sqlite`: один API/worker-процесс, один постоянный российский диск, резервное копирование всего `VEDICWAY_DATA_DIR`. Горизонтальное масштабирование и несколько worker-инстансов запрещены до переноса `Store` на PostgreSQL. Наличие SQL-файла `backend/migrations/001_chart_result.sql` само по себе не переключает runtime на PostgreSQL.
+Каталоги `VEDICWAY_DATA_DIR` и `VEDICWAY_MEDIA_DIR` хранят только PDF, изображения и служебные ключевые файлы. Резервная копия состояния состоит из PostgreSQL dump и архива этих файлов.
 
 ## Обязательные переменные
 
@@ -15,7 +15,6 @@ VEDICWAY_ENV=production
 VEDICWAY_PUBLIC_ORIGIN=https://vedicway.ru
 VEDICWAY_PUBLIC_BASE_URL=https://vedicway.ru
 VEDICWAY_DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/vedicway
-VEDICWAY_RUNTIME_PROFILE=single-node-sqlite
 VEDICWAY_DATA_DIR=/srv/vedicway/runtime
 VEDICWAY_MEDIA_DIR=/srv/vedicway/media
 VEDICWAY_DATA_KEY=<Fernet key>
@@ -41,15 +40,19 @@ Frontend получает `VITE_YANDEX_METRIKA_ID` во время production-с
 
 Reverse proxy должен отдавать `/sitemap.xml` из backend endpoint, потому что он включает только опубликованные статьи и обновляет `lastmod`. Файл `public/sitemap.xml` служит безопасным запасным вариантом для главной страницы, гида и блога, но не заменяет динамическую карту сайта после публикации материалов.
 
-Endpoint `/api/v1/health/ready` возвращает 503, пока отсутствуют реквизиты, PostgreSQL, явный single-node профиль или постоянные пути. При `VEDICWAY_INTERPRETATION_PROVIDER=codex` readiness дополнительно требует фактические реквизиты внешнего обработчика, цель, категории данных и явный флаг трансграничной передачи.
+Endpoint `/api/v1/health/ready` возвращает 503, пока отсутствуют реквизиты, PostgreSQL или постоянные пути. При `VEDICWAY_INTERPRETATION_PROVIDER=codex` readiness дополнительно требует фактические реквизиты внешнего обработчика, цель, категории данных и явный флаг трансграничной передачи.
 
 ## Миграция и публикационный шлюз
 
-Перед запуском API выполняется миграция из каталога `backend`:
+Перед запуском API применяются все три набора миграций:
 
 ```powershell
 uv sync --frozen --extra test
-uv run alembic upgrade head
+uv run python -m vedicway_backend.migrations
+Push-Location backend
+uv run alembic -c alembic.ini upgrade head
+Pop-Location
+uv run python -m seo_agent.cli init
 ```
 
 Ручной редактор и административные сессии отсутствуют. Статьи принимает только закрытый шлюз `/internal/content-agent/*` с Bearer-токеном `VEDICWAY_SEO_AGENT_TOKEN`, хешем тела и ключом идемпотентности. Оператор проверяет шлюз после миграции:

@@ -108,10 +108,7 @@ describe("страница статьи", () => {
         name: "Как проверять астрологический прогноз",
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: "Блог" })[1]).toHaveAttribute(
-      "href",
-      "/blog",
-    );
+    expect(screen.getByRole("link", { name: "Блог" })).toHaveAttribute("href", "/blog");
     expect(screen.getAllByRole("link", { name: "Рассчитать карту" })).toHaveLength(
       2,
     );

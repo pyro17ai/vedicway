@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-type PublicLegalConfig = {
-  operator_name: string;
-  operator_address: string;
-  inn: string;
-  ogrn: string;
-  privacy_email: string;
-  configured: boolean;
-};
+const CONTACT_EMAIL = "vedciway-ru@yandex.ru";
 
-const faqItems = [
+export const faqItems = [
   {
     id: "service",
     question: "Что такое натальная карта и как работает сервис VedicWay?",
@@ -53,21 +46,44 @@ function Ornament({ position }: { position: "top" | "bottom" }) {
   );
 }
 
-export function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [legalConfig, setLegalConfig] = useState<PublicLegalConfig | null>(null);
-  const [legalUnavailable, setLegalUnavailable] = useState(false);
-  const activeItem = openIndex === null ? null : faqItems[openIndex];
+function ContactPopover({ label }: { label: string }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    fetch("/api/v1/legal/config", { headers: { Accept: "application/json" } })
-      .then((response) => response.ok ? response.json() : Promise.reject())
-      .then((value: PublicLegalConfig) => {
-        if (!value.configured) throw new Error("legal config is incomplete");
-        setLegalConfig(value);
-      })
-      .catch(() => setLegalUnavailable(true));
-  }, []);
+    if (!open) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    document.addEventListener("keydown", closeWithEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOutside);
+      document.removeEventListener("keydown", closeWithEscape);
+    };
+  }, [open]);
+
+  return (
+    <span className="contact-popover" ref={root}>
+      <button type="button" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+        {label}
+      </button>
+      {open && (
+        <span className="contact-popover__panel" role="status">
+          <strong>Напишите нам</strong>
+          <span>По всем вопросам обращайтесь на почту:</span>
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+        </span>
+      )}
+    </span>
+  );
+}
+
+export function FaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
     <>
@@ -98,6 +114,7 @@ export function FaqSection() {
             {faqItems.map((item, index) => {
               const isOpen = openIndex === index;
               const triggerId = `faq-trigger-${item.id}`;
+              const answerId = `faq-answer-${item.id}`;
 
               return (
                 <article
@@ -110,7 +127,7 @@ export function FaqSection() {
                     id={triggerId}
                     type="button"
                     aria-expanded={isOpen}
-                    aria-controls="faq-answer-panel"
+                    aria-controls={answerId}
                     onClick={() => setOpenIndex((current) => (current === index ? null : index))}
                   >
                     <span className="faq-item__star" aria-hidden="true">
@@ -119,37 +136,29 @@ export function FaqSection() {
                     <span className="faq-item__question">{item.question}</span>
                     <ChevronDown className="faq-item__chevron" aria-hidden="true" />
                   </button>
+                  {isOpen && (
+                    <div
+                      className="faq-item__answer"
+                      id={answerId}
+                      role="region"
+                      aria-labelledby={triggerId}
+                    >
+                      <div className="faq-item__answer-inner">
+                        <span>Короткий ответ</span>
+                        <p>{item.answer}</p>
+                      </div>
+                    </div>
+                  )}
                 </article>
               );
             })}
           </div>
 
-          <div className={`faq-answer-stage${activeItem ? " is-visible" : ""}`} data-testid="faq-answer-stage">
-            <div
-              className="faq-answer-panel"
-              id="faq-answer-panel"
-              role="region"
-              aria-live="polite"
-              aria-labelledby={activeItem ? `faq-trigger-${activeItem.id}` : undefined}
-              aria-hidden={!activeItem}
-              key={activeItem?.id ?? "closed"}
-            >
-              {activeItem ? (
-                <>
-                  <span>Короткий ответ</span>
-                  <p>{activeItem.answer}</p>
-                </>
-              ) : (
-                <p className="faq-answer-panel__placeholder">Выберите вопрос, чтобы прочитать ответ.</p>
-              )}
-            </div>
-          </div>
-
           <footer className="faq-footer">
             <Ornament position="bottom" />
-            <p>
-              Не нашли ответ? {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Свяжитесь с нами <span aria-hidden="true">→</span></a> : <a href="/legal/privacy">Контакты оператора <span aria-hidden="true">→</span></a>}
-            </p>
+            <div className="faq-footer__contact-line">
+              Не нашли ответ? <ContactPopover label="Свяжитесь с нами →" />
+            </div>
           </footer>
         </div>
       </section>
@@ -158,21 +167,17 @@ export function FaqSection() {
         <div className="faq-legal-footer__inner">
           <div className="faq-legal-footer__brand">
             <div className="faq-legal-footer__brand-mark">
-              <img src="/assets/brand-mark-light.png" alt="" width="34" height="34" />
+              <img src="/assets/brand-mark-light-80.webp" alt="" width="34" height="34" />
               <span>VedicWay</span>
             </div>
             <p>Персональные натальные карты и понятные объяснения.</p>
           </div>
 
-          <div className="faq-legal-footer__operator">
-            <p className="faq-legal-footer__label">Реквизиты оператора</p>
-            {legalConfig ? <>
-              <p>{legalConfig.operator_name}</p>
-              <p>ОГРН/ОГРНИП: {legalConfig.ogrn} · ИНН: {legalConfig.inn}</p>
-              <p>Юридический адрес: {legalConfig.operator_address}</p>
-              <p>Обращения по персональным данным: <a href={`mailto:${legalConfig.privacy_email}`}>{legalConfig.privacy_email}</a></p>
-            </> : <p>{legalUnavailable ? "Реквизиты временно недоступны" : "Загружаем реквизиты…"}</p>}
-          </div>
+          <nav className="faq-legal-footer__sections" aria-label="Разделы сайта">
+            <span>Разделы сайта</span>
+            <a href="/blog">Блог</a>
+            <a href="/methodology">Метод</a>
+          </nav>
 
           <nav className="faq-legal-footer__links" aria-label="Правовая информация">
             <a href="/legal/offer">Публичная оферта</a>
@@ -181,7 +186,7 @@ export function FaqSection() {
             <a href="/legal/cookies">Политика cookies</a>
             <a href="/privacy/request">Запрос по персональным данным</a>
             <button type="button" onClick={() => window.dispatchEvent(new Event("vedicway:open-cookie-settings"))}>Настроить cookies</button>
-            {legalConfig ? <a href={`mailto:${legalConfig.privacy_email}`}>Контакты</a> : <a href="/legal/privacy">Контакты</a>}
+            <ContactPopover label="Контакты" />
           </nav>
 
           <p className="faq-legal-footer__copyright">© 2026 VedicWay · Материал предназначен для самонаблюдения и знакомства с астрологической традицией.</p>

@@ -11,6 +11,12 @@ test-results/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+*.log
+/in
+/VedicWay Light Version/
+/seo_semantic_core/
+/seo_semantic_core.rar
+/docs/SIDE_CHAT_*.md
 .env.production
 .env.local
 backups/

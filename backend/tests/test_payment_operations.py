@@ -211,7 +211,12 @@ def test_duplicate_refund_key_calls_provider_once_and_audits_result(tmp_path) ->
     assert audits[0]["action"] == "refund"
     assert audits[0]["amount_minor"] == 30_000
     assert audits[0]["reason"] == "Частичный возврат"
-    assert OPERATIONS_TOKEN not in (store.db_path.read_bytes().decode("utf-8", errors="ignore"))
+    with store._connection() as connection:
+        stored_audits = connection.execute(
+            """SELECT action, actor_fingerprint, source_ip, trace_id, detail_json
+               FROM payment_operations"""
+        ).fetchall()
+    assert OPERATIONS_TOKEN not in repr(stored_audits)
 
 
 def test_partial_then_full_refund_revokes_entitlement(tmp_path) -> None:

@@ -7,7 +7,7 @@ import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -185,18 +185,18 @@ class ArticleRevisionConflict(RuntimeError):
 
 class ContentDatabase:
     def __init__(self, database_url: str | None = None) -> None:
-        self.url = database_url or os.environ.get("VEDICWAY_DATABASE_URL") or self._default_url()
-        engine_options: dict[str, Any] = {"pool_pre_ping": True}
-        if self.url.startswith("sqlite"):
-            engine_options["connect_args"] = {"check_same_thread": False}
-        self.engine: Engine = create_engine(self.url, **engine_options)
+        configured_url = (
+            database_url
+            or os.environ.get("VEDICWAY_DATABASE_URL")
+            or os.environ.get("DATABASE_URL")
+        )
+        if not configured_url:
+            raise RuntimeError("VEDICWAY_DATABASE_URL is required")
+        if not configured_url.startswith(("postgresql://", "postgresql+psycopg://")):
+            raise RuntimeError("VEDICWAY_DATABASE_URL must use PostgreSQL")
+        self.url = configured_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        self.engine: Engine = create_engine(self.url, pool_pre_ping=True)
         self._sessions = sessionmaker(self.engine, expire_on_commit=False)
-
-    @staticmethod
-    def _default_url() -> str:
-        data_dir = Path(os.environ.get("VEDICWAY_DATA_DIR", Path.cwd() / ".data"))
-        data_dir.mkdir(parents=True, exist_ok=True)
-        return f"sqlite:///{(data_dir / 'content.sqlite3').as_posix()}"
 
     def initialize(self) -> None:
         if os.environ.get("VEDICWAY_ENV", "development").casefold() != "production":
@@ -603,6 +603,4 @@ def production_configuration_errors(database: ContentDatabase) -> list[str]:
         errors.append("security:fingerprint_secret_too_short")
     if not database.url.startswith(("postgresql://", "postgresql+psycopg://")):
         errors.append("database:postgresql_required")
-    if os.environ.get("VEDICWAY_RUNTIME_PROFILE") != "single-node-sqlite":
-        errors.append("runtime:single_node_profile_required")
     return errors

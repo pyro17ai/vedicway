@@ -25,7 +25,7 @@ export function SiteHeader({ active, onNavigate, variant = "solid" }: SiteHeader
     <header className={`site-header site-header--${variant}`} data-od-id="site-header">
       <div className="site-header__inner">
         <a className="site-header__brand" href="/" onClick={(event) => follow(event, "/")} aria-label="VedicWay, главная">
-          <img className="site-header__brand-mark" src="/assets/brand-mark-light.png" alt="" width="40" height="40" />
+          <img className="site-header__brand-mark" src="/assets/brand-mark-light-80.webp" alt="" width="40" height="40" />
           <span>VedicWay</span>
         </a>
 
@@ -35,12 +35,6 @@ export function SiteHeader({ active, onNavigate, variant = "solid" }: SiteHeader
           </a>
           <a className={active === "guide" ? "is-active" : ""} href="/guide" aria-current={active === "guide" ? "page" : undefined} onClick={(event) => follow(event, "/guide")}>
             Гид по астрологии
-          </a>
-          <a className={active === "blog" ? "is-active" : ""} href="/blog" aria-current={active === "blog" ? "page" : undefined} onClick={(event) => follow(event, "/blog")}>
-            Блог
-          </a>
-          <a href="/methodology" onClick={(event) => follow(event, "/methodology")}>
-            Метод
           </a>
         </nav>
       </div>

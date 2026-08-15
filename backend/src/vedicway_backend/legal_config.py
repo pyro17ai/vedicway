@@ -3,9 +3,9 @@ from __future__ import annotations
 import os
 
 LEGAL_DOCUMENT_VERSIONS = {
-    "terms": "2026-07-30",
-    "privacy": "2026-07-30",
-    "personal_data_consent": "2026-07-30",
+    "terms": "2026-07-31",
+    "privacy": "2026-07-31",
+    "personal_data_consent": "2026-07-31",
     "cookies": "2026-07-19",
 }
 
@@ -71,7 +71,7 @@ def interpretation_processor_config() -> dict[str, object]:
 def public_legal_config() -> dict[str, object]:
     values = {
         "operator_name": os.environ.get(
-            "VEDICWAY_LEGAL_OPERATOR_NAME", "ИП Корольский Владимир Васильевич"
+            "VEDICWAY_LEGAL_OPERATOR_NAME", "ИП Корольский Вадимир Васильевич"
         ),
         "operator_address": os.environ.get(
             "VEDICWAY_LEGAL_OPERATOR_ADDRESS",
@@ -81,24 +81,9 @@ def public_legal_config() -> dict[str, object]:
         "ogrn": os.environ.get("VEDICWAY_LEGAL_OPERATOR_OGRN", "311723232700200"),
         "privacy_email": os.environ.get("VEDICWAY_PRIVACY_EMAIL", "vedicway-ru@yandex.com"),
     }
-    processor = interpretation_processor_config()
-    processor_enabled = (
-        os.environ.get("VEDICWAY_INTERPRETATION_PROVIDER", "").strip().casefold() == "codex"
-    )
     operator_configured = all(not _is_placeholder(str(value)) for value in values.values())
-    configured = operator_configured and (
-        not processor_enabled or bool(processor["configured"])
-    )
     return {
         **values,
         "versions": LEGAL_DOCUMENT_VERSIONS,
-        "configured": configured,
-        "interpretation_processor_enabled": processor_enabled,
-        "interpretation_processor_configured": processor["configured"],
-        "interpretation_processor_name": processor["name"],
-        "interpretation_processor_address": processor["address"],
-        "interpretation_processor_country": processor["country"],
-        "interpretation_processor_purpose": processor["purpose"],
-        "interpretation_processor_data_categories": processor["data_categories"],
-        "interpretation_processor_cross_border": processor["cross_border"],
+        "configured": operator_configured,
     }

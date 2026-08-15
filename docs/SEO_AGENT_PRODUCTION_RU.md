@@ -6,13 +6,13 @@
 
 VedicWay получил автономный article-only контур вокруг Codex. Он собирает спрос Яндекса, превращает подтвержденные запросы в брифы, пишет и проверяет статьи, публикует их в разделе `/guide`, отдает полный RSS для Дзена и возвращается к опубликованным URL по данным Webmaster и Metrika. Социальные сети, vc.ru, Joomla, VirtueMart, Pinterest, Telegram и универсальные cross-posting модули исключены.
 
-Служебная память вынесена в отдельный SQLite `vedicway_seo_agent.sqlite3`. Агент не получает пароль PostgreSQL, сеть `data`, административные cookie или доступ к таблицам пользователей, платежей и натальных карт. Бэкенд принимает только изображения и готовые статьи через закрытый bearer API. Nginx продолжает отвечать 404 на публичный `/internal/*`.
+Служебная память хранится в отдельной схеме PostgreSQL `seo_agent`. Агент получает пароль через secret и сеть `data`, но записывает состояние только типизированным CLI с фиксированным `search_path`. Административные cookie и прикладные ключи пользователей ему недоступны. Бэкенд принимает изображения и готовые статьи через закрытый bearer API. Nginx продолжает отвечать 404 на публичный `/internal/*`.
 
 Код готов к production-активации после добавления VedicWay-only доступов из [OPEN_GATES_RU.md](../seo_agent/OPEN_GATES_RU.md). Токены проекта Ивана не использовались ни для исследования, ни для тестов, ни для конфигурации.
 
 ## Что показал полный разбор Hermes
 
-В исходной директории я проинвентаризировал 6147 файлов, 45 Skills, scheduler, 4 Yandex MCP, Joomla/Dzen publishing, SQLite-ledger, миграции, тесты и сохраненные браузерные профили. Рабочая БД Hermes прошла `integrity_check=ok`, `foreign_key_check=0`, содержала 25 миграций и schema version 2.3.0. Операционные таблицы были пусты, поэтому переносить сам файл или его историю в VedicWay не было смысла.
+В исходной директории я проинвентаризировал 6147 файлов, 45 Skills, scheduler, 4 Yandex MCP, Joomla/Dzen publishing, локальный ledger, миграции, тесты и сохраненные браузерные профили. Операционные таблицы Hermes были пусты, поэтому переносить сам файл или его историю в VedicWay не было смысла.
 
 Главная ценность Hermes лежала в дисциплине состояний: один владелец записи в БД, аренда задач, attempt token, idempotency key, terminal evidence, неизменяемый slug и обязательная публичная проверка после публикации. Его предметная модель была тесно связана с мебельным каталогом, Joomla и социальными сетями. Прямое копирование принесло бы 66 таблиц и 10 cron-job, из которых VedicWay использовал бы меньше половины.
 
@@ -35,7 +35,7 @@ VedicWay получил автономный article-only контур вокр�
 flowchart LR
     Y["Yandex Search, Wordstat, Webmaster, Metrika"] --> S["Repo-local Yandex MCP"]
     S --> C["Codex + 12 SEO Skills"]
-    C <--> L["Отдельный SQLite ledger"]
+    C <--> L["Схема PostgreSQL seo_agent"]
     C --> P["Детерминированный publisher CLI"]
     P --> A["Закрытый FastAPI /internal/content-agent"]
     A --> DB["PostgreSQL content tables"]
@@ -45,19 +45,19 @@ flowchart LR
     R --> D["Канал Дзена"]
 ```
 
-Scheduler и Codex работают в сервисе `seo-agent` из Compose profile `seo`. У сервиса две сети: внутренняя `edge` для обращения к backend и отдельная `seo-egress` для OpenAI с Яндексом. Сети `data`, `api-egress`, `worker-egress` ему не выданы. Backend видит только внутренний SEO bearer token; Codex key и Yandex OAuth-токены в API не монтируются.
+Scheduler и Codex работают в сервисе `seo-agent` из Compose profile `seo`. Сервис подключён к `edge` для обращения к backend, к `data` для PostgreSQL и к отдельной `seo-egress` для OpenAI с Яндексом. Сети `api-egress` и `worker-egress` ему не выданы. Backend видит только внутренний SEO bearer token; Codex key и Yandex OAuth-токены в API не монтируются.
 
 Образ запускает процессы от UID 10001, оставляет root filesystem read-only и хранит изменяемое состояние в `seo_agent_data` и `seo_codex_home`. В образ попадают 12 SEO Skills, расчетный `vedic-astrology`, `.codex/config.toml`, код `seo_agent`, четыре pinned npm-пакета MCP и два отслеживаемых seed-файла из `seo/yandex`. Остальные repo-local Skills в runtime не копируются.
 
 ## База агента
 
-Миграция [001_initial.sql](../seo_agent/migrations/001_initial.sql) создает 19 STRICT-таблиц, четыре operational view и trigger защиты terminal publication. [002_claim_run_ownership.sql](../seo_agent/migrations/002_claim_run_ownership.sql) связывает аренды с их `cron_run`, чтобы авария или ложный completed-run немедленно возвращали незавершенную сущность в очередь. SQLite работает с foreign keys, WAL, `synchronous=FULL`, `busy_timeout=30s` и неизменяемыми checksum миграций. Путь БД обязан лежать внутри `VEDICWAY_SEO_DATA_DIR`; попытка открыть произвольный SQLite отклоняется.
+Миграция [001_initial.sql](../seo_agent/migrations/001_initial.sql) создаёт схему `seo_agent`, 19 таблиц, четыре operational view и trigger защиты terminal publication. [002_claim_run_ownership.sql](../seo_agent/migrations/002_claim_run_ownership.sql) связывает аренды с их `cron_run`, чтобы авария или ложный completed-run немедленно возвращали незавершённую сущность в очередь. `AgentLedger` принимает только PostgreSQL URL, проверяет неизменяемые checksum миграций и выполняет запросы с `search_path=seo_agent,public`.
 
 Контур хранит четыре класса данных. Источники и сырые MCP-ответы дают воспроизводимое evidence. Keyword queries, SERP snapshots и clusters описывают поисковый спрос. Briefs, drafts и media ведут производство статьи. Attempts, publications, performance snapshots и optimization actions замыкают публикацию с последующим улучшением. Cron runs, skill runs, job results и audit events отвечают за эксплуатацию.
 
-`python -m seo_agent.cli` остается единственным разрешенным writer. Он умеет инициализировать и проверять БД, создавать run, продлевать lease, атомарно claim-ить cluster/draft/action, записывать типизированные сущности, делать online backup и завершать run. Scheduler признает успех только при одной durable-записи `job_results`; нулевой exit code Codex без результата превращается в `RESULT_MISSING`.
+`python -m seo_agent.cli` остаётся единственным разрешённым writer. Он умеет инициализировать и проверять БД, создавать run, продлевать lease, атомарно claim-ить cluster/draft/action, записывать типизированные сущности и завершать run. Scheduler признаёт успех только при одной durable-записи `job_results`; нулевой exit code Codex без результата превращается в `RESULT_MISSING`.
 
-Статусы публикации не могут откатиться из `published` или `verified` в промежуточное состояние, а `verified` не возвращается в `published`. Publication создается после конкретного terminal attempt `succeeded`, совпадения draft content hash, request hash, claim token и семи публичных проверок. Параллельные workers не получают одну сущность: `BEGIN IMMEDIATE`, claim token и срок аренды дают одного победителя. Аренда автоматически равна job timeout плюс 300 секунд, при стандартном часе это 3900 секунд. Claim хранит `cron_run_id`; завершение с ошибкой освобождает его сразу, а completed-run с незакрытой сущностью получает `CLAIM_UNFINISHED` вместо ложного успеха.
+Статусы публикации не могут откатиться из `published` или `verified` в промежуточное состояние, а `verified` не возвращается в `published`. Publication создаётся после конкретного terminal attempt `succeeded`, совпадения draft content hash, request hash, claim token и семи публичных проверок. Параллельные workers не получают одну сущность: транзакционная advisory lock, claim token и срок аренды дают одного победителя. Аренда автоматически равна job timeout плюс 300 секунд, при стандартном часе это 3900 секунд. Claim хранит `cron_run_id`; завершение с ошибкой освобождает его сразу, а completed-run с незакрытой сущностью получает `CLAIM_UNFINISHED` вместо ложного успеха.
 
 ## Scheduler
 
@@ -92,7 +92,7 @@ Scheduler передает промпт через stdin в `codex exec`, исп
 | `vedicway-dzen-distributor` | RSS readiness и факт появления в канале |
 | `vedicway-lifecycle-review` | Webmaster/Metrika snapshot и измеримые действия |
 
-Skills не дублируют код. Детерминированные операции лежат в CLI-модулях: `db.py`, `quality_gate.py`, `media.py`, `site_client.py`, `preflight.py`, `backup.py`. Skill объясняет, когда и с какими ограничениями вызвать инструмент; Python проверяет путь, hash, размер, transition и HTTP evidence. Lifecycle-run только создает измеримое action. Отдельный optimization-run меняет опубликованный draft по действующей аренде, проводит новый gate, обновляет тот же URL и закрывает action после появления нового verified request hash.
+Skills не дублируют код. Детерминированные операции лежат в CLI-модулях: `db.py`, `quality_gate.py`, `media.py`, `site_client.py` и `preflight.py`. Skill объясняет, когда и с какими ограничениями вызвать инструмент; Python проверяет путь, hash, размер, transition и HTTP evidence. Lifecycle-run только создаёт измеримое action. Отдельный optimization-run меняет опубликованный draft по действующей аренде, проводит новый gate, обновляет тот же URL и закрывает action после появления нового verified request hash.
 
 ## Защита от чужого Yandex-проекта
 
@@ -132,9 +132,9 @@ vc.ru исключен по решению владельца и слабому 
 
 ## Backup и восстановление
 
-`production_state.py backup` останавливает активные frontend/backend/worker/email и seo-agent, создает PostgreSQL dump, runtime archive и online backup SEO-ledger с integrity check. `backup_bundle.py` проверяет три SHA-256 и упаковывает `postgres.dump`, `runtime.tar.gz` и `seo-agent.sqlite3` в один AES-256-GCM bundle. Открытые компоненты удаляются после шифрования.
+`production_state.py backup` останавливает активные frontend/backend/worker/email и seo-agent, создаёт PostgreSQL dump со схемой `seo_agent` и runtime archive с отчётами и медиа. `backup_bundle.py` проверяет два SHA-256 и упаковывает `postgres.dump` с `runtime.tar.gz` в один AES-256-GCM bundle. Открытые компоненты удаляются после шифрования.
 
-Restore готовит три независимых staging-состояния. PostgreSQL, runtime и SEO-ledger коммитятся после общей подготовки; при ошибке выполняется rollback. SEO restore переносит live DB вместе с WAL/SHM, проверяет новую БД и хранит предыдущие файлы до finalize. Запуск backup или restore с сетью запрещен Compose-контрактом.
+Restore готовит два staging-состояния. PostgreSQL и runtime-файлы коммитятся после общей подготовки; при ошибке выполняется rollback. Запуск упаковщика backup или restore с сетью запрещён Compose-контрактом.
 
 ## Активация на сервере
 
@@ -143,7 +143,7 @@ Restore готовит три независимых staging-состояния.
 ```powershell
 python scripts/check_production_release.py --env-file .env.production
 python scripts/check_seo_agent_release.py --env-file .env.production
-docker compose --env-file .env.production -f compose.production.yml config --format json > resolved-compose.json
+docker compose --profile "*" --env-file .env.production -f compose.production.yml config --format json > resolved-compose.json
 python scripts/check_compose_contract.py resolved-compose.json
 docker compose --env-file .env.production -f compose.production.yml --profile seo build backend frontend
 docker compose --env-file .env.production -f compose.production.yml --profile seo up -d
@@ -154,8 +154,8 @@ docker compose --env-file .env.production -f compose.production.yml exec seo-age
 
 ## Проверки
 
-Тесты покрывают checksum миграций, path ownership, atomic claim race, повторный захват просроченной аренды сущности и аварийного run, durable result, привязку quality report к draft hash, полный цикл optimization action, terminal publication guard, online backup и транзакционный restore. Backend tests проверяют bearer auth, hash-bound idempotency, optimistic article revision, минимальную длину, SSR body media, safe links, sitemap и валидный XML RSS. Сквозной publisher test подтверждает upload, article PUT, замену HTML media marker и публичные свидетельства; backup bundle включает SEO-ledger в зашифрованную пару. Актуальные числа прогонов фиксирует CI, а не этот документ.
+Тесты покрывают checksum миграций, atomic claim race, повторный захват просроченной аренды сущности и аварийного run, durable result, привязку quality report к draft hash, полный цикл optimization action и terminal publication guard. Backend tests проверяют bearer auth, hash-bound idempotency, optimistic article revision, минимальную длину, SSR body media, safe links, sitemap и валидный XML RSS. Сквозной publisher test подтверждает upload, article PUT, замену HTML media marker и публичные свидетельства; общий backup bundle включает схему `seo_agent` внутри PostgreSQL dump. Актуальные числа прогонов фиксирует CI, а не этот документ.
 
-CI устанавливает четыре pinned Yandex MCP на Node 22.17, проверяет версии из lockfile, запускает весь backend и `seo_agent/tests`, валидирует Skills, Nginx, shell, Dockerfile и resolved Compose. На текущей Windows-машине нет Docker, `sh` и Nginx binary, поэтому здесь выполнены Python и Node проверки, production-сборка frontend, Nginx-контракт и разбор Compose YAML. Linux image build, `sh -n`, `nginx -t` и `docker compose config` остаются обязательными CI/server gates.
+CI устанавливает четыре pinned Yandex MCP на Node 22.17, проверяет версии из lockfile, запускает весь backend и `seo_agent/tests`, валидирует Skills, Nginx, shell, Dockerfile и resolved Compose. Локальная Windows-проверка охватывает Python, Node и полный Compose-контракт; Linux image build, `sh -n` и `nginx -t` остаются обязательными CI/server gates.
 
 Основные файлы: [код агента](../seo_agent), [Skills](../.agents/skills), [Codex MCP config](../.codex/config.toml), [Compose](../compose.production.yml), [внутренний API и RSS](../backend/src/vedicway_backend/content_api.py), [release-check](../scripts/check_seo_agent_release.py), [список доступов](../seo_agent/OPEN_GATES_RU.md).

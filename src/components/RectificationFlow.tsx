@@ -52,9 +52,19 @@ const eventQuestions: EventQuestion[] = [
     hint: "Выберите год первой устойчивой работы, крупного повышения или смены профессии.",
   },
   {
+    type: "income_change",
+    title: "Когда заметно изменился ваш уровень дохода?",
+    hint: "Подойдёт первый стабильный заработок, резкий рост дохода, потеря основного источника денег или крупная смена финансовых условий.",
+  },
+  {
     type: "marriage",
-    title: "В каком году начался официальный брак?",
-    hint: "Если браков было несколько, укажите первый. Незарегистрированные отношения здесь не учитываются.",
+    title: "В каком году начался брак или важные отношения?",
+    hint: "Укажите первый брак или начало первых длительных отношений, которые заметно изменили вашу жизнь.",
+  },
+  {
+    type: "separation",
+    title: "Когда завершились важные отношения или брак?",
+    hint: "Укажите год развода или расставания, которое заметно изменило вашу жизнь. Вопрос можно пропустить.",
   },
   {
     type: "childbirth",
@@ -76,14 +86,19 @@ const eventQuestions: EventQuestion[] = [
     title: "Когда произошла крупная операция или серьёзная травма?",
     hint: "Вопрос можно пропустить. Медицинские подробности сервис не запрашивает.",
   },
+  {
+    type: "parent_loss",
+    title: "В каком году вы потеряли родителя или опекуна?",
+    hint: "Ответьте только если готовы. Этот вопрос можно пропустить без объяснения причин.",
+  },
 ];
 
 const windowOptions = [
+  { value: "unknown", label: "Совсем неизвестно", detail: "Проверить все сутки" },
   { value: "night", label: "Ночью", detail: "00:00–05:59" },
   { value: "morning", label: "Утром", detail: "06:00–11:59" },
   { value: "day", label: "Днём", detail: "12:00–17:59" },
   { value: "evening", label: "Вечером", detail: "18:00–23:59" },
-  { value: "unknown", label: "Совсем неизвестно", detail: "Проверить все сутки" },
 ] as const;
 
 const monthOptions = [
@@ -236,8 +251,8 @@ export function RectificationFlow({ chartId, onNavigate }: RectificationFlowProp
         month: /^\d{1,2}$/.test(rawMonth ?? "") ? Number(rawMonth) : null,
       }];
     });
-    if (events.length < 3) {
-      setAnswerError("Для расчёта нужны даты минимум трёх событий. Вернитесь и добавьте ответы.");
+    if (events.length < 4) {
+      setAnswerError("Для расчёта нужны даты минимум четырёх событий. Вернитесь и добавьте ответы.");
       return;
     }
     setSubmitting(true);
@@ -383,17 +398,17 @@ export function RectificationFlow({ chartId, onNavigate }: RectificationFlowProp
                 <option value="">Выберите вариант</option>
                 {step.kind === "year" ? (
                   <>
-                    {years.map((year) => <option key={year} value={year}>{year}</option>)}
-                    <option value="not_happened">Такого события не было</option>
                     <option value="unknown">Не помню год</option>
+                    <option value="not_happened">Такого события не было</option>
                     <option value="skip">Не хочу отвечать</option>
+                    {years.map((year) => <option key={year} value={year}>{year}</option>)}
                   </>
                 ) : (
                   <>
+                    <option value="unknown">Не помню месяц</option>
                     {monthOptions.map((month, index) => (
                       <option key={month} value={index + 1}>{month}</option>
                     ))}
-                    <option value="unknown">Не помню месяц</option>
                   </>
                 )}
               </select>

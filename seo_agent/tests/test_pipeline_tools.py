@@ -90,11 +90,11 @@ def _authorize_manifest(manifest: dict[str, object]) -> None:
     now = utc_now()
     with ledger.transaction(immediate=True) as connection:
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('cluster-test','cluster-test','Cluster','informational','briefed',?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('cluster-test','cluster-test','Cluster','informational','briefed',%s,%s)",
             (now, now),
         )
         connection.execute(
-            "INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at) VALUES ('brief-test','cluster-test','consumed','Brief','query','problem','informational','[]','[]','[]','[]','brief-hash',?)",
+            "INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at) VALUES ('brief-test','cluster-test','consumed','Brief','query','problem','informational','[]','[]','[]','[]','brief-hash',%s)",
             (now,),
         )
         connection.execute(
@@ -102,7 +102,7 @@ def _authorize_manifest(manifest: dict[str, object]) -> None:
             id,brief_id,slug,status,title,excerpt,content_markdown,seo_title,meta_description,
             focus_keyphrase,category,author_name,content_hash,quality_report_json,claim_token,
             claim_expires_at,created_at,updated_at,approved_at
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
             (
                 manifest["draft_id"],
                 "brief-test",
@@ -162,7 +162,7 @@ def test_cover_and_publication_manifest_stay_inside_agent_data(
 ) -> None:
     data = tmp_path / "seo-data"
     monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
-    monkeypatch.setenv("VEDICWAY_SEO_DB", str(data / "vedicway_seo_agent.sqlite3"))
+    monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
     cover = data / "media" / "cover.webp"
     generated = generate_cover("Дома в натальной карте", "Основы астрологии", cover)
     assert generated["width"] == 1200
@@ -194,7 +194,7 @@ def test_publisher_rejects_a_cover_below_the_agent_quality_threshold(
 ) -> None:
     data = tmp_path / "seo-data"
     monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
-    monkeypatch.setenv("VEDICWAY_SEO_DB", str(data / "vedicway_seo_agent.sqlite3"))
+    monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
     cover = data / "media" / "narrow.webp"
     cover.parent.mkdir(parents=True)
     Image.new("RGB", (800, 630), (245, 238, 225)).save(cover, "WEBP")
@@ -217,11 +217,11 @@ def test_scheduler_reclaims_a_run_after_its_heartbeat_expires(
     with ledger.transaction(immediate=True) as connection:
         now = utc_now()
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('stale-owned','stale-owned','Stale owned','informational','ready',?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('stale-owned','stale-owned','Stale owned','informational','ready',%s,%s)",
             (now, now),
         )
         connection.execute(
-            "UPDATE cron_runs SET heartbeat_at='2000-01-01T00:00:00.000Z' WHERE id=?",
+            "UPDATE cron_runs SET heartbeat_at='2000-01-01T00:00:00.000Z' WHERE id=%s",
             (stale["run_id"],),
         )
     monkeypatch.setenv("VEDICWAY_SEO_RUN_ID", stale["run_id"])
@@ -236,13 +236,13 @@ def test_scheduler_reclaims_a_run_after_its_heartbeat_expires(
     )
     with ledger.connect() as connection:
         old_status = connection.execute(
-            "SELECT status,error_code FROM cron_runs WHERE id=?", (stale["run_id"],)
+            "SELECT status,error_code FROM cron_runs WHERE id=%s", (stale["run_id"],)
         ).fetchone()
         released = connection.execute(
             "SELECT status,claim_run_id FROM keyword_clusters WHERE id='stale-owned'"
         ).fetchone()
-    assert tuple(old_status) == ("failed", "STALE_LEASE")
-    assert tuple(released) == ("ready", None)
+    assert (old_status["status"], old_status["error_code"]) == ("failed", "STALE_LEASE")
+    assert (released["status"], released["claim_run_id"]) == ("ready", None)
     assert replacement["run_id"] != stale["run_id"]
 
 
@@ -301,7 +301,7 @@ def test_site_client_publishes_and_verifies_public_evidence(
     )
     data = tmp_path / "seo-data"
     monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
-    monkeypatch.setenv("VEDICWAY_SEO_DB", str(data / "vedicway_seo_agent.sqlite3"))
+    monkeypatch.setenv("VEDICWAY_SEO_DATA_DIR", str(data))
     monkeypatch.setenv(
         "VEDICWAY_SEO_AGENT_TOKEN", "test-token-with-more-than-thirty-two-characters"
     )

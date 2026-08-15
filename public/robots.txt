@@ -3,6 +3,7 @@ Allow: /
 Disallow: /api/
 Disallow: /chart/
 Disallow: /chart
+Disallow: /rectification/
 Disallow: /checkout/
 Disallow: /payment/
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&from

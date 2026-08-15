@@ -27,7 +27,7 @@ def _operator(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("VEDICWAY_PRIVACY_EMAIL", "privacy@example.ru")
 
 
-def test_public_legal_config_names_the_actual_interpretation_processor(
+def test_public_legal_config_exposes_only_operator_and_document_versions(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _operator(monkeypatch)
@@ -38,16 +38,9 @@ def test_public_legal_config_names_the_actual_interpretation_processor(
     config = public_legal_config()
 
     assert config["configured"] is True
-    assert config["interpretation_processor_enabled"] is True
-    assert config["interpretation_processor_name"] == "Example Processor LLC"
-    assert config["interpretation_processor_country"] == "Ирландия"
-    assert config["interpretation_processor_data_categories"] == [
-        "расчётные астрологические показатели",
-        "связи между показателями",
-    ]
-    assert config["interpretation_processor_cross_border"] is True
-    assert config["versions"]["privacy"] == "2026-07-30"
-    assert config["versions"]["personal_data_consent"] == "2026-07-30"
+    assert not any(key.startswith("interpretation_processor") for key in config)
+    assert config["versions"]["privacy"] == "2026-07-31"
+    assert config["versions"]["personal_data_consent"] == "2026-07-31"
 
 
 def test_codex_production_readiness_fails_closed_without_processor_disclosure(
@@ -59,14 +52,14 @@ def test_codex_production_readiness_fails_closed_without_processor_disclosure(
     monkeypatch.setenv("VEDICWAY_INTERPRETATION_PROVIDER", "codex")
     for name in PROCESSOR_VALUES:
         monkeypatch.delenv(name, raising=False)
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
 
     errors = production_configuration_errors(database)
 
     assert "missing:VEDICWAY_INTERPRETATION_PROCESSOR_NAME" in errors
     assert "legal:interpretation_processor_configuration_required" in errors
     assert "invalid:VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER" in errors
-    assert public_legal_config()["configured"] is False
+    assert public_legal_config()["configured"] is True
 
 
 def test_codex_production_readiness_accepts_complete_processor_disclosure(
@@ -78,7 +71,7 @@ def test_codex_production_readiness_accepts_complete_processor_disclosure(
     monkeypatch.setenv("VEDICWAY_INTERPRETATION_PROVIDER", "codex")
     for name, value in PROCESSOR_VALUES.items():
         monkeypatch.setenv(name, value)
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
 
     errors = production_configuration_errors(database)
 
@@ -98,12 +91,12 @@ def test_codex_production_readiness_rejects_processor_placeholders(
     monkeypatch.setenv(
         "VEDICWAY_INTERPRETATION_PROCESSOR_NAME", "REPLACE_WITH_PROCESSOR_LEGAL_NAME"
     )
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
 
     errors = production_configuration_errors(database)
 
     assert "legal:interpretation_processor_configuration_required" in errors
-    assert public_legal_config()["configured"] is False
+    assert public_legal_config()["configured"] is True
 
 
 def test_production_env_and_release_checker_require_processor_contract() -> None:

@@ -4,7 +4,7 @@ import { AstrologyWheel } from "./components/AstrologyWheel";
 import { ArticlePage } from "./components/ArticlePage";
 import { BirthChartForm } from "./components/BirthChartForm";
 import { BlogPage } from "./components/BlogPage";
-import { FaqSection } from "./components/FaqSection";
+import { FaqSection, faqItems } from "./components/FaqSection";
 import { GuidePage } from "./components/GuidePage";
 import { LegalPage, type LegalDocumentKind } from "./components/LegalPage";
 import { NotFoundPage } from "./components/NotFoundPage";
@@ -80,9 +80,17 @@ function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculat
           "@type": "Organization",
           "@id": `${origin}/about#organization`,
           name: "VedicWay",
-          url: `${origin}/about`,
+          alternateName: "VedicWay.ru",
+          legalName: "ИП Корольский Вадимир Васильевич",
+          url: `${origin}/`,
           logo: `${origin}/assets/brand-mark.png`,
-          email: "vedicway-ru@yandex.ru",
+          email: "vedicway-ru@yandex.com",
+          taxID: "722407070173",
+          identifier: {
+            "@type": "PropertyValue",
+            propertyID: "ОГРНИП",
+            value: "311723232700200",
+          },
         },
         {
           "@context": "https://schema.org",
@@ -92,6 +100,31 @@ function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculat
           url: `${origin}/`,
           inLanguage: "ru-RU",
           publisher: { "@id": `${origin}/about#organization` },
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          "@id": `${origin}/#application`,
+          name: "VedicWay",
+          url: `${origin}/`,
+          description: "Онлайн-расчёт ведической натальной карты по дате, времени и месту рождения.",
+          applicationCategory: "LifestyleApplication",
+          operatingSystem: "Web",
+          inLanguage: "ru-RU",
+          provider: { "@id": `${origin}/about#organization` },
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "@id": `${origin}/#faq`,
+          mainEntity: faqItems.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+          })),
         },
       ],
     });
@@ -118,12 +151,12 @@ function LandingScreen({ onChartCreated, onNavigate, initialFormMode = "calculat
 
           <div className="hero-copy" aria-labelledby="hero-title" data-od-id="hero-copy">
           <h1 id="hero-title">
-            <span>ВЕДИЧЕСКАЯ НАТАЛЬНАЯ КАРТА</span>
+            <span>НАТАЛЬНАЯ КАРТА</span>{" "}
             <span className="hero-copy__accent">ОНЛАЙН</span>
           </h1>
 
           <p className="hero-copy__lead">
-            Рассчитайте сидерическую карту по дате, времени и месту рождения.
+            Рассчитайте ведическую карту по дате, времени и месту рождения.
             Сервис покажет положения планет и объяснит их в рамках традиции джйотиш.
           </p>
 
@@ -190,6 +223,7 @@ const trustRoutes: Record<string, TrustPageKind> = {
   "/about": "about",
   "/methodology": "methodology",
   "/editorial-policy": "editorial-policy",
+  "/report-example": "report-example",
 };
 
 function App({ seoBootstrap = null }: { seoBootstrap?: SeoBootstrap | null }) {
@@ -216,7 +250,7 @@ function App({ seoBootstrap = null }: { seoBootstrap?: SeoBootstrap | null }) {
   };
 
   const openChart = (createdChartId: string) => {
-    window.history.pushState({}, "", `/chart/${encodeURIComponent(createdChartId)}?tab=chart&varga=D1&mode=plain`);
+    window.history.pushState({}, "", `/chart/${encodeURIComponent(createdChartId)}?tab=chart&varga=D1`);
     setPathname(`/chart/${createdChartId}`);
   };
 

@@ -18,7 +18,13 @@ from .calculator import (
 )
 from .errors import DomainError
 from .evidence import compile_evidence
-from .interpretation import InterpretationProvider, provider_from_environment, validate_bundle
+from .interpretation import (
+    InterpretationProvider,
+    free_projection,
+    provider_from_environment,
+    validate_bundle,
+)
+from .interpretation_prompt import PROMPT_VERSION
 from .observability import Metrics
 from .pdf import PdfRenderer
 from .rectification import calculate_rectification
@@ -196,23 +202,31 @@ class ChartWorker:
     def _free_interpretation(self, job: dict[str, Any]) -> None:
         chart_id = str(job["chart_id"])
         snapshot, facts, packets = self._load_evidence(chart_id)
-        self.store.emit(chart_id, "interpretation.started", {"stage": "free"})
-        run_id = self._start_agent_run(chart_id, job, facts, packets, paid=False)
+        self.store.emit(chart_id, "interpretation.started", {"stage": "full_with_preview"})
+        run_id = self._start_agent_run(chart_id, job, facts, packets, paid=True)
         try:
-            bundle = self.provider.generate(snapshot.snapshot_id, facts, packets, paid=False)
+            bundle = self.provider.generate(snapshot.snapshot_id, facts, packets, paid=True)
             self.store.emit(chart_id, "interpretation.validating", {"attempt": int(job["attempts"])})
-            validated = validate_bundle(bundle, snapshot.snapshot_id, facts, packets, paid=False)
+            full_bundle = validate_bundle(bundle, snapshot.snapshot_id, facts, packets, paid=True)
+            preview_bundle = validate_bundle(
+                free_projection(full_bundle),
+                snapshot.snapshot_id,
+                facts,
+                packets,
+                paid=False,
+            )
         except Exception:
             self.store.finish_agent_run(run_id, "failed")
             raise
-        self.store.finish_agent_run(run_id, "succeeded", self._bundle_checksum(validated))
+        self.store.finish_agent_run(run_id, "succeeded", self._bundle_checksum(full_bundle))
+        self.store.commit_bundle_events(chart_id, full_bundle, paid=True, events=[])
         self.store.commit_bundle_events(
             chart_id,
-            validated,
+            preview_bundle,
             paid=False,
             events=[
-                ("interpretation.ready", {"bundle_version": validated.schema_version}),
-                ("questions.ready", {"count": len(validated.questions)}),
+                ("interpretation.ready", {"bundle_version": preview_bundle.schema_version}),
+                ("questions.ready", {"count": len(preview_bundle.questions)}),
             ],
         )
 
@@ -220,6 +234,14 @@ class ChartWorker:
         chart_id = str(job["chart_id"])
         if not self.store.has_entitlement(chart_id):
             raise DomainError("ENTITLEMENT_REQUIRED", "Полный отчёт доступен после подтверждения оплаты", recoverable=False, status_code=403)
+        ready_bundle = self.store.get_bundle(chart_id, paid=True)
+        prompt_version = str(getattr(self.provider, "prompt_version", PROMPT_VERSION))
+        if ready_bundle is not None and self.store.has_successful_agent_run(
+            chart_id, prompt_version
+        ):
+            self.store.emit(chart_id, "report.ready", {"report_version": ready_bundle.schema_version})
+            self.store.enqueue_pdf_job(chart_id, PdfRenderPreferences().model_dump(mode="json"), priority=60)
+            return
         snapshot, facts, packets = self._load_evidence(chart_id)
         self.store.emit(chart_id, "report.started", {"sections_total": len(packets)})
         run_id = self._start_agent_run(chart_id, job, facts, packets, paid=True)
@@ -261,6 +283,7 @@ class ChartWorker:
         with self._calculation_lock:
             result = calculate_rectification(birth, case["answers"])
         self.store.complete_rectification(chart_id, result)
+        self.store.enqueue_rectification_ready_email(chart_id)
 
     def _start_agent_run(self, chart_id: str, job: dict[str, Any], facts, packets, paid: bool) -> str:
         payload = {

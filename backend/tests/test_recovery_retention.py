@@ -3,14 +3,17 @@ from __future__ import annotations
 import re
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlsplit
 
 import pytest
 from fastapi.testclient import TestClient
 
 from vedicway_backend.email_delivery import (
+    EmailAttachment,
     EmailDispatcher,
     EmailSettings,
+    SmtpEmailProvider,
     production_email_configuration_errors,
 )
 from vedicway_backend.email_worker import EmailWorker
@@ -30,15 +33,24 @@ from vedicway_backend.worker import ChartWorker
 
 class RecordingEmailProvider:
     def __init__(self) -> None:
-        self.messages: list[dict[str, str]] = []
+        self.messages: list[dict[str, Any]] = []
 
-    def send(self, *, recipient: str, subject: str, text: str, html_body: str) -> str:
+    def send(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        text: str,
+        html_body: str,
+        attachments: tuple[EmailAttachment, ...] = (),
+    ) -> str:
         self.messages.append(
             {
                 "recipient": recipient,
                 "subject": subject,
                 "text": text,
                 "html": html_body,
+                "attachments": attachments,
             }
         )
         return f"message-{len(self.messages)}"
@@ -150,6 +162,178 @@ def test_rectification_access_recovery_returns_to_paid_flow(tmp_path) -> None:
     assert confirmed.headers["location"] == f"/rectification/{chart_id}"
 
 
+def test_smtp_provider_adds_pdf_as_a_real_attachment(monkeypatch) -> None:
+    sent_messages = []
+
+    class RecordingSmtp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+        def starttls(self, *, context) -> None:
+            assert context is not None
+
+        def login(self, username: str, password: str) -> None:
+            assert (username, password) == ("user", "secret")
+
+        def send_message(self, message) -> None:
+            sent_messages.append(message)
+
+    monkeypatch.setattr(
+        "vedicway_backend.email_delivery.smtplib.SMTP",
+        lambda *_args, **_kwargs: RecordingSmtp(),
+    )
+
+    SmtpEmailProvider(_email_settings()).send(
+        recipient="buyer@example.com",
+        subject="Готовый отчёт",
+        text="PDF приложен",
+        html_body="<p>PDF приложен</p>",
+        attachments=(EmailAttachment("vedicway-report.pdf", b"%PDF-1.4\n%%EOF"),),
+    )
+
+    assert len(sent_messages) == 1
+    attachments = list(sent_messages[0].iter_attachments())
+    assert len(attachments) == 1
+    assert attachments[0].get_filename() == "vedicway-report.pdf"
+    assert attachments[0].get_content_type() == "application/pdf"
+    assert attachments[0].get_payload(decode=True).startswith(b"%PDF-1.4")
+
+
+def test_ready_emails_use_the_email_of_the_matching_product(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vedicway_backend.email_delivery.rectification_report_pdf",
+        lambda _birth, _result: b"%PDF-1.4\nrectification\n%%EOF",
+    )
+    store = Store(tmp_path / "runtime")
+    session_id, _ = store.create_session()
+    chart_id, _ = store.create_chart(session_id, _birth(), "product-specific-email")
+    report_purchase, _ = store.create_purchase(
+        chart_id,
+        "report-purchase",
+        "report@example.com",
+    )
+    assert store.confirm_purchase(str(report_purchase["id"]), "report-paid") == chart_id
+    rectification_purchase, _ = store.create_purchase(
+        chart_id,
+        "rectification-purchase",
+        "rectification@example.com",
+        product_code="birth_time_rectification_v1",
+        amount_minor=30_000,
+    )
+    assert store.confirm_purchase(
+        str(rectification_purchase["id"]), "rectification-paid"
+    ) == chart_id
+
+    _, render_request_id = store.enqueue_pdf_job(
+        chart_id, PdfRenderPreferences().model_dump(mode="json")
+    )
+    path = store.reports_dir / f"{render_request_id}.pdf"
+    path.write_bytes(b"%PDF-1.4\n%%EOF")
+    render = store.get_pdf_render_request(render_request_id)
+    assert render is not None
+    store.commit_report_event(
+        chart_id,
+        "ready",
+        {"render_request_id": render_request_id},
+        path=str(path),
+        checksum="sha256:test",
+        size_bytes=path.stat().st_size,
+        pages=1,
+        render_request_id=render_request_id,
+        preferences_checksum=render["preferences_checksum"],
+    )
+    store.complete_rectification(
+        chart_id,
+        {
+            "selected_time": "17:26",
+            "confidence": "medium",
+            "uncertainty_minutes": 8,
+            "lagna": "Скорпион",
+            "score_percent": 76,
+            "candidate_count_expected": 121,
+            "candidate_count_scored": 121,
+            "fit_event_count": 3,
+            "holdout_event_count": 1,
+            "holdout_supported": True,
+            "alternatives": [{"time": "17:38", "lagna": "Скорпион", "score_percent": 72}],
+            "algorithm_version": "rectification.v1",
+            "disclaimer": "Результат требует проверки по документам.",
+        },
+    )
+
+    provider = RecordingEmailProvider()
+    dispatcher = EmailDispatcher(store, settings=_email_settings(), provider=provider)
+
+    report_delivery = store.enqueue_purchase_ready_email(chart_id, render_request_id)
+    assert report_delivery is not None
+    assert dispatcher.process_once() == report_delivery
+
+    rectification_delivery = store.enqueue_rectification_ready_email(chart_id)
+    assert rectification_delivery is not None
+    assert store.enqueue_rectification_ready_email(chart_id) is None
+    assert dispatcher.process_once() == rectification_delivery
+
+    assert [message["recipient"] for message in provider.messages] == [
+        "report@example.com",
+        "rectification@example.com",
+    ]
+    report_message = provider.messages[0]
+    assert "PDF-отчёт приложен" in report_message["text"]
+    assert "Скачать PDF" not in report_message["html"]
+    assert report_message["attachments"][0].filename == "vedicway-full-report.pdf"
+    assert report_message["attachments"][0].content.startswith(b"%PDF-1.4")
+    rectification_message = provider.messages[1]
+    assert "Ректификация времени рождения" in rectification_message["subject"]
+    assert "17:26" in rectification_message["text"]
+    assert "±8 минут" in rectification_message["text"]
+    assert "Скорпион" in rectification_message["text"]
+    assert rectification_message["attachments"][0].filename == "vedicway-birth-time-report.pdf"
+    assert rectification_message["attachments"][0].content.startswith(b"%PDF-1.4")
+    link = re.search(
+        r'href="([^"]+/api/v1/magic-links/[^"]+)"',
+        rectification_message["html"],
+    )
+    assert link is not None
+
+    app = create_app(store=store, worker=NoopWorker())
+    with TestClient(app) as visitor:
+        started = visitor.get(urlsplit(link.group(1)).path, follow_redirects=False)
+        assert started.status_code == 303
+        csrf = visitor.cookies.get("vw_magic_csrf")
+        assert csrf
+        confirmed = visitor.post(
+            "/api/v1/magic-links/confirm",
+            data={"csrf_token": csrf},
+            headers={"Origin": "null"},
+            follow_redirects=False,
+        )
+    assert confirmed.status_code == 303
+    assert confirmed.headers["location"] == f"/rectification/{chart_id}"
+
+    blocked_token = store.create_magic_link(chart_id, scope="read_rectification")
+    with TestClient(app) as visitor:
+        assert visitor.get(
+            f"/api/v1/magic-links/{blocked_token}", follow_redirects=False
+        ).status_code == 303
+        csrf = visitor.cookies.get("vw_magic_csrf")
+        assert csrf
+        blocked = visitor.post(
+            "/api/v1/magic-links/confirm",
+            data={"csrf_token": csrf},
+            headers={
+                "Origin": "null",
+                "Sec-Fetch-Site": "cross-site",
+                "Sec-Fetch-Mode": "navigate",
+            },
+            follow_redirects=False,
+        )
+    assert blocked.status_code == 403
+    assert blocked.json()["error"]["code"] == "ORIGIN_FORBIDDEN"
+
+
 def test_store_exposes_no_direct_magic_link_redemption_bypass() -> None:
     assert not hasattr(Store, "consume_magic_link")
     assert not hasattr(Store, "redeem_magic_link")
@@ -179,7 +363,13 @@ def test_recovery_email_uses_scoped_single_use_links_and_sends_once(tmp_path) ->
     assert len(provider.messages) == 1
     assert provider.messages[0]["recipient"] == "buyer@example.com"
     assert "buyer@example.com" not in provider.messages[0]["html"]
-    assert b"buyer@example.com" not in store.db_path.read_bytes()
+    with store._connection() as connection:
+        encrypted_email = connection.execute(
+            """SELECT encode(email_ciphertext, 'hex') AS email_ciphertext, email_lookup_hmac
+               FROM purchases WHERE id = %s""",
+            (purchase_id,),
+        ).fetchone()
+    assert "buyer@example.com" not in repr(encrypted_email)
 
     links = re.findall(r'href="([^"]+/api/v1/magic-links/[^"]+)"', provider.messages[0]["html"])
     assert len(links) == 2
@@ -188,7 +378,7 @@ def test_recovery_email_uses_scoped_single_use_links_and_sends_once(tmp_path) ->
     with store._connection() as connection:
         access_count_before = int(
             connection.execute(
-                "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = ?", (chart_id,)
+                "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = %s", (chart_id,)
             ).fetchone()["count"]
         )
 
@@ -207,12 +397,11 @@ def test_recovery_email_uses_scoped_single_use_links_and_sends_once(tmp_path) ->
             ).fetchone()["used_at"] is None
             assert int(
                 connection.execute(
-                    "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = ?", (chart_id,)
+                    "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = %s", (chart_id,)
                 ).fetchone()["count"]
             ) == access_count_before
 
         rejected_origins = (
-            {"Origin": "null"},
             {
                 "Origin": "null",
                 "Sec-Fetch-Site": "cross-site",
@@ -240,7 +429,7 @@ def test_recovery_email_uses_scoped_single_use_links_and_sends_once(tmp_path) ->
                 ) == 0
                 assert int(
                     connection.execute(
-                        "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = ?",
+                        "SELECT COUNT(*) AS count FROM chart_access WHERE chart_id = %s",
                         (chart_id,),
                     ).fetchone()["count"]
                 ) == access_count_before
@@ -296,7 +485,7 @@ def test_recovery_email_uses_scoped_single_use_links_and_sends_once(tmp_path) ->
     assert len(provider.messages) == 2
     with store._connection() as connection:
         deliveries = connection.execute(
-            "SELECT COUNT(*) AS count FROM email_deliveries WHERE purchase_id = ? AND purpose = 'purchase_ready'",
+            "SELECT COUNT(*) AS count FROM email_deliveries WHERE purchase_id = %s AND purpose = 'purchase_ready'",
             (purchase_id,),
         ).fetchone()
     assert int(deliveries["count"]) == 1
@@ -311,7 +500,7 @@ def test_unknown_recovery_is_a_no_match_without_sending(tmp_path) -> None:
     assert provider.messages == []
     with store._connection() as connection:
         delivery = connection.execute(
-            "SELECT status FROM email_deliveries WHERE id = ?", (delivery_id,)
+            "SELECT status FROM email_deliveries WHERE id = %s", (delivery_id,)
         ).fetchone()
     assert delivery["status"] == "no_match"
 
@@ -323,7 +512,7 @@ def test_calculation_worker_cannot_claim_transactional_email(tmp_path) -> None:
     assert outcome.handled is False
     with store._connection() as connection:
         pending = connection.execute(
-            "SELECT status FROM email_deliveries WHERE id = ?", (delivery_id,)
+            "SELECT status FROM email_deliveries WHERE id = %s", (delivery_id,)
         ).fetchone()
     assert pending["status"] == "queued"
 
@@ -335,7 +524,7 @@ def test_calculation_worker_cannot_claim_transactional_email(tmp_path) -> None:
     assert provider.messages == []
     with store._connection() as connection:
         completed = connection.execute(
-            "SELECT status FROM email_deliveries WHERE id = ?", (delivery_id,)
+            "SELECT status FROM email_deliveries WHERE id = %s", (delivery_id,)
         ).fetchone()
     assert completed["status"] == "no_match"
 
@@ -353,11 +542,11 @@ def test_owned_delete_is_private_transactional_and_never_unlinks_outside_reports
     )
     with store._connection() as connection:
         connection.execute(
-            "UPDATE pdf_render_requests SET status = 'ready', path = ? WHERE id = ?",
+            "UPDATE pdf_render_requests SET status = 'ready', path = %s WHERE id = %s",
             (str(safe_path), request_id),
         )
         connection.execute(
-            "UPDATE reports SET status = 'ready', path = ? WHERE chart_id = ?",
+            "UPDATE reports SET status = 'ready', path = %s WHERE chart_id = %s",
             (str(outside_path), chart_id),
         )
     other_session, other_token = store.create_session()
@@ -374,7 +563,7 @@ def test_owned_delete_is_private_transactional_and_never_unlinks_outside_reports
     assert outside_path.exists()
     with store._connection() as connection:
         tombstone = connection.execute(
-            "SELECT status, last_error_code FROM erasure_tombstones WHERE chart_id = ?", (chart_id,)
+            "SELECT status, last_error_code FROM erasure_tombstones WHERE chart_id = %s", (chart_id,)
         ).fetchone()
     assert tombstone["status"] == "pending_files"
     assert tombstone["last_error_code"] == "UNSAFE_REPORT_PATH"
@@ -387,7 +576,7 @@ def test_privacy_intake_is_encrypted_and_lifecycle_is_dry_run_then_idempotent_ap
     old = (datetime.now(UTC) - timedelta(days=40)).replace(microsecond=0).isoformat()
     with store._connection() as connection:
         connection.execute(
-            "UPDATE charts SET created_at = ?, updated_at = ? WHERE id = ?", (old, old, chart_id)
+            "UPDATE charts SET created_at = %s, updated_at = %s WHERE id = %s", (old, old, chart_id)
         )
     app = create_app(store=store, worker=NoopWorker())
     with TestClient(app) as client:
@@ -396,7 +585,12 @@ def test_privacy_intake_is_encrypted_and_lifecycle_is_dry_run_then_idempotent_ap
             json={"type": "erase", "email": "privacy@example.com"},
         )
     assert response.status_code == 202
-    assert b"privacy@example.com" not in store.db_path.read_bytes()
+    with store._connection() as connection:
+        encrypted_email = connection.execute(
+            """SELECT encode(email_ciphertext, 'hex') AS email_ciphertext, email_lookup_hmac
+               FROM privacy_requests ORDER BY created_at DESC LIMIT 1"""
+        ).fetchone()
+    assert "privacy@example.com" not in repr(encrypted_email)
 
     settings = RetentionSettings(
         anonymous_chart_days=30,
@@ -420,7 +614,7 @@ def test_erasure_refuses_a_running_job_and_preserves_the_chart(tmp_path) -> None
     chart_id, _ = store.create_chart(session_id, _birth(), "active-job")
     with store._connection() as connection:
         connection.execute(
-            "UPDATE jobs SET status = 'running' WHERE chart_id = ?", (chart_id,)
+            "UPDATE jobs SET status = 'running' WHERE chart_id = %s", (chart_id,)
         )
     with pytest.raises(DomainError) as raised:
         store.erase_chart_personal_data(chart_id)

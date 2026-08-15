@@ -25,7 +25,7 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
     unpaid_result = store.erase_chart_personal_data(unpaid_chart)
     assert unpaid_result["hard_deleted"] is True
     with store._connection() as connection:
-        assert connection.execute("SELECT 1 FROM charts WHERE id = ?", (unpaid_chart,)).fetchone() is None
+        assert connection.execute("SELECT 1 FROM charts WHERE id = %s", (unpaid_chart,)).fetchone() is None
 
     paid_session, _ = store.create_session()
     paid_chart, _ = store.create_chart(paid_session, _birth(), "paid")
@@ -34,7 +34,7 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
         connection.execute(
             """INSERT INTO rectifications
                (chart_id, status, answers_ciphertext, result_ciphertext, created_at, updated_at)
-               VALUES (?, 'ready', ?, ?, ?, ?)""",
+               VALUES (%s, 'ready', %s, %s, %s, %s)""",
             (
                 paid_chart,
                 store._encrypt({"events": [{"event_type": "career", "year": 2020}]}),
@@ -49,13 +49,13 @@ def test_erasure_deletes_unpaid_chart_and_redacts_paid_chart(tmp_path) -> None:
     assert store.get_purchase_email(purchase["id"]) is None
     assert store.chart_owned_by(paid_chart, paid_session) is False
     with store._connection() as connection:
-        chart = connection.execute("SELECT * FROM charts WHERE id = ?", (paid_chart,)).fetchone()
+        chart = connection.execute("SELECT * FROM charts WHERE id = %s", (paid_chart,)).fetchone()
         profile = connection.execute(
-            "SELECT encrypted_payload FROM birth_profiles WHERE id = ?",
+            "SELECT encrypted_payload FROM birth_profiles WHERE id = %s",
             (chart["birth_profile_id"],),
         ).fetchone()
         rectification = connection.execute(
-            "SELECT 1 FROM rectifications WHERE chart_id = ?",
+            "SELECT 1 FROM rectifications WHERE chart_id = %s",
             (paid_chart,),
         ).fetchone()
     assert chart["status"] == "erased"

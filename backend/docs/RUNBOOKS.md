@@ -18,7 +18,7 @@
 
 ## Webhook задержан, запрещён или не совпал с заказом
 
-Redirect браузера не меняет entitlement. YooKassa не прикладывает merchant HMAC к этим уведомлениям: backend проверяет исходный IP по опубликованным сетям YooKassa, а затем получает payment или refund через API v3. Если запрос пришёл через reverse proxy, `X-Forwarded-For` учитывается только для peer из `VEDICWAY_TRUSTED_PROXY_CIDRS`; ошибочная сеть proxy даст `WEBHOOK_SOURCE_FORBIDDEN`.
+Redirect браузера не меняет entitlement. YooKassa не прикладывает merchant HMAC к этим уведомлениям: backend проверяет исходный IP по опубликованным сетям YooKassa, а затем получает payment или refund через API v3. Если запрос пришёл через reverse proxy, `X-Forwarded-For` учитывается только для peer из `VEDICWAY_TRUSTED_PROXY_CIDRS`; ошибочная сеть proxy даст `WEBHOOK_SOURCE_FORBIDDEN`. Для маршрута Timeweb edge -> TLS на порту 80 -> origin:8443 stream Nginx обязан отправлять PROXY protocol, а HTTP Nginx обязан принимать его на 8082 и 8443 только от `127.0.0.1`.
 
 При задержке проверить доступность webhook URL, ответ 200 и provider payment ID. Повтор одного уведомления безопасен: `payment_events` дедуплицирует событие. Для ручной сверки support вызывает `POST /internal/payments/{purchase_id}/reconcile` из разрешённой сети с `X-Operations-Token`. Browser query, ручной `UPDATE` и повторная покупка не служат способом выдать entitlement.
 

@@ -159,6 +159,18 @@ def test_forwarded_address_is_used_only_for_trusted_proxy() -> None:
     assert effective_client_ip("127.0.0.1", "203.0.113.44, 185.71.76.3", trusted) == "185.71.76.3"
 
 
+def test_timeweb_edge_chain_preserves_yookassa_source() -> None:
+    trusted = tuple(
+        ipaddress.ip_network(value)
+        for value in ("172.29.0.0/24", "172.22.0.1/32", "92.53.96.169/32")
+    )
+    assert effective_client_ip(
+        "172.29.0.3",
+        "77.75.154.206, 92.53.96.169, 172.22.0.1",
+        trusted,
+    ) == "77.75.154.206"
+
+
 def test_verified_success_webhook_refetches_and_grants_entitlement(tmp_path) -> None:
     app, store, _, purchase, provider = _setup(tmp_path)
     with TestClient(app, client=("185.71.76.3", 50000)) as client:

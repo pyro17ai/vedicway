@@ -76,7 +76,7 @@ Frontend отправляет `POST /api/v1/charts/:chartId/purchases` с `produ
 
 Purchase расширяется полями `product_code`, provider idempotency key, confirmation URL, offer version, provider status, failure code, paid/canceled timestamps, paid amount и refunded amount. Email остаётся зашифрованным существующим ключом данных. Entitlement получает `revoked_at` и `revocation_reason`, поэтому проверка доступа учитывает отзыв.
 
-Отдельная таблица refunds хранит provider refund ID, idempotency key, сумму, статус и audit metadata. `payment_events` получает event type, object ID и безопасный payload checksum. Миграция PostgreSQL оформляется отдельным файлом, локальная SQLite-схема обновляется совместимо с уже созданной базой.
+Отдельная таблица refunds хранит provider refund ID, idempotency key, сумму, статус и audit metadata. `payment_events` получает event type, object ID и безопасный payload checksum. Изменения runtime-схемы оформляются последовательными миграциями PostgreSQL.
 
 Provider create и локальная запись не образуют распределённую транзакцию. Устойчивость достигается сохранением purchase и provider key до внешнего вызова, повтором с тем же ключом и reconciliation. Если процесс падает после ответа YooKassa, повтор восстанавливает provider object без двойного списания.
 

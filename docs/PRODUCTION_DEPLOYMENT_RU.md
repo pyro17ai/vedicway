@@ -1,12 +1,12 @@
 # Production deployment VedicWay
 
-SEO-agent запускается отдельным Compose profile `seo` и не получает PostgreSQL credentials. Его полный deployment, backup и activation runbook находится в [SEO_AGENT_PRODUCTION_RU.md](SEO_AGENT_PRODUCTION_RU.md). Начиная с этой ревизии `production_state.py` включает `seo-agent.sqlite3` в общий зашифрованный backup bundle; перед backup/restore активный SEO-сервис останавливается вместе с API и worker.
+SEO-agent запускается отдельным Compose profile `seo`, получает PostgreSQL credentials через secret и работает только со схемой `seo_agent` через свой CLI. Его полный deployment и activation runbook находится в [SEO_AGENT_PRODUCTION_RU.md](SEO_AGENT_PRODUCTION_RU.md). Схема входит в общий PostgreSQL dump; перед backup и restore SEO-сервис останавливается вместе с API и worker.
 
 ## Контур
 
 `compose.production.yml` поднимает PostgreSQL, Alembic-миграции content store, FastAPI, durable worker, отдельный SMTP-consumer и Nginx. Наружу опубликован только `127.0.0.1:8080`; TLS завершает хостовый reverse proxy или облачный ingress. PostgreSQL и служебные endpoints не имеют host port. Nginx работает от UID 101, прикладные Python-процессы от UID 10001; root filesystem у контейнеров read-only, writable paths вынесены в named volumes и tmpfs.
 
-Сейчас действует split storage. PostgreSQL хранит статьи, комментарии, media metadata и журнал согласий. Расчёты, purchases, entitlements, PDF metadata и очередь писем остаются в SQLite `runtime_data`; сами media лежат в `media_data`. Поэтому production запускает ровно по одному API, worker и email-consumer. Масштабирование этих процессов и rolling update с двумя активными экземплярами запрещены до появления реального PostgreSQL adapter для chart/payment Store.
+PostgreSQL хранит весь табличный контур: runtime в схеме `runtime`, статьи и правовой журнал в `public`, SEO-реестр в `seo_agent`. Том `runtime_data` содержит PDF и служебные ключевые файлы, `media_data` хранит изображения. API, worker и email-consumer используют одно подключение и не имеют файловой базы.
 
 Nginx проксирует `/api`, отключает buffering для SSE, закрывает `/internal`, добавляет security headers и сжимает текстовые ответы gzip. Stock Nginx image не содержит сторонний Brotli module, поэтому Brotli намеренно не включён. Access log не записывает IP, URL, query, referrer и user-agent; для связи событий остаётся случайный request id. Uvicorn запускается с `--no-access-log`, а прикладной журнал использует шаблон маршрута `/api/v1/magic-links/{token}`. Inter и Cormorant Garamond собираются из локальных `@fontsource` assets: до согласия на cookies браузер не обращается к Google. CSP оставляет прямой поиск городов Open-Meteo, который нужен форме и должен быть раскрыт в политике персональных данных.
 
@@ -38,9 +38,9 @@ docker compose --env-file .env.production -f compose.production.yml up -d backen
 docker compose --env-file .env.production -f compose.production.yml ps
 ```
 
-Bash использует те же команды после `cp .env.production.example .env.production`. `content-migrate` выполняет `alembic upgrade head` для статей, комментариев, медиа и журнала согласий. Runtime-таблицы chart/payment в production остаются в SQLite `runtime_data`, поэтому `backend/migrations/*.sql` не запускаются до появления PostgreSQL-adapter для Store. Backend и worker не стартуют, пока content schema не находится на текущем Alembic head.
+Bash использует те же команды после `cp .env.production.example .env.production`. `content-migrate` последовательно применяет `backend/migrations/*.sql`, Alembic и миграции `seo_agent`. Backend, worker и SEO-agent не стартуют до успешного завершения этого сервиса.
 
-FastAPI запускается одним Uvicorn process. `VEDICWAY_INLINE_WORKER=0` отключает обработку очереди внутри API, поэтому jobs исполняет отдельный `worker`. Named volume `runtime_data` обязателен и не удаляется командой `down -v`. PostgreSQL readiness не доказывает сохранность chart/payment Store: отдельно проверяйте SQLite volume и runtime backup.
+FastAPI запускается одним Uvicorn process. `VEDICWAY_INLINE_WORKER=0` отключает обработку очереди внутри API, поэтому jobs исполняет отдельный `worker`. Named volumes `runtime_data` и `media_data` обязательны и не удаляются командой `down -v`. Readiness проверяет PostgreSQL и текущую ревизию контентной схемы.
 
 Production API и worker запускают контрольную D1 для Москвы 16.10.2006 13:30 и сверяют лагну с утверждённым fingerprint. Ошибка импорта PyJHora, эфемерид или расхождение расчёта оставляет API в `not_ready`, а worker завершает процесс и попадает под restart policy. Неверный Codex executable, пустой auth contour и любой provider кроме `codex` в production также останавливают процесс до приёма пользовательских задач.
 
@@ -83,7 +83,7 @@ python scripts/production_state.py restore --env-file .env.production --bundle "
 
 ## Срок хранения и удаление
 
-Публичный трафик запрещён, пока владелец не утвердил конкретные сроки хранения карт, контактных данных, consent records, media и резервных копий. Процедура удаления обязана очищать PostgreSQL, SQLite, reports/media и все backup-копии по одному идентификатору субъекта либо подтверждённому отзыву согласия; одно удаление строки из основной базы не закрывает запрос субъекта. Перед релизом проведите проверяемую репетицию удаления в staging, сохраните только обезличенный audit-факт и убедитесь, что удалённые данные не возвращаются после восстановления очередной допустимой резервной копии.
+Публичный трафик запрещён, пока владелец не утвердил конкретные сроки хранения карт, контактных данных, consent records, media и резервных копий. Процедура удаления обязана очищать PostgreSQL, reports/media и все backup-копии по одному идентификатору субъекта либо подтверждённому отзыву согласия; одно удаление строки из основной базы не закрывает запрос субъекта. Перед релизом проведите проверяемую репетицию удаления в staging, сохраните только обезличенный audit-факт и убедитесь, что удалённые данные не возвращаются после восстановления очередной допустимой резервной копии.
 
 Runtime lifecycle запускается сервисами `retention-dry-run` и `retention-apply` из профиля `ops`. Production-расписание systemd, SMTP-проверка и процедура tombstone recovery описаны в [recovery/retention runbook](RECOVERY_RETENTION_RUNBOOK_RU.md). Зелёная readiness без включённого ежедневного таймера не закрывает lifecycle gate.
 
@@ -91,7 +91,7 @@ Runtime lifecycle запускается сервисами `retention-dry-run` 
 
 - [ ] `.env.production` не содержит `.example`, `REPLACE_*`, тестовых payment flags и чужих CIDR; `check_production_release.py` завершился кодом 0.
 - [ ] Image tags привязаны к Git SHA, wheelhouse PyJHora имеет сохранённый `SHA256SUMS`, лицензированный `places.json` прошёл загрузку, Codex API key принадлежит отдельному service account.
-- [ ] `content-migrate` завершился кодом 0; Alembic находится на `head`, content store использует `VEDICWAY_DATABASE_URL`, публичная обложка отдаётся через `/media/articles/...`. Chart/payment SQLite работает только в одном API и одном worker, оба вида backup восстановлены в staging.
+- [ ] `content-migrate` завершился кодом 0; runtime и SEO migrations применены, Alembic находится на `head`, все процессы используют PostgreSQL, публичная обложка отдаётся через `/media/articles/...`, а backup восстановлен в staging.
 - [ ] TLS ingress передаёт `X-Forwarded-Proto=https`, порт Compose слушает loopback, `/internal` закрыт, CSP report в браузере пуст, HSTS присутствует на HTTPS-ответе. URI `/api/v1/magic-links/*` отключён или отредактирован во всех внешних access/error logs; тестовый токен-маркер не найден в CDN, ingress и SIEM.
 - [ ] Опубликованы актуальные оферта, политика и согласие; реквизиты `VEDICWAY_INTERPRETATION_PROCESSOR_*` совпадают с договором, юрист проверил трансграничный флаг и уведомительный порядок Роскомнадзора. `VEDICWAY_OFFER_VERSION` совпадает с текстом, YooKassa webhook и возврат проверены из разрешённых сетей без ручного SQL.
 - [ ] SMTP secret смонтирован, SPF/DKIM/DMARC проходят внешний тест, одноразовые chart/PDF ссылки не попадают в access log и не принимают replay.
@@ -99,5 +99,3 @@ Runtime lifecycle запускается сервисами `retention-dry-run` 
 - [ ] Golden-карта, бесплатное объяснение, полный отчёт, вопросы и PDF прошли end-to-end. p95 расчёта и provider timeout укладываются в утверждённый SLO.
 - [ ] Логи, PostgreSQL, media volume и backup физически размещены по утверждённой схеме локализации; секреты и персональные данные не попадают в logs, CI artifacts и error tracking.
 - [ ] Утверждены сроки хранения по каждому классу данных; `retention-dry-run` проверен, systemd timer включён, запрос удаления очищает primary storage, отчёты, медиа и backup-копии, а восстановление не возвращает данные с истёкшим сроком.
-
-Жёсткий стоп масштабирования: `backend/src/vedicway_backend/store.py` хранит charts и payments в SQLite. Compose передаёт `DATABASE_URL` и `VEDICWAY_DATABASE_URL` content adapter, но до переноса chart/payment таблиц допускается только single-node split storage. Зелёный `/health/ready` подтверждает доступ к runtime Store, но не полноценный disaster recovery.

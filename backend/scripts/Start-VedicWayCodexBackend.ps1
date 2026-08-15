@@ -5,6 +5,7 @@ param(
     [string]$Python = "",
     [string]$PyJhoraSource = "C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src",
     [string]$RuntimeRoot = (Join-Path $env:LOCALAPPDATA "VedicWay\codex-runner"),
+    [string]$DatabaseUrl = $env:VEDICWAY_DATABASE_URL,
     [string]$FreeModel = "gpt-5.6-luna",
     [string]$PaidModel = "gpt-5.6-terra",
     [switch]$BootstrapAuthFromCurrentUser,
@@ -34,6 +35,9 @@ $runtimePath = [System.IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVar
 $codexHome = Join-Path $runtimePath "codex-home"
 $agentWorkdir = Join-Path $runtimePath "empty-workdir"
 $dataDir = Join-Path $runtimePath ("data-" + $Port)
+if (-not $DatabaseUrl -or -not $DatabaseUrl.StartsWith("postgresql")) {
+    throw "Set -DatabaseUrl or VEDICWAY_DATABASE_URL to a PostgreSQL connection URL."
+}
 
 New-Item -ItemType Directory -Force -Path $codexHome, $agentWorkdir, $dataDir | Out-Null
 
@@ -65,8 +69,10 @@ if ($LASTEXITCODE -ne 0) {
     throw "Dedicated CODEX_HOME authentication check failed."
 }
 
-$env:PYTHONPATH = $sourceRoot
+$env:PYTHONPATH = $sourceRoot + [System.IO.Path]::PathSeparator + $repoRoot
 $env:VEDICWAY_ENV = "development"
+$env:DATABASE_URL = $DatabaseUrl
+$env:VEDICWAY_DATABASE_URL = $DatabaseUrl
 $env:VEDICWAY_DATA_DIR = $dataDir
 $env:VEDICWAY_TEST_PAYMENTS = "1"
 $env:VEDICWAY_PYJHORA_SOURCE = $pyJhoraPath
@@ -79,7 +85,21 @@ $env:VEDICWAY_CODEX_PAID_MODEL = $PaidModel
 $env:VEDICWAY_CODEX_FREE_REASONING = "low"
 $env:VEDICWAY_CODEX_PAID_REASONING = "medium"
 $env:VEDICWAY_CODEX_SERVICE_TIER = "fast"
-$env:VEDICWAY_CODEX_FREE_TIMEOUT_SECONDS = "90"
+
+& $pythonPath -m vedicway_backend.migrations
+if ($LASTEXITCODE -ne 0) {
+    throw "PostgreSQL runtime migrations failed."
+}
+Push-Location $backendRoot
+try {
+    & $pythonPath -m alembic -c alembic.ini upgrade head
+    if ($LASTEXITCODE -ne 0) {
+        throw "PostgreSQL content migrations failed."
+    }
+}
+finally {
+    Pop-Location
+}
 
 $smtpPath = if ($SmtpPasswordFile) {
     [System.IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($SmtpPasswordFile))

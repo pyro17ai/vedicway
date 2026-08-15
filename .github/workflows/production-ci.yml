@@ -65,6 +65,7 @@ jobs:
     env:
       DATABASE_URL: postgresql+psycopg://vedicway_ci:ci-only-password@127.0.0.1:5432/vedicway_ci
       VEDICWAY_DATABASE_URL: postgresql+psycopg://vedicway_ci:ci-only-password@127.0.0.1:5432/vedicway_ci
+      TEST_DATABASE_URL: postgresql+psycopg://vedicway_ci:ci-only-password@127.0.0.1:5432/vedicway_ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -81,6 +82,7 @@ jobs:
           chmod 600 /tmp/vedicway-postgres-password
           POSTGRES_HOST=127.0.0.1 POSTGRES_DB=vedicway_ci POSTGRES_USER=vedicway_ci POSTGRES_PASSWORD_FILE=/tmp/vedicway-postgres-password sh docker/postgres/run-migrations.sh
           (cd backend && python -m alembic -c alembic.ini upgrade head)
+          python -m seo_agent.cli init
           python -c "from vedicway_backend.content_store import ContentDatabase; ContentDatabase().ping(require_migrations=True)"
           rm -f /tmp/vedicway-postgres-password
       - run: python -m ruff check --config backend/pyproject.toml backend/src backend/tests backend/scripts seo_agent scripts/check_production_release.py scripts/check_seo_agent_release.py scripts/check_compose_contract.py scripts/check_nginx_contract.py scripts/production_state.py
@@ -116,7 +118,7 @@ jobs:
           sh -n docker/postgres/run-migrations.sh
           sh -n docker/postgres/backup.sh
           sh -n docker/postgres/restore.sh
-          docker compose --env-file .env.production -f compose.production.yml config --format json > /tmp/vedicway-compose.json
+          docker compose --profile "*" --env-file .env.production -f compose.production.yml config --format json > /tmp/vedicway-compose.json
           python scripts/check_compose_contract.py /tmp/vedicway-compose.json
           python scripts/check_nginx_contract.py docker/nginx/nginx.conf
       - name: Static Dockerfile checks

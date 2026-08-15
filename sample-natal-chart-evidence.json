@@ -1,0 +1,436 @@
+{
+    "facts": [
+        {
+            "id": "ef_2947fa174deb139b",
+            "kind": "ascendant",
+            "sign": "Козерог",
+            "chart": "d1",
+            "house": null,
+            "value": {
+                "nakshatra": "Uttara Ashadha",
+                "longitude_in_sign": 3.806
+            },
+            "domains": [
+                "character"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d1.ascendant"
+            ],
+            "human_label_ru": "Основная карта: лагна в знаке Козерог"
+        },
+        {
+            "id": "ef_cda28e713f9822e5",
+            "kind": "planet_position",
+            "sign": "Рыбы",
+            "chart": "d1",
+            "house": 3,
+            "value": {
+                "retrograde": null,
+                "planet_code": "SUN",
+                "longitude_in_sign": 20.7265
+            },
+            "domains": [
+                "character"
+            ],
+            "subject": "Солнце",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d1.planets.0"
+            ],
+            "human_label_ru": "Основная карта: Солнце в знаке Рыбы, доме 3"
+        },
+        {
+            "id": "ef_9fff0328e2a48ca2",
+            "kind": "planet_position",
+            "sign": "Дева",
+            "chart": "d1",
+            "house": 9,
+            "value": {
+                "retrograde": null,
+                "planet_code": "MOON",
+                "longitude_in_sign": 20.9168
+            },
+            "domains": [
+                "inner_support",
+                "family_home"
+            ],
+            "subject": "Луна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d1.planets.1"
+            ],
+            "human_label_ru": "Основная карта: Луна в знаке Дева, доме 9"
+        },
+        {
+            "id": "ef_a601e7e51da4cb94",
+            "kind": "planet_position",
+            "sign": "Телец",
+            "chart": "d1",
+            "house": 5,
+            "value": {
+                "retrograde": null,
+                "planet_code": "VENUS",
+                "longitude_in_sign": 6.5608
+            },
+            "domains": [
+                "inner_support"
+            ],
+            "subject": "Венера",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d1.planets.5"
+            ],
+            "human_label_ru": "Основная карта: Венера в знаке Телец, доме 5"
+        },
+        {
+            "id": "ef_2d440b634ddac1e8",
+            "kind": "ascendant",
+            "sign": "Водолей",
+            "chart": "D9",
+            "house": null,
+            "value": {
+                "nakshatra": null,
+                "longitude_in_sign": 4.2536
+            },
+            "domains": [
+                "relationships"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.D9.ascendant"
+            ],
+            "human_label_ru": "Навамша D9: лагна в знаке Водолей"
+        },
+        {
+            "id": "ef_38cb6db75cbd7608",
+            "kind": "planet_position",
+            "sign": "Водолей",
+            "chart": "D9",
+            "house": 1,
+            "value": {
+                "retrograde": null,
+                "planet_code": "VENUS",
+                "longitude_in_sign": 29.0472
+            },
+            "domains": [
+                "relationships"
+            ],
+            "subject": "Венера",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d9.planets.5"
+            ],
+            "human_label_ru": "Навамша D9: Венера в знаке Водолей, доме 1"
+        },
+        {
+            "id": "ef_bc6165fd7e139627",
+            "kind": "ascendant",
+            "sign": "Овен",
+            "chart": "D4",
+            "house": null,
+            "value": {
+                "nakshatra": null,
+                "longitude_in_sign": 15.2238
+            },
+            "domains": [
+                "family_home"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.D4.ascendant"
+            ],
+            "human_label_ru": "Чатуртхамша D4: лагна в знаке Овен"
+        },
+        {
+            "id": "ef_5bfc531ab82c111f",
+            "kind": "ascendant",
+            "sign": "Скорпион",
+            "chart": "D10",
+            "house": null,
+            "value": {
+                "nakshatra": null,
+                "longitude_in_sign": 8.0596
+            },
+            "domains": [
+                "work"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.D10.ascendant"
+            ],
+            "human_label_ru": "Дашамша D10: лагна в знаке Скорпион"
+        },
+        {
+            "id": "ef_a8cb82d19403c058",
+            "kind": "planet_position",
+            "sign": "Стрелец",
+            "chart": "D10",
+            "house": 2,
+            "value": {
+                "retrograde": null,
+                "planet_code": "SATURN",
+                "longitude_in_sign": 27.9694
+            },
+            "domains": [
+                "work"
+            ],
+            "subject": "Сатурн",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d10.planets.6"
+            ],
+            "human_label_ru": "Дашамша D10: Сатурн в знаке Стрелец, доме 2"
+        },
+        {
+            "id": "ef_7bba6251debe3298",
+            "kind": "ascendant",
+            "sign": "Весы",
+            "chart": "D2",
+            "house": null,
+            "value": {
+                "nakshatra": null,
+                "longitude_in_sign": 7.6119
+            },
+            "domains": [
+                "money"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.D2.ascendant"
+            ],
+            "human_label_ru": "Хора D2: лагна в знаке Весы"
+        },
+        {
+            "id": "ef_27d207a0825e4fbc",
+            "kind": "planet_position",
+            "sign": "Дева",
+            "chart": "D2",
+            "house": 12,
+            "value": {
+                "retrograde": null,
+                "planet_code": "JUPITER",
+                "longitude_in_sign": 14.8396
+            },
+            "domains": [
+                "money"
+            ],
+            "subject": "Юпитер",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d2.planets.4"
+            ],
+            "human_label_ru": "Хора D2: Юпитер в знаке Дева, доме 12"
+        },
+        {
+            "id": "ef_922df1f74ba2d998",
+            "kind": "ascendant",
+            "sign": "Рак",
+            "chart": "D24",
+            "house": null,
+            "value": {
+                "nakshatra": null,
+                "longitude_in_sign": 1.3429
+            },
+            "domains": [
+                "learning"
+            ],
+            "subject": "Лагна",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.D24.ascendant"
+            ],
+            "human_label_ru": "Чатурвимшамша D24: лагна в знаке Рак"
+        },
+        {
+            "id": "ef_af0a422a2f536a6a",
+            "kind": "planet_position",
+            "sign": "Телец",
+            "chart": "D24",
+            "house": 11,
+            "value": {
+                "retrograde": null,
+                "planet_code": "MERCURY",
+                "longitude_in_sign": 8.8923
+            },
+            "domains": [
+                "learning"
+            ],
+            "subject": "Меркурий",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.d24.planets.3"
+            ],
+            "human_label_ru": "Чатурвимшамша D24: Меркурий в знаке Телец, доме 11"
+        },
+        {
+            "id": "ef_e8f3da0b6ce90371",
+            "kind": "dasha_period",
+            "sign": null,
+            "chart": "D1",
+            "house": null,
+            "value": {
+                "end": "2039-01-26T16:51:48+03:00",
+                "level": "mahadasha",
+                "start": "2023-01-26T14:25:10+03:00"
+            },
+            "domains": [
+                "current_period"
+            ],
+            "subject": "Юпитер",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.dashas.data.maha_dashas.3"
+            ],
+            "human_label_ru": "Активная махадаша Вимшоттари: Юпитер"
+        },
+        {
+            "id": "ef_923472eeec857bbb",
+            "kind": "dasha_sub_period",
+            "sign": null,
+            "chart": "D1",
+            "house": null,
+            "value": {
+                "end": "2027-09-27T03:07:56+03:00",
+                "level": "antardasha",
+                "start": "2025-03-15T19:32:43+03:00"
+            },
+            "domains": [
+                "current_period"
+            ],
+            "subject": "Сатурн",
+            "rule_version": "evidence.v1",
+            "source_paths": [
+                "sections.dashas.data.maha_dashas.3.sub_periods.1"
+            ],
+            "human_label_ru": "Активная антардаша Вимшоттари: Сатурн"
+        }
+    ],
+    "packets": [
+        {
+            "slug": "character",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_2947fa174deb139b"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_cda28e713f9822e5"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Характер» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "inner_support",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_9fff0328e2a48ca2"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_a601e7e51da4cb94"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Внутренние опоры» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "relationships",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_2d440b634ddac1e8"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_38cb6db75cbd7608"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Отношения» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "family_home",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_bc6165fd7e139627"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_9fff0328e2a48ca2"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Семья и дом» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "work",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_5bfc531ab82c111f"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_a8cb82d19403c058"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Работа» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "money",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_7bba6251debe3298"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_27d207a0825e4fbc"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Деньги» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "learning",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_922df1f74ba2d998"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_af0a422a2f536a6a"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Обучение» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        },
+        {
+            "slug": "current_period",
+            "coverage": "multiple_factors",
+            "primary_facts": [
+                "ef_e8f3da0b6ce90371"
+            ],
+            "contradictions": [
+            ],
+            "confirming_facts": [
+                "ef_923472eeec857bbb"
+            ],
+            "missing_sections": [
+            ],
+            "allowed_claim_scope": "Раздел «Текущий период» описывает наблюдаемые темы для саморефлексии, без обещаний точных событий, диагнозов или решений."
+        }
+    ]
+}

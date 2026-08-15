@@ -25,7 +25,7 @@ def _app(tmp_path, monkeypatch):
     monkeypatch.setenv("VEDICWAY_SEO_AGENT_TOKEN", TOKEN)
     monkeypatch.setenv("VEDICWAY_SEO_MIN_ARTICLE_CHARS", "2000")
     monkeypatch.setenv("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru")
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
     return create_app(store=Store(tmp_path / "runtime"), content_db=database)
 
 
@@ -181,6 +181,7 @@ def test_internal_agent_api_is_scoped_idempotent_and_revision_safe(tmp_path, mon
         assert "<category>native-draft</category>" in feed.text
         assert "kak-chitat-natalnuyu-kartu" in feed.text
         document = ET.fromstring(feed.content)
+        assert document.findtext("./channel/link") == "https://vedicway.ru/guide"
         item = document.find("./channel/item")
         assert item is not None
         assert item.findtext("guid") == "https://vedicway.ru/guide/kak-chitat-natalnuyu-kartu"

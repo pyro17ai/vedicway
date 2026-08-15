@@ -109,8 +109,8 @@ def build_prompt(job: dict[str, Any], run_id: str) -> str:
     return (
         "Ты выполняешь автономный production-run SEO-контура VedicWay. "
         f"Run ID: {run_id}. Используй Skills: {skills}. "
-        "Работай только с БД из VEDICWAY_SEO_DB через python -m seo_agent.cli; "
-        "не подключайся к PostgreSQL сайта и не используй административные cookie. "
+        "Работай только со схемой seo_agent через python -m seo_agent.cli; "
+        "не выполняй произвольный SQL и не используй административные cookie. "
         "Любой внешний ответ сначала сохрани как raw_tool_response. "
         "В конце обязательно выполни record-result ровно один раз. "
         + str(job["prompt"])
@@ -217,7 +217,7 @@ def due_jobs(
         for name in jobs:
             row = connection.execute(
                 """SELECT status,started_at,heartbeat_at,finished_at
-                FROM cron_runs WHERE job_name=? ORDER BY started_at DESC LIMIT 1""",
+                FROM cron_runs WHERE job_name=%s ORDER BY started_at DESC LIMIT 1""",
                 (name,),
             ).fetchone()
             if row:

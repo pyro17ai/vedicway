@@ -47,11 +47,26 @@ WINDOWS = {
 EVENT_RULES: dict[str, dict[str, Any]] = {
     "education": {"houses": {4, 5, 9}, "karakas": {"Mercury", "Jupiter"}, "varga": 24},
     "career": {"houses": {2, 6, 10, 11}, "karakas": {"Saturn", "Sun", "Mercury"}, "varga": 10},
+    "income_change": {
+        "houses": {2, 6, 8, 9, 11},
+        "karakas": {"Jupiter", "Venus", "Mercury", "Saturn"},
+        "varga": 2,
+    },
     "marriage": {"houses": {2, 7, 11}, "karakas": {"Venus", "Jupiter"}, "varga": 9},
+    "separation": {
+        "houses": {2, 7, 8, 12},
+        "karakas": {"Venus", "Saturn", "Rahu", "Ketu"},
+        "varga": 9,
+    },
     "childbirth": {"houses": {5, 9}, "karakas": {"Jupiter"}, "varga": 7},
     "relocation": {"houses": {3, 4, 12}, "karakas": {"Moon", "Rahu"}, "varga": 4},
     "property": {"houses": {4, 11}, "karakas": {"Mars", "Venus", "Saturn"}, "varga": 4},
     "accident": {"houses": {6, 8, 12}, "karakas": {"Mars", "Saturn", "Ketu"}, "varga": None},
+    "parent_loss": {
+        "houses": {4, 8, 9, 12},
+        "karakas": {"Sun", "Moon", "Saturn", "Ketu"},
+        "varga": 12,
+    },
 }
 
 
@@ -280,10 +295,10 @@ def _distinct_leaders(candidates: list[dict[str, Any]], count: int = 3) -> list[
 
 def calculate_rectification(original: BirthInput, answers: dict[str, Any]) -> dict[str, Any]:
     events = list(answers.get("events") or [])
-    if len(events) < 3:
+    if len(events) < 4:
         raise DomainError(
             "RECTIFICATION_EVENTS_REQUIRED",
-            "Для расчёта нужны даты минимум трёх жизненных событий",
+            "Для расчёта нужны даты минимум четырёх жизненных событий",
             recoverable=False,
             status_code=422,
         )

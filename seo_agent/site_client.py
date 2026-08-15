@@ -119,7 +119,7 @@ def _validate_manifest_claim(
         draft = connection.execute(
             """SELECT id,status,claim_token,claim_expires_at,content_hash,slug,title,excerpt,
             content_markdown,seo_title,meta_description,focus_keyphrase,category,author_name
-            FROM article_drafts WHERE id=?""",
+            FROM article_drafts WHERE id=%s""",
             (manifest["draft_id"],),
         ).fetchone()
         if (
@@ -152,7 +152,7 @@ def _validate_manifest_claim(
         recorded_media = [
             dict(row)
             for row in connection.execute(
-                "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum FROM article_media WHERE draft_id=?",
+                "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum FROM article_media WHERE draft_id=%s",
                 (manifest["draft_id"],),
             )
         ]

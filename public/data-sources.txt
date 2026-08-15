@@ -1,0 +1,13 @@
+Источники данных и расчётный контур VedicWay
+
+1. GeoNames используется как локальный резервный справочник населённых пунктов.
+Источник: https://www.geonames.org/
+Лицензия: Creative Commons Attribution 4.0, https://creativecommons.org/licenses/by/4.0/
+
+2. PyJHora 4.7.0 выполняет расчёты джйотиш поверх астрономических эфемерид.
+Проект: https://github.com/naturalstupid/PyJHora
+
+3. Swiss Ephemeris 2.10.3.2 предоставляет астрономические положения небесных тел.
+Документация: https://www.astro.com/swisseph/
+
+Расчётные настройки, точность исходных данных и границы интерпретации описаны на https://vedicway.ru/methodology.

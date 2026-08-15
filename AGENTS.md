@@ -45,3 +45,9 @@ The test: Every changed line should trace directly to the user's request.
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+## Доступ к VPS
+
+Параметры подключения к серверу хранятся в локальном файле `C:\Users\Huawei\Downloads\Telegram Desktop\vps-connection.md`. Приватный SSH-ключ находится рядом: `C:\Users\Huawei\Downloads\Telegram Desktop\VedicWay.pem`; файл `VedicWay.pub` содержит публичный ключ.
+
+Перед подключением к VPS нужно прочитать `vps-connection.md` и использовать приватный ключ из указанного пути. Содержимое этих файлов нельзя копировать в репозиторий, коммиты или обычный текст рабочих заметок.

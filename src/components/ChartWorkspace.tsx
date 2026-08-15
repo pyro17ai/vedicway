@@ -1,26 +1,22 @@
 import {
-  type KeyboardEvent,
   type ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { useGSAP } from "@gsap/react";
-import { gsap } from "gsap";
 import {
   ArrowLeft,
   Bookmark,
-  BookOpen,
+  Check,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   Clipboard,
   Download,
   Info,
   LockKeyhole,
-  Map as MapIcon,
   RefreshCw,
   SlidersHorizontal,
   Sparkles,
@@ -44,6 +40,7 @@ import {
   getSection,
   getVarga,
   reportDownloadUrl,
+  retryChartJob,
   saveQuestion,
   startPdf,
   subscribeToChartEvents,
@@ -61,12 +58,10 @@ import { CalculationLoader } from "./CalculationLoader";
 import { SouthIndianChart, formatChartDegree } from "./SouthIndianChart";
 
 type TabId = "chart" | "explanation" | "questions";
-type ChartMode = "plain" | "expert";
 
 type RouteState = {
   tab: TabId;
   varga: string;
-  mode: ChartMode;
   domain: DomainSlug | null;
   detail: boolean;
   question: string | null;
@@ -96,12 +91,6 @@ const reflectionStatusLabels: Record<ReflectionStatus, string> = {
   return_later: "Вернуться позже",
 };
 
-const tabConfig: Array<{ id: TabId; label: string; compactLabel: string; Icon: typeof MapIcon }> = [
-  { id: "chart", label: "Натальная карта", compactLabel: "Карта", Icon: MapIcon },
-  { id: "explanation", label: "Объяснение", compactLabel: "Объяснение", Icon: BookOpen },
-  { id: "questions", label: "Вопросы к себе", compactLabel: "Вопросы", Icon: CircleHelp },
-];
-
 const domainLabels: Record<DomainSlug, string> = {
   character: "Характер",
   inner_support: "Внутренние опоры",
@@ -118,12 +107,14 @@ const vargas = ["D1", "D2", "D4", "D9", "D10", "D12", "D24"];
 function readRouteState(): RouteState {
   const params = new URLSearchParams(window.location.search);
   const rawTab = params.get("tab");
-  const rawMode = params.get("mode");
   const rawDomain = params.get("domain") as DomainSlug | null;
   return {
-    tab: rawTab === "explanation" || rawTab === "questions" ? rawTab : "chart",
+    tab: rawTab === "explanation" || rawTab === "questions"
+      ? rawTab
+      : params.has("payment_return")
+        ? "explanation"
+        : "chart",
     varga: vargas.includes(params.get("varga") ?? "") ? params.get("varga")! : "D1",
-    mode: rawMode === "expert" ? "expert" : "plain",
     domain: rawDomain && rawDomain in domainLabels ? rawDomain : null,
     detail: params.get("detail") === "open",
     question: params.get("question"),
@@ -141,11 +132,40 @@ function utcOffset(seconds: number) {
   return `UTC${sign}${Number.isInteger(total) ? total : total.toFixed(1)}`;
 }
 
+type DashaPeriod = { lord?: string; start?: string; end?: string };
+
+export function currentDashaIndex(periods: DashaPeriod[], now = new Date()) {
+  const timestamp = now.getTime();
+  return periods.findIndex((period) => {
+    const start = period.start ? Date.parse(period.start) : Number.NaN;
+    const end = period.end ? Date.parse(period.end) : Number.NaN;
+    return Number.isFinite(start) && Number.isFinite(end) && start <= timestamp && timestamp < end;
+  });
+}
+
+export async function downloadReportFile(url: string, filename: string) {
+  const response = await fetch(url, { credentials: "same-origin" });
+  if (!response.ok) throw new Error("Сервер не отдал готовый PDF. Повторите загрузку.");
+
+  const objectUrl = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  link.hidden = true;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+}
+
 function statusText(resource: ChartResource | null, connection: "live" | "reconnecting" | "offline") {
   if (connection === "offline") return "Нет соединения. Готовые данные остаются доступными.";
   if (connection === "reconnecting") return "Восстанавливаем соединение";
   if (!resource) return "Проверяем данные";
   if (resource.sections.d1 !== "ready") return "Строим основную карту";
+  if (["error", "unavailable"].includes(resource.sections.interpretation)) {
+    return "Объяснение не подготовилось. Запустите его ещё раз";
+  }
   if (!resource.interpretation) return "Карта готова. Готовим объяснение";
   if (resource.entitlement.report_full && !resource.entitlement.report_ready) {
     return "Оплата подтверждена. Готовим полный отчёт";
@@ -166,11 +186,6 @@ function paidAccessState(resource: ChartResource | null): PaidAccessState {
   return "preparing";
 }
 
-function byteSize(value?: number | null) {
-  if (!value) return null;
-  return `${(value / 1024 / 1024).toFixed(1).replace(".", ",")} МБ`;
-}
-
 function useRouteState() {
   const [route, setRoute] = useState<RouteState>(() => readRouteState());
   useEffect(() => {
@@ -185,7 +200,6 @@ function useRouteState() {
     params.set("tab", merged.tab);
     if (merged.tab === "chart") {
       params.set("varga", merged.varga);
-      params.set("mode", merged.mode);
     }
     if (merged.domain) params.set("domain", merged.domain);
     if (merged.detail) params.set("detail", "open");
@@ -266,7 +280,11 @@ function EvidenceChips({ evidenceIds, facts }: { evidenceIds: string[]; facts: M
 function DomainCardView({ domain, facts, access, onOpen }: { domain: DomainCard; facts: Map<string, EvidenceFact>; access: PaidAccessState; onOpen: () => void }) {
   const coverageCopy = domain.coverage === "multiple_factors" ? "Подтверждено несколькими положениями" : domain.coverage === "single_factor" ? "Один расчётный ориентир" : "Нужно больше расчётных данных";
   return (
-    <article className={`domain-card domain-card--${domain.coverage}`}>
+    <article
+      className={`domain-card domain-card--${domain.coverage}`}
+      id={`domain-card-${domain.slug}`}
+      tabIndex={-1}
+    >
       <div className="domain-card__topline"><span>{domain.section_label}</span><small>{coverageCopy}</small></div>
       <h3>{domain.title}</h3>
       <p>{domain.summary}</p>
@@ -274,7 +292,7 @@ function DomainCardView({ domain, facts, access, onOpen }: { domain: DomainCard;
       <EvidenceChips evidenceIds={domain.evidence_ids} facts={facts} />
       <button type="button" className="text-action" onClick={onOpen} disabled={domain.coverage === "insufficient" || access === "preparing"}>
         {access === "locked"
-          ? <><LockKeyhole aria-hidden="true" /> Подробнее</>
+          ? <><LockKeyhole aria-hidden="true" /> Открыть полный текст</>
           : access === "preparing"
             ? <><Sparkles aria-hidden="true" /> Готовим полный текст</>
             : <>Читать полностью <ChevronRight aria-hidden="true" /></>}
@@ -283,14 +301,52 @@ function DomainCardView({ domain, facts, access, onOpen }: { domain: DomainCard;
   );
 }
 
-function DomainDetail({ domain, facts, index, total, onClose, onPrevious, onNext }: { domain: DomainCard; facts: Map<string, EvidenceFact>; index: number; total: number; onClose: () => void; onPrevious: () => void; onNext: () => void }) {
+function LockedReportPanel({ config, onOpen }: { config: PaymentPublicConfig | null; onOpen: () => void }) {
+  const price = config ? `${Math.round(config.price_minor / 100).toLocaleString("ru-RU")} ₽` : null;
+  return (
+    <div className="locked-report__paywall" role="region" aria-label="Доступ к полному разбору">
+      <LockKeyhole aria-hidden="true" />
+      <span>Полный персональный разбор</span>
+      <h2>Продолжите первое чтение вашей карты</h2>
+      <p>Выше уже показаны персональные выводы по вашим исходным данным. Полная версия раскрывает каждую связь и собирает темы в единый разбор.</p>
+      <ul>
+        <li><Check aria-hidden="true" /><span>8 тем, включая профессиональные направления и способы заработка</span></li>
+        <li><Check aria-hidden="true" /><span>Текущий и будущие периоды Вимшоттари с точными границами</span></li>
+        <li><Check aria-hidden="true" /><span>Общий синтез, 12 вопросов и персональный PDF</span></li>
+      </ul>
+      <p className="locked-report__ready">Доступ откроется после подтверждения оплаты.</p>
+      <div className="locked-report__actions">
+        <button type="button" className="primary-button" onClick={onOpen} disabled={!config}>
+          {price ? `Открыть полный разбор · ${price}` : "Загружаем условия оплаты"}
+        </button>
+        <a className="secondary-button" href="/report-example" target="_blank" rel="noreferrer">
+          Посмотреть пример полного отчёта
+        </a>
+      </div>
+      <a href="#workspace-panel-explanation">Вернуться к первому чтению</a>
+    </div>
+  );
+}
+
+export function DomainDetail({ domain, facts, index, total, onClose, onPrevious, onNext }: { domain: DomainCard; facts: Map<string, EvidenceFact>; index: number; total: number; onClose: () => void; onPrevious: () => void; onNext: () => void }) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const previousDomain = useRef(domain.slug);
+
+  useLayoutEffect(() => {
+    if (previousDomain.current === domain.slug) return;
+    previousDomain.current = domain.slug;
+    if (bodyRef.current) bodyRef.current.scrollTop = 0;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [domain.slug]);
+
   return (
     <Modal titleId="domain-detail-title" onClose={onClose} className="workspace-modal--detail">
       <header className="workspace-modal__header">
-        <div><span className="workspace-modal__kicker">{domain.section_label} · {index + 1}/{total}</span><h2 id="domain-detail-title" tabIndex={-1} data-autofocus>{domain.title}</h2></div>
+        <div><span className="workspace-modal__kicker">{domain.section_label} · {index + 1}/{total}</span><h2 ref={headingRef} id="domain-detail-title" tabIndex={-1} data-autofocus>{domain.title}</h2></div>
         <button type="button" className="icon-button" aria-label="Закрыть подробный текст" onClick={onClose}><X aria-hidden="true" /></button>
       </header>
-      <div className="domain-detail__body">
+      <div ref={bodyRef} className="domain-detail__body">
         <p className="domain-detail__summary">{domain.summary}</p>
         {domain.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
         {domain.manifestations.length > 0 && <><h3>Что наблюдать</h3><ul>{domain.manifestations.map((item) => <li key={item}>{item}</li>)}</ul></>}
@@ -349,8 +405,8 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   const [paymentConfig, setPaymentConfig] = useState<PaymentPublicConfig | null>(null);
   const [paymentRecovery, setPaymentRecovery] = useState<PaymentRecovery | null>(null);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
-  const root = useRef<HTMLElement>(null);
-  const tabs = useRef<Partial<Record<TabId, HTMLButtonElement>>>({});
+  const [interpretationRetrying, setInterpretationRetrying] = useState(false);
+  const [pdfDownloading, setPdfDownloading] = useState(false);
   const reconnectTimer = useRef<number | null>(null);
   const recoveryRun = useRef<string | null>(null);
 
@@ -391,7 +447,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
             if (saved.domain) {
               updateRoute({ tab: "explanation", domain: saved.domain, detail: true }, true);
             } else {
-              clearReturnLocation();
+              updateRoute({ tab: "explanation", domain: null, detail: false }, true);
             }
           }
           if (
@@ -549,7 +605,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
       ));
     } else {
       setDetailDomain(null);
-      setPaywallDomain(domain.slug);
+      updateRoute({ tab: "explanation", domain: null, detail: false, question: null }, true);
     }
   }, [resource, route.detail, route.domain]);
 
@@ -565,15 +621,28 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     window.sessionStorage.removeItem(`vedicway:profile:${chartId}`);
   }, [chartId]);
 
-  useGSAP(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    gsap.fromTo(".workspace-panel", { autoAlpha: 0, y: 8 }, { autoAlpha: 1, y: 0, duration: 0.24, ease: "power3.out", clearProps: "transform" });
-  }, { scope: root, dependencies: [route.tab] });
+  useEffect(() => {
+    if (route.tab === "chart") return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`workspace-panel-${route.tab}`)?.scrollIntoView({
+        behavior: new URLSearchParams(window.location.search).has("payment_return")
+          || window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [route.tab]);
 
   const bundle = resource?.interpretation ?? null;
+  const interpretationFailed = resource
+    ? ["error", "unavailable"].includes(resource.sections.interpretation)
+    : false;
   const facts = useMemo(() => new Map((resource?.evidence?.facts ?? []).map((fact) => [fact.id, fact])), [resource?.evidence?.facts]);
   const domains = bundle?.domains ?? [];
   const accessState = paidAccessState(resource);
+  const reportLocked = Boolean(bundle) && accessState === "locked";
   const currentDomain = route.domain ? domains.find((domain) => domain.slug === route.domain) ?? null : null;
   const selectedDetail = detailDomain ? domains.find((domain) => domain.slug === detailDomain) ?? null : null;
   const selectedPaywall = paywallDomain ? domains.find((domain) => domain.slug === paywallDomain) ?? null : null;
@@ -582,23 +651,33 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     updateRoute({ tab, detail: false, question: null });
     trackWorkspaceEvent("result_tab_opened", { tab });
   };
-  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, tab: TabId) => {
-    const currentIndex = tabConfig.findIndex((item) => item.id === tab);
-    let targetIndex: number | null = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowDown") targetIndex = (currentIndex + 1) % tabConfig.length;
-    if (event.key === "ArrowLeft" || event.key === "ArrowUp") targetIndex = (currentIndex - 1 + tabConfig.length) % tabConfig.length;
-    if (event.key === "Home") targetIndex = 0;
-    if (event.key === "End") targetIndex = tabConfig.length - 1;
-    if (targetIndex !== null) { event.preventDefault(); tabs.current[tabConfig[targetIndex].id]?.focus(); }
-    if (event.key === "Enter" || event.key === " ") { event.preventDefault(); applyTab(tab); }
+
+  const retryInterpretation = async () => {
+    setInterpretationRetrying(true);
+    setError(null);
+    try {
+      await retryChartJob(chartId, "interpretation_free_v1");
+      await refresh();
+      trackWorkspaceEvent("interpretation_retry_requested");
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось повторно запустить объяснение");
+    } finally {
+      setInterpretationRetrying(false);
+    }
+  };
+  const showPaywall = (domain: DomainCard) => {
+    setDetailDomain(null);
+    setPaywallDomain(domain.slug);
+    updateRoute({ tab: "explanation", domain: null, detail: false, question: null }, true);
   };
 
   const openDomain = (domain: DomainCard) => {
-    updateRoute({ tab: "explanation", domain: domain.slug, detail: true });
     if (accessState === "ready" && domain.paragraphs.length) {
+      updateRoute({ tab: "explanation", domain: domain.slug, detail: true });
       setPaywallDomain(null);
       setDetailDomain(domain.slug);
     } else if (accessState === "preparing") {
+      updateRoute({ tab: "explanation", domain: domain.slug, detail: true });
       setPaywallDomain(null);
       setDetailDomain(null);
       setPaymentRecovery({
@@ -606,10 +685,36 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         message: "Оплата подтверждена. Готовим полный отчёт. Он откроется автоматически.",
       });
     } else {
-      setDetailDomain(null);
-      setPaywallDomain(domain.slug);
+      showPaywall(domain);
     }
     trackWorkspaceEvent("domain_detail_requested", { domain: domain.slug, access: accessState });
+  };
+
+  const selectDomain = (domain: DomainCard | null) => {
+    updateRoute({ tab: "explanation", domain: domain?.slug ?? null, detail: false });
+    const targetId = domain ? `domain-card-${domain.slug}` : "workspace-explanation-overview";
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById(targetId);
+      target?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "center",
+      });
+      target?.focus({ preventScroll: true });
+    });
+    trackWorkspaceEvent("explanation_domain_selected", { domain: domain?.slug ?? "all" });
+  };
+
+  const openSynthesis = () => {
+    window.requestAnimationFrame(() => {
+      const target = document.getElementById("workspace-explanation-synthesis");
+      const heading = document.getElementById("workspace-explanation-synthesis-title");
+      target?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "start",
+      });
+      heading?.focus({ preventScroll: true });
+    });
+    trackWorkspaceEvent("report_synthesis_opened");
   };
 
   const buyFullReport = async (email: string) => {
@@ -669,34 +774,52 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   const downloadPdf = async () => {
     if (!resource?.entitlement.report_full) {
       const fallback = domains[0];
-      if (fallback) setPaywallDomain(fallback.slug);
+      if (fallback) showPaywall(fallback);
       return;
     }
+    setPdfDownloading(true);
+    setError(null);
     const preferences = {
       schema_version: "pdf-render-preferences.v1" as const,
       varga: route.varga,
-      mode: route.mode,
+      mode: "plain" as const,
       chart_style: "south_indian" as const,
     };
-    trackWorkspaceEvent("pdf_requested", { status: resource.pdf.status, varga: route.varga, mode: route.mode });
+    trackWorkspaceEvent("pdf_requested", { status: resource.pdf.status, varga: route.varga, mode: "plain" });
     try {
-      const render = await startPdf(chartId, preferences);
-      for (let retry = 0; retry < 40; retry += 1) {
-        await new Promise((resolve) => window.setTimeout(resolve, 250));
-        const status = await getPdfRenderStatus(chartId, render.render_request_id);
-        if (status.status === "ready") {
-          trackWorkspaceEvent("pdf_downloaded", { varga: preferences.varga, mode: preferences.mode });
-          window.location.assign(reportDownloadUrl(chartId, render.render_request_id));
-          return;
-        }
-        if (status.status === "failed") {
-          setError("Не удалось подготовить PDF. Карта и текст остаются доступны.");
-          return;
+      const reusableRequestId = resource.pdf.status === "ready"
+        && resource.pdf.render_request_id
+        && resource.pdf.render_preferences?.varga === preferences.varga
+        && resource.pdf.render_preferences?.mode === preferences.mode
+        ? resource.pdf.render_request_id
+        : null;
+      let renderRequestId = reusableRequestId;
+
+      if (!renderRequestId) {
+        const render = await startPdf(chartId, preferences);
+        renderRequestId = render.render_request_id;
+        for (let retry = 0; retry < 40; retry += 1) {
+          await new Promise((resolve) => window.setTimeout(resolve, 250));
+          const status = await getPdfRenderStatus(chartId, renderRequestId);
+          if (status.status === "ready") break;
+          if (status.status === "failed") {
+            throw new Error("Не удалось подготовить PDF. Карта и текст остаются доступны.");
+          }
+          if (retry === 39) {
+            throw new Error("PDF ещё готовится. Повторите загрузку через несколько секунд.");
+          }
         }
       }
-      setError("PDF ещё готовится. Повторите загрузку через несколько секунд.");
+
+      await downloadReportFile(
+        reportDownloadUrl(chartId, renderRequestId),
+        `vedicway-${chartId.replace(/[^a-zA-Z0-9_-]/g, "") || "report"}.pdf`,
+      );
+      trackWorkspaceEvent("pdf_downloaded", { varga: preferences.varga, mode: preferences.mode });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Не удалось запросить PDF");
+    } finally {
+      setPdfDownloading(false);
     }
   };
 
@@ -704,46 +827,51 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     const data = activeVarga?.data as { cells?: Array<{ planets: Array<{ planet_code: string; label: string; sign_label: string; longitude_in_sign: number; classical: boolean }> }> } | undefined;
     const planets = (data?.cells ?? []).flatMap((cell) => cell.planets).filter((planet, index, all) => all.findIndex((item) => item.planet_code === planet.planet_code) === index);
     const panchangaData = panchanga?.data as Record<string, { name?: string; end?: { local_time?: string; local_date?: string } }> | undefined;
-    const dashasData = dashas?.data as { maha_dashas?: Array<{ lord?: string; start?: string; end?: string }> } | undefined;
-    return <div className="workspace-panel workspace-chart-panel" role="tabpanel" id="workspace-panel-chart" aria-labelledby="workspace-tab-chart">
-      <WorkspaceHeader resource={resource} title="Натальная карта" kicker="Ваша карта" controls={<><label className="workspace-select"><span>Варга</span><select value={route.varga} onChange={(event) => updateRoute({ varga: event.target.value })}>{vargas.map((value) => <option key={value} value={value}>{value}</option>)}</select></label><div className="mode-switch" aria-label="Режим просмотра"><button type="button" className={route.mode === "plain" ? "is-active" : ""} onClick={() => updateRoute({ mode: "plain" })}>Понятно</button><button type="button" className={route.mode === "expert" ? "is-active" : ""} onClick={() => updateRoute({ mode: "expert" })}>Профессионально</button></div></>} />
+    const dashasData = dashas?.data as { maha_dashas?: DashaPeriod[] } | undefined;
+    const dashaPeriods = dashasData?.maha_dashas ?? [];
+    const activeDasha = currentDashaIndex(dashaPeriods);
+    const visibleDashas = activeDasha >= 0
+      ? dashaPeriods.slice(Math.max(0, Math.min(activeDasha - 1, dashaPeriods.length - 3)), Math.max(3, activeDasha + 2))
+      : dashaPeriods.slice(0, 3);
+    return <section className="workspace-panel workspace-section workspace-chart-panel" id="workspace-panel-chart" aria-labelledby="workspace-heading-chart">
+      <WorkspaceHeader resource={resource} headingId="workspace-heading-chart" primary title="Натальная карта" kicker="Ваша карта" controls={<label className="workspace-select"><span>Варга</span><select value={route.varga} onChange={(event) => updateRoute({ varga: event.target.value })}>{vargas.map((value) => <option key={value} value={value}>{value}</option>)}</select></label>} />
       <div className="chart-scene-grid">
-        <section className="chart-visual-panel"><SouthIndianChart section={activeVarga} varga={route.varga} mode={route.mode} selectedSign={selectedSign} onSelectSign={(sign) => setSelectedSign((current) => current === sign ? null : sign)} /></section>
+        <section className="chart-visual-panel"><SouthIndianChart section={activeVarga} varga={route.varga} selectedSign={selectedSign} onSelectSign={(sign) => setSelectedSign((current) => current === sign ? null : sign)} /></section>
         <aside className="chart-insight-panel">
           <section className="insight-card"><span className="insight-card__eyebrow">С чего начать</span><h3>Сначала посмотрите на лагну и Луну</h3><p>Лагна задаёт отсчёт домов, а Луна помогает заметить эмоциональную опору. Выберите знак в квадрате, чтобы увидеть точные положения.</p><button type="button" className="text-action" onClick={() => applyTab("explanation")}>Перейти к объяснениям <ChevronRight aria-hidden="true" /></button></section>
-          <section className="position-table"><h3>Ключевые положения</h3>{planets.length ? <ul>{planets.filter((planet) => route.mode === "expert" || planet.classical).map((planet) => <li key={planet.planet_code}><span>{planet.label}</span><span>{planet.sign_label}</span><b>{formatChartDegree(planet.longitude_in_sign)}</b></li>)}</ul> : <div className="lines-skeleton" />}</section>
+          <section className="position-table"><h3>Ключевые положения</h3>{planets.length ? <ul>{planets.filter((planet) => planet.classical).map((planet) => <li key={planet.planet_code}><span>{planet.label}</span><span>{planet.sign_label}</span><b>{formatChartDegree(planet.longitude_in_sign)}</b></li>)}</ul> : <div className="lines-skeleton" />}</section>
         </aside>
       </div>
       <div className="chart-lower-grid">
         <section className="data-strip"><h3>Панчанг</h3><dl>{["tithi", "nakshatra", "yoga"].map((key) => <div key={key}><dt>{key === "tithi" ? "Титхи" : key === "nakshatra" ? "Накшатра" : "Йога"}</dt><dd>{panchangaData?.[key]?.name ?? "Подготавливаем"}</dd></div>)}<div><dt>Ваара</dt><dd>{(panchanga?.data as Record<string, string> | undefined)?.vaara ?? "Подготавливаем"}</dd></div></dl></section>
-        <section className="data-strip"><h3>Периоды Вимшоттари</h3>{dashasData?.maha_dashas?.length ? <ol>{dashasData.maha_dashas.slice(0, 3).map((period) => <li key={`${period.lord}-${period.start}`}><b>{period.lord}</b><span>{period.start?.slice(0, 10)} — {period.end?.slice(0, 10) ?? ""}</span></li>)}</ol> : <p>Периоды готовятся отдельно от основной карты.</p>}</section>
+        <section className="data-strip"><h3>Периоды Вимшоттари</h3>{visibleDashas.length ? <ol>{visibleDashas.map((period) => { const current = dashaPeriods.indexOf(period) === activeDasha; return <li className={current ? "is-current" : undefined} key={`${period.lord}-${period.start}`}><b>{period.lord}</b><span>{period.start?.slice(0, 10)} — {period.end?.slice(0, 10) ?? ""}{current && <small>текущий период</small>}</span></li>; })}</ol> : <p>Периоды готовятся отдельно от основной карты.</p>}</section>
         <section className="data-strip"><h3>Метод</h3><p>Сидерический зодиак · айанамша Лахири · дома от лагны. Положения рассчитаны для указанного времени и места рождения.</p></section>
       </div>
-    </div>;
+    </section>;
   };
 
   const renderExplanationTab = () => {
     const filtered = currentDomain ? domains.filter((domain) => domain.slug === currentDomain.slug) : domains;
-    return <div className="workspace-panel workspace-explanation-panel" role="tabpanel" id="workspace-panel-explanation" aria-labelledby="workspace-tab-explanation">
-      <WorkspaceHeader resource={resource} title="Объяснение карты" kicker="Первое чтение" controls={<div className="domain-filter"><button type="button" className={!route.domain ? "is-active" : ""} onClick={() => updateRoute({ domain: null })}>Все темы</button>{domains.map((domain) => <button type="button" key={domain.slug} className={route.domain === domain.slug ? "is-active" : ""} onClick={() => updateRoute({ domain: domain.slug })}>{domain.section_label}</button>)}</div>} />
+    return <section className="workspace-panel workspace-section workspace-explanation-panel" id="workspace-panel-explanation" aria-labelledby="workspace-heading-explanation">
+      <WorkspaceHeader resource={resource} headingId="workspace-heading-explanation" title="Объяснение карты" kicker="Первое чтение" controls={<div className="domain-filter" aria-label="Темы первого чтения"><button type="button" className={!route.domain ? "is-active" : ""} aria-pressed={!route.domain} onClick={() => selectDomain(null)}>Все темы</button>{domains.map((domain) => <button type="button" key={domain.slug} className={route.domain === domain.slug ? "is-active" : ""} aria-pressed={route.domain === domain.slug} onClick={() => selectDomain(domain)}>{domain.section_label}</button>)}</div>} />
       {bundle ? <>
-        <section className="overview-card"><div><span className="overview-card__eyebrow">Главный рисунок</span><h2>{bundle.overview.title}</h2><p>{bundle.overview.summary}</p></div><button type="button" className="text-action" onClick={() => domains[0] && openDomain(domains[0])} disabled={accessState === "preparing"}>{accessState === "locked" ? "Продолжить чтение" : accessState === "preparing" ? "Готовим полный отчёт" : "Открыть синтез"} <ChevronRight aria-hidden="true" /></button></section>
+        <section className="overview-card" id="workspace-explanation-overview" tabIndex={-1}><div><span className="overview-card__eyebrow">Ваш первый персональный вывод</span><h3>{bundle.overview.title}</h3><p>{bundle.overview.summary}</p></div>{accessState === "ready" && bundle.synthesis.length > 0 && <button type="button" className="text-action" onClick={openSynthesis}>Читать общий синтез <ChevronRight aria-hidden="true" /></button>}</section>
+        {accessState === "ready" && bundle.synthesis.length > 0 && <section className="report-synthesis" id="workspace-explanation-synthesis" aria-labelledby="workspace-explanation-synthesis-title"><span className="overview-card__eyebrow">Полный персональный разбор</span><h3 id="workspace-explanation-synthesis-title" tabIndex={-1}>Общий синтез карты</h3>{bundle.synthesis.map((paragraph, index) => <p key={`${index}-${paragraph}`}>{paragraph}</p>)}</section>}
         <section className="domain-grid" aria-label="Восемь жизненных тем">{filtered.map((domain) => <DomainCardView key={domain.slug} domain={domain} facts={facts} access={accessState} onOpen={() => openDomain(domain)} />)}</section>
-        {!route.domain && accessState === "locked" && <div className="compact-offer"><span>Полный отчёт объединяет все восемь тем · 990 ₽</span><button type="button" onClick={() => domains[0] && setPaywallDomain(domains[0].slug)}>Посмотреть состав</button></div>}
-      </> : <CalculationLoader variant="explanation" />}
-    </div>;
+      </> : interpretationFailed ? <section className="overview-card" role="alert"><div><span className="overview-card__eyebrow">Объяснение остановилось</span><h3>Карта рассчитана, текст можно запустить повторно</h3><p>Предыдущая попытка завершилась с ошибкой. Расчёт карты и введённые данные сохранены.</p></div><button type="button" className="text-action" onClick={() => void retryInterpretation()} disabled={interpretationRetrying}>{interpretationRetrying ? "Запускаем" : "Повторить объяснение"} <RefreshCw aria-hidden="true" /></button></section> : <CalculationLoader variant="explanation" />}
+    </section>;
   };
 
   const renderQuestionsTab = () => {
     const questions = bundle?.questions ?? [];
     const savedCount = Array.from(savedQuestions.values()).filter((item) => item.saved).length;
     const visible = questionFilter === "saved" ? questions.filter((question) => savedQuestions.get(question.id)?.saved) : questions;
-    return <div className="workspace-panel workspace-questions-panel" role="tabpanel" id="workspace-panel-questions" aria-labelledby="workspace-tab-questions">
-      <WorkspaceHeader resource={resource} title="Вопросы к себе" kicker="Личное наблюдение" controls={<div className="question-progress"><span>{savedCount} сохранено</span><button type="button" className={questionFilter === "all" ? "is-active" : ""} onClick={() => setQuestionFilter("all")}>Все</button><button type="button" className={questionFilter === "saved" ? "is-active" : ""} onClick={() => setQuestionFilter("saved")}>Сохранённые</button></div>} />
+    return <section className="workspace-panel workspace-section workspace-questions-panel" id="workspace-panel-questions" aria-labelledby="workspace-heading-questions">
+      <WorkspaceHeader resource={resource} headingId="workspace-heading-questions" title="Вопросы к себе" kicker="Личное наблюдение" controls={<div className="question-progress"><span>{savedCount} сохранено</span><button type="button" className={questionFilter === "all" ? "is-active" : ""} onClick={() => setQuestionFilter("all")}>Все</button><button type="button" className={questionFilter === "saved" ? "is-active" : ""} onClick={() => setQuestionFilter("saved")}>Сохранённые</button></div>} />
       <p className="questions-lead">Вопросы помогают заметить, как темы карты проявляются в ваших решениях.</p>
-      {questions.length ? <section className="questions-grid">{visible.map((question, index) => { const state = savedQuestions.get(question.id); return <QuestionCard key={question.id} question={question} index={index} facts={facts} saved={state?.saved ?? false} reflectionStatus={state?.reflectionStatus ?? "saved"} storedNote={state?.note ?? null} onSave={() => void toggleSavedQuestion(question.id)} onSetStatus={(status) => void updateQuestionStatus(question.id, status)} onSaveNote={(note) => void saveQuestionNote(question.id, note)} onFocus={() => updateRoute({ question: question.id }, true)} />; })}</section> : <CalculationLoader variant="questions" />}
+      {questions.length ? <section className="questions-grid">{visible.map((question, index) => { const state = savedQuestions.get(question.id); return <QuestionCard key={question.id} question={question} index={index} facts={facts} saved={state?.saved ?? false} reflectionStatus={state?.reflectionStatus ?? "saved"} storedNote={state?.note ?? null} onSave={() => void toggleSavedQuestion(question.id)} onSetStatus={(status) => void updateQuestionStatus(question.id, status)} onSaveNote={(note) => void saveQuestionNote(question.id, note)} onFocus={() => updateRoute({ question: question.id }, true)} />; })}</section> : interpretationFailed ? <section className="overview-card" role="alert"><div><span className="overview-card__eyebrow">Вопросы ещё не созданы</span><h3>Сначала повторите подготовку объяснения</h3><p>Вопросы формируются вместе с текстом первого чтения.</p></div><button type="button" className="text-action" onClick={() => void retryInterpretation()} disabled={interpretationRetrying}>{interpretationRetrying ? "Запускаем" : "Повторить"} <RefreshCw aria-hidden="true" /></button></section> : <CalculationLoader variant="questions" />}
       {questionFilter === "saved" && !visible.length && <p className="workspace-notice">Сохранённых вопросов пока нет. Вернитесь к списку и отметьте те, к которым хотите вернуться.</p>}
-    </div>;
+    </section>;
   };
 
   const detailIndex = selectedDetail ? domains.findIndex((domain) => domain.slug === selectedDetail.slug) : -1;
@@ -753,16 +881,15 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
     updateRoute({ domain: next.slug, detail: true }, true);
   };
 
-  return <main ref={root} className="chart-workspace" data-od-id="chart-workspace">
+  return <main className="chart-workspace" data-od-id="chart-workspace">
     <div className="chart-workspace__background" aria-hidden="true" />
     <a className="workspace-skip-link" href="#workspace-content">Перейти к содержанию результата</a>
-    <aside className="workspace-rail">
-      <button type="button" className="back-link" onClick={onBackToLanding}><ArrowLeft aria-hidden="true" /> Назад к вводу</button>
-      <div className="rail-profile"><span>ВАША КАРТА</span><strong>Натальная карта</strong>{resource ? <p>{russianDate(resource.birth.local_date)} · {resource.birth.local_time}<br />{resource.birth.place} · {utcOffset(resource.birth.utc_offset_seconds)}</p> : <p>Проверяем исходные данные</p>}<button type="button" className="rail-edit" onClick={onBackToLanding}>Исправить данные</button></div>
-      <nav className="workspace-tabs" role="tablist" aria-label="Разделы результата">{tabConfig.map(({ id, label, compactLabel, Icon }) => <button ref={(node) => { tabs.current[id] = node ?? undefined; }} key={id} id={`workspace-tab-${id}`} type="button" role="tab" aria-selected={route.tab === id} aria-controls={`workspace-panel-${id}`} tabIndex={route.tab === id ? 0 : -1} className={route.tab === id ? "is-active" : ""} onClick={() => applyTab(id)} onKeyDown={(event) => handleTabKeyDown(event, id)}><Icon aria-hidden="true" /><span className="workspace-tabs__label"><span className="workspace-tabs__label-full">{label}</span><span className="workspace-tabs__label-compact">{compactLabel}</span></span><i aria-label={resource?.sections[id === "chart" ? "d1" : id === "explanation" ? "interpretation" : "questions"] === "ready" ? "Раздел готов" : "Раздел готовится"} /></button>)}</nav>
-      <div className="rail-bottom"><p className="rail-status" aria-live="polite"><Sparkles aria-hidden="true" /> {statusText(resource, networkState)}</p><button type="button" className="rail-pdf" onClick={() => void downloadPdf()} disabled={resource?.pdf.status === "generating"}><Download aria-hidden="true" /> <span>{resource?.pdf.status === "generating" ? "PDF готовится" : "Скачать PDF"}</span>{!resource?.entitlement.report_full && <LockKeyhole aria-label="Входит в полный отчёт" />}</button><small>{resource?.pdf.status === "ready" ? `PDF · ${resource.pdf.pages ?? ""} стр. · ${byteSize(resource.pdf.size_bytes) ?? ""}` : resource?.entitlement.report_full ? "PDF войдёт в полный отчёт" : "Входит в полный отчёт"}</small></div>
-    </aside>
     <section className="workspace-main" id="workspace-content">
+      <header className="workspace-topbar">
+        <button type="button" className="back-link" onClick={onBackToLanding}><ArrowLeft aria-hidden="true" /> Исправить данные</button>
+        <div className="workspace-topbar__summary"><strong>Ваш персональный разбор</strong><span>Карта, объяснение и вопросы на одной странице</span></div>
+        <div className="workspace-topbar__actions"><span aria-live="polite"><Sparkles aria-hidden="true" /> {statusText(resource, networkState)}</span><button type="button" className="rail-pdf" aria-label={!resource?.entitlement.report_full ? "Открыть полный разбор" : pdfDownloading ? "PDF готовится" : "Скачать персональный разбор в PDF"} onClick={() => void downloadPdf()} disabled={pdfDownloading}><Download aria-hidden="true" /><span>{!resource?.entitlement.report_full ? "Открыть полный разбор" : pdfDownloading ? "PDF готовится" : "Скачать PDF"}</span>{!resource?.entitlement.report_full && <LockKeyhole aria-label="Входит в полный отчёт" />}</button></div>
+      </header>
       {paymentRecovery && (
         <div
           className={`workspace-notice ${paymentRecovery.state === "failed" ? "workspace-notice--error" : paymentRecovery.state === "cancelled" ? "workspace-notice--warning" : ""}`}
@@ -777,12 +904,20 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         </div>
       )}
       {error && <div className="workspace-notice workspace-notice--error" role="alert"><span>{error}</span><button type="button" onClick={() => void refresh()}><RefreshCw aria-hidden="true" /> Повторить</button></div>}
-      {route.tab === "chart" && renderChartTab()}
-      {route.tab === "explanation" && renderExplanationTab()}
-      {route.tab === "questions" && renderQuestionsTab()}
+      {renderChartTab()}
+      <div className="workspace-report-stack locked-report">
+        <div className="locked-report__content">
+          {renderExplanationTab()}
+          {accessState === "ready" && renderQuestionsTab()}
+        </div>
+        {reportLocked && <LockedReportPanel config={paymentConfig} onOpen={() => {
+          const domain = currentDomain ?? domains[0];
+          if (domain) showPaywall(domain);
+        }} />}
+      </div>
       <p className="workspace-disclaimer">Материал предназначен для самонаблюдения и знакомства с астрологической традицией. Он не заменяет медицинскую, юридическую, финансовую или психологическую помощь.</p>
     </section>
-    {selectedDetail && <DomainDetail domain={selectedDetail} facts={facts} index={detailIndex} total={domains.length} onClose={() => { setDetailDomain(null); updateRoute({ detail: false }, true); }} onPrevious={() => moveDetail(-1)} onNext={() => moveDetail(1)} />}
+    {selectedDetail && <DomainDetail domain={selectedDetail} facts={facts} index={detailIndex} total={domains.length} onClose={() => { setDetailDomain(null); updateRoute({ tab: "explanation", domain: null, detail: false, question: null }, true); }} onPrevious={() => moveDetail(-1)} onNext={() => moveDetail(1)} />}
     {selectedPaywall && paymentConfig && accessState === "locked" && (
       <PaymentPaywall
         title={selectedPaywall.title}
@@ -793,7 +928,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
         onClose={() => {
           setPaywallDomain(null);
           setPaymentRecovery(null);
-          updateRoute({ detail: false }, true);
+          updateRoute({ tab: "explanation", domain: null, detail: false, question: null }, true);
         }}
         onCheckout={buyFullReport}
       />
@@ -801,6 +936,7 @@ export function ChartWorkspace({ chartId, onBackToLanding }: ChartWorkspaceProps
   </main>;
 }
 
-function WorkspaceHeader({ resource, kicker, title, controls }: { resource: ChartResource | null; kicker: string; title: string; controls: ReactNode }) {
-  return <header className="workspace-header"><div><span className="workspace-header__kicker">{kicker}</span><h1>{title}</h1>{resource && <p>{russianDate(resource.birth.local_date)} · {resource.birth.local_time} · {resource.birth.place} · {utcOffset(resource.birth.utc_offset_seconds)}{resource.birth.time_accuracy !== "exact" ? " · время указано приблизительно" : ""}</p>}</div><div className="workspace-header__controls"><SlidersHorizontal aria-hidden="true" /> {controls}</div></header>;
+function WorkspaceHeader({ resource, kicker, title, controls, headingId, primary = false }: { resource: ChartResource | null; kicker: string; title: string; controls: ReactNode; headingId: string; primary?: boolean }) {
+  const Heading = primary ? "h1" : "h2";
+  return <header className="workspace-header"><div><span className="workspace-header__kicker">{kicker}</span><Heading id={headingId}>{title}</Heading>{resource && <p>{russianDate(resource.birth.local_date)} · {resource.birth.local_time} · {resource.birth.place} · {utcOffset(resource.birth.utc_offset_seconds)}{resource.birth.time_accuracy !== "exact" ? " · время указано приблизительно" : ""}</p>}</div><div className="workspace-header__controls"><SlidersHorizontal aria-hidden="true" /> {controls}</div></header>;
 }

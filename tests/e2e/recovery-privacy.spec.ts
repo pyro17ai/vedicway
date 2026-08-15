@@ -29,14 +29,15 @@ function magicState(token: string, chartId: string): { usedAt: string | null; ac
   if (!dataDir) throw new Error("VEDICWAY_E2E_DATA_DIR is missing");
   const raw = pythonOutput(
     [
-      "import hashlib,json,sqlite3,sys",
-      "db=sqlite3.connect(sys.argv[1] + '/vedicway.sqlite3')",
-      "db.row_factory=sqlite3.Row",
+      "import hashlib,json,sys",
+      "from vedicway_backend.store import Store",
+      "store=Store(sys.argv[1])",
       "token_hash=hashlib.sha256(sys.argv[2].encode()).hexdigest()",
-      "link=db.execute('SELECT used_at FROM magic_links WHERE token_hash=?',(token_hash,)).fetchone()",
-      "access=db.execute('SELECT COUNT(*) AS count FROM chart_access WHERE chart_id=?',(sys.argv[3],)).fetchone()",
+      "with store._connection() as db:",
+      "  link=db.execute('SELECT used_at FROM magic_links WHERE token_hash=%s',(token_hash,)).fetchone()",
+      "  access=db.execute('SELECT COUNT(*) AS count FROM chart_access WHERE chart_id=%s',(sys.argv[3],)).fetchone()",
       "print(json.dumps({'usedAt': link['used_at'] if link else None, 'accessCount': access['count']}))",
-    ].join(";"),
+    ].join("\n"),
     [dataDir, token, chartId],
   );
   return JSON.parse(raw) as { usedAt: string | null; accessCount: number };

@@ -208,7 +208,7 @@ class DomainInterpretation(BaseModel):
     section_label: str
     title: str
     summary: str = Field(min_length=30, max_length=700)
-    evidence_ids: list[str] = Field(min_length=1, max_length=5)
+    evidence_ids: list[str] = Field(min_length=1, max_length=6)
     coverage: Coverage
     limitations: list[str] = Field(default_factory=list)
     paragraphs: list[str] = Field(default_factory=list, max_length=7)
@@ -323,11 +323,14 @@ class RectificationEventInput(BaseModel):
     event_type: Literal[
         "education",
         "career",
+        "income_change",
         "marriage",
+        "separation",
         "childbirth",
         "relocation",
         "property",
         "accident",
+        "parent_loss",
     ]
     year: int = Field(ge=1900, le=2100)
     month: int | None = Field(default=None, ge=1, le=12)
@@ -337,7 +340,7 @@ class RectificationSubmitRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     time_window: Literal["unknown", "night", "morning", "day", "evening"]
-    events: list[RectificationEventInput] = Field(min_length=3, max_length=7)
+    events: list[RectificationEventInput] = Field(min_length=4, max_length=10)
 
     @field_validator("events")
     @classmethod

@@ -63,6 +63,39 @@ ALLOWED_CONTENT_ROUTES = {
     "/methodology",
     "/editorial-policy",
 }
+FIRST_INDEXABLE_COHORT = frozenset(
+    {
+        "algoritm-chteniya-natalnoy-karty",
+        "ayanamsha-lahiri-raman-true-chitra",
+        "bhava-i-lagna",
+        "chto-izuchaet-dzhyotish",
+        "dashi-v-dzhyotish",
+        "dvenadcat-bhav",
+        "dvenadcat-rashi",
+        "dzhanma-nakshatra-luny",
+        "graha-v-dzhyotishe",
+        "hozyain-doma-ot-lagny",
+        "kak-chitat-natalnuyu-kartu",
+        "karta-bez-vremeni-rozhdeniya",
+        "lagna-i-ascendent",
+        "lagna-i-pervyy-dom",
+        "lagna-na-granice-znaka",
+        "nakshatra-v-dzhyotishe",
+        "ogranicheniya-rascheta-natalnoj-karty",
+        "pancha-mahapurusha-yoga",
+        "pervyy-prohod-po-karte",
+        "rashi-bhava-lagna-i-doma",
+        "rashi-i-navamsha",
+        "rashi-v-dzhyotishe",
+        "shodashavarga-drobnie-karty",
+        "siderealnyj-i-tropicheskij-zodiak",
+        "sistemy-domov-v-sidereicheskoj-karte",
+        "tranzity-i-natalnaya-karta",
+        "vargi-drobnie-karty",
+        "vybor-aynamshi-i-sistemy-domov",
+        "yoga-v-dzhyotishe",
+    }
+)
 
 
 def _assert_article_quality(
@@ -276,6 +309,50 @@ def load_corpus(article_root: Path) -> list[CorpusArticle]:
     return articles
 
 
+def select_articles(
+    corpus: list[CorpusArticle],
+    requested_slugs: set[str] | None,
+) -> list[CorpusArticle]:
+    if requested_slugs is None:
+        return corpus
+    known_slugs = {article.slug for article in corpus}
+    unknown = sorted(requested_slugs - known_slugs)
+    if unknown:
+        raise ValueError(f"Запрошены неизвестные статьи: {unknown!r}")
+    selected = [article for article in corpus if article.slug in requested_slugs]
+    selected_slugs = {article.slug for article in selected}
+    leaked_links: list[str] = []
+    for article in selected:
+        routes = re.findall(
+            r'href=["\'](?P<route>/guide/[^"\']+)',
+            article.content_html,
+            flags=re.I,
+        )
+        for citation in article.manifest.get("schema_extra", {}).get(
+            "citation",
+            [],
+        ):
+            match = re.match(
+                r"https?://(?:www\.)?vedicway\.ru(?P<route>/guide/[^?#]+)",
+                str(citation),
+                flags=re.I,
+            )
+            if match:
+                routes.append(match.group("route"))
+        for route in routes:
+            target = route.split("?", 1)[0].split("#", 1)[0].removeprefix(
+                "/guide/"
+            ).rstrip("/")
+            if target and target not in selected_slugs:
+                leaked_links.append(f"{article.slug} -> {target}")
+    if leaked_links:
+        raise ValueError(
+            "Выбранная когорта содержит ссылки на неопубликованные статьи: "
+            f"{sorted(set(leaked_links))!r}"
+        )
+    return selected
+
+
 class Publisher:
     def __init__(self, base_url: str, token: str) -> None:
         self.base_url = base_url.rstrip("/")
@@ -432,7 +509,7 @@ def verify_publication(
     hub.raise_for_status()
     if "Четыре раздела, единая библиотека" not in hub.text:
         raise RuntimeError("SSR-хаб не содержит новую структуру гида")
-    if '"numberOfItems":202' not in hub.text:
+    if f'"numberOfItems":{len(articles)}' not in hub.text:
         raise RuntimeError("CollectionPage сообщает неверное число материалов")
     if sum(f'href="/guide/{slug}"' in hub.text for slug in expected_slugs) != len(
         articles
@@ -561,6 +638,17 @@ def main() -> int:
     mode.add_argument("--publish", action="store_true")
     mode.add_argument("--verify-only", action="store_true")
     parser.add_argument(
+        "--cohort",
+        choices=("first-indexable",),
+        help="Публиковать проверенную замкнутую когорту вместо всего корпуса",
+    )
+    parser.add_argument(
+        "--slug",
+        action="append",
+        default=[],
+        help="Выбрать конкретную статью; параметр можно повторять",
+    )
+    parser.add_argument(
         "--report",
         type=Path,
         default=REPOSITORY_ROOT
@@ -570,10 +658,21 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    articles = load_corpus(args.content_root.resolve())
+    if args.cohort and args.slug:
+        parser.error("--cohort нельзя сочетать с --slug")
+    requested_slugs: set[str] | None = None
+    if args.cohort == "first-indexable":
+        requested_slugs = set(FIRST_INDEXABLE_COHORT)
+    elif args.slug:
+        requested_slugs = set(args.slug)
+
+    corpus = load_corpus(args.content_root.resolve())
+    articles = select_articles(corpus, requested_slugs)
     report: dict[str, Any] = {
         "status": "valid",
         "mode": "dry-run",
+        "cohort": args.cohort or ("custom" if args.slug else "all"),
+        "corpus_count": len(corpus),
         "article_count": len(articles),
         "categories": dict(Counter(a.manifest["category"] for a in articles)),
         "difficulties": dict(Counter(a.manifest["difficulty"] for a in articles)),

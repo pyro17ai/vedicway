@@ -6,8 +6,8 @@ import { CalculationLoader } from "./CalculationLoader";
 describe("CalculationLoader", () => {
   it.each([
     ["chart", "Строим натальную карту"],
-    ["explanation", "Готовим объяснение карты"],
-    ["questions", "Составляем вопросы к себе"],
+    ["explanation", "Готовим объяснение и вопросы"],
+    ["questions", "Готовим объяснение и вопросы"],
     ["rectification", "Сопоставляем варианты времени"],
   ] as const)("показывает доступный статус %s", (variant, title) => {
     render(<CalculationLoader variant={variant} />);

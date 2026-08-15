@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from uuid import UUID
 
 import pytest
 
@@ -98,8 +99,9 @@ def test_purchase_persists_provider_key_before_external_call_and_reuses_active_o
     )
 
     assert purchase["status"] == "created"
-    assert isinstance(purchase["provider_idempotency_key"], str)
-    assert len(str(purchase["provider_idempotency_key"])) >= 32
+    provider_key = UUID(str(purchase["provider_idempotency_key"]))
+    assert provider_key.version == 4
+    assert str(provider_key) == purchase["provider_idempotency_key"]
     assert duplicate["id"] == purchase["id"]
     assert duplicate_created is False
     assert active["id"] == purchase["id"]
@@ -261,6 +263,7 @@ def test_partial_then_full_refund_updates_purchase_and_revokes_entitlement(tmp_p
     )
 
     after_partial = store.get_purchase(str(purchase["id"]))
+    assert UUID(str(first["provider_idempotency_key"])).version == 4
     assert created is True
     assert duplicate_created is False
     assert duplicate["id"] == first["id"]

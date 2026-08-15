@@ -14,7 +14,7 @@ production_state = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(production_state)
 
 
-def test_backup_quiesces_and_bundles_the_seo_ledger(monkeypatch) -> None:
+def test_backup_quiesces_and_bundles_postgres_with_runtime_files(monkeypatch) -> None:
     calls: list[tuple[str, ...]] = []
 
     def fake_run(base, *args, env):
@@ -26,7 +26,8 @@ def test_backup_quiesces_and_bundles_the_seo_ledger(monkeypatch) -> None:
     )
     assert bundle.startswith("vedicway-pair-")
     assert calls[0] == ("stop", "frontend", "backend", "worker", "email", "seo-agent")
-    assert ("--profile", "ops", "run", "--rm", "seo-agent-backup") in calls
+    assert ("--profile", "ops", "run", "--rm", "backup") in calls
+    assert ("--profile", "ops", "run", "--rm", "runtime-backup") in calls
     assert calls[-1] == (
         "--profile",
         "seo",
@@ -63,5 +64,5 @@ def test_finalize_failure_keeps_committed_restore_and_resumes_services(monkeypat
             "vedicway-pair-20260721T120000Z-deadbeef.vwb",
         )
     assert not any(call[-1:] == ("rollback",) for call in raw_calls)
-    assert any(call[-2:] == ("seo-agent-restore", "finalize") for call in calls)
+    assert any(call[-2:] == ("runtime-restore", "finalize") for call in calls)
     assert any(call[:4] == ("--profile", "seo", "up", "-d") for call in calls)

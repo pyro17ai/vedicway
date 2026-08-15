@@ -4,12 +4,15 @@ VedicWay строит персональную натальную карту п�
 
 ## Публичные разделы
 
-- https://vedicway.ru/ — расчёт натальной карты и демонстрация результата
-- https://vedicway.ru/guide — статьи об устройстве и чтении натальной карты
-- https://vedicway.ru/blog — новые редакционные материалы об астрологии
-- https://vedicway.ru/methodology — расчётные настройки, точность исходных данных и границы интерпретации
-- https://vedicway.ru/editorial-policy — правила работы с источниками, проверки и исправления
-- https://vedicway.ru/about — сведения о сервисе и редакции
+- [Расчёт натальной карты](https://vedicway.ru/) — сидерическая карта по дате, времени и месту рождения
+- [Гид по ведической астрологии](https://vedicway.ru/guide) — проверенные материалы о джйотиш
+- [Как читать натальную карту](https://vedicway.ru/guide/kak-chitat-natalnuyu-kartu) — последовательность первого чтения
+- [Что изучает джйотиш](https://vedicway.ru/guide/chto-izuchaet-dzhyotish) — предмет и границы традиции
+- [Сидерический и тропический зодиак](https://vedicway.ru/guide/siderealnyj-i-tropicheskij-zodiak) — различие расчётных систем
+- [Метод расчёта](https://vedicway.ru/methodology) — настройки, точность исходных данных и ограничения
+- [Редакционная политика](https://vedicway.ru/editorial-policy) — источники, проверка и исправления
+- [О сервисе](https://vedicway.ru/about) — оператор сайта и сведения о редакции
+- [Источники данных](https://vedicway.ru/data-sources.txt) — расчётный контур и лицензии
 
 ## Ограничения
 

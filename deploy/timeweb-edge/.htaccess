@@ -1,0 +1,14 @@
+Options -Indexes
+DirectoryIndex disabled
+
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\.vedicway\.ru$ [NC]
+RewriteRule ^ https://vedicway.ru%{REQUEST_URI} [R=308,L]
+
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !^https$ [NC]
+RewriteCond %{HTTP_HOST} ^vedicway\.ru$ [NC]
+RewriteRule ^ https://vedicway.ru%{REQUEST_URI} [R=308,L]
+
+RewriteCond %{REQUEST_URI} !^/edge\.php$
+RewriteRule ^ edge.php [END]

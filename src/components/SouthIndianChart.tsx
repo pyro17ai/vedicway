@@ -6,7 +6,6 @@ import { CalculationLoader } from "./CalculationLoader";
 type SouthIndianChartProps = {
   section: ChartSection | null;
   varga: string;
-  mode: "plain" | "expert";
   selectedSign: number | null;
   onSelectSign: (signIndex: number) => void;
 };
@@ -41,18 +40,16 @@ export function formatChartDegree(value: number) {
   return `${degrees}°${String(minutes).padStart(2, "0")}′`;
 }
 
-function PlanetLine({ planet, mode }: { planet: PlanetPosition; mode: "plain" | "expert" }) {
-  const detail = mode === "expert" ? ` ${formatChartDegree(planet.longitude_in_sign)}` : "";
+function PlanetLine({ planet }: { planet: PlanetPosition }) {
   return (
     <span className={`south-chart__planet${planet.classical ? "" : " south-chart__planet--outer"}`}>
-      <span className="south-chart__planet-name">{mode === "plain" ? planet.short_label : planet.label}</span>
-      <span className="south-chart__planet-degree">{detail}</span>
+      <span className="south-chart__planet-name">{planet.label}</span>
       {planet.retrograde && <abbr title="ретроградная" aria-label="ретроградная">R</abbr>}
     </span>
   );
 }
 
-export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectSign }: SouthIndianChartProps) {
+export function SouthIndianChart({ section, varga, selectedSign, onSelectSign }: SouthIndianChartProps) {
   const { cells, ascendant } = useMemo(() => chartData(section), [section]);
   const selectedCell = cells.find((cell) => cell.sign_index === selectedSign) ?? null;
 
@@ -87,7 +84,7 @@ export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectS
               </span>
               {cell.is_lagna && <span className="south-chart__lagna">Лагна</span>}
               <span className="south-chart__planets">
-                {cell.planets.map((planet) => <PlanetLine key={planet.planet_code} planet={planet} mode={mode} />)}
+                {cell.planets.map((planet) => <PlanetLine key={planet.planet_code} planet={planet} />)}
               </span>
             </button>
           );
@@ -123,11 +120,13 @@ export function SouthIndianChart({ section, varga, mode, selectedSign, onSelectS
         ) : <p>Выберите знак, чтобы прочитать положения и точные координаты.</p>}
       </div>
 
-      <table className="sr-only">
-        <caption>Текстовая таблица южноиндийской карты {varga}</caption>
-        <thead><tr><th>Знак</th><th>Дом</th><th>Планеты</th></tr></thead>
-        <tbody>{cells.map((cell) => <tr key={cell.sign_index}><td>{cell.sign_label}{cell.is_lagna ? " (Лагна)" : ""}</td><td>{cell.house_number}</td><td>{cell.planets.map((planet) => planet.label).join(", ") || "Нет"}</td></tr>)}</tbody>
-      </table>
+      <div className="sr-only">
+        <table>
+          <caption>Текстовая таблица южноиндийской карты {varga}</caption>
+          <thead><tr><th>Знак</th><th>Дом</th><th>Планеты</th></tr></thead>
+          <tbody>{cells.map((cell) => <tr key={cell.sign_index}><td>{cell.sign_label}{cell.is_lagna ? " (Лагна)" : ""}</td><td>{cell.house_number}</td><td>{cell.planets.map((planet) => planet.label).join(", ") || "Нет"}</td></tr>)}</tbody>
+        </table>
+      </div>
     </div>
   );
 }

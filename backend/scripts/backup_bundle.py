@@ -97,8 +97,7 @@ def seal(backup_dir: Path, pair_id: str, database: str, key_file: Path) -> Path:
         raise SystemExit("Invalid BACKUP_SET_ID")
     postgres = backup_dir / f"{database}-{pair_id}.dump"
     runtime = backup_dir / f"vedicway-runtime-{pair_id}.tar.gz"
-    seo_agent = backup_dir / f"vedicway-seo-{pair_id}.sqlite3"
-    for source in (postgres, runtime, seo_agent):
+    for source in (postgres, runtime):
         if not source.is_file():
             raise SystemExit(f"Paired backup member is missing: {source.name}")
         _verify_sidecar(source)
@@ -113,7 +112,6 @@ def seal(backup_dir: Path, pair_id: str, database: str, key_file: Path) -> Path:
         stage = Path(temporary)
         shutil.copy2(postgres, stage / "postgres.dump")
         shutil.copy2(runtime, stage / "runtime.tar.gz")
-        shutil.copy2(seo_agent, stage / "seo-agent.sqlite3")
         manifest = {
             "schema": "vedicway.backup-pair.v1",
             "backup_set_id": pair_id,
@@ -121,20 +119,19 @@ def seal(backup_dir: Path, pair_id: str, database: str, key_file: Path) -> Path:
             "files": {
                 "postgres.dump": _sha256(postgres),
                 "runtime.tar.gz": _sha256(runtime),
-                "seo-agent.sqlite3": _sha256(seo_agent),
             },
         }
         (stage / "manifest.json").write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
         plain = stage / "pair.tar"
         with tarfile.open(plain, "w") as archive:
-            for name in ("manifest.json", "postgres.dump", "runtime.tar.gz", "seo-agent.sqlite3"):
+            for name in ("manifest.json", "postgres.dump", "runtime.tar.gz"):
                 archive.add(stage / name, arcname=name, recursive=False)
         _encrypt(plain, target, _key(key_file))
 
     checksum = target.with_suffix(target.suffix + ".sha256")
     checksum.write_text(f"{_sha256(target)}  {target.name}\n", encoding="ascii")
     os.chmod(checksum, 0o600)
-    for source in (postgres, runtime, seo_agent):
+    for source in (postgres, runtime):
         source.unlink()
         source.with_suffix(source.suffix + ".sha256").unlink()
     print(target.name)
@@ -142,7 +139,7 @@ def seal(backup_dir: Path, pair_id: str, database: str, key_file: Path) -> Path:
 
 
 def _safe_extract(archive: tarfile.TarFile, target: Path) -> None:
-    expected = {"manifest.json", "postgres.dump", "runtime.tar.gz", "seo-agent.sqlite3"}
+    expected = {"manifest.json", "postgres.dump", "runtime.tar.gz"}
     members = archive.getmembers()
     if {member.name for member in members} != expected or any(not member.isfile() for member in members):
         raise SystemExit("Backup pair contains an unexpected member set")
@@ -169,7 +166,7 @@ def unseal(backup_dir: Path, bundle_name: str, key_file: Path) -> Path:
         if manifest.get("backup_set_id") != pair_id:
             raise SystemExit("Bundle name and encrypted manifest do not match")
         for name, digest in manifest.get("files", {}).items():
-            if name not in {"postgres.dump", "runtime.tar.gz", "seo-agent.sqlite3"} or _sha256(stage / name) != digest:
+            if name not in {"postgres.dump", "runtime.tar.gz"} or _sha256(stage / name) != digest:
                 raise SystemExit(f"Bundle member failed validation: {name}")
             (stage / f"{name}.sha256").write_text(f"{digest}  {name}\n", encoding="ascii")
         plain.unlink()

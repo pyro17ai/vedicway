@@ -51,7 +51,10 @@ def test_golden_moscow_lahiri_chart() -> None:
     period_packet = next(packet for packet in packets if packet.slug.value == "current_period")
     period_facts = {fact.id: fact for fact in facts}
     active = [period_facts[fact_id] for fact_id in period_packet.primary_facts + period_packet.confirming_facts]
-    assert [fact.human_label_ru for fact in active] == [
+    assert {fact.human_label_ru for fact in active if fact.kind != "dasha_timeline"} == {
         "Активная махадаша Вимшоттари: Венера",
         "Активная антардаша Вимшоттари: Раху",
-    ]
+    }
+    timeline = next(fact for fact in active if fact.kind == "dasha_timeline")
+    assert timeline.value["mahadashas"][0]["status"] == "current"
+    assert any(period["status"] == "future" for period in timeline.value["mahadashas"])

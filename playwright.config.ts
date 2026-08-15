@@ -6,12 +6,18 @@ const backendPort = Number(process.env.VEDICWAY_E2E_BACKEND_PORT ?? "8015");
 const frontendPort = Number(process.env.VEDICWAY_E2E_FRONTEND_PORT ?? "5183");
 const frontendOrigin = `http://127.0.0.1:${frontendPort}`;
 const python = process.env.VEDICWAY_E2E_PYTHON ?? "python";
+const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+if (!databaseUrl?.startsWith("postgresql")) {
+  throw new Error("TEST_DATABASE_URL must point to a migrated PostgreSQL test database");
+}
 const chromeExecutable = process.env.VEDICWAY_E2E_CHROME;
 const dataDir = process.env.VEDICWAY_E2E_DATA_DIR
   ?? join(tmpdir(), `vedicway-yookassa-e2e-${process.pid}`);
 process.env.VEDICWAY_E2E_PYTHON = python;
 process.env.VEDICWAY_E2E_DATA_DIR = dataDir;
 process.env.VEDICWAY_E2E_BACKEND_ORIGIN = `http://127.0.0.1:${backendPort}`;
+process.env.DATABASE_URL = databaseUrl;
+process.env.VEDICWAY_DATABASE_URL = databaseUrl;
 
 export default defineConfig({
   testDir: "./tests/e2e",

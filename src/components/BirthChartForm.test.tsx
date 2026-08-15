@@ -45,8 +45,13 @@ describe("BirthChartForm", () => {
 
     expect(screen.queryByLabelText("Имя")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Дата рождения")).toHaveAttribute("type", "date");
-    expect(screen.getByLabelText("Время рождения")).toHaveAttribute("type", "time");
+    const birthTime = screen.getByLabelText("Время рождения");
+    expect(birthTime).toHaveAttribute("type", "time");
     expect(screen.getByRole("combobox", { name: "Место рождения" })).toBeInTheDocument();
+    const formChildren = Array.from(birthTime.closest("form")!.children);
+    const timeFieldIndex = formChildren.indexOf(birthTime.closest(".field")!);
+    expect(formChildren[timeFieldIndex + 1]).toBe(screen.getByRole("group", { name: "Точность времени" }));
+    expect(formChildren[timeFieldIndex + 2]).toBe(screen.getByLabelText("Место рождения").closest(".field"));
     expect(screen.getByRole("button", { name: "Восстановить оплаченный разбор" })).toBeVisible();
     const submit = screen.getByRole("button", { name: /рассчитать карту/i });
     expect(submit).toBeDisabled();
@@ -158,11 +163,12 @@ describe("BirthChartForm", () => {
 
     expect(screen.getByLabelText("Время рождения")).toBeDisabled();
     expect(screen.getByText("Уточним время по событиям вашей жизни")).toBeVisible();
-    expect(screen.getByText("300 ₽")).toBeVisible();
+    expect(screen.getByText(/Алгоритм проверит варианты времени/)).toBeVisible();
+    expect(screen.queryByText(/300 ₽/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
     fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
-    fireEvent.click(screen.getByRole("button", { name: "ВОССТАНОВИТЬ ВРЕМЯ" }));
+    fireEvent.click(screen.getByRole("button", { name: "ПРОЙТИ РЕКТИФИКАЦИЮ" }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -170,6 +176,47 @@ describe("BirthChartForm", () => {
     expect(createChart).toHaveBeenCalledWith(expect.objectContaining({
       localTime: "12:00",
       timeAccuracy: "unknown",
+    }));
+    expect(getPaymentConfig).toHaveBeenCalledWith("birth_time_rectification_v1");
+    expect(screen.getByRole("dialog", { name: "Восстановление времени рождения" })).toBeVisible();
+  });
+
+  it("направляет приблизительное время в ректификацию вместо расчёта карты", async () => {
+    vi.mocked(createChart).mockResolvedValueOnce({ chart_id: "chart-approximate" });
+    vi.mocked(getPaymentConfig).mockResolvedValueOnce({
+      product_code: "birth_time_rectification_v1",
+      title: "Восстановление времени рождения",
+      price_minor: 30_000,
+      currency: "RUB",
+      offer_version: "development",
+      offer_url: "/legal/offer",
+      privacy_url: "/legal/privacy",
+    });
+    render(<BirthChartForm />);
+
+    fireEvent.change(screen.getByLabelText("Дата рождения"), { target: { value: "1991-04-12" } });
+    fireEvent.change(screen.getByLabelText("Время рождения"), { target: { value: "14:25" } });
+    const combobox = screen.getByRole("combobox", { name: "Место рождения" });
+    fireEvent.change(combobox, { target: { value: "Москва" } });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(350);
+    });
+    fireEvent.keyDown(combobox, { key: "ArrowDown" });
+    fireEvent.keyDown(combobox, { key: "Enter" });
+    fireEvent.click(screen.getByRole("radio", { name: "Примерно" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /согласие на обработку персональных данных/i }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /пользовательское соглашение/i }));
+
+    const submit = screen.getByRole("button", { name: "ПРОЙТИ РЕКТИФИКАЦИЮ" });
+    expect(submit).toBeEnabled();
+    fireEvent.click(submit);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(createChart).toHaveBeenCalledWith(expect.objectContaining({
+      localTime: "14:25",
+      timeAccuracy: "approximate_hour",
     }));
     expect(getPaymentConfig).toHaveBeenCalledWith("birth_time_rectification_v1");
     expect(screen.getByRole("dialog", { name: "Восстановление времени рождения" })).toBeVisible();

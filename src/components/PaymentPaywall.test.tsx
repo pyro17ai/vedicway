@@ -50,11 +50,45 @@ describe("PaymentPaywall", () => {
     expect(screen.getByText(/проверьте адрес email/i)).toBeInTheDocument();
   });
 
+  it("scrolls to and focuses the first invalid payment field", async () => {
+    const originalDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, "scrollIntoView", {
+      configurable: true,
+      value: scrollIntoView,
+    });
+    const user = userEvent.setup();
+
+    try {
+      renderPaywall();
+      const email = screen.getByRole("textbox", { name: /email для чека и готового результата/i });
+      const offer = screen.getByRole("checkbox", { name: /принимаю условия/i });
+
+      await user.click(screen.getByRole("button", { name: /перейти к оплате/i }));
+      expect(email).toHaveFocus();
+      expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: "smooth", block: "center" });
+
+      await user.type(email, "buyer@example.com");
+      await user.click(screen.getByRole("button", { name: /перейти к оплате/i }));
+      expect(offer).toHaveFocus();
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    } finally {
+      if (originalDescriptor) {
+        Object.defineProperty(HTMLElement.prototype, "scrollIntoView", originalDescriptor);
+      } else {
+        Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
+      }
+    }
+  });
+
   it("links to legal documents but keeps access recovery outside the paywall", () => {
     renderPaywall();
     expect(screen.getByRole("link", { name: /условия оферты/i })).toHaveAttribute("href", config.offer_url);
     expect(screen.getByRole("link", { name: /политикой обработки данных/i })).toHaveAttribute("href", config.privacy_url);
     expect(screen.getByRole("link", { name: /условия оферты/i })).toHaveAttribute("target", "_blank");
+    expect(screen.getByText(/отправим чек и готовый PDF/i)).toBeInTheDocument();
+    expect(screen.getByText(/проверьте папку Спам/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /посмотреть пример полного отчёта/i })).toHaveAttribute("href", "/report-example");
     expect(screen.queryByRole("link", { name: /восстановить доступ/i })).not.toBeInTheDocument();
   });
 
@@ -92,6 +126,35 @@ describe("PaymentPaywall", () => {
     const { onClose } = renderPaywall();
     await waitFor(() => expect(screen.getByRole("heading", { name: "Отношения и близость" })).toHaveFocus());
     await user.keyboard("{Escape}");
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("показывает явный возврат из оплаты", async () => {
+    const user = userEvent.setup();
+    const { onClose } = renderPaywall();
+
+    await user.click(screen.getByRole("button", { name: "Вернуться к разбору" }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Закрыть окно оплаты" })).toBeInTheDocument();
+  });
+
+  it("разблокирует выход после восстановления страницы из bfcache", async () => {
+    const user = userEvent.setup();
+    const onCheckout = vi.fn(() => new Promise<void>(() => undefined));
+    const { onClose } = renderPaywall({ onCheckout });
+
+    await user.type(screen.getByRole("textbox", { name: /email для чека/i }), "buyer@example.com");
+    await user.click(screen.getByRole("checkbox", { name: /принимаю условия/i }));
+    await user.click(screen.getByRole("button", { name: /перейти к оплате/i }));
+    expect(screen.getByRole("button", { name: "Вернуться к разбору" })).toBeDisabled();
+
+    const pageShow = new Event("pageshow");
+    Object.defineProperty(pageShow, "persisted", { value: true });
+    window.dispatchEvent(pageShow);
+
+    const back = await screen.findByRole("button", { name: "Вернуться к разбору" });
+    await waitFor(() => expect(back).toBeEnabled());
+    await user.click(back);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

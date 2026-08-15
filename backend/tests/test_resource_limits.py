@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sqlite3
 from datetime import UTC, datetime
 
 import pytest
@@ -59,17 +58,21 @@ def test_pdf_enqueue_deduplicates_matching_active_request(tmp_path) -> None:
     second = store.enqueue_pdf_job(chart_id, preferences)
 
     assert second == first
-    with sqlite3.connect(store.db_path) as connection:
+    with store._connection() as connection:
         assert (
             connection.execute(
-                "SELECT COUNT(*) FROM pdf_render_requests WHERE chart_id = ?", (chart_id,)
-            ).fetchone()[0]
+                """SELECT COUNT(*) AS count FROM pdf_render_requests
+                   WHERE chart_id = %s""",
+                (chart_id,),
+            ).fetchone()["count"]
             == 1
         )
         assert (
             connection.execute(
-                "SELECT COUNT(*) FROM jobs WHERE chart_id = ? AND job_type = 'pdf_v1'", (chart_id,)
-            ).fetchone()[0]
+                """SELECT COUNT(*) AS count FROM jobs
+                   WHERE chart_id = %s AND job_type = 'pdf_v1'""",
+                (chart_id,),
+            ).fetchone()["count"]
             == 1
         )
 

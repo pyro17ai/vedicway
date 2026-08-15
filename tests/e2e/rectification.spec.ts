@@ -41,6 +41,7 @@ test("платная ректификация открывается после 
     { year: "2003", month: "6" },
     { year: "2008", month: "9" },
     { year: "2012", month: "7" },
+    { year: "2016", month: "4" },
   ];
   for (const event of datedEvents) {
     await page.getByLabel("Год события").selectOption(event.year);
@@ -48,10 +49,10 @@ test("платная ректификация открывается после 
     await page.getByLabel("Месяц события").selectOption(event.month);
     await page.getByRole("button", { name: "Далее" }).click();
   }
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 6; index += 1) {
     await page.getByLabel("Год события").selectOption("skip");
     await page.getByRole("button", {
-      name: index === 3 ? "Рассчитать время" : "Далее",
+      name: index === 5 ? "Рассчитать время" : "Далее",
     }).click();
   }
 

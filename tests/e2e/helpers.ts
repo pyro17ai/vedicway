@@ -14,21 +14,22 @@ export async function createMoscowChart(page: Page) {
   await page.getByRole("button", { name: /рассчитать карту/i }).click();
 
   await expect(page).toHaveURL(
-    /\/chart\/chart_[A-Za-z0-9_-]+\?tab=chart&varga=D1&mode=plain/,
+    /\/chart\/chart_[A-Za-z0-9_-]+\?tab=chart&varga=D1/,
     { timeout: 45_000 },
   );
   await expect(page.getByRole("grid", { name: "Южноиндийская карта D1" })).toBeVisible({ timeout: 30_000 });
 }
 
 export async function waitForExplanation(page: Page) {
-  await page.getByRole("tab", { name: /^Объяснение/ }).click();
-  await expect(page.getByRole("heading", { name: "Объяснение карты" })).toBeVisible({ timeout: 45_000 });
-  await expect(page.getByRole("region", { name: "Восемь жизненных тем" })).toBeVisible({ timeout: 45_000 });
+  const explanation = page.locator("#workspace-panel-explanation");
+  await expect(explanation.getByRole("heading", { name: "Объяснение карты" })).toBeVisible({ timeout: 45_000 });
+  await explanation.scrollIntoViewIfNeeded();
+  await expect(explanation.getByRole("region", { name: "Восемь жизненных тем" })).toBeVisible({ timeout: 45_000 });
   await expect(page.locator(".domain-card")).toHaveCount(8, { timeout: 45_000 });
 }
 
 export async function openTestCheckout(page: Page, email = "buyer@example.com") {
-  await page.getByRole("button", { name: "Подробнее" }).first().click();
+  await page.getByRole("button", { name: "Открыть полный текст" }).first().click();
   await page.getByRole("textbox", { name: /email для чека/i }).fill(email);
   await page.getByRole("checkbox", { name: /принимаю условия/i }).check();
   await page.getByRole("button", { name: /перейти к оплате/i }).click();

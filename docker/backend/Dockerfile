@@ -74,6 +74,7 @@ ENV VEDICWAY_DATA_DIR=/var/lib/vedicway/data \
     VEDICWAY_CODEX_HOME=/var/lib/vedicway/codex-home \
     VEDICWAY_AGENT_WORKDIR=/var/lib/vedicway/agent-workdir \
     VEDICWAY_CODEX_EXECUTABLE=/usr/local/bin/codex \
+    PYTHONPATH=/opt/vedicway/backend/src:/opt/vedicway \
     HOME=/var/lib/vedicway/codex-home
 
 EXPOSE 8000

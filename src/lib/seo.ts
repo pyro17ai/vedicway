@@ -6,8 +6,10 @@ export type SeoPage = {
   path: string;
   canonicalUrl?: string;
   image?: string;
+  imageAlt?: string;
   type?: "website" | "article";
   noindex?: boolean;
+  noindexFollow?: boolean;
   structuredData?: StructuredData[];
 };
 
@@ -26,7 +28,9 @@ export function applySeo(page: SeoPage) {
   const canonical = page.canonicalUrl || `${origin}${normalizedPath(page.path)}`;
   const image = absoluteUrl(page.image || DEFAULT_IMAGE, origin);
   const robots = page.noindex
-    ? "noindex, nofollow, noarchive"
+    ? page.noindexFollow
+      ? "noindex, follow, noarchive"
+      : "noindex, nofollow, noarchive"
     : "index, follow, max-image-preview:large";
 
   document.title = page.title;
@@ -39,6 +43,7 @@ export function applySeo(page: SeoPage) {
   setMeta("property", "og:description", page.description);
   setMeta("property", "og:url", canonical);
   setMeta("property", "og:image", image);
+  setMeta("property", "og:image:alt", page.imageAlt || page.title);
   setMeta("name", "twitter:card", "summary_large_image");
   setMeta("name", "twitter:title", page.title);
   setMeta("name", "twitter:description", page.description);

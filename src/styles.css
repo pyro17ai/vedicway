@@ -158,12 +158,12 @@ svg {
 .hero-copy h1 {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(65px, 5.12vw, 86px);
+  font-size: clamp(58px, 4.6vw, 78px);
   font-weight: 500;
   line-height: 0.97;
   letter-spacing: -0.026em;
   text-transform: uppercase;
-  text-wrap: nowrap;
+  text-wrap: balance;
 }
 
 .hero-copy h1 span {
@@ -821,6 +821,12 @@ svg {
   .astrology-wheel-shell {
     left: 24%;
     width: 65vw;
+  }
+}
+
+@media (min-width: 861px) {
+  .hero:has(.rectification-offer) {
+    min-height: max(1040px, 100svh);
   }
 }
 

@@ -16,12 +16,13 @@ test.describe("Создание карты", () => {
     await expect(skipLink).toBeFocused();
     await expect(page.getByRole("gridcell")).toHaveCount(12);
     await expect(page.getByRole("gridcell", { name: /Скорпион, дом 1, лагна/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Открыть полный разбор" })).toBeVisible();
 
-    // 2. Выбрать ячейку и включить профессиональный режим.
+    // 2. Выбрать ячейку и прочитать точные положения в едином режиме.
     await page.getByRole("gridcell").first().click();
     await expect(page.getByText("Выбранный знак", { exact: false })).toBeVisible();
-    await page.getByRole("button", { name: "Профессионально" }).click();
-    await expect(page).toHaveURL(/tab=chart&varga=D1&mode=expert/);
+    await expect(page.getByRole("button", { name: "Профессионально" })).toHaveCount(0);
+    await expect(page).toHaveURL(/tab=chart&varga=D1/);
     await expect(page.getByText(/°\d{2}′/).first()).toBeVisible();
     expect(consoleErrors).toEqual([]);
   });

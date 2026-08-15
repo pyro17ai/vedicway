@@ -518,6 +518,13 @@ def _canonical_url(article: Any) -> str:
     return article.canonical_url or f"{_public_origin()}{_article_path(article)}"
 
 
+def _branded_seo_title(raw_title: str) -> str:
+    if "VedicWay" in raw_title:
+        return raw_title
+    branded_title = f"{raw_title} | VedicWay"
+    return branded_title if len(branded_title) <= 60 else raw_title
+
+
 def _is_catalogued_article(article: Any) -> bool:
     return article.section != "guide" or article.slug in GUIDE_SLUGS
 
@@ -812,6 +819,11 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
         )
         if _is_catalogued_article(article)
     ]
+    robots = (
+        "index, follow, max-image-preview:large"
+        if articles
+        else "noindex, follow"
+    )
     if section == "guide":
         articles.sort(key=lambda article: GUIDE_ORDER.get(article.slug, 10_000))
     item_list = [
@@ -1041,7 +1053,7 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="robots" content="{robots}" />
     <meta name="description" content="{escape(description, quote=True)}" />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:type" content="website" />
@@ -1050,6 +1062,7 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
     <meta property="og:description" content="{escape(description, quote=True)}" />
     <meta property="og:url" content="{escape(canonical, quote=True)}" />
     <meta property="og:image" content="{escape(image, quote=True)}" />
+    <meta property="og:image:alt" content="{escape(heading, quote=True)}" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{escape(title, quote=True)}" />
     <meta name="twitter:description" content="{escape(description, quote=True)}" />
@@ -1090,7 +1103,7 @@ def _hub_seo_html(section: ContentSection, database: ContentDatabase) -> str:
 def _article_seo_html(article: Any, database: ContentDatabase) -> str:
     canonical = _canonical_url(article)
     raw_title = article.seo_title or article.title
-    title = raw_title if "VedicWay" in raw_title else f"{raw_title} | VedicWay"
+    title = _branded_seo_title(raw_title)
     description = article.meta_description or article.excerpt
     schema_json = json.dumps(
         _article_schema(article, database),
@@ -1161,6 +1174,7 @@ def _article_seo_html(article: Any, database: ContentDatabase) -> str:
     <meta property="og:description" content="{escape(description, quote=True)}" />
     <meta property="og:url" content="{escape(canonical, quote=True)}" />
     {f'<meta property="og:image" content="{escape(cover, quote=True)}" />' if cover else ""}
+    {f'<meta property="og:image:alt" content="{escape(article.cover_image_alt or article.title, quote=True)}" />' if cover else ""}
     <meta property="article:published_time" content="{published.isoformat()}" />
     <meta property="article:modified_time" content="{article.updated_at.isoformat()}" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -1793,8 +1807,9 @@ def build_content_router() -> APIRouter:
             "idempotent_replay": False,
         }
 
-    @router.get(
+    @router.api_route(
         "/internal/seo/{section}/page",
+        methods=["GET", "HEAD"],
         response_class=HTMLResponse,
         include_in_schema=False,
     )
@@ -1807,8 +1822,9 @@ def build_content_router() -> APIRouter:
             headers={"Cache-Control": "public, max-age=60, stale-while-revalidate=300"},
         )
 
-    @router.get(
+    @router.api_route(
         "/internal/seo/{section}/articles/{slug}/page",
+        methods=["GET", "HEAD"],
         response_class=HTMLResponse,
         include_in_schema=False,
     )
@@ -1870,17 +1886,25 @@ def build_content_router() -> APIRouter:
 
     async def sitemap_response(request: Request) -> Response:
         origin = _public_origin()
+        articles = [
+            article
+            for article in _database(request).list_articles(include_drafts=False)
+            if _is_catalogued_article(article)
+        ]
         urls = [
             f"<url><loc>{escape(origin)}/</loc></url>",
-            f"<url><loc>{escape(origin)}/guide</loc></url>",
-            f"<url><loc>{escape(origin)}/blog</loc></url>",
-            f"<url><loc>{escape(origin)}/about</loc></url>",
-            f"<url><loc>{escape(origin)}/methodology</loc></url>",
-            f"<url><loc>{escape(origin)}/editorial-policy</loc></url>",
         ]
-        for article in _database(request).list_articles(include_drafts=False):
-            if not _is_catalogued_article(article):
-                continue
+        for section in ("guide", "blog"):
+            if any(article.section == section for article in articles):
+                urls.append(f"<url><loc>{escape(origin)}/{section}</loc></url>")
+        urls.extend(
+            [
+                f"<url><loc>{escape(origin)}/about</loc></url>",
+                f"<url><loc>{escape(origin)}/methodology</loc></url>",
+                f"<url><loc>{escape(origin)}/editorial-policy</loc></url>",
+            ]
+        )
+        for article in articles:
             urls.append(
                 f"<url><loc>{escape(_canonical_url(article))}</loc>"
                 f"<lastmod>{article.updated_at.date().isoformat()}</lastmod></url>"
@@ -1900,13 +1924,13 @@ def build_content_router() -> APIRouter:
     router.add_api_route(
         "/api/v1/seo/sitemap.xml",
         sitemap_response,
-        methods=["GET"],
+        methods=["GET", "HEAD"],
         include_in_schema=False,
     )
     router.add_api_route(
         "/sitemap.xml",
         sitemap_response,
-        methods=["GET"],
+        methods=["GET", "HEAD"],
         include_in_schema=False,
     )
 
@@ -1925,6 +1949,8 @@ def build_content_router() -> APIRouter:
             )
             if _is_catalogued_article(article)
         ]
+        sections = {article.section for article in public_articles}
+        channel_path = f"/{next(iter(sections))}" if len(sections) == 1 else "/"
         for article in public_articles[:500]:
             if not article.published_at:
                 continue
@@ -1949,7 +1975,7 @@ def build_content_router() -> APIRouter:
             '<?xml version="1.0" encoding="UTF-8"?>'
             '<rss version="2.0" xmlns:yandex="http://news.yandex.ru">'
             "<channel><title>VedicWay: статьи об астрологии</title>"
-            f"<link>{escape(origin)}/blog</link>"
+            f"<link>{escape(origin + channel_path)}</link>"
             "<description>Гид и редакционные материалы VedicWay</description>"
             "<language>ru</language>" + "".join(items) + "</channel></rss>"
         )
@@ -1962,13 +1988,13 @@ def build_content_router() -> APIRouter:
     router.add_api_route(
         "/api/v1/seo/dzen.xml",
         dzen_feed,
-        methods=["GET"],
+        methods=["GET", "HEAD"],
         include_in_schema=False,
     )
     router.add_api_route(
         "/feed/dzen.xml",
         dzen_feed,
-        methods=["GET"],
+        methods=["GET", "HEAD"],
         include_in_schema=False,
     )
 

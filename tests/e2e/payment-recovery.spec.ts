@@ -25,8 +25,7 @@ test.describe("Возврат из YooKassa", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.reload();
     await expect(page.getByText(/проверяем платёж по данным YooKassa/i)).toBeVisible();
-    await page.getByRole("tab", { name: /^Объяснение/ }).click();
-    await expect(page.getByRole("button", { name: "Подробнее" }).first()).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByRole("button", { name: "Открыть полный текст" }).first()).toBeVisible({ timeout: 45_000 });
 
     const chartResourcePattern = `**/api/v1/charts/${chartId}`;
     await page.route(chartResourcePattern, async (route) => {

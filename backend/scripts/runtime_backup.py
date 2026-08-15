@@ -5,10 +5,8 @@ import hashlib
 import json
 import os
 import shutil
-import sqlite3
 import tarfile
 import tempfile
-from contextlib import closing
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -33,9 +31,6 @@ def _guard_runtime_target(path: Path, expected_name: str) -> Path:
 def backup(data_dir: Path, media_dir: Path, backup_dir: Path, backup_set_id: str | None = None) -> Path:
     data_dir = _guard_runtime_target(data_dir, "data")
     media_dir = _guard_runtime_target(media_dir, "media")
-    source_db = data_dir / "vedicway.sqlite3"
-    if not source_db.is_file():
-        raise SystemExit(f"SQLite database is missing: {source_db}")
 
     backup_dir.mkdir(parents=True, exist_ok=True)
     backup_set_id = backup_set_id or os.environ.get("BACKUP_SET_ID") or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
@@ -46,19 +41,9 @@ def backup(data_dir: Path, media_dir: Path, backup_dir: Path, backup_set_id: str
 
     with tempfile.TemporaryDirectory(prefix="vedicway-runtime-") as temporary:
         stage = Path(temporary)
-        staged_db = stage / "vedicway.sqlite3"
-        with closing(sqlite3.connect(f"file:{source_db.as_posix()}?mode=ro", uri=True)) as source:
-            with closing(sqlite3.connect(staged_db)) as destination:
-                source.backup(destination)
-                result = destination.execute("PRAGMA integrity_check").fetchone()
-                if not result or result[0] != "ok":
-                    raise SystemExit("SQLite integrity_check failed during backup")
-
         manifest = {
             "backup_set_id": backup_set_id,
             "created_at": datetime.now(UTC).replace(microsecond=0).isoformat(),
-            "database": "data/vedicway.sqlite3",
-            "database_sha256": _sha256(staged_db),
             "reports_included": (data_dir / "reports").is_dir(),
             "media_included": media_dir.is_dir(),
         }
@@ -66,7 +51,6 @@ def backup(data_dir: Path, media_dir: Path, backup_dir: Path, backup_set_id: str
 
         with tarfile.open(temporary_target, "w:gz", compresslevel=9) as archive:
             archive.add(stage / "manifest.json", arcname="manifest.json")
-            archive.add(staged_db, arcname="data/vedicway.sqlite3")
             reports = data_dir / "reports"
             if reports.is_dir():
                 archive.add(reports, arcname="data/reports", recursive=True)
@@ -133,14 +117,9 @@ def prepare_restore(
         stage = Path(temporary)
         with tarfile.open(source, "r:gz") as archive:
             _safe_extract(archive, stage)
-        staged_db = stage / "data" / "vedicway.sqlite3"
         manifest = json.loads((stage / "manifest.json").read_text(encoding="utf-8"))
-        if not staged_db.is_file() or manifest.get("database_sha256") != _sha256(staged_db):
-            raise SystemExit("Runtime backup database failed manifest validation")
-        with closing(sqlite3.connect(f"file:{staged_db.as_posix()}?mode=ro", uri=True)) as connection:
-            result = connection.execute("PRAGMA integrity_check").fetchone()
-            if not result or result[0] != "ok":
-                raise SystemExit("SQLite integrity_check failed before restore")
+        if manifest.get("backup_set_id") != pair_id:
+            raise SystemExit("Runtime backup belongs to another backup set")
 
         data_dir.mkdir(parents=True, exist_ok=True)
         media_dir.mkdir(parents=True, exist_ok=True)
@@ -149,7 +128,6 @@ def prepare_restore(
             raise SystemExit("Runtime restore staging already exists; rollback or finalize it first")
         stage_data.mkdir()
         stage_media.mkdir()
-        shutil.copy2(staged_db, stage_data / "vedicway.sqlite3")
         staged_reports = stage / "data" / "reports"
         if staged_reports.is_dir():
             shutil.copytree(staged_reports, stage_data / "reports")
@@ -162,7 +140,7 @@ def prepare_restore(
         state = {
             "pair_id": pair_id,
             "phase": "prepared",
-            "original_data": [name for name in ("vedicway.sqlite3", "vedicway.sqlite3-wal", "vedicway.sqlite3-shm", "reports") if (data_dir / name).exists()],
+            "original_data": ["reports"] if (data_dir / "reports").exists() else [],
             "new_data": [item.name for item in stage_data.iterdir()],
             "original_media": [item.name for item in media_dir.iterdir() if not item.name.startswith(".restore-")],
             "new_media": [item.name for item in stage_media.iterdir()],
@@ -259,7 +237,7 @@ def restore(data_dir: Path, media_dir: Path, backup_dir: Path, filename: str, co
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="VedicWay SQLite/reports/media backup")
+    parser = argparse.ArgumentParser(description="VedicWay reports and media backup")
     parser.add_argument("action", choices=("backup", "restore", "prepare", "commit", "rollback", "finalize"))
     parser.add_argument("--data-dir", type=Path, default=RUNTIME_ROOT / "data")
     parser.add_argument("--media-dir", type=Path, default=RUNTIME_ROOT / "media")

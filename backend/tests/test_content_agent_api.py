@@ -25,7 +25,7 @@ def _app(tmp_path, monkeypatch):
     monkeypatch.setenv("VEDICWAY_SEO_AGENT_TOKEN", TOKEN)
     monkeypatch.setenv("VEDICWAY_SEO_MIN_ARTICLE_CHARS", "600")
     monkeypatch.setenv("VEDICWAY_PUBLIC_ORIGIN", "https://vedicway.ru")
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
     return create_app(store=Store(tmp_path / "runtime"), content_db=database)
 
 
@@ -167,6 +167,33 @@ def test_html_gate_sanitizes_content_and_renders_complete_article_seo(
         assert 'href="/about">Редакция VedicWay</a>' in page.text
         assert "Источники и редакция" in page.text
         assert "<script>alert" not in page.text
+
+
+def test_article_seo_title_branding_respects_60_character_limit(
+    tmp_path, monkeypatch
+) -> None:
+    app = _app(tmp_path, monkeypatch)
+    short_title = "A" * 49
+    long_title = "B" * 50
+    short_payload = _payload(section="blog", slug="short-seo-title")
+    short_payload["seo_title"] = short_title
+    long_payload = _payload(section="blog", slug="long-seo-title")
+    long_payload["seo_title"] = long_title
+
+    with TestClient(app) as client:
+        assert _publish(client, short_payload, key="short-seo-title-0001").status_code == 200
+        assert _publish(client, long_payload, key="long-seo-title-00001").status_code == 200
+
+        short_page = client.get("/internal/seo/blog/articles/short-seo-title/page")
+        branded_short_title = f"{short_title} | VedicWay"
+        assert len(branded_short_title) == 60
+        assert f"<title>{branded_short_title}</title>" in short_page.text
+        assert short_page.text.count(f'content="{branded_short_title}"') == 2
+
+        long_page = client.get("/internal/seo/blog/articles/long-seo-title/page")
+        assert f"<title>{long_title}</title>" in long_page.text
+        assert f"{long_title} | VedicWay" not in long_page.text
+        assert long_page.text.count(f'content="{long_title}"') == 2
 
 
 def test_guide_has_code_owned_slots_while_blog_accepts_new_slugs(tmp_path, monkeypatch) -> None:
@@ -374,6 +401,55 @@ def test_every_reader_can_add_plain_text_comments_without_html_execution(
         assert blank.json()["error"]["code"] == "REQUEST_INVALID"
 
 
+def test_empty_hubs_are_noindex_and_absent_from_sitemap(tmp_path, monkeypatch) -> None:
+    app = _app(tmp_path, monkeypatch)
+
+    with TestClient(app) as client:
+        guide_hub = client.get("/internal/seo/guide/page")
+        blog_hub = client.get("/internal/seo/blog/page")
+        assert '<meta name="robots" content="noindex, follow" />' in guide_hub.text
+        assert '<meta name="robots" content="noindex, follow" />' in blog_hub.text
+
+        empty_sitemap = client.get("/sitemap.xml")
+        assert "https://vedicway.ru/guide</loc>" not in empty_sitemap.text
+        assert "https://vedicway.ru/blog</loc>" not in empty_sitemap.text
+        assert "https://vedicway.ru/about</loc>" in empty_sitemap.text
+
+        guide = _payload(section="guide", slug=GUIDE_SLUG)
+        assert _publish(client, guide, key="conditional-guide-hub-0001").status_code == 200
+
+        published_guide_hub = client.get("/internal/seo/guide/page")
+        assert (
+            '<meta name="robots" content="index, follow, max-image-preview:large" />'
+            in published_guide_hub.text
+        )
+        sitemap = client.get("/sitemap.xml")
+        assert "https://vedicway.ru/guide</loc>" in sitemap.text
+        assert "https://vedicway.ru/blog</loc>" not in sitemap.text
+        assert f"https://vedicway.ru/guide/{GUIDE_SLUG}</loc>" in sitemap.text
+
+
+def test_generated_seo_surfaces_support_head_requests(tmp_path, monkeypatch) -> None:
+    app = _app(tmp_path, monkeypatch)
+    guide = _payload(section="guide", slug=GUIDE_SLUG)
+
+    with TestClient(app) as client:
+        assert _publish(client, guide, key="head-guide-article-0001").status_code == 200
+
+        targets = (
+            "/internal/seo/guide/page",
+            f"/internal/seo/guide/articles/{GUIDE_SLUG}/page",
+            "/sitemap.xml",
+            "/api/v1/seo/sitemap.xml",
+            "/feed/dzen.xml",
+            "/api/v1/seo/dzen.xml",
+        )
+        for target in targets:
+            response = client.head(target)
+            assert response.status_code == 200, target
+            assert response.content == b"", target
+
+
 def test_sitemap_keeps_hubs_and_both_article_sections(tmp_path, monkeypatch) -> None:
     app = _app(tmp_path, monkeypatch)
     guide = _payload(section="guide", slug=GUIDE_SLUG)
@@ -401,6 +477,10 @@ def test_sitemap_keeps_hubs_and_both_article_sections(tmp_path, monkeypatch) -> 
 
         blog_hub = client.get("/internal/seo/blog/page")
         assert blog_hub.status_code == 200
+        assert (
+            '<meta name="robots" content="index, follow, max-image-preview:large" />'
+            in blog_hub.text
+        )
         assert 'href="/blog/prognoz-na-retrogradnyy-period"' in blog_hub.text
         assert 'class="content-hub__hero"' in blog_hub.text
         assert 'id="guide-route"' not in blog_hub.text
@@ -416,3 +496,7 @@ def test_sitemap_keeps_hubs_and_both_article_sections(tmp_path, monkeypatch) -> 
         assert "https://vedicway.ru/editorial-policy</loc>" in root
         assert f"https://vedicway.ru/guide/{GUIDE_SLUG}" in root
         assert "https://vedicway.ru/blog/prognoz-na-retrogradnyy-period" in root
+
+        feed = client.get("/feed/dzen.xml")
+        assert feed.status_code == 200
+        assert "<link>https://vedicway.ru/</link>" in feed.text

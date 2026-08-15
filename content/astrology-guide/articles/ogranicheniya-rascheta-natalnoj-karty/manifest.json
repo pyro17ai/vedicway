@@ -10,7 +10,7 @@
   ],
   "seo": {
     "seo_title": "Ограничения расчёта натальной карты: эфемериды и версии",
-    "meta_description": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные. Что сохранить вместе с результатом: TT, UT, аянāмшу и дома.",
+    "meta_description": "После обновления расчёта сверьте долготы у границ знаков и накшатр. Сохраните вместе с результатом TT, UT, аянамшу и систему домов.",
     "focus_keyphrase": "ограничения расчёта натальной карты",
     "canonical_url": "https://vedicway.ru/guide/ogranicheniya-rascheta-natalnoj-karty",
     "excerpt": "После обновления расчёта заново сверьте долготы у границ знаков и накшатр, сохранив прежние исходные данные."
@@ -61,7 +61,7 @@
     ],
     "learningResourceType": "Guide",
     "citation": [
-      "https://vedicway.ru/guide/proverka-raschyota-karty"
+      "https://www.astro.com/swisseph/swephprg.htm?lang=e&nhor=1"
     ]
   }
 }

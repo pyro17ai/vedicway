@@ -245,6 +245,16 @@ export function getVarga(chartId: string, varga: string): Promise<ChartSection> 
   return request(`/api/v1/charts/${encodeURIComponent(chartId)}/vargas/${encodeURIComponent(varga)}`);
 }
 
+export function retryChartJob(
+  chartId: string,
+  jobType: "interpretation_free_v1",
+): Promise<{ job_id: string; status: "queued" }> {
+  return request(
+    `/api/v1/charts/${encodeURIComponent(chartId)}/jobs/${encodeURIComponent(jobType)}/retry`,
+    { method: "POST" },
+  );
+}
+
 export type PurchaseStatus =
   | "created"
   | "pending"
@@ -303,11 +313,14 @@ export async function createPurchase(
 export type RectificationEventType =
   | "education"
   | "career"
+  | "income_change"
   | "marriage"
+  | "separation"
   | "childbirth"
   | "relocation"
   | "property"
-  | "accident";
+  | "accident"
+  | "parent_loss";
 
 export type RectificationResult = {
   selected_time: string;

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import html
+import logging
 import os
 import smtplib
 import ssl
@@ -10,7 +11,11 @@ from email.utils import formataddr, make_msgid
 from typing import Protocol
 from urllib.parse import urlsplit
 
+from .pdf import rectification_report_pdf
+from .schemas import RectificationResult
 from .store import Store
+
+logger = logging.getLogger(__name__)
 
 
 def _enabled(value: str | None, *, default: bool = False) -> bool:
@@ -123,15 +128,37 @@ def production_email_configuration_errors(*, require_password: bool = True) -> l
     return errors
 
 
+@dataclass(frozen=True, slots=True)
+class EmailAttachment:
+    filename: str
+    content: bytes
+
+
 class EmailProvider(Protocol):
-    def send(self, *, recipient: str, subject: str, text: str, html_body: str) -> str: ...
+    def send(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        text: str,
+        html_body: str,
+        attachments: tuple[EmailAttachment, ...] = (),
+    ) -> str: ...
 
 
 class SmtpEmailProvider:
     def __init__(self, settings: EmailSettings) -> None:
         self.settings = settings
 
-    def send(self, *, recipient: str, subject: str, text: str, html_body: str) -> str:
+    def send(
+        self,
+        *,
+        recipient: str,
+        subject: str,
+        text: str,
+        html_body: str,
+        attachments: tuple[EmailAttachment, ...] = (),
+    ) -> str:
         settings = self.settings
         message = EmailMessage()
         message["From"] = formataddr((settings.from_name, settings.from_email))
@@ -141,6 +168,13 @@ class SmtpEmailProvider:
         message["Message-ID"] = message_id
         message.set_content(text)
         message.add_alternative(html_body, subtype="html")
+        for attachment in attachments:
+            message.add_attachment(
+                attachment.content,
+                maintype="application",
+                subtype="pdf",
+                filename=attachment.filename,
+            )
         context = ssl.create_default_context()
         if settings.use_ssl:
             client: smtplib.SMTP = smtplib.SMTP_SSL(
@@ -189,13 +223,15 @@ class EmailDispatcher:
         tokens: list[str] = []
         try:
             purpose = str(delivery["purpose"])
+            links: list[tuple[str, str | None]] = []
+            message: tuple[str, str] | None = None
+            attachments: tuple[EmailAttachment, ...] = ()
             if purpose == "access_recovery":
                 targets = self.store.recovery_targets(str(delivery["email_lookup_hmac"]))
                 if not targets:
                     self.store.finish_email_delivery(delivery_id, status="no_match")
                     return delivery_id
                 recipient = str(targets[0]["email"])
-                links: list[tuple[str, str | None]] = []
                 for target in targets[:10]:
                     chart_token = self.store.create_magic_link(
                         str(target["chart_id"]), scope=str(target["scope"])
@@ -224,37 +260,72 @@ class EmailDispatcher:
                 chart_token = self.store.create_magic_link(
                     str(target["chart_id"]), scope="read_chart"
                 )
-                pdf_token = self.store.create_magic_link(
-                    str(target["chart_id"]),
-                    scope="download_pdf",
-                    render_request_id=str(target["render_request_id"]),
-                )
-                tokens.extend((chart_token, pdf_token))
+                tokens.append(chart_token)
                 links = [
                     (
                         f"{self.settings.public_origin}/api/v1/magic-links/{chart_token}",
-                        f"{self.settings.public_origin}/api/v1/magic-links/{pdf_token}",
+                        None,
                     )
                 ]
+                report_path = self.store.report_file_path(
+                    str(target["chart_id"]), str(target["render_request_id"])
+                )
+                if report_path is None or not report_path.is_file():
+                    raise FileNotFoundError(str(target["render_request_id"]))
+                attachments = (
+                    EmailAttachment("vedicway-full-report.pdf", report_path.read_bytes()),
+                )
+                message = self._access_message(links, pdf_attached=True)
                 subject = "Ваш полный разбор VedicWay готов"
+            elif purpose == "rectification_ready":
+                target = self.store.rectification_ready_target(str(delivery["purchase_id"]))
+                if target is None:
+                    self.store.finish_email_delivery(delivery_id, status="no_match")
+                    return delivery_id
+                recipient = str(target["email"])
+                chart_token = self.store.create_magic_link(
+                    str(target["chart_id"]), scope="read_rectification"
+                )
+                tokens.append(chart_token)
+                rectification_url = (
+                    f"{self.settings.public_origin}/api/v1/magic-links/{chart_token}"
+                )
+                result = RectificationResult.model_validate(target["result"])
+                subject = "Ректификация времени рождения VedicWay готова"
+                message = self._rectification_message(rectification_url, result)
+                attachments = (
+                    EmailAttachment(
+                        "vedicway-birth-time-report.pdf",
+                        rectification_report_pdf(
+                            self.store.get_birth(str(target["chart_id"])), result
+                        ),
+                    ),
+                )
             else:
                 self.store.finish_email_delivery(
                     delivery_id, status="failed", error_code="EMAIL_PURPOSE_UNKNOWN"
                 )
                 return delivery_id
-            text, html_body = self._access_message(links)
+            text, html_body = message or self._access_message(links)
             provider_message_id = self.provider.send(
                 recipient=recipient,
                 subject=subject,
                 text=text,
                 html_body=html_body,
+                attachments=attachments,
             )
             self.store.finish_email_delivery(
                 delivery_id,
                 status="succeeded",
                 provider_message_id=provider_message_id,
             )
-        except Exception:
+        except Exception as exc:
+            logger.exception(
+                "Transactional email delivery failed: delivery_id=%s purpose=%s error_type=%s",
+                delivery_id,
+                delivery.get("purpose"),
+                type(exc).__name__,
+            )
             self.store.revoke_magic_links(tokens)
             self.store.finish_email_delivery(
                 delivery_id,
@@ -265,11 +336,15 @@ class EmailDispatcher:
         return delivery_id
 
     @staticmethod
-    def _access_message(links: list[tuple[str, str | None]]) -> tuple[str, str]:
+    def _access_message(
+        links: list[tuple[str, str | None]], *, pdf_attached: bool = False
+    ) -> tuple[str, str]:
         text_lines = [
             "Ваши материалы VedicWay доступны по одноразовым ссылкам.",
             "Ссылки действуют 1 час и перестают работать после подтверждения доступа на сайте.",
         ]
+        if pdf_attached:
+            text_lines.insert(0, "Готовый PDF-отчёт приложен к письму.")
         html_items: list[str] = []
         for index, (chart_url, pdf_url) in enumerate(links, start=1):
             text_lines.append(f"Карта {index}: {chart_url}")
@@ -280,9 +355,33 @@ class EmailDispatcher:
             html_items.append(f"<li>{html_line}</li>")
         text_lines.append("Если вы не запрашивали письмо, просто проигнорируйте его.")
         html_body = (
-            "<p>Ваши материалы VedicWay доступны по одноразовым ссылкам.</p>"
+            ("<p><strong>Готовый PDF-отчёт приложен к письму.</strong></p>" if pdf_attached else "")
+            + "<p>Ваши материалы VedicWay доступны по одноразовым ссылкам.</p>"
             "<p>Ссылки действуют 1 час и перестают работать после подтверждения доступа на сайте.</p>"
             f"<ul>{''.join(html_items)}</ul>"
             "<p>Если вы не запрашивали письмо, просто проигнорируйте его.</p>"
         )
         return "\n\n".join(text_lines), html_body
+
+    @staticmethod
+    def _rectification_message(url: str, result: RectificationResult) -> tuple[str, str]:
+        uncertainty_text = f"±{result.uncertainty_minutes} минут"
+        text = (
+            "Ректификация времени рождения завершена.\n\n"
+            f"Выбранное время: {result.selected_time}.\n"
+            f"Диапазон неопределённости: {uncertainty_text}.\n"
+            f"Лагна: {result.lagna}.\n\n"
+            "PDF-отчёт приложен к письму.\n\n"
+            f"Открыть полный результат: {url}\n\n"
+            "Ссылка действует 1 час и перестаёт работать после подтверждения доступа на сайте."
+        )
+        html_body = (
+            "<p>Ректификация времени рождения завершена.</p>"
+            f"<p><strong>Выбранное время: {html.escape(result.selected_time)}</strong><br>"
+            f"Диапазон неопределённости: {html.escape(uncertainty_text)}.<br>"
+            f"Лагна: {html.escape(result.lagna)}.</p>"
+            "<p>PDF-отчёт приложен к письму.</p>"
+            f'<p><a href="{html.escape(url)}">Открыть полный результат</a></p>'
+            "<p>Ссылка действует 1 час и перестаёт работать после подтверждения доступа на сайте.</p>"
+        )
+        return text, html_body

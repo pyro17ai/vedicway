@@ -16,7 +16,6 @@ REQUIRED_VALUES = (
     "RELEASE_TAG",
     "VEDICWAY_PUBLIC_BASE_URL",
     "VEDICWAY_PUBLIC_ORIGIN",
-    "VEDICWAY_RUNTIME_PROFILE",
     "VEDICWAY_LEGAL_OPERATOR_NAME",
     "VEDICWAY_LEGAL_OPERATOR_ADDRESS",
     "VEDICWAY_LEGAL_OPERATOR_INN",
@@ -33,6 +32,7 @@ REQUIRED_VALUES = (
     "VEDICWAY_OPERATIONS_CIDRS",
     "VEDICWAY_PLACE_DATASET_FILE",
     "PYJHORA_WHEELHOUSE_DIR",
+    "PYJHORA_EPHEMERIS_DIR",
     "VEDICWAY_OFFER_VERSION",
     "VEDICWAY_OFFER_URL",
     "VEDICWAY_PRIVACY_URL",
@@ -58,6 +58,7 @@ SECRET_PATHS = {
     "YOOKASSA_SHOP_ID_FILE": 1,
     "YOOKASSA_SECRET_KEY_FILE": 16,
     "OPENAI_API_KEY_FILE": 16,
+    "CODEX_AUTH_FILE": 100,
     "VEDICWAY_SMTP_PASSWORD_FILE": 8,
     "VEDICWAY_BACKUP_KEY_FILE": 40,
 }
@@ -144,16 +145,20 @@ def main() -> int:
         except ValueError:
             errors.append(f"{name} must contain valid CIDR values")
 
-    if values.get("VEDICWAY_TEST_PAYMENTS") != "0":
-        errors.append("VEDICWAY_TEST_PAYMENTS must equal 0")
+    test_payments = values.get("VEDICWAY_TEST_PAYMENTS")
+    if test_payments not in {"0", "1"}:
+        errors.append("VEDICWAY_TEST_PAYMENTS must equal 0 or 1")
+    if test_payments == "1" and values.get("VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS") != "1":
+        errors.append(
+            "VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS must equal 1 when "
+            "VEDICWAY_TEST_PAYMENTS=1"
+        )
     if values.get("VEDICWAY_INTERPRETATION_PROVIDER") != "codex":
         errors.append("VEDICWAY_INTERPRETATION_PROVIDER must equal codex")
     if values.get("VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER") not in {"0", "1"}:
         errors.append("VEDICWAY_INTERPRETATION_PROCESSOR_CROSS_BORDER must equal 0 or 1")
     if values.get("VEDICWAY_PAYMENT_PROVIDER") != "yookassa":
         errors.append("VEDICWAY_PAYMENT_PROVIDER must equal yookassa")
-    if values.get("VEDICWAY_RUNTIME_PROFILE") != "single-node-sqlite":
-        errors.append("VEDICWAY_RUNTIME_PROFILE must equal single-node-sqlite")
     if values.get("PUBLIC_HTTP_BIND") not in {"127.0.0.1", "::1"}:
         errors.append("PUBLIC_HTTP_BIND must stay on loopback behind TLS ingress")
     try:
@@ -232,6 +237,13 @@ def main() -> int:
             raise ValueError
     except (ValueError, UnicodeEncodeError):
         errors.append("VEDICWAY_BACKUP_KEY_FILE must contain a URL-safe base64 encoded 32-byte key")
+    codex_auth = secret_values.get("CODEX_AUTH_FILE", "")
+    try:
+        codex_auth_payload = json.loads(codex_auth)
+        if not isinstance(codex_auth_payload, dict) or not codex_auth_payload.get("tokens"):
+            raise ValueError
+    except (json.JSONDecodeError, ValueError):
+        errors.append("CODEX_AUTH_FILE must contain a ChatGPT Codex auth.json with tokens")
     if secret_values.get("YOOKASSA_SHOP_ID_FILE") and not secret_values["YOOKASSA_SHOP_ID_FILE"].isdigit():
         errors.append("YOOKASSA_SHOP_ID_FILE must contain a numeric shop id")
 
@@ -249,6 +261,12 @@ def main() -> int:
 
     wheelhouse = resolve_input(root, values.get("PYJHORA_WHEELHOUSE_DIR", ""))
     check_wheelhouse(wheelhouse, errors)
+
+    ephemeris_dir = resolve_input(root, values.get("PYJHORA_EPHEMERIS_DIR", ""))
+    for filename in ("seplm48.se1", "sepl_18.se1", "semo_18.se1"):
+        ephemeris_file = ephemeris_dir / filename
+        if not ephemeris_file.is_file() or ephemeris_file.is_symlink():
+            errors.append(f"PyJHora ephemeris file is missing or unsafe: {filename}")
 
     if errors:
         for error in errors:

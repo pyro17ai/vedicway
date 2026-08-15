@@ -22,7 +22,6 @@ import {
 } from "./results-demo-data";
 
 type ResultTab = "chart" | "explanation" | "questions";
-type DemoMode = "plain" | "expert";
 
 const resultTabs = [
   { id: "chart", label: "Натальная карта", icon: "/assets/results-nav-chart-light.png" },
@@ -132,10 +131,9 @@ const demoDomains: DemoDomain[] = [
 ];
 
 function ChartResult({ onOpenExplanation }: { onOpenExplanation: () => void }) {
-  const [mode, setMode] = useState<DemoMode>("plain");
   const [selectedSign, setSelectedSign] = useState<number | null>(null);
   const [showInputDetails, setShowInputDetails] = useState(false);
-  const visiblePlanets = demoPlanetPositions.filter((planet) => mode === "expert" || planet.classical);
+  const visiblePlanets = demoPlanetPositions.filter((planet) => planet.classical);
 
   return (
     <div className="result-workspace result-workspace--chart workspace-panel">
@@ -161,10 +159,6 @@ function ChartResult({ onOpenExplanation }: { onOpenExplanation: () => void }) {
               <option value="D1">D1</option>
             </select>
           </label>
-          <div className="mode-switch" aria-label="Режим просмотра">
-            <button type="button" className={mode === "plain" ? "is-active" : ""} onClick={() => setMode("plain")}>Понятно</button>
-            <button type="button" className={mode === "expert" ? "is-active" : ""} onClick={() => setMode("expert")}>Профессионально</button>
-          </div>
         </div>
       </header>
 
@@ -181,7 +175,6 @@ function ChartResult({ onOpenExplanation }: { onOpenExplanation: () => void }) {
           <SouthIndianChart
             section={demoD1}
             varga="D1"
-            mode={mode}
             selectedSign={selectedSign}
             onSelectSign={(sign) => setSelectedSign((current) => current === sign ? null : sign)}
           />
@@ -200,7 +193,7 @@ function ChartResult({ onOpenExplanation }: { onOpenExplanation: () => void }) {
           <section className="position-table">
             <h3>Ключевые положения</h3>
             <ul>
-              {visiblePlanets.slice(0, mode === "expert" ? 12 : 7).map((planet) => (
+              {visiblePlanets.slice(0, 7).map((planet) => (
                 <li key={planet.planet_code}>
                   <span>{planet.label}</span>
                   <span>{planet.sign_label}</span>

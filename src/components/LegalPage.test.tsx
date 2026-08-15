@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LegalPage } from "./LegalPage";
@@ -10,17 +10,6 @@ const legalConfig = {
   ogrn: "1000000000000",
   privacy_email: "privacy@example.ru",
   configured: true,
-  interpretation_processor_enabled: true,
-  interpretation_processor_configured: true,
-  interpretation_processor_name: "Example Processor LLC",
-  interpretation_processor_address: "123 Example Street, Dublin",
-  interpretation_processor_country: "Ирландия",
-  interpretation_processor_purpose: "подготовка персонализированного объяснения карты",
-  interpretation_processor_data_categories: [
-    "расчётные астрологические показатели",
-    "связи между показателями",
-  ],
-  interpretation_processor_cross_border: true,
 };
 
 afterEach(() => vi.unstubAllGlobals());
@@ -32,7 +21,7 @@ function mockLegalConfig() {
   }));
 }
 
-describe("LegalPage interpretation processor disclosure", () => {
+describe("LegalPage", () => {
   it("публикует оферту с порядком акцепта и законными правами потребителя", async () => {
     mockLegalConfig();
     render(<LegalPage kind="terms" onNavigate={() => undefined} />);
@@ -43,29 +32,31 @@ describe("LegalPage interpretation processor disclosure", () => {
     })).toBeInTheDocument();
     expect(screen.getByText(/фактически понесённых расходов/)).toBeInTheDocument();
     expect(screen.getByText(/десятидневный срок/)).toBeInTheDocument();
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, follow, noarchive",
+    );
   });
 
-  it("называет обработчика, цель, категории и трансграничную передачу в политике", async () => {
+  it("описывает инфраструктуру без упоминаний ИИ-провайдера", async () => {
     mockLegalConfig();
-    render(<LegalPage kind="privacy" onNavigate={() => undefined} />);
+    const { container } = render(<LegalPage kind="privacy" onNavigate={() => undefined} />);
 
     const heading = await screen.findByRole("heading", { name: "5. Передача и инфраструктура" });
     const section = heading.closest("section");
     expect(section).not.toBeNull();
-    const policy = within(section as HTMLElement);
-    expect(policy.getByText(/Example Processor LLC/)).toBeInTheDocument();
-    expect(section).toHaveTextContent("подготовка персонализированного объяснения карты");
-    expect(section).toHaveTextContent("расчётные астрологические показатели; связи между показателями");
-    expect(section).toHaveTextContent("Передача этому обработчику является трансграничной");
+    expect(section).toHaveTextContent("Основная запись, систематизация, накопление и хранение");
+    expect(container).not.toHaveTextContent(/OpenAI|искусственн(?:ый|ого) интеллект/i);
   });
 
-  it("повторяет раскрытие обработчика в отдельном согласии", async () => {
+  it("публикует новую редакцию отдельного согласия без названия стороннего генератора", async () => {
     mockLegalConfig();
-    render(<LegalPage kind="consent" onNavigate={() => undefined} />);
+    const { container } = render(<LegalPage kind="consent" onNavigate={() => undefined} />);
 
     const heading = await screen.findByRole("heading", { name: "Разрешённые действия" });
-    expect(heading.closest("section")).toHaveTextContent("Example Processor LLC");
-    expect(screen.getByText("Редакция от 2026-07-30")).toBeInTheDocument();
+    expect(heading.closest("section")).toHaveTextContent("Передача допускается только в объёме");
+    expect(screen.getByText("Редакция от 2026-07-31")).toBeInTheDocument();
+    expect(container).not.toHaveTextContent(/OpenAI|искусственн(?:ый|ого) интеллект/i);
   });
 
   it("не заявляет обработку имени, которого больше нет в форме и хранилище", async () => {

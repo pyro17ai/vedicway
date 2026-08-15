@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from vedicway_backend.legal_config import LEGAL_DOCUMENT_VERSIONS
 from vedicway_backend.payment_config import (
     OFFICIAL_YOOKASSA_API_BASE_URL,
     PaymentConfigurationError,
@@ -11,6 +12,7 @@ from vedicway_backend.payment_config import (
 PAYMENT_ENV_KEYS = (
     "VEDICWAY_ENV",
     "VEDICWAY_TEST_PAYMENTS",
+    "VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS",
     "VEDICWAY_PAYMENT_PROVIDER",
     "VEDICWAY_PUBLIC_BASE_URL",
     "VEDICWAY_OFFER_VERSION",
@@ -38,7 +40,7 @@ def _production(monkeypatch: pytest.MonkeyPatch) -> None:
         "VEDICWAY_ENV": "production",
         "VEDICWAY_PAYMENT_PROVIDER": "yookassa",
         "VEDICWAY_PUBLIC_BASE_URL": "https://vedicway.example",
-        "VEDICWAY_OFFER_VERSION": "2026-07-30",
+        "VEDICWAY_OFFER_VERSION": LEGAL_DOCUMENT_VERSIONS["terms"],
         "VEDICWAY_OFFER_URL": "https://vedicway.example/legal/offer",
         "VEDICWAY_PRIVACY_URL": "https://vedicway.example/legal/privacy",
         "VEDICWAY_OPERATIONS_TOKEN": "ops_" + "x" * 48,
@@ -121,6 +123,18 @@ def test_production_rejects_test_provider(monkeypatch: pytest.MonkeyPatch) -> No
 
     with pytest.raises(PaymentConfigurationError, match="VEDICWAY_TEST_PAYMENTS"):
         PaymentSettings.from_environment()
+
+
+def test_production_allows_explicit_test_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+    _production(monkeypatch)
+    monkeypatch.setenv("VEDICWAY_TEST_PAYMENTS", "1")
+    monkeypatch.setenv("VEDICWAY_ALLOW_PRODUCTION_TEST_PAYMENTS", "1")
+
+    settings = PaymentSettings.from_environment()
+
+    assert settings.environment == "production"
+    assert settings.provider == "test"
+    assert settings.receipts_enabled is False
 
 
 @pytest.mark.parametrize("vat_code", ["0", "13", "twenty-two"])

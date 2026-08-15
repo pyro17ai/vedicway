@@ -25,9 +25,9 @@ REQUIRED_METRIKA_CSP = (
 )
 
 REQUIRED_RECOVERY_GUARD = (
-    '~^/access/recovery/?$ "noindex, nofollow, noarchive";',
-    '~^/access/confirm/?$ "noindex, nofollow, noarchive";',
-    '~^/privacy/request/?$ "noindex, nofollow, noarchive";',
+    '~^/access/recovery/?(?:\\?|$) "noindex, nofollow, noarchive";',
+    '~^/access/confirm/?(?:\\?|$) "noindex, nofollow, noarchive";',
+    '~^/privacy/request/?(?:\\?|$) "noindex, nofollow, noarchive";',
     "location = /access/recovery {",
     "try_files /access/recovery/index.html =404;",
     "location = /access/confirm {",
@@ -36,7 +36,8 @@ REQUIRED_RECOVERY_GUARD = (
     "try_files /privacy/request/index.html =404;",
     "location ^~ /api/v1/magic-links/ {",
     "access_log off;",
-    '~^/access/confirm/?$ "no-referrer";',
+    "map $request_uri $referrer_policy {",
+    '~^/access/confirm/?(?:\\?|$) "no-referrer";',
 )
 
 REQUIRED_LEGAL_GUARD = tuple(
@@ -48,6 +49,7 @@ REQUIRED_LEGAL_GUARD = tuple(
         "cookies",
     )
 ) + (
+    '~^/legal/(?:offer|privacy|personal-data-consent|cookies)/?(?:\\?|$) "noindex, follow, noarchive";',
     "location = /legal/user-agreement { return 308 /legal/offer; }",
     "location = /legal/privacy-policy { return 308 /legal/privacy; }",
     "location ^~ /legal/ { return 404; }",
@@ -55,7 +57,29 @@ REQUIRED_LEGAL_GUARD = tuple(
 
 REQUIRED_TRUST_ROUTES = tuple(
     f"location = /{slug} {{ try_files /{slug}/index.html =404; expires -1; }}"
-    for slug in ("about", "methodology", "editorial-policy")
+    for slug in ("about", "methodology", "editorial-policy", "report-example")
+)
+
+REQUIRED_RECTIFICATION_GUARD = (
+    "map $request_uri $x_robots_tag {",
+    '~^/rectification(?:/|\\?|$) "noindex, nofollow, noarchive";',
+    """location ~ ^/rectification/[^/]+/?$ {
+      try_files /rectification/index.html =404;
+      expires -1;
+    }""",
+)
+
+REQUIRED_CHART_GUARD = (
+    '~^/chart(?:/|\\?|$) "noindex, nofollow, noarchive";',
+    """location ~ ^/chart/[^/]+/?$ {
+      try_files /chart/index.html =404;
+      expires -1;
+    }""",
+)
+
+REQUIRED_MANIFEST_GUARD = (
+    "location = /site.webmanifest {",
+    "default_type application/manifest+json;",
 )
 
 
@@ -111,6 +135,33 @@ def main() -> None:
     ]
     if missing_trust:
         raise SystemExit(f"Trust-page routing is incomplete: {', '.join(missing_trust)}")
+    missing_rectification = [
+        fragment
+        for fragment in REQUIRED_RECTIFICATION_GUARD
+        if fragment not in config
+    ]
+    if missing_rectification:
+        raise SystemExit(
+            "Rectification privacy guard is incomplete: "
+            + ", ".join(missing_rectification)
+        )
+    missing_chart = [
+        fragment
+        for fragment in REQUIRED_CHART_GUARD
+        if fragment not in config
+    ]
+    if missing_chart:
+        raise SystemExit(
+            "Chart privacy guard is incomplete: "
+            + ", ".join(missing_chart)
+        )
+    missing_manifest = [
+        fragment for fragment in REQUIRED_MANIFEST_GUARD if fragment not in config
+    ]
+    if missing_manifest:
+        raise SystemExit(
+            "Web manifest MIME guard is incomplete: " + ", ".join(missing_manifest)
+        )
     if "try_files $uri $uri/index.html /index.html" in config:
         raise SystemExit("Legal SPA fallback still returns a soft 404")
     print("Nginx SEO, legal and privacy guard contract passed.")

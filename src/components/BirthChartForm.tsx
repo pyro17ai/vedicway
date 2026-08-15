@@ -79,7 +79,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
   const [retryNonce, setRetryNonce] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
-  const [timeAccuracy, setTimeAccuracy] = useState<"exact" | "approximate_15m" | "approximate_hour" | "unknown">("exact");
+  const [timeAccuracy, setTimeAccuracy] = useState<"exact" | "approximate_hour" | "unknown">("exact");
   const [personalDataConsent, setPersonalDataConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -256,7 +256,7 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
         personalDataConsent,
         termsAccepted,
       });
-      if (timeAccuracy === "unknown") {
+      if (timeAccuracy !== "exact") {
         const config = await getPaymentConfig("birth_time_rectification_v1");
         setRectificationChartId(result.chart_id);
         setRectificationPayment(config);
@@ -487,6 +487,34 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
           )}
         </div>
 
+        <fieldset className="time-accuracy" aria-describedby="time-accuracy-hint">
+          <legend>Точность времени</legend>
+          <div className="time-accuracy__choices">
+            <label>
+              <input type="radio" name="timeAccuracy" value="exact" checked={timeAccuracy === "exact"} onChange={() => setTimeAccuracy("exact")} />
+              Точно
+            </label>
+            <label>
+              <input type="radio" name="timeAccuracy" value="approximate_hour" checked={timeAccuracy === "approximate_hour"} onChange={() => setTimeAccuracy("approximate_hour")} />
+              Примерно
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="timeAccuracy"
+                value="unknown"
+                checked={timeAccuracy === "unknown"}
+                onChange={() => {
+                  setTimeAccuracy("unknown");
+                  setErrors((current) => ({ ...current, birthTime: undefined }));
+                }}
+              />
+              Не знаю
+            </label>
+          </div>
+          <small id="time-accuracy-hint">Лагна, дома и дробные карты чувствительны к минутам рождения.</small>
+        </fieldset>
+
         <div className="field field--city" data-invalid={Boolean(errors.birthPlace) || undefined}>
           <label htmlFor="birthPlace">Место рождения</label>
           <div className="input-shell input-shell--icon">
@@ -590,47 +618,14 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
         <input type="hidden" name="longitude" value={selectedCity?.longitude ?? ""} />
         <input type="hidden" name="timezone" value={selectedCity?.timezone ?? ""} />
 
-        <fieldset className="time-accuracy" aria-describedby="time-accuracy-hint">
-          <legend>Точность времени</legend>
-          <div className="time-accuracy__choices">
-            <label>
-              <input type="radio" name="timeAccuracy" value="exact" checked={timeAccuracy === "exact"} onChange={() => setTimeAccuracy("exact")} />
-              Точно
-            </label>
-            <label>
-              <input type="radio" name="timeAccuracy" value="approximate_15m" checked={timeAccuracy === "approximate_15m"} onChange={() => setTimeAccuracy("approximate_15m")} />
-              До 15 минут
-            </label>
-            <label>
-              <input type="radio" name="timeAccuracy" value="approximate_hour" checked={timeAccuracy === "approximate_hour"} onChange={() => setTimeAccuracy("approximate_hour")} />
-              Примерно
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="timeAccuracy"
-                value="unknown"
-                checked={timeAccuracy === "unknown"}
-                onChange={() => {
-                  setTimeAccuracy("unknown");
-                  setErrors((current) => ({ ...current, birthTime: undefined }));
-                }}
-              />
-              Не знаю
-            </label>
-          </div>
-          <small id="time-accuracy-hint">Лагна, дома и дробные карты чувствительны к минутам рождения.</small>
-        </fieldset>
-
-        {timeAccuracy === "unknown" && (
+        {timeAccuracy !== "exact" && (
           <section className="rectification-offer" aria-labelledby="rectification-offer-title">
             <span>ВОССТАНОВЛЕНИЕ ВРЕМЕНИ</span>
             <h3 id="rectification-offer-title">Уточним время по событиям вашей жизни</h3>
             <p>
-              После оплаты откроется последовательный опрос. Код проверит варианты времени
+              Последовательный опрос поможет уточнить исходные данные. Алгоритм проверит варианты времени
               по периодам и положениям планет, затем покажет лучший диапазон и альтернативы.
             </p>
-            <div><strong>300 ₽</strong><small>разовый платёж</small></div>
           </section>
         )}
 
@@ -649,8 +644,8 @@ export function BirthChartForm({ onChartCreated, initialMode = "calculate" }: Bi
           <span>
             {isSubmitting
               ? "ПОДГОТАВЛИВАЕМ..."
-              : timeAccuracy === "unknown"
-                ? "ВОССТАНОВИТЬ ВРЕМЯ"
+              : timeAccuracy !== "exact"
+                ? "ПРОЙТИ РЕКТИФИКАЦИЮ"
                 : "РАССЧИТАТЬ КАРТУ"}
           </span>
           <span className="submit-button__star" aria-hidden="true">

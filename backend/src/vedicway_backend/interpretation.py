@@ -116,6 +116,11 @@ REQUIRED_DOMAIN_CHART = {
 
 _MODEL_SLUG = re.compile(r"^[A-Za-z0-9._-]+$")
 _CONFIG_TOKEN = re.compile(r"^[a-z0-9_-]+$")
+_WORD_TOKEN = re.compile(r"[0-9A-Za-zА-Яа-яЁё]+(?:[-'][0-9A-Za-zА-Яа-яЁё]+)*")
+MIN_PAID_DOMAIN_WORDS = 140
+MIN_PAID_PARAGRAPH_WORDS = 25
+MIN_PAID_SYNTHESIS_WORDS = 160
+MIN_PAID_SYNTHESIS_PARAGRAPH_WORDS = 30
 
 
 def _facts_by_id(facts: list[EvidenceFact]) -> dict[str, EvidenceFact]:
@@ -132,6 +137,10 @@ def _normalized_text(value: str) -> str:
 
 def _too_similar(left: str, right: str, threshold: float = 0.88) -> bool:
     return difflib.SequenceMatcher(None, _normalized_text(left), _normalized_text(right)).ratio() >= threshold
+
+
+def _word_count(parts: list[str]) -> int:
+    return sum(len(_WORD_TOKEN.findall(part)) for part in parts)
 
 
 def _overview_coverage(packets: list[DomainEvidencePacket]) -> Coverage:
@@ -167,6 +176,44 @@ def _summary(slug: DomainSlug, evidence: list[EvidenceFact], coverage: Coverage)
     )
 
 
+def free_projection(bundle: InterpretationBundle) -> InterpretationBundle:
+    """Build the public preview from a full bundle without another model run."""
+    if bundle.schema_version != "interpretation.paid.v1":
+        raise ValueError("Для бесплатной проекции нужен полный пакет")
+
+    questions_by_domain: dict[DomainSlug, ReflectionQuestion] = {}
+    for question in bundle.questions:
+        questions_by_domain.setdefault(question.domain, question)
+    preview_questions = [
+        questions_by_domain[slug].model_copy(update={"id": f"q_{index:02d}"})
+        for index, slug in enumerate(DOMAIN_ORDER[:6], start=1)
+    ]
+    preview_domains = [
+        domain.model_copy(
+            update={
+                "paragraphs": [],
+                "manifestations": [],
+                "reflection_prompts": [],
+            }
+        )
+        for domain in bundle.domains
+    ]
+    preview_overview = bundle.overview.model_copy(
+        update={
+            "paragraphs": [],
+            "manifestations": [],
+            "reflection_prompts": [],
+        }
+    )
+    return bundle.model_copy(
+        update={
+            "schema_version": "interpretation.free.v1",
+            "overview": preview_overview,
+            "domains": preview_domains,
+            "questions": preview_questions,
+            "synthesis": [],
+        }
+    )
 class InterpretationProvider(ABC):
     prompt_version = "interpretation-provider.v1"
 
@@ -209,11 +256,11 @@ class DevelopmentInterpretationProvider(InterpretationProvider):
             if paid and packet.coverage != Coverage.INSUFFICIENT:
                 evidence_names = ", ".join(fact.human_label_ru for fact in evidence)
                 paragraphs = [
-                    f"Центральный рисунок темы «{DOMAIN_LABELS_RU[packet.slug]}» возникает там, где личный способ действовать встречается с требованиями ситуации. Его полезно читать как повторяющуюся склонность, а не как закреплённую роль: человек сохраняет право выбирать форму проявления и менять привычный ответ.",
-                    f"Основанием служат рассчитанные положения: {evidence_names}. Вместе они задают конкретную оптику для наблюдения за этой сферой. Каждое из них важно соотносить с другим, потому что один символ без подтверждения легко превращается в слишком широкое описание.",
-                    f"Внутреннее напряжение темы «{DOMAIN_LABELS_RU[packet.slug]}» проявляется между привычным способом сохранить устойчивость и необходимостью откликнуться на новые обстоятельства. Такой разрыв не требует выбирать один полюс навсегда; он помогает увидеть момент, в котором автоматическая реакция перестаёт быть полезной.",
-                    "В повседневности этот рисунок заметен через повторяющиеся решения, темп и границы ответственности. Наблюдение становится точнее, если сравнивать несколько реальных ситуаций, отмечая не только результат, но и условия, при которых появляется ясность или накапливается напряжение.",
-                    f"Практический способ осмыслить раздел — вернуться к фактам после конкретного опыта и проверить, какая часть описания действительно проявилась. Вопрос «{QUESTION_STEMS[packet.slug]}» оставляет решение человеку и не превращает карту в директиву.",
+                    f"Центральный рисунок темы «{DOMAIN_LABELS_RU[packet.slug]}» возникает в точке, где личный способ действовать встречается с требованиями конкретной ситуации. Он описывает повторяющуюся склонность, которую человек способен проявлять по-разному в зависимости от опыта, нагрузки и выбранной роли. Поэтому раздел полезнее сверять с несколькими эпизодами жизни: так становится видно, какие условия поддерживают собранность, а какие заставляют воспроизводить привычный ответ даже после того, как он перестал помогать.",
+                    f"Основанием служат рассчитанные положения: {evidence_names}. Их совместное чтение задаёт предметную оптику для наблюдения за этой сферой и удерживает вывод рядом с картой. Первый фактор показывает основную линию, второй уточняет способ её проявления или создаёт напряжение, которое тоже несёт информацию. Один символ дал бы слишком широкий портрет, тогда как связка помогает отличить устойчивый мотив от случайного впечатления и проверить его на фактах биографии.",
+                    f"Внутренняя динамика темы «{DOMAIN_LABELS_RU[packet.slug]}» раскрывается между стремлением сохранить понятный порядок и необходимостью отвечать на новые обстоятельства. Человек может долго опираться на знакомый способ, поскольку он уже приносил результат, а затем замечать, что прежняя мера контроля мешает увидеть другой ход. Напряжение здесь служит наблюдаемым сигналом: оно показывает момент, когда полезно уточнить задачу, пересобрать границы ответственности и выбрать реакцию, соответствующую нынешним условиям.",
+                    "В повседневности этот рисунок обнаруживается через цепочку решений, рабочий темп и отношение к обратной связи. Для проверки полезно сопоставить две похожие ситуации и записать, что происходило до выбора, какой результат появился сразу и как изменилось состояние спустя время. Такое сравнение отделяет устойчивую закономерность от единичного настроения. Оно также показывает, где ясная договорённость облегчает действие, а где избыточная жёсткость увеличивает напряжение без заметной пользы для результата.",
+                    f"Практическое осмысление начинается после конкретного опыта, когда можно спокойно проверить, какая часть описания проявилась и что осталось только гипотезой. Вопрос «{QUESTION_STEMS[packet.slug]}» направляет внимание к наблюдаемому эпизоду, сохраняя свободу решения за человеком. Ответ полезно формулировать через дату, обстоятельства и собственное действие, а затем возвращаться к нему после следующей похожей ситуации. Так чтение превращается в проверяемую рабочую запись и не подменяет собой выбор или оценку реальных последствий.",
                 ]
                 manifestations = [
                     f"Повторяющийся способ принимать решения в сфере «{DOMAIN_LABELS_RU[packet.slug]}».",
@@ -298,10 +345,11 @@ class DevelopmentInterpretationProvider(InterpretationProvider):
             global_limitations=list(GLOBAL_LIMITATIONS),
             synthesis=(
                 [
-                    "Общий рисунок складывается из тем, которые повторяются в нескольких разделах и получают разное выражение в зависимости от жизненной сферы. Его полезно читать через реальные решения, сохраняя различие между рассчитанным положением и личной биографией.",
-                    "Часть факторов усиливает стремление к определённости, другая оставляет больше места для чувствительности к контексту. Такое сочетание описывает рабочую развилку для наблюдения, а не противоречие, которое необходимо устранить.",
-                    "В отношениях, работе и обращении с ресурсами один и тот же внутренний мотив может проявляться разными способами. Сравнение этих проявлений помогает увидеть условия, в которых привычная реакция поддерживает, и моменты, когда она становится слишком жёсткой.",
-                    "Возвращение к двенадцати вопросам после конкретных событий делает чтение проверяемым личным опытом. Карта остаётся картой возможностей и языка наблюдения, а решения принимаются с учётом фактов реальной ситуации.",
+                    "Общий рисунок складывается из мотивов, которые повторяются в нескольких жизненных разделах и меняют форму в зависимости от обстоятельств. Там, где человеку нужна ясная опора, он стремится заранее понять правила и собственную меру ответственности. Там, где ситуация быстро движется, та же потребность выражается через внимательное наблюдение и последовательную проверку решений. Такое чтение полезно связывать с биографией по конкретным эпизодам, сохраняя различие между рассчитанным фактором карты и тем значением, которое человек придаёт своему опыту. Разница между этими слоями становится яснее, когда запись содержит дату и фактический результат.",
+                    "Связки факторов показывают, что устойчивость рождается из способности удерживать направление и одновременно замечать перемену контекста. При понятных границах собранность помогает доводить начатое до результата. При размытых требованиях она способна перейти в попытку контролировать слишком много деталей, из-за чего растёт нагрузка и сужается обзор. Проверка этой закономерности требует сравнивать сходные ситуации: какую задачу человек считал главной, где находилась его зона решения и какой сигнал сообщил, что прежний способ перестал соответствовать происходящему. Короткий журнал таких случаев показывает повторяющийся механизм точнее, чем общее впечатление о себе.",
+                    "В близости и домашней жизни общий мотив проявляется через качество договорённостей, чувство собственного пространства и способ возвращать внутреннее равновесие. Рабочая сфера переводит его в язык задач и видимого результата, а денежная показывает отношение к запасу и риску. Разные проявления не обязаны совпадать по интенсивности. Их сопоставление помогает заметить, где навык уже развит, а где реакция включается автоматически. Особенно полезны эпизоды, в которых внешне разумное решение оставило после себя длительное напряжение или потребовало лишних усилий. Такие различия уточняют, какую поддержку человек способен создать внутри каждой отдельной сферы.",
+                    "Периоды Вимшоттари добавляют к натальному рисунку временной фон. Их точные границы обозначают смену акцента внутри астрологической системы и помогают разделить наблюдения по этапам, однако сами даты не назначают событие. Для проверки можно вести краткую хронологию решений и отмечать, какие темы возвращались чаще в текущей махадаше и антардаше. При переходе к следующему периоду полезно сравнить не ожидаемый исход, а характер задач, уровень нагрузки и способы, которыми человек отвечал на повторяющиеся обстоятельства. Записи возле границы двух периодов делают смену акцента видимой без попытки предугадать событие.",
+                    "Двенадцать вопросов связывают чтение с наблюдаемой жизнью и дают отчёту проверяемую основу. Ответ лучше строить вокруг одного случая: назвать обстоятельства, собственное действие и последствие, которое стало заметно позже. Через несколько записей проявляется различие между устойчивой склонностью и случайной реакцией на усталость или давление. Решения о работе, деньгах и отношениях при этом остаются в реальном контексте, где учитываются договорённости, доступные ресурсы и мнение профильного специалиста, если цена ошибки выходит за пределы самонаблюдения. Единый формат записей облегчает последующее сравнение и сохраняет внимание на проверяемых деталях.",
                 ]
                 if paid
                 else []
@@ -323,17 +371,6 @@ class UnavailableInterpretationProvider(InterpretationProvider):
         paid: bool,
     ) -> InterpretationBundle:
         raise DomainError("INTERPRETATION_UNAVAILABLE", self.reason, recoverable=True, status_code=503)
-
-
-def _required_float(name: str, default: float, minimum: float, maximum: float) -> float:
-    raw = os.environ.get(name)
-    try:
-        value = float(raw) if raw is not None else default
-    except ValueError as exc:
-        raise DomainError("INTERPRETATION_CONFIG_INVALID", f"Некорректная настройка {name}", status_code=503) from exc
-    if not minimum <= value <= maximum:
-        raise DomainError("INTERPRETATION_CONFIG_INVALID", f"Настройка {name} вне допустимого диапазона", status_code=503)
-    return value
 
 
 def _resolve_codex_executable(configured: str | None) -> Path:
@@ -368,11 +405,9 @@ class CodexExecSettings:
     workdir: Path
     executable: Path
     free_model: str = "gpt-5.6-luna"
-    paid_model: str = "gpt-5.6-terra"
+    paid_model: str = "gpt-5.6-luna"
     free_reasoning: str = "low"
     paid_reasoning: str = "medium"
-    free_timeout_seconds: float = 35.0
-    paid_timeout_seconds: float = 120.0
     service_tier: str = "fast"
 
     @classmethod
@@ -404,7 +439,7 @@ class CodexExecSettings:
             raise DomainError("INTERPRETATION_CONFIG_INVALID", "В отдельном CODEX_HOME нет авторизации", status_code=503)
 
         free_model = os.environ.get("VEDICWAY_CODEX_FREE_MODEL", "gpt-5.6-luna")
-        paid_model = os.environ.get("VEDICWAY_CODEX_PAID_MODEL", "gpt-5.6-terra")
+        paid_model = os.environ.get("VEDICWAY_CODEX_PAID_MODEL", "gpt-5.6-luna")
         free_reasoning = os.environ.get("VEDICWAY_CODEX_FREE_REASONING", "low")
         paid_reasoning = os.environ.get("VEDICWAY_CODEX_PAID_REASONING", "medium")
         service_tier = os.environ.get("VEDICWAY_CODEX_SERVICE_TIER", "fast").casefold()
@@ -422,8 +457,6 @@ class CodexExecSettings:
             paid_model=paid_model,
             free_reasoning=free_reasoning,
             paid_reasoning=paid_reasoning,
-            free_timeout_seconds=_required_float("VEDICWAY_CODEX_FREE_TIMEOUT_SECONDS", 35.0, 5.0, 300.0),
-            paid_timeout_seconds=_required_float("VEDICWAY_CODEX_PAID_TIMEOUT_SECONDS", 120.0, 10.0, 600.0),
             service_tier=service_tier,
         )
 
@@ -438,15 +471,117 @@ class _BundleValidationFailure(Exception):
 def _normalize_generated_contract(
     bundle: InterpretationBundle,
     facts: list[EvidenceFact],
+    packets: list[DomainEvidencePacket],
     snapshot_id: str,
+    paid: bool,
 ) -> InterpretationBundle:
     """Fill deterministic UI fields that do not require editorial judgment."""
     normalized = bundle.model_copy(deep=True)
     normalized.snapshot_id = snapshot_id
-    valid_ids = {fact.id for fact in facts}
+    by_id = _facts_by_id(facts)
+    by_slug = _packet_by_slug(packets)
+
+    def normalized_ids(values: list[str], allowed: list[str]) -> list[str]:
+        allowed_set = set(allowed)
+        result: list[str] = []
+        for fact_id in values:
+            if fact_id in allowed_set and fact_id in by_id and fact_id not in result:
+                result.append(fact_id)
+        return result
+
+    def append_first(values: list[str], candidates: list[str]) -> None:
+        first = next(
+            (fact_id for fact_id in candidates if fact_id in by_id and fact_id not in values),
+            None,
+        )
+        if first:
+            values.append(first)
+
+    for domain in normalized.domains:
+        packet = by_slug.get(domain.slug)
+        if packet is None:
+            continue
+        allowed = [
+            *packet.primary_facts,
+            *packet.confirming_facts,
+            *packet.contradictions,
+        ]
+        evidence_ids = normalized_ids(domain.evidence_ids, allowed)
+        if packet.coverage == Coverage.MULTIPLE_FACTORS:
+            if not set(evidence_ids).intersection(packet.primary_facts):
+                append_first(evidence_ids, packet.primary_facts)
+            if not set(evidence_ids).intersection(packet.confirming_facts):
+                append_first(evidence_ids, packet.confirming_facts)
+        elif packet.coverage != Coverage.INSUFFICIENT and not evidence_ids:
+            append_first(evidence_ids, allowed)
+
+        required_chart = REQUIRED_DOMAIN_CHART.get(domain.slug)
+        if required_chart and packet.coverage != Coverage.INSUFFICIENT:
+            used_charts = {by_id[fact_id].chart.upper() for fact_id in evidence_ids}
+            if required_chart not in used_charts:
+                append_first(
+                    evidence_ids,
+                    [
+                        fact_id
+                        for fact_id in allowed
+                        if fact_id in by_id and by_id[fact_id].chart.upper() == required_chart
+                    ],
+                )
+        if paid:
+            append_first(
+                evidence_ids,
+                [
+                    fact_id
+                    for fact_id in allowed
+                    if fact_id in by_id and by_id[fact_id].kind == "dasha_timeline"
+                ],
+            )
+        required_ids: list[str] = []
+
+        def keep_first(candidates: list[str]) -> None:
+            first = next((fact_id for fact_id in evidence_ids if fact_id in candidates), None)
+            if first and first not in required_ids:
+                required_ids.append(first)
+
+        if packet.coverage == Coverage.MULTIPLE_FACTORS:
+            keep_first(packet.primary_facts)
+            keep_first(packet.confirming_facts)
+        elif packet.coverage != Coverage.INSUFFICIENT:
+            keep_first(allowed)
+        if required_chart and packet.coverage != Coverage.INSUFFICIENT:
+            keep_first(
+                [
+                    fact_id
+                    for fact_id in allowed
+                    if fact_id in by_id and by_id[fact_id].chart.upper() == required_chart
+                ]
+            )
+        if paid:
+            keep_first(
+                [
+                    fact_id
+                    for fact_id in allowed
+                    if fact_id in by_id and by_id[fact_id].kind == "dasha_timeline"
+                ]
+            )
+        domain.evidence_ids = [
+            *required_ids,
+            *(fact_id for fact_id in evidence_ids if fact_id not in required_ids),
+        ][:6]
+
+    for question in normalized.questions:
+        packet = by_slug.get(question.domain)
+        if packet is None:
+            continue
+        allowed = [*packet.primary_facts, *packet.confirming_facts]
+        evidence_ids = normalized_ids(question.evidence_ids, allowed)
+        if not evidence_ids:
+            append_first(evidence_ids, allowed)
+        question.evidence_ids = evidence_ids
+
     overview_ids: list[str] = []
     for domain in normalized.domains:
-        first_valid = next((fact_id for fact_id in domain.evidence_ids if fact_id in valid_ids), None)
+        first_valid = next((fact_id for fact_id in domain.evidence_ids if fact_id in by_id), None)
         if first_valid and first_valid not in overview_ids:
             overview_ids.append(first_valid)
         if len(overview_ids) == 5:
@@ -454,7 +589,7 @@ def _normalize_generated_contract(
     if len(overview_ids) < 2:
         for domain in normalized.domains:
             for fact_id in domain.evidence_ids:
-                if fact_id in valid_ids and fact_id not in overview_ids:
+                if fact_id in by_id and fact_id not in overview_ids:
                     overview_ids.append(fact_id)
                 if len(overview_ids) == 5:
                     break
@@ -530,7 +665,6 @@ class CodexExecProvider(InterpretationProvider):
             output_path.unlink()
         model = self.settings.paid_model if paid else self.settings.free_model
         reasoning = self.settings.paid_reasoning if paid else self.settings.free_reasoning
-        timeout = self.settings.paid_timeout_seconds if paid else self.settings.free_timeout_seconds
         command = [
             str(self.settings.executable),
             "exec",
@@ -578,19 +712,11 @@ class CodexExecProvider(InterpretationProvider):
                 text=True,
                 encoding="utf-8",
                 capture_output=True,
-                timeout=timeout,
                 shell=False,
                 env=self._child_environment(),
                 cwd=self.settings.workdir,
                 check=False,
             )
-        except subprocess.TimeoutExpired as exc:
-            raise DomainError(
-                "INTERPRETATION_UNAVAILABLE",
-                "Подготовка объяснения заняла слишком много времени",
-                recoverable=True,
-                status_code=503,
-            ) from exc
         except OSError as exc:
             raise DomainError(
                 "INTERPRETATION_UNAVAILABLE",
@@ -675,7 +801,7 @@ class CodexExecProvider(InterpretationProvider):
                 for item in exc.errors(include_url=False)
             ]
             raise _BundleValidationFailure(errors, raw_output) from exc
-        bundle = _normalize_generated_contract(bundle, facts, snapshot_id)
+        bundle = _normalize_generated_contract(bundle, facts, packets, snapshot_id, paid)
         try:
             return validate_bundle(bundle, snapshot_id, facts, packets, paid)
         except DomainError as exc:
@@ -760,11 +886,26 @@ def validate_bundle(
             used_charts = {by_id[fact_id].chart.upper() for fact_id in evidence_set}
             if required_chart not in used_charts:
                 raise DomainError("INTERPRETATION_INVALID", "Раздел не использует обязательную подтверждающую карту", recoverable=True)
+        timeline_ids = {
+            fact_id
+            for fact_id in allowed
+            if fact_id in by_id and by_id[fact_id].kind == "dasha_timeline"
+        }
+        if paid and timeline_ids and not evidence_set.intersection(timeline_ids):
+            raise DomainError(
+                "INTERPRETATION_INVALID",
+                "Раздел не использует шкалу текущих и будущих периодов",
+                recoverable=True,
+            )
         if not paid and (domain.paragraphs or domain.manifestations or domain.reflection_prompts):
             raise DomainError("INTERPRETATION_INVALID", "Подробный текст попал в бесплатный слой", recoverable=True)
         if paid and packet.coverage != Coverage.INSUFFICIENT:
             if not 4 <= len(domain.paragraphs) <= 7:
                 raise DomainError("INTERPRETATION_INVALID", "Платный раздел имеет неверное число абзацев", recoverable=True)
+            if _word_count(domain.paragraphs) < MIN_PAID_DOMAIN_WORDS or any(
+                _word_count([paragraph]) < MIN_PAID_PARAGRAPH_WORDS for paragraph in domain.paragraphs
+            ):
+                raise DomainError("INTERPRETATION_INVALID", "Платный раздел раскрыт слишком кратко", recoverable=True)
             if not 2 <= len(domain.manifestations) <= 4 or not 1 <= len(domain.reflection_prompts) <= 2:
                 raise DomainError("INTERPRETATION_INVALID", "Платный раздел неполон", recoverable=True)
             for index, paragraph in enumerate(domain.paragraphs):
@@ -797,6 +938,11 @@ def validate_bundle(
         raise DomainError("INTERPRETATION_INVALID", "Синтез доступен только в полном отчёте", recoverable=True)
     if paid and not 4 <= len(bundle.synthesis) <= 7:
         raise DomainError("INTERPRETATION_INVALID", "Общий синтез имеет неверную структуру", recoverable=True)
+    if paid and (
+        _word_count(bundle.synthesis) < MIN_PAID_SYNTHESIS_WORDS
+        or any(_word_count([paragraph]) < MIN_PAID_SYNTHESIS_PARAGRAPH_WORDS for paragraph in bundle.synthesis)
+    ):
+        raise DomainError("INTERPRETATION_INVALID", "Общий синтез раскрыт слишком кратко", recoverable=True)
 
     joined = " ".join(texts).casefold()
     forbidden_public = next((term for term in FORBIDDEN_PUBLIC_TERMS if term in joined), None)

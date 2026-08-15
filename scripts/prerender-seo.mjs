@@ -16,6 +16,12 @@ const ORIGIN = originUrl.origin;
 const template = await readFile(resolve(DIST, "index.html"), "utf8");
 const metrikaCounterId = String(process.env.VITE_YANDEX_METRIKA_ID ?? "").trim();
 
+if (!template.includes('<div id="root"></div>')) {
+  throw new Error(
+    "dist/index.html is already prerendered; run the Vite build before prerender-seo.mjs",
+  );
+}
+
 if (metrikaCounterId && !/^[1-9][0-9]*$/.test(metrikaCounterId)) {
   throw new Error("VITE_YANDEX_METRIKA_ID must be a positive numeric counter id");
 }
@@ -54,9 +60,17 @@ const pages = [
         "@type": "Organization",
         "@id": "https://vedicway.ru/about#organization",
         name: "VedicWay",
-        url: "https://vedicway.ru/about",
+        alternateName: "VedicWay.ru",
+        legalName: "ИП Корольский Вадимир Васильевич",
+        url: "https://vedicway.ru/",
         logo: "https://vedicway.ru/assets/brand-mark.png",
-        email: "vedicway-ru@yandex.ru"
+        email: "vedicway-ru@yandex.com",
+        taxID: "722407070173",
+        identifier: {
+          "@type": "PropertyValue",
+          propertyID: "ОГРНИП",
+          value: "311723232700200"
+        }
       },
       {
         "@context": "https://schema.org",
@@ -66,6 +80,31 @@ const pages = [
         url: "https://vedicway.ru/",
         inLanguage: "ru-RU",
         publisher: { "@id": "https://vedicway.ru/about#organization" }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "@id": "https://vedicway.ru/#application",
+        name: "VedicWay",
+        url: "https://vedicway.ru/",
+        description: "Онлайн-расчёт сидерической натальной карты по дате, времени и месту рождения.",
+        applicationCategory: "LifestyleApplication",
+        operatingSystem: "Web",
+        inLanguage: "ru-RU",
+        provider: { "@id": "https://vedicway.ru/about#organization" }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": "https://vedicway.ru/#faq",
+        mainEntity: faqEntries.map(([question, answer]) => ({
+          "@type": "Question",
+          name: question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: answer
+          }
+        }))
       }
     ]
   },
@@ -75,6 +114,8 @@ const pages = [
     description: "Практический гид по ведической астрологии с материалами о натальной карте, планетах, домах, аспектах и последовательном чтении джйотиш.",
     canonical: "https://vedicway.ru/guide",
     image: "https://vedicway.ru/assets/results-space-v2.png",
+    noindex: true,
+    noindexFollow: true,
     body: guideBody(),
     schema: [
       {
@@ -101,6 +142,8 @@ const pages = [
     description: "Редакционные статьи VedicWay о ведической астрологии, прогностике, натальных картах и практике чтения символов.",
     canonical: "https://vedicway.ru/blog",
     image: "https://vedicway.ru/assets/hero-space-light.png",
+    noindex: true,
+    noindexFollow: true,
     body: blogBody(),
     schema: [
       {
@@ -176,16 +219,18 @@ const legalPages = [
 const trustPages = [
   {
     slug: "about",
+    schemaType: "AboutPage",
     title: "О сервисе VedicWay",
     description: "Кто создаёт VedicWay, как устроен сервис ведической натальной карты и где проходит граница между расчётом и интерпретацией.",
     lead: "VedicWay рассчитывает сидерическую натальную карту и помогает читать её на русском языке. За материалами и продуктовой логикой стоит редакция VedicWay.",
     sections: [
       ["Что делает сервис", "Расчёт использует дату, местное время и координаты рождения. Материалы объясняют астрологические понятия в культурном и образовательном контексте."],
-      ["Кто отвечает за материалы", "Редакция VedicWay проверяет структуру статьи, внутренние ссылки, источники и соответствие видимого текста структурированным данным."]
+      ["Кто отвечает за материалы", "Редакция VedicWay проверяет структуру статьи, внутренние ссылки, источники и соответствие видимого текста структурированным данным. Оператор сайта: ИП Корольский Вадимир Васильевич, ИНН 722407070173, ОГРНИП 311723232700200. Замечания принимаются по адресу vedicway-ru@yandex.com."]
     ]
   },
   {
     slug: "methodology",
+    schemaType: "WebPage",
     title: "Метод расчёта натальной карты",
     description: "Методология VedicWay: сидерический зодиак, аянамша Лахири, дома от лагны, точность времени рождения и границы интерпретации.",
     lead: "VedicWay фиксирует расчётные настройки рядом с результатом, чтобы одну карту можно было повторно проверить при тех же исходных данных.",
@@ -196,6 +241,7 @@ const trustPages = [
   },
   {
     slug: "editorial-policy",
+    schemaType: "WebPage",
     title: "Редакционная политика VedicWay",
     description: "Как редакция VedicWay отбирает источники, проверяет статьи о джйотиш, исправляет ошибки и отделяет факты от трактовки.",
     lead: "Каждая статья проходит автоматическую проверку разметки и ручную редактуру до публикации.",
@@ -203,6 +249,19 @@ const trustPages = [
       ["Источники", "Редакция указывает внешние источники в видимом блоке статьи. Ссылки из этого блока совпадают с полем citation в Schema.org."],
       ["Контроль качества", "Материал с битой кодировкой, неизвестной внутренней ссылкой, повторяющимся предложением или пустым списком источников блокируется."]
     ]
+  },
+  {
+    slug: "report-example",
+    schemaType: "WebPage",
+    title: "Пример полного отчёта по натальной карте",
+    description: "Демонстрационный полный отчёт VedicWay: общий синтез, восемь жизненных тем, профессиональный вектор и текущие с будущими периодами Вимшоттари.",
+    lead: "Статический пример показывает объём и устройство платного отчёта до оплаты. Профиль, положения планет и сроки в нём вымышлены.",
+    noindex: true,
+    sections: [
+      ["Что входит в отчёт", "Полная версия соединяет общий синтез с восемью подробными разделами. Работа и деньги разбираются через профессиональные роли, источники дохода и условия, при которых выбранная стратегия проявляется устойчивее."],
+      ["Как показаны периоды", "Текущая махадаша и антардаша сопровождаются точными границами. Следующие периоды описывают смену тематического акцента без обещаний конкретного события или дохода."],
+      ["Как читать пример", "Все данные учебного профиля условны. Страница показывает глубину текста, связь выводов с основаниями карты и формат двенадцати вопросов для личного наблюдения."],
+    ],
   }
 ];
 
@@ -213,16 +272,25 @@ for (const page of trustPages) {
     description: page.description,
     canonical: `${ORIGIN}/${page.slug}`,
     image: `${ORIGIN}/assets/hero-space-light.png`,
+    noindex: page.noindex,
+    noindexFollow: page.noindex,
     body: trustBody(page),
     schema: [{
       "@context": "https://schema.org",
-      "@type": "AboutPage",
+      "@type": page.schemaType,
       "@id": `${ORIGIN}/${page.slug}#page`,
       name: page.title,
       url: `${ORIGIN}/${page.slug}`,
       description: page.description,
       inLanguage: "ru-RU",
       about: { "@id": `${ORIGIN}/about#organization` }
+    }, {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Главная", item: `${ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: page.title, item: `${ORIGIN}/${page.slug}` }
+      ]
     }]
   });
 }
@@ -234,6 +302,8 @@ for (const [slug, title, description] of legalPages) {
     description,
     canonical: `${ORIGIN}/legal/${slug}`,
     image: `${ORIGIN}/assets/hero-space.png`,
+    noindex: true,
+    noindexFollow: true,
     body: legalBody(title, description),
     schema: [{
       "@context": "https://schema.org",
@@ -243,6 +313,22 @@ for (const [slug, title, description] of legalPages) {
       description,
       inLanguage: "ru-RU"
     }]
+  });
+}
+
+for (const [section, title, description] of [
+  ["chart", "Личная натальная карта", "Закрытая страница рассчитанной натальной карты VedicWay."],
+  ["rectification", "Уточнение времени рождения", "Закрытая страница уточнения времени рождения VedicWay."],
+]) {
+  pages.push({
+    output: `${section}/index.html`,
+    title: `${title} | VedicWay`,
+    description,
+    canonical: null,
+    image: `${ORIGIN}/assets/hero-space.png`,
+    noindex: true,
+    body: privateBody(title, description),
+    schema: [],
   });
 }
 
@@ -257,7 +343,10 @@ await rewritePublicOrigin("sitemap.xml");
 await rewritePublicOrigin("llms.txt");
 
 function renderPage(page) {
-  let html = template;
+  let html = template.replace(
+    /<script\b[^>]*data-vedicway-seo-schema[^>]*>[\s\S]*?<\/script>\s*/gi,
+    "",
+  );
   if (page.preloadImage) {
     html = html.replace(
       "</head>",
@@ -272,19 +361,35 @@ function renderPage(page) {
   }
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(page.title)}</title>`);
   html = replaceMeta(html, "name", "description", page.description);
-  html = replaceMeta(html, "name", "robots", page.noindex ? "noindex, nofollow, noarchive" : "index, follow, max-image-preview:large");
+  html = replaceMeta(
+    html,
+    "name",
+    "robots",
+    page.noindex
+      ? page.noindexFollow
+        ? "noindex, follow, noarchive"
+        : "noindex, nofollow, noarchive"
+      : "index, follow, max-image-preview:large",
+  );
   html = replaceMeta(html, "property", "og:title", page.title);
   html = replaceMeta(html, "property", "og:description", page.description);
-  html = replaceMeta(html, "property", "og:url", page.canonical);
+  html = page.canonical
+    ? replaceMeta(html, "property", "og:url", page.canonical)
+    : removeMeta(html, "property", "og:url");
   html = replaceMeta(html, "property", "og:image", page.image);
+  html = replaceMeta(html, "property", "og:image:alt", page.imageAlt || page.title);
   html = replaceMeta(html, "name", "twitter:title", page.title);
   html = replaceMeta(html, "name", "twitter:description", page.description);
   html = replaceMeta(html, "name", "twitter:image", page.image);
-  html = html.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${page.canonical}" />`);
+  html = page.canonical
+    ? html.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/i, `<link rel="canonical" href="${page.canonical}" />`)
+    : html.replace(/\s*<link\s+rel="canonical"\s+href="[^"]*"\s*\/>/i, "");
   if (metrikaCounterId) {
-    html = html.replace(
-      "</head>",
-      `    <meta name="yandex-metrika-counter-id" content="${metrikaCounterId}" />\n  </head>`,
+    html = replaceMeta(
+      html,
+      "name",
+      "yandex-metrika-counter-id",
+      metrikaCounterId,
     );
   }
   const jsonLd = page.schema.map((value) => `<script type="application/ld+json" data-vedicway-seo-schema="prerender">${safeJson(value)}</script>`).join("\n    ");
@@ -299,12 +404,17 @@ function replaceMeta(html, attribute, key, content) {
   return expression.test(html) ? html.replace(expression, tag) : html.replace("</head>", `    ${tag}\n  </head>`);
 }
 
+function removeMeta(html, attribute, key) {
+  const expression = new RegExp(`\\s*<meta\\s+${attribute}="${escapeRegExp(key)}"\\s+content="[^"]*"\\s*\\/>`, "i");
+  return html.replace(expression, "");
+}
+
 function homeBody() {
   return `<main class="seo-prerender" data-yandex-first-screen>
     <section>
-      <nav aria-label="Основная навигация"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a><a href="/blog">Блог</a></nav>
-      <h1>Ведическая натальная карта онлайн</h1>
-      <p>Рассчитайте сидерическую карту по дате, времени и месту рождения. Сервис покажет положения планет и объяснит их в рамках традиции джйотиш.</p>
+      <nav aria-label="Основная навигация"><a href="/">Главная</a><a href="/guide">Гид по астрологии</a></nav>
+      <h1>Натальная карта онлайн</h1>
+      <p>Рассчитайте ведическую карту по дате, времени и месту рождения. Сервис покажет положения планет и объяснит их в рамках традиции джйотиш.</p>
       <p data-yandex-proof="calculation-inputs">Для расчёта нужны дата, точное время и место рождения.</p>
       <p data-yandex-proof="result-preview">До расчёта можно посмотреть интерактивный пример готовой карты, объяснений и вопросов к себе.</p>
       <form id="natal-chart-form" data-yandex-form="natal-chart-form" action="/api/v1/charts" method="post">
@@ -354,6 +464,14 @@ function legalBody(title, description) {
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(description)}</p>
     <p>Полный актуальный текст документа, реквизиты оператора и дата редакции доступны на этой странице после загрузки приложения.</p>
+  </main>`;
+}
+
+function privateBody(title, description) {
+  return `<main class="seo-prerender" data-private-prerender>
+    <nav aria-label="Основная навигация"><a href="/">Главная</a></nav>
+    <h1>${escapeHtml(title)}</h1>
+    <p>${escapeHtml(description)}</p>
   </main>`;
 }
 

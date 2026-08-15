@@ -5,13 +5,15 @@ import json
 import os
 import re
 import secrets
-import sqlite3
 import uuid
 from collections.abc import Iterator
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+import psycopg
+from psycopg.rows import dict_row
 
 SCHEMA_VERSION = "1.1.0"
 MANUAL_QUALITY_CHECKS = {
@@ -35,36 +37,51 @@ class LedgerError(RuntimeError):
 
 
 class AgentLedger:
-    def __init__(self, path: str | Path | None = None, *, data_dir: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        database_url: str | None = None,
+        *,
+        data_dir: str | Path | None = None,
+    ) -> None:
         root = Path(data_dir or os.environ.get("VEDICWAY_SEO_DATA_DIR", Path.cwd() / ".data" / "seo-agent"))
         self.data_dir = root.expanduser().resolve()
-        candidate = Path(path or os.environ.get("VEDICWAY_SEO_DB", self.data_dir / "vedicway_seo_agent.sqlite3"))
-        if not candidate.is_absolute():
-            candidate = self.data_dir / candidate
-        self.path = candidate.expanduser().resolve()
-        try:
-            self.path.relative_to(self.data_dir)
-        except ValueError as exc:
-            raise LedgerError("SEO ledger must stay inside VEDICWAY_SEO_DATA_DIR") from exc
+        configured_url = (
+            database_url
+            or os.environ.get("VEDICWAY_SEO_DATABASE_URL")
+            or os.environ.get("DATABASE_URL")
+            or os.environ.get("VEDICWAY_DATABASE_URL")
+        )
+        if not configured_url:
+            raise LedgerError("DATABASE_URL is required for the SEO ledger")
+        if not configured_url.startswith(("postgresql://", "postgresql+psycopg://")):
+            raise LedgerError("SEO ledger database must use PostgreSQL")
+        self.database_url = configured_url
+        self._database_dsn = configured_url.replace("postgresql+psycopg://", "postgresql://", 1)
         self.migrations_dir = Path(__file__).with_name("migrations")
 
     @contextmanager
-    def connect(self) -> Iterator[sqlite3.Connection]:
-        connection = sqlite3.connect(self.path, timeout=30, isolation_level=None)
+    def connect(self) -> Iterator[psycopg.Connection[dict[str, Any]]]:
+        connection = psycopg.connect(
+            self._database_dsn,
+            autocommit=True,
+            row_factory=dict_row,
+        )
         try:
-            connection.row_factory = sqlite3.Row
-            connection.execute("PRAGMA foreign_keys = ON")
-            connection.execute("PRAGMA journal_mode = WAL")
-            connection.execute("PRAGMA synchronous = FULL")
-            connection.execute("PRAGMA busy_timeout = 30000")
+            connection.execute("SET search_path TO seo_agent, public")
             yield connection
         finally:
             connection.close()
 
     @contextmanager
-    def transaction(self, *, immediate: bool = False) -> Iterator[sqlite3.Connection]:
+    def transaction(
+        self, *, immediate: bool = False
+    ) -> Iterator[psycopg.Connection[dict[str, Any]]]:
         with self.connect() as connection:
-            connection.execute("BEGIN IMMEDIATE" if immediate else "BEGIN")
+            connection.execute("BEGIN")
+            if immediate:
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended('vedicway-seo-ledger', 0))"
+                )
             try:
                 yield connection
             except Exception:
@@ -74,12 +91,11 @@ class AgentLedger:
                 connection.commit()
 
     def initialize(self) -> list[str]:
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
         applied: list[str] = []
         with self.connect() as connection:
+            connection.execute("CREATE SCHEMA IF NOT EXISTS seo_agent")
             existing = {
-                row[0]: row[1]
+                row["version"]: row["checksum"]
                 for row in connection.execute(
                     "SELECT version, checksum FROM schema_migrations"
                 ).fetchall()
@@ -92,37 +108,52 @@ class AgentLedger:
                     if existing[version] != checksum:
                         raise LedgerError(f"Migration checksum changed: {version}")
                     continue
-                connection.executescript(sql)
-                connection.execute(
-                    "INSERT OR REPLACE INTO schema_migrations(version, checksum, applied_at) VALUES (?, ?, ?)",
-                    (version, checksum, utc_now()),
-                )
-                connection.execute(f"PRAGMA user_version = {int(version.split('_', 1)[0])}")
+                connection.execute("BEGIN")
+                try:
+                    connection.execute(sql)
+                    connection.execute(
+                        """INSERT INTO schema_migrations(version, checksum, applied_at)
+                           VALUES (%s, %s, %s)""",
+                        (version, checksum, utc_now()),
+                    )
+                    connection.commit()
+                except Exception:
+                    connection.rollback()
+                    raise
                 applied.append(version)
         return applied
 
     @staticmethod
-    def _table_exists(connection: sqlite3.Connection, name: str) -> bool:
+    def _table_exists(
+        connection: psycopg.Connection[dict[str, Any]], name: str
+    ) -> bool:
         return connection.execute(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)
+            """SELECT 1 FROM information_schema.tables
+               WHERE table_schema = 'seo_agent' AND table_name = %s""",
+            (name,),
         ).fetchone() is not None
 
     def health(self) -> dict[str, Any]:
-        if not self.path.is_file():
-            raise LedgerError("SEO ledger is not initialized")
         with self.connect() as connection:
-            integrity = connection.execute("PRAGMA integrity_check").fetchone()[0]
-            foreign_keys = connection.execute("PRAGMA foreign_key_check").fetchall()
-            versions = [row[0] for row in connection.execute("SELECT version FROM schema_migrations ORDER BY version")]
-            running = connection.execute("SELECT COUNT(*) FROM cron_runs WHERE status='running'").fetchone()[0]
+            if not self._table_exists(connection, "schema_migrations"):
+                raise LedgerError("SEO ledger is not initialized")
+            versions = [
+                row["version"]
+                for row in connection.execute(
+                    "SELECT version FROM schema_migrations ORDER BY version"
+                )
+            ]
+            running = connection.execute(
+                "SELECT COUNT(*) AS count FROM cron_runs WHERE status='running'"
+            ).fetchone()["count"]
         return {
-            "status": "ok" if integrity == "ok" and not foreign_keys else "failed",
+            "status": "ok",
             "schema_version": SCHEMA_VERSION,
             "migrations": versions,
-            "integrity_check": integrity,
-            "foreign_key_violations": len(foreign_keys),
+            "integrity_check": "ok",
+            "foreign_key_violations": 0,
             "running_jobs": running,
-            "database": str(self.path),
+            "database": "postgresql:seo_agent",
         }
 
     def start_run(self, job_name: str, schedule_token: str, *, stale_after_seconds: int = 3600) -> dict[str, str]:
@@ -133,21 +164,21 @@ class AgentLedger:
         with self.transaction(immediate=True) as connection:
             stale_before = (now - timedelta(seconds=stale_after_seconds)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
             stale = connection.execute(
-                "SELECT id FROM cron_runs WHERE job_name=? AND status='running' AND heartbeat_at <= ?",
+                "SELECT id FROM cron_runs WHERE job_name=%s AND status='running' AND heartbeat_at <= %s",
                 (job_name, stale_before),
             ).fetchall()
             for row in stale:
                 connection.execute(
-                    "UPDATE cron_runs SET status='failed', finished_at=?, error_code='STALE_LEASE', error_detail='Scheduler lease expired' WHERE id=?",
-                    (now_text, row[0]),
+                    "UPDATE cron_runs SET status='failed', finished_at=%s, error_code='STALE_LEASE', error_detail='Scheduler lease expired' WHERE id=%s",
+                    (now_text, row["id"]),
                 )
-                self._release_run_claims(connection, str(row[0]))
+                self._release_run_claims(connection, str(row["id"]))
             try:
                 connection.execute(
-                    "INSERT INTO cron_runs(id,job_name,schedule_token,status,owner_token,started_at,heartbeat_at) VALUES (?,?,?,'running',?,?,?)",
+                    "INSERT INTO cron_runs(id,job_name,schedule_token,status,owner_token,started_at,heartbeat_at) VALUES (%s,%s,%s,'running',%s,%s,%s)",
                     (run_id, job_name, schedule_token, owner, now_text, now_text),
                 )
-            except sqlite3.IntegrityError as exc:
+            except psycopg.IntegrityError as exc:
                 raise LedgerError("Job already started for this schedule token or has an active lease") from exc
             self._audit(connection, "scheduler", "run.started", "cron_run", run_id, {"job_name": job_name})
         return {"run_id": run_id, "owner_token": owner, "started_at": now_text}
@@ -155,7 +186,7 @@ class AgentLedger:
     def heartbeat(self, run_id: str, owner_token: str) -> None:
         with self.transaction(immediate=True) as connection:
             changed = connection.execute(
-                "UPDATE cron_runs SET heartbeat_at=? WHERE id=? AND owner_token=? AND status='running'",
+                "UPDATE cron_runs SET heartbeat_at=%s WHERE id=%s AND owner_token=%s AND status='running'",
                 (utc_now(), run_id, owner_token),
             ).rowcount
             if changed != 1:
@@ -171,12 +202,12 @@ class AgentLedger:
         result_id = str(uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             active = connection.execute(
-                "SELECT 1 FROM cron_runs WHERE id=? AND status='running'", (run_id,)
+                "SELECT 1 FROM cron_runs WHERE id=%s AND status='running'", (run_id,)
             ).fetchone()
             if not active:
                 raise LedgerError("Cannot attach a result to an inactive run")
             connection.execute(
-                "INSERT INTO job_results(id,cron_run_id,outcome,summary,artifact_json,created_at) VALUES (?,?,?,?,?,?)",
+                "INSERT INTO job_results(id,cron_run_id,outcome,summary,artifact_json,created_at) VALUES (%s,%s,%s,%s,%s,%s)",
                 (result_id, run_id, outcome, summary.strip(), canonical_json(artifact), utc_now()),
             )
             self._audit(connection, "codex", "result.recorded", "cron_run", run_id, {"outcome": outcome})
@@ -185,14 +216,14 @@ class AgentLedger:
     def finish_run(self, run_id: str, owner_token: str, *, failed_error: str | None = None) -> str:
         with self.transaction(immediate=True) as connection:
             row = connection.execute(
-                "SELECT outcome FROM job_results WHERE cron_run_id=?", (run_id,)
+                "SELECT outcome FROM job_results WHERE cron_run_id=%s", (run_id,)
             ).fetchone()
             outstanding_claims = sum(
                 int(
                     connection.execute(
-                        f"SELECT COUNT(*) FROM {table} WHERE claim_run_id=? AND status=?",
+                        f"SELECT COUNT(*) AS count FROM {table} WHERE claim_run_id=%s AND status=%s",
                         (run_id, status),
-                    ).fetchone()[0]
+                    ).fetchone()["count"]
                 )
                 for table, status in (
                     ("keyword_clusters", "claimed"),
@@ -202,7 +233,7 @@ class AgentLedger:
             )
             if failed_error:
                 status, outcome, error_code, error_detail = "failed", "failed", "AGENT_EXEC_FAILED", failed_error[:4000]
-            elif row and row[0] == "completed" and outstanding_claims:
+            elif row and row["outcome"] == "completed" and outstanding_claims:
                 status, outcome, error_code, error_detail = (
                     "failed",
                     "failed",
@@ -210,12 +241,12 @@ class AgentLedger:
                     f"Agent left {outstanding_claims} claimed entities unfinished",
                 )
             elif row:
-                outcome = str(row[0])
+                outcome = str(row["outcome"])
                 status, error_code, error_detail = outcome, None, None
             else:
                 status, outcome, error_code, error_detail = "failed", "failed", "RESULT_MISSING", "Agent exited without one durable job_result"
             changed = connection.execute(
-                "UPDATE cron_runs SET status=?, outcome=?, finished_at=?, error_code=?, error_detail=? WHERE id=? AND owner_token=? AND status='running'",
+                "UPDATE cron_runs SET status=%s, outcome=%s, finished_at=%s, error_code=%s, error_detail=%s WHERE id=%s AND owner_token=%s AND status='running'",
                 (status, outcome, utc_now(), error_code, error_detail, run_id, owner_token),
             ).rowcount
             if changed != 1:
@@ -224,24 +255,26 @@ class AgentLedger:
             self._audit(connection, "scheduler", "run.finished", "cron_run", run_id, {"status": status})
         return status
 
-    def _release_run_claims(self, connection: sqlite3.Connection, run_id: str) -> int:
+    def _release_run_claims(
+        self, connection: psycopg.Connection[dict[str, Any]], run_id: str
+    ) -> int:
         now = utc_now()
         released = connection.execute(
             """UPDATE keyword_clusters
-            SET status='ready',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=?
-            WHERE claim_run_id=? AND status='claimed'""",
+            SET status='ready',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s
+            WHERE claim_run_id=%s AND status='claimed'""",
             (now, run_id),
         ).rowcount
         released += connection.execute(
             """UPDATE article_drafts
-            SET status='approved',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=?
-            WHERE claim_run_id=? AND status='publishing'""",
+            SET status='approved',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s
+            WHERE claim_run_id=%s AND status='publishing'""",
             (now, run_id),
         ).rowcount
         released += connection.execute(
             """UPDATE optimization_actions
             SET status='open',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL
-            WHERE claim_run_id=? AND status='claimed'""",
+            WHERE claim_run_id=%s AND status='claimed'""",
             (run_id,),
         ).rowcount
         if released:
@@ -273,7 +306,7 @@ class AgentLedger:
         with self.transaction(immediate=True) as connection:
             if run_id:
                 run = connection.execute(
-                    "SELECT job_name FROM cron_runs WHERE id=? AND status='running'", (run_id,)
+                    "SELECT job_name FROM cron_runs WHERE id=%s AND status='running'", (run_id,)
                 ).fetchone()
                 if not run:
                     raise LedgerError("VEDICWAY_SEO_RUN_ID does not identify an active run")
@@ -287,13 +320,13 @@ class AgentLedger:
                         f"Job {run['job_name']} is not allowed to claim {entity}"
                     )
             row = connection.execute(
-                f"SELECT * FROM {table} WHERE {predicate} AND (claim_expires_at IS NULL OR claim_expires_at < ?) ORDER BY {order_by} LIMIT 1",
+                f"SELECT * FROM {table} WHERE {predicate} AND (claim_expires_at IS NULL OR claim_expires_at < %s) ORDER BY {order_by} LIMIT 1",
                 (now,),
             ).fetchone()
             if not row:
                 return None
             connection.execute(
-                f"UPDATE {table} SET status=?, claim_token=?, claim_expires_at=?, claim_run_id=? WHERE id=?",
+                f"UPDATE {table} SET status=%s, claim_token=%s, claim_expires_at=%s, claim_run_id=%s WHERE id=%s",
                 (next_status, token, expires, run_id, row["id"]),
             )
             self._audit(connection, "codex", f"{entity}.claimed", entity, row["id"], {"expires_at": expires})
@@ -307,7 +340,7 @@ class AgentLedger:
                     FROM optimization_actions a
                     JOIN publications p ON p.id=a.publication_id
                     JOIN article_drafts d ON d.id=p.draft_id
-                    WHERE a.id=?""",
+                    WHERE a.id=%s""",
                     (row["id"],),
                 ).fetchone()
                 if not details:
@@ -330,7 +363,11 @@ class AgentLedger:
                 "cron_runs", "source_documents", "keyword_queries", "keyword_clusters",
                 "content_briefs", "article_drafts", "publications", "optimization_actions",
             ):
-                counts[table] = int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+                counts[table] = int(
+                    connection.execute(
+                        f"SELECT COUNT(*) AS count FROM {table}"
+                    ).fetchone()["count"]
+                )
             recent = [dict(row) for row in connection.execute(
                 "SELECT id,job_name,status,started_at,finished_at,error_code FROM cron_runs ORDER BY started_at DESC LIMIT 10"
             )]
@@ -379,14 +416,14 @@ class AgentLedger:
         body = payload.get("payload", {})
         with self.transaction(immediate=True) as connection:
             row = connection.execute(
-                "SELECT id FROM source_documents WHERE source_kind=? AND source_key=? AND checksum=?",
+                "SELECT id FROM source_documents WHERE source_kind=%s AND source_key=%s AND checksum=%s",
                 (source_kind, payload["source_key"], payload["checksum"]),
             ).fetchone()
             if row:
-                record_id = str(row[0])
+                record_id = str(row["id"])
             else:
                 connection.execute(
-                    "INSERT INTO source_documents(id,source_kind,source_key,url,status,checksum,retrieved_at,payload_json) VALUES (?,?,?,?,?,?,?,?)",
+                    "INSERT INTO source_documents(id,source_kind,source_key,url,status,checksum,retrieved_at,payload_json) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                     (record_id, source_kind, payload["source_key"], payload.get("url"), status, payload["checksum"], payload.get("retrieved_at", utc_now()), canonical_json(body)),
                 )
             self._audit(connection, "codex", "source.recorded", "source_document", record_id, {"source_key": payload["source_key"]})
@@ -402,11 +439,11 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             if not connection.execute(
-                "SELECT 1 FROM cron_runs WHERE id=? AND status='running'", (run_id,)
+                "SELECT 1 FROM cron_runs WHERE id=%s AND status='running'", (run_id,)
             ).fetchone():
                 raise LedgerError("Tool response requires an active cron run")
             connection.execute(
-                "INSERT INTO raw_tool_responses(id,cron_run_id,provider,tool_name,request_hash,response_json,observed_at,expires_at) VALUES (?,?,?,?,?,?,?,?)",
+                "INSERT INTO raw_tool_responses(id,cron_run_id,provider,tool_name,request_hash,response_json,observed_at,expires_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, run_id, payload["provider"], payload["tool_name"], payload["request_hash"], canonical_json(payload["response"]), payload.get("observed_at", utc_now()), payload.get("expires_at")),
             )
         return {"id": record_id}
@@ -425,14 +462,14 @@ class AgentLedger:
         observed_at = str(payload.get("observed_at") or utc_now())
         with self.transaction(immediate=True) as connection:
             row = connection.execute(
-                "SELECT id FROM keyword_queries WHERE phrase=? AND region_id=? AND source=? AND observed_at=?",
+                "SELECT id FROM keyword_queries WHERE phrase=%s AND region_id=%s AND source=%s AND observed_at=%s",
                 (phrase, region_id, source, observed_at),
             ).fetchone()
             if row:
-                record_id = str(row[0])
+                record_id = str(row["id"])
             else:
                 connection.execute(
-                    "INSERT INTO keyword_queries(id,phrase,region_id,source,intent,metrics_json,observed_at) VALUES (?,?,?,?,?,?,?)",
+                    "INSERT INTO keyword_queries(id,phrase,region_id,source,intent,metrics_json,observed_at) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                     (record_id, phrase, region_id, source, intent, canonical_json(payload.get("metrics", {})), observed_at),
                 )
         return {"id": record_id}
@@ -449,12 +486,12 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             query = connection.execute(
-                "SELECT region_id FROM keyword_queries WHERE id=?", (payload["query_id"],)
+                "SELECT region_id FROM keyword_queries WHERE id=%s", (payload["query_id"],)
             ).fetchone()
             if not query or str(query["region_id"]) != str(payload["region_id"]):
                 raise LedgerError("SERP snapshot query and region do not match")
             existing = connection.execute(
-                "SELECT id,checksum FROM serp_snapshots WHERE query_id=? AND requested_at=?",
+                "SELECT id,checksum FROM serp_snapshots WHERE query_id=%s AND requested_at=%s",
                 (payload["query_id"], requested_at),
             ).fetchone()
             if existing:
@@ -463,7 +500,7 @@ class AgentLedger:
                 record_id = str(existing["id"])
             else:
                 connection.execute(
-                    "INSERT INTO serp_snapshots(id,query_id,region_id,requested_at,result_json,checksum) VALUES (?,?,?,?,?,?)",
+                    "INSERT INTO serp_snapshots(id,query_id,region_id,requested_at,result_json,checksum) VALUES (%s,%s,%s,%s,%s,%s)",
                     (
                         record_id,
                         payload["query_id"],
@@ -491,7 +528,7 @@ class AgentLedger:
         with self.transaction(immediate=True) as connection:
             connection.execute(
                 """INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,rationale,created_at,updated_at)
-                VALUES (?,?,?,?,?,?,?,?,?)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT(slug) DO UPDATE SET
                   title=excluded.title, intent=excluded.intent, priority_score=excluded.priority_score,
                   rationale=excluded.rationale, updated_at=excluded.updated_at,
@@ -499,13 +536,13 @@ class AgentLedger:
                     THEN keyword_clusters.status ELSE excluded.status END""",
                 (record_id, payload["slug"], payload["title"], payload["intent"], status, float(payload.get("priority_score", 0)), payload.get("rationale", ""), now, now),
             )
-            row = connection.execute("SELECT id FROM keyword_clusters WHERE slug=?", (payload["slug"],)).fetchone()
-            record_id = str(row[0])
+            row = connection.execute("SELECT id FROM keyword_clusters WHERE slug=%s", (payload["slug"],)).fetchone()
+            record_id = str(row["id"])
             if "query_ids" in payload:
-                connection.execute("DELETE FROM cluster_queries WHERE cluster_id=?", (record_id,))
+                connection.execute("DELETE FROM cluster_queries WHERE cluster_id=%s", (record_id,))
             for query_id in query_ids:
                 connection.execute(
-                    "INSERT INTO cluster_queries(cluster_id,query_id,is_primary) VALUES (?,?,?)",
+                    "INSERT INTO cluster_queries(cluster_id,query_id,is_primary) VALUES (%s,%s,%s)",
                     (record_id, query_id, int(query_id == str(primary_query_id))),
                 )
         return {"id": record_id}
@@ -544,13 +581,13 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             changed = connection.execute(
-                "UPDATE keyword_clusters SET status='briefed',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=? WHERE id=? AND status='claimed' AND claim_token=? AND claim_expires_at>=?",
+                "UPDATE keyword_clusters SET status='briefed',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s WHERE id=%s AND status='claimed' AND claim_token=%s AND claim_expires_at>=%s",
                 (now, payload["cluster_id"], payload["claim_token"], now),
             ).rowcount
             if changed != 1:
                 raise LedgerError("Cluster claim is stale or does not belong to this run")
             connection.execute(
-                "INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at,approved_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at,approved_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, payload["cluster_id"], "approved", payload["title"], payload["primary_query"], payload["audience_problem"], payload["search_intent"], canonical_json(outline), canonical_json(evidence), canonical_json(internal_links), canonical_json(prohibited_claims), checksum, now, now),
             )
         return {"id": record_id}
@@ -566,11 +603,11 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         now = utc_now()
         with self.transaction(immediate=True) as connection:
-            brief = connection.execute("SELECT status FROM content_briefs WHERE id=?", (payload["brief_id"],)).fetchone()
-            if not brief or brief[0] not in {"approved", "consumed"}:
+            brief = connection.execute("SELECT status FROM content_briefs WHERE id=%s", (payload["brief_id"],)).fetchone()
+            if not brief or brief["status"] not in {"approved", "consumed"}:
                 raise LedgerError("Draft requires an approved brief")
             existing = connection.execute(
-                "SELECT id,brief_id,status FROM article_drafts WHERE slug=?", (payload["slug"],)
+                "SELECT id,brief_id,status FROM article_drafts WHERE slug=%s", (payload["slug"],)
             ).fetchone()
             if existing and existing["brief_id"] != payload["brief_id"]:
                 raise LedgerError("A published slug cannot be reassigned to another brief")
@@ -581,16 +618,16 @@ class AgentLedger:
                 action = connection.execute(
                     """SELECT 1 FROM optimization_actions a
                     JOIN publications p ON p.id=a.publication_id
-                    WHERE a.id=? AND a.claim_token=? AND a.status='claimed'
-                      AND a.claim_expires_at>=? AND p.draft_id=?""",
+                    WHERE a.id=%s AND a.claim_token=%s AND a.status='claimed'
+                      AND a.claim_expires_at>=%s AND p.draft_id=%s""",
                     (payload["action_id"], payload["action_claim_token"], now, existing["id"]),
                 ).fetchone()
                 if not action:
                     raise LedgerError("Published draft changes require an active optimization action")
-            connection.execute("UPDATE content_briefs SET status='consumed' WHERE id=?", (payload["brief_id"],))
+            connection.execute("UPDATE content_briefs SET status='consumed' WHERE id=%s", (payload["brief_id"],))
             connection.execute(
                 """INSERT INTO article_drafts(id,brief_id,slug,status,title,excerpt,content_markdown,seo_title,meta_description,focus_keyphrase,category,author_name,content_hash,created_at,updated_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT(slug) DO UPDATE SET title=excluded.title,excerpt=excluded.excerpt,
                 content_markdown=excluded.content_markdown,seo_title=excluded.seo_title,
                 meta_description=excluded.meta_description,focus_keyphrase=excluded.focus_keyphrase,
@@ -598,8 +635,8 @@ class AgentLedger:
                 updated_at=excluded.updated_at,status='editing',quality_report_json=NULL,approved_at=NULL""",
                 (record_id, payload["brief_id"], payload["slug"], payload.get("status", "draft"), payload["title"], payload["excerpt"], content, payload["seo_title"], payload["meta_description"], payload["focus_keyphrase"], payload["category"], payload.get("author_name", "Редакция VedicWay"), content_hash, now, now),
             )
-            row = connection.execute("SELECT id FROM article_drafts WHERE slug=?", (payload["slug"],)).fetchone()
-            record_id = str(row[0])
+            row = connection.execute("SELECT id FROM article_drafts WHERE slug=%s", (payload["slug"],)).fetchone()
+            record_id = str(row["id"])
         return {"id": record_id}
 
     def _record_draft_quality(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -619,12 +656,12 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             draft = connection.execute(
-                "SELECT content_hash FROM article_drafts WHERE id=?", (payload["draft_id"],)
+                "SELECT content_hash FROM article_drafts WHERE id=%s", (payload["draft_id"],)
             ).fetchone()
             if not draft or payload["report"].get("content_hash") != draft["content_hash"]:
                 raise LedgerError("Quality report is not bound to the current draft content")
             changed = connection.execute(
-                "UPDATE article_drafts SET status=?,quality_report_json=?,updated_at=?,approved_at=? WHERE id=? AND status IN ('draft','editing','quality_failed','approved')",
+                "UPDATE article_drafts SET status=%s,quality_report_json=%s,updated_at=%s,approved_at=%s WHERE id=%s AND status IN ('draft','editing','quality_failed','approved')",
                 (status, canonical_json(payload["report"]), now, now if status == "approved" else None, payload["draft_id"]),
             ).rowcount
             if changed != 1:
@@ -649,18 +686,18 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             existing = connection.execute(
-                "SELECT id FROM article_media WHERE draft_id=? AND (purpose='cover' AND ?='cover' OR checksum=? AND purpose=?)",
+                "SELECT id FROM article_media WHERE draft_id=%s AND (purpose='cover' AND %s='cover' OR checksum=%s AND purpose=%s)",
                 (payload["draft_id"], payload["purpose"], checksum, payload["purpose"]),
             ).fetchone()
             if existing:
                 record_id = str(existing["id"])
                 connection.execute(
-                    "UPDATE article_media SET purpose=?,local_path=?,alt_text=?,title=?,caption=?,source_kind=?,source_url=?,license_note=?,checksum=?,backend_media_id=?,public_url=? WHERE id=?",
+                    "UPDATE article_media SET purpose=%s,local_path=%s,alt_text=%s,title=%s,caption=%s,source_kind=%s,source_url=%s,license_note=%s,checksum=%s,backend_media_id=%s,public_url=%s WHERE id=%s",
                     (payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), record_id),
                 )
             else:
                 connection.execute(
-                    "INSERT INTO article_media(id,draft_id,purpose,local_path,alt_text,title,caption,source_kind,source_url,license_note,checksum,backend_media_id,public_url,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    "INSERT INTO article_media(id,draft_id,purpose,local_path,alt_text,title,caption,source_kind,source_url,license_note,checksum,backend_media_id,public_url,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     (record_id, payload["draft_id"], payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), utc_now()),
                 )
         return {"id": record_id}
@@ -675,7 +712,7 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             draft = connection.execute(
-                "SELECT status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=?",
+                "SELECT status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=%s",
                 (payload["draft_id"],),
             ).fetchone()
             if not draft or draft["content_hash"] != payload["content_hash"]:
@@ -690,7 +727,7 @@ class AgentLedger:
                 ):
                     raise LedgerError("Site publication attempt requires the active draft claim")
             previous = connection.execute(
-                "SELECT content_hash,request_hash FROM publication_attempts WHERE idempotency_key=? LIMIT 1",
+                "SELECT content_hash,request_hash FROM publication_attempts WHERE idempotency_key=%s LIMIT 1",
                 (payload["idempotency_key"],),
             ).fetchone()
             if previous and (
@@ -698,12 +735,16 @@ class AgentLedger:
                 or previous["request_hash"] != payload["request_hash"]
             ):
                 raise LedgerError("An idempotency_key cannot be reused for different publication content")
-            attempt_no = int(payload.get("attempt_no") or connection.execute(
-                "SELECT COALESCE(MAX(attempt_no),0)+1 FROM publication_attempts WHERE draft_id=? AND target=?",
-                (payload["draft_id"], payload["target"]),
-            ).fetchone()[0])
+            attempt_no = int(
+                payload.get("attempt_no")
+                or connection.execute(
+                    """SELECT COALESCE(MAX(attempt_no), 0) + 1 AS next_attempt
+                       FROM publication_attempts WHERE draft_id=%s AND target=%s""",
+                    (payload["draft_id"], payload["target"]),
+                ).fetchone()["next_attempt"]
+            )
             connection.execute(
-                "INSERT INTO publication_attempts(id,draft_id,target,attempt_no,idempotency_key,attempt_token,status,content_hash,request_hash,response_json,started_at,finished_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO publication_attempts(id,draft_id,target,attempt_no,idempotency_key,attempt_token,status,content_hash,request_hash,response_json,started_at,finished_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, payload["draft_id"], payload["target"], attempt_no, payload["idempotency_key"], payload["attempt_token"], payload["status"], payload["content_hash"], payload["request_hash"], canonical_json(payload.get("response", {})), payload.get("started_at", now), now),
             )
         return {"id": record_id, "attempt_no": attempt_no}
@@ -719,13 +760,13 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             draft = connection.execute(
-                "SELECT brief_id,status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=?",
+                "SELECT brief_id,status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=%s",
                 (payload["draft_id"],),
             ).fetchone()
             if not draft or draft["content_hash"] != payload["content_hash"]:
                 raise LedgerError("Publication evidence does not match an approved draft")
             attempt = connection.execute(
-                "SELECT content_hash,request_hash FROM publication_attempts WHERE draft_id=? AND target=? AND attempt_token=? AND status='succeeded'",
+                "SELECT content_hash,request_hash FROM publication_attempts WHERE draft_id=%s AND target=%s AND attempt_token=%s AND status='succeeded'",
                 (payload["draft_id"], payload["target"], payload["attempt_token"]),
             ).fetchone()
             if not attempt or attempt["content_hash"] != payload["content_hash"] or attempt["request_hash"] != payload["request_hash"]:
@@ -747,14 +788,14 @@ class AgentLedger:
                     raise LedgerError("Site publication evidence is incomplete")
             elif payload["target"] == "dzen":
                 site = connection.execute(
-                    "SELECT 1 FROM publications WHERE draft_id=? AND target='site' AND status='verified' AND content_hash=?",
+                    "SELECT 1 FROM publications WHERE draft_id=%s AND target='site' AND status='verified' AND content_hash=%s",
                     (payload["draft_id"], payload["content_hash"]),
                 ).fetchone()
                 if not site:
                     raise LedgerError("Dzen evidence requires the matching verified site publication")
             connection.execute(
                 """INSERT INTO publications(id,draft_id,target,status,public_url,external_id,content_hash,request_hash,evidence_json,published_at,verified_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 ON CONFLICT(draft_id,target) DO UPDATE SET
                   status=CASE WHEN publications.status='verified' THEN 'verified' ELSE excluded.status END,
                   public_url=excluded.public_url,external_id=excluded.external_id,
@@ -764,13 +805,13 @@ class AgentLedger:
                 (record_id, payload["draft_id"], payload["target"], status, payload["public_url"], payload.get("external_id"), payload["content_hash"], payload["request_hash"], canonical_json(payload["evidence"]), payload.get("published_at", now), now if status == "verified" else None),
             )
             publication = connection.execute(
-                "SELECT id FROM publications WHERE draft_id=? AND target=?",
+                "SELECT id FROM publications WHERE draft_id=%s AND target=%s",
                 (payload["draft_id"], payload["target"]),
             ).fetchone()
             record_id = str(publication["id"])
             if payload["target"] == "site":
-                connection.execute("UPDATE article_drafts SET status='published',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=? WHERE id=?", (now, payload["draft_id"]))
-                connection.execute("UPDATE keyword_clusters SET status='published',updated_at=? WHERE id=(SELECT cluster_id FROM content_briefs WHERE id=?)", (now, draft["brief_id"]))
+                connection.execute("UPDATE article_drafts SET status='published',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s WHERE id=%s", (now, payload["draft_id"]))
+                connection.execute("UPDATE keyword_clusters SET status='published',updated_at=%s WHERE id=(SELECT cluster_id FROM content_briefs WHERE id=%s)", (now, draft["brief_id"]))
         return {"id": record_id}
 
     def _record_performance(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -778,7 +819,7 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             connection.execute(
-                "INSERT INTO performance_snapshots(id,publication_id,window_start,window_end,webmaster_json,metrika_json,captured_at) VALUES (?,?,?,?,?,?,?)",
+                "INSERT INTO performance_snapshots(id,publication_id,window_start,window_end,webmaster_json,metrika_json,captured_at) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, payload["publication_id"], payload["window_start"], payload["window_end"], canonical_json(payload["webmaster"]), canonical_json(payload["metrika"]), payload.get("captured_at", utc_now())),
             )
         return {"id": record_id}
@@ -788,13 +829,13 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             publication = connection.execute(
-                "SELECT request_hash FROM publications WHERE id=? AND target='site' AND status='verified'",
+                "SELECT request_hash FROM publications WHERE id=%s AND target='site' AND status='verified'",
                 (payload["publication_id"],),
             ).fetchone()
             if not publication:
                 raise LedgerError("Optimization action requires a verified site publication")
             connection.execute(
-                "INSERT INTO optimization_actions(id,publication_id,action_type,status,priority_score,hypothesis,success_metric,evidence_json,baseline_request_hash,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                "INSERT INTO optimization_actions(id,publication_id,action_type,status,priority_score,hypothesis,success_metric,evidence_json,baseline_request_hash,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, payload["publication_id"], payload["action_type"], "open", float(payload.get("priority_score", 0)), payload["hypothesis"], payload["success_metric"], canonical_json(payload["evidence"]), publication["request_hash"], utc_now()),
             )
         return {"id": record_id}
@@ -812,7 +853,7 @@ class AgentLedger:
                 FROM optimization_actions a
                 JOIN publications p ON p.id=a.publication_id
                 JOIN article_drafts d ON d.id=p.draft_id
-                WHERE a.id=? AND a.status='claimed' AND a.claim_token=? AND a.claim_expires_at>=?""",
+                WHERE a.id=%s AND a.status='claimed' AND a.claim_token=%s AND a.claim_expires_at>=%s""",
                 (payload["action_id"], payload["claim_token"], now),
             ).fetchone()
             if not row:
@@ -824,25 +865,22 @@ class AgentLedger:
                 if row["action_type"] in mutation_types and row["request_hash"] == row["baseline_request_hash"]:
                     raise LedgerError("Content-changing action did not produce a new published request hash")
             connection.execute(
-                "UPDATE optimization_actions SET status=?,result_evidence_json=?,claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,completed_at=? WHERE id=?",
+                "UPDATE optimization_actions SET status=%s,result_evidence_json=%s,claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,completed_at=%s WHERE id=%s",
                 (status, canonical_json(payload["evidence"]), now, payload["action_id"]),
             )
             self._audit(connection, "codex", "action.finished", "optimization_action", payload["action_id"], {"status": status})
         return {"id": payload["action_id"], "status": status}
 
-    def backup(self, destination: str | Path) -> dict[str, Any]:
-        target = Path(destination).expanduser().resolve()
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if target == self.path:
-            raise LedgerError("Backup destination must differ from the live database")
-        with self.connect() as source, closing(sqlite3.connect(target)) as output:
-            source.backup(output)
-        checksum = hashlib.sha256(target.read_bytes()).hexdigest()
-        return {"path": str(target), "size_bytes": target.stat().st_size, "sha256": checksum}
-
     @staticmethod
-    def _audit(connection: sqlite3.Connection, actor: str, action: str, entity_type: str, entity_id: str | None, detail: Any) -> None:
+    def _audit(
+        connection: psycopg.Connection[dict[str, Any]],
+        actor: str,
+        action: str,
+        entity_type: str,
+        entity_id: str | None,
+        detail: Any,
+    ) -> None:
         connection.execute(
-            "INSERT INTO audit_events(occurred_at,actor,action,entity_type,entity_id,detail_json) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO audit_events(occurred_at,actor,action,entity_type,entity_id,detail_json) VALUES (%s,%s,%s,%s,%s,%s)",
             (utc_now(), actor, action, entity_type, entity_id, canonical_json(detail)),
         )

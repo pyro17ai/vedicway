@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import hashlib
-import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import psycopg
 import pytest
 
 from seo_agent.db import AgentLedger, LedgerError, canonical_json, utc_now
@@ -56,9 +56,9 @@ def test_migrations_are_idempotent_and_checksummed(tmp_path: Path) -> None:
         instance.initialize()
 
 
-def test_database_path_cannot_escape_its_owned_directory(tmp_path: Path) -> None:
-    with pytest.raises(LedgerError, match="must stay inside"):
-        AgentLedger(tmp_path.parent / "foreign.sqlite3", data_dir=tmp_path)
+def test_database_url_must_use_postgresql(tmp_path: Path) -> None:
+    with pytest.raises(LedgerError, match="must use PostgreSQL"):
+        AgentLedger("unsupported-database-url", data_dir=tmp_path)
 
 
 def test_run_lease_and_durable_result_contract(tmp_path: Path) -> None:
@@ -83,7 +83,7 @@ def test_finished_run_releases_owned_claim_and_rejects_false_completion(
     now = utc_now()
     with instance.transaction(immediate=True) as connection:
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('owned','owned-topic','Owned topic','informational','ready',?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('owned','owned-topic','Owned topic','informational','ready',%s,%s)",
             (now, now),
         )
     run = instance.start_run("article_content_production", "2026-07-21T14:00")
@@ -99,9 +99,9 @@ def test_finished_run_releases_owned_claim_and_rejects_false_completion(
             "SELECT status,claim_token,claim_run_id FROM keyword_clusters WHERE id='owned'"
         ).fetchone()
         finished = connection.execute(
-            "SELECT error_code FROM cron_runs WHERE id=?", (run["run_id"],)
+            "SELECT error_code FROM cron_runs WHERE id=%s", (run["run_id"],)
         ).fetchone()
-    assert tuple(cluster) == ("ready", None, None)
+    assert cluster == {"status": "ready", "claim_token": None, "claim_run_id": None}
     assert finished["error_code"] == "CLAIM_UNFINISHED"
 
 
@@ -110,7 +110,7 @@ def test_atomic_cluster_claim_has_one_winner(tmp_path: Path) -> None:
     now = utc_now()
     with instance.transaction(immediate=True) as connection:
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,created_at,updated_at) VALUES ('one','first-house','First house','informational','ready',10,?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,created_at,updated_at) VALUES ('one','first-house','First house','informational','ready',10,%s,%s)",
             (now, now),
         )
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -163,7 +163,7 @@ def test_expired_claim_is_reclaimed_and_old_owner_is_rejected(tmp_path: Path) ->
     now = utc_now()
     with instance.transaction(immediate=True) as connection:
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,created_at,updated_at) VALUES ('one','lease-test','Lease test','informational','ready',10,?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,created_at,updated_at) VALUES ('one','lease-test','Lease test','informational','ready',10,%s,%s)",
             (now, now),
         )
     first = instance.claim("cluster")
@@ -185,14 +185,14 @@ def test_publication_status_cannot_regress(tmp_path: Path) -> None:
     instance = ledger(tmp_path)
     now = utc_now()
     with instance.transaction(immediate=True) as connection:
-        connection.execute("INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('c','topic','Topic','informational','briefed',?,?)", (now, now))
-        connection.execute("INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at) VALUES ('b','c','consumed','Topic','query','problem','informational','[]','[]','[]','[]','sum',?)", (now,))
-        connection.execute("INSERT INTO article_drafts(id,brief_id,slug,status,title,excerpt,content_markdown,seo_title,meta_description,focus_keyphrase,category,author_name,content_hash,created_at,updated_at) VALUES ('d','b','topic','published','Topic','Excerpt','Content','SEO','Description','query','Guide','VedicWay','hash',?,?)", (now, now))
-        connection.execute("INSERT INTO publications(id,draft_id,target,status,public_url,content_hash,request_hash,evidence_json,published_at) VALUES ('p','d','site','verified','https://vedicway.ru/guide/topic','hash','request-hash','{}',?)", (now,))
-    with pytest.raises(sqlite3.IntegrityError, match="cannot regress"):
+        connection.execute("INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('c','topic','Topic','informational','briefed',%s,%s)", (now, now))
+        connection.execute("INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at) VALUES ('b','c','consumed','Topic','query','problem','informational','[]','[]','[]','[]','sum',%s)", (now,))
+        connection.execute("INSERT INTO article_drafts(id,brief_id,slug,status,title,excerpt,content_markdown,seo_title,meta_description,focus_keyphrase,category,author_name,content_hash,created_at,updated_at) VALUES ('d','b','topic','published','Topic','Excerpt','Content','SEO','Description','query','Guide','VedicWay','hash',%s,%s)", (now, now))
+        connection.execute("INSERT INTO publications(id,draft_id,target,status,public_url,content_hash,request_hash,evidence_json,published_at) VALUES ('p','d','site','verified','https://vedicway.ru/guide/topic','hash','request-hash','{}',%s)", (now,))
+    with pytest.raises(psycopg.IntegrityError, match="cannot regress"):
         with instance.transaction(immediate=True) as connection:
             connection.execute("UPDATE publications SET status='draft' WHERE id='p'")
-    with pytest.raises(sqlite3.IntegrityError, match="cannot regress"):
+    with pytest.raises(psycopg.IntegrityError, match="cannot regress"):
         with instance.transaction(immediate=True) as connection:
             connection.execute("UPDATE publications SET status='published' WHERE id='p'")
 
@@ -202,7 +202,7 @@ def test_verified_article_optimization_requires_claim_hashes_and_public_evidence
     now = utc_now()
     with instance.transaction(immediate=True) as connection:
         connection.execute(
-            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('c','topic','Topic','informational','ready',?,?)",
+            "INSERT INTO keyword_clusters(id,slug,title,intent,status,created_at,updated_at) VALUES ('c','topic','Topic','informational','ready',%s,%s)",
             (now, now),
         )
     cluster = instance.claim("cluster")
@@ -350,12 +350,3 @@ def test_verified_article_optimization_requires_claim_hashes_and_public_evidence
         },
     )
     assert result["status"] == "completed"
-
-
-def test_online_backup_is_consistent(tmp_path: Path) -> None:
-    instance = ledger(tmp_path)
-    target = tmp_path / "backups" / "seo.sqlite3"
-    result = instance.backup(target)
-    assert result["sha256"] == hashlib.sha256(target.read_bytes()).hexdigest()
-    with sqlite3.connect(target) as connection:
-        assert connection.execute("PRAGMA integrity_check").fetchone()[0] == "ok"

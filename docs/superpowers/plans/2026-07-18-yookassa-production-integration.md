@@ -6,7 +6,7 @@
 
 **Architecture:** FastAPI owns payment orchestration and persists stable provider idempotency keys before external calls. An async `httpx` adapter talks to YooKassa. Webhooks are authenticated by source-network validation and server-to-server object lookup. The browser receives only internal purchase state and a provider redirect URL; entitlement changes remain transactional server decisions.
 
-**Stack:** Python 3.11, FastAPI 0.128, Pydantic 2, httpx, SQLite development store, PostgreSQL migrations, React 19, TypeScript, Vitest, Playwright.
+**Stack:** Python 3.11, FastAPI 0.128, Pydantic 2, httpx, PostgreSQL 17, React 19, TypeScript, Vitest, Playwright.
 
 **Design contract:** `docs/superpowers/specs/2026-07-18-yookassa-production-integration-design.md`
 
@@ -50,7 +50,7 @@
 - Create: `backend/tests/test_payment_store.py`
 
 1. Write failing store tests for provider key persistence before API use, duplicate client key, one active purchase per chart/product, provider response persistence, payment event dedupe, success transition, cancellation, partial refund, full refund and entitlement revocation.
-2. Extend the SQLite initializer with backward-compatible column checks and new refunds/audit tables.
+2. Extend the PostgreSQL runtime migrations with refunds and audit tables.
 3. Add the PostgreSQL migration with matching constraints and indexes.
 4. Implement transactional transition methods that compare expected amount, currency and metadata before entitlement creation.
 5. Run `python -m pytest backend/tests/test_payment_store.py -q` and commit.

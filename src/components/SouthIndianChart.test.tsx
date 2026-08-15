@@ -30,7 +30,7 @@ const readySection: ChartSection = {
 
 describe("SouthIndianChart", () => {
   it("строит двенадцать фиксированных знаков южноиндийской D1", () => {
-    render(<SouthIndianChart section={readySection} varga="D1" mode="plain" selectedSign={null} onSelectSign={vi.fn()} />);
+    render(<SouthIndianChart section={readySection} varga="D1" selectedSign={null} onSelectSign={vi.fn()} />);
 
     expect(screen.getByRole("grid", { name: "Южноиндийская карта D1" })).toBeInTheDocument();
     expect(screen.getAllByRole("gridcell")).toHaveLength(12);
@@ -40,7 +40,7 @@ describe("SouthIndianChart", () => {
 
   it("открывает доступное описание выбранной ячейки без пересчёта карты", () => {
     const onSelectSign = vi.fn();
-    render(<SouthIndianChart section={readySection} varga="D1" mode="expert" selectedSign={1} onSelectSign={onSelectSign} />);
+    render(<SouthIndianChart section={readySection} varga="D1" selectedSign={1} onSelectSign={onSelectSign} />);
 
     expect(screen.getByText("Выбранный знак · дом 2")).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("Луна · 12°48′ · Криттика");
@@ -49,14 +49,14 @@ describe("SouthIndianChart", () => {
   });
 
   it("объясняет выбранную лагну одним коротким предложением", () => {
-    render(<SouthIndianChart section={readySection} varga="D1" mode="plain" selectedSign={7} onSelectSign={vi.fn()} />);
+    render(<SouthIndianChart section={readySection} varga="D1" selectedSign={7} onSelectSign={vi.fn()} />);
 
     expect(screen.getByText("Лагной называют восходящий в момент рождения знак, от которого отсчитываются дома натальной карты.")).toBeInTheDocument();
     expect(screen.queryByText(/профессиональном режиме/i)).not.toBeInTheDocument();
   });
 
   it("показывает карту-скелет до готовности D1", () => {
-    render(<SouthIndianChart section={{ section: "d1", status: "queued" }} varga="D1" mode="plain" selectedSign={null} onSelectSign={vi.fn()} />);
+    render(<SouthIndianChart section={{ section: "d1", status: "queued" }} varga="D1" selectedSign={null} onSelectSign={vi.fn()} />);
     expect(screen.getByRole("status")).toHaveTextContent("Строим натальную карту");
     expect(screen.getByRole("status")).toHaveAttribute("aria-busy", "true");
   });

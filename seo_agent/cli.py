@@ -3,9 +3,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sqlite3
 from pathlib import Path
 from typing import Any
+
+import psycopg
 
 from .db import AgentLedger, LedgerError
 
@@ -24,7 +25,6 @@ def default_claim_lease_seconds() -> int:
 
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description="VedicWay SEO ledger CLI")
-    root.add_argument("--db")
     commands = root.add_subparsers(dest="command", required=True)
     commands.add_parser("init")
     commands.add_parser("health")
@@ -47,8 +47,6 @@ def parser() -> argparse.ArgumentParser:
     claim = commands.add_parser("claim")
     claim.add_argument("entity", choices=("cluster", "draft", "action"))
     claim.add_argument("--lease-seconds", type=int, default=default_claim_lease_seconds())
-    backup = commands.add_parser("backup")
-    backup.add_argument("destination", type=Path)
     write = commands.add_parser("write")
     write.add_argument(
         "record_type",
@@ -66,7 +64,7 @@ def parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
-    ledger = AgentLedger(args.db)
+    ledger = AgentLedger()
     try:
         if args.command == "init":
             emit({"applied": ledger.initialize(), "health": ledger.health()})
@@ -85,8 +83,6 @@ def main(argv: list[str] | None = None) -> int:
             emit({"status": ledger.finish_run(args.run_id, args.owner_token, failed_error=args.failed_error)})
         elif args.command == "claim":
             emit({"item": ledger.claim(args.entity, lease_seconds=args.lease_seconds)})
-        elif args.command == "backup":
-            emit(ledger.backup(args.destination))
         elif args.command == "write":
             raw = args.json_file.read_text(encoding="utf-8") if args.json_file else input()
             payload = json.loads(raw)
@@ -94,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
                 raise LedgerError("Record payload must be a JSON object")
             emit(ledger.write_record(args.record_type, payload))
         return 0
-    except (LedgerError, OSError, sqlite3.Error, ValueError, json.JSONDecodeError) as error:
+    except (LedgerError, OSError, psycopg.Error, ValueError, json.JSONDecodeError) as error:
         emit({"status": "error", "error": str(error)})
         return 2
 

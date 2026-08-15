@@ -214,6 +214,8 @@ export function ContentHubPage({
         title: page.seoTitle,
         description: page.seoDescription,
         path: `/${section}`,
+        noindex: !loading && articles.length === 0,
+        noindexFollow: true,
         structuredData: [
           {
             "@context": "https://schema.org",
@@ -260,7 +262,7 @@ export function ContentHubPage({
         ],
       });
     },
-    [articles, page, section],
+    [articles, loading, page, section],
   );
 
   const filtered = useMemo(

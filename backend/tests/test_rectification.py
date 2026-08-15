@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from vedicway_backend import rectification
+from vedicway_backend.errors import DomainError
 from vedicway_backend.schemas import BirthInput, Place, ResolvedTime, TimeAccuracy
 
 
@@ -99,3 +102,21 @@ def test_rectification_is_deterministic_and_keeps_holdout_out_of_fit(monkeypatch
         abs(int(item["time"][:2]) * 60 + int(item["time"][3:]) - best_minutes) >= 10
         for item in first["alternatives"]
     )
+
+
+def test_rectification_requires_four_dated_events() -> None:
+    with pytest.raises(DomainError) as raised:
+        rectification.calculate_rectification(
+            _birth(),
+            {
+                "time_window": "morning",
+                "events": [
+                    {"event_type": "education", "year": 2010, "month": 6},
+                    {"event_type": "career", "year": 2012, "month": 9},
+                    {"event_type": "income_change", "year": 2015, "month": 5},
+                ],
+            },
+        )
+
+    assert raised.value.code == "RECTIFICATION_EVENTS_REQUIRED"
+    assert "четырёх" in raised.value.message

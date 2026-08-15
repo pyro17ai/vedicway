@@ -16,7 +16,7 @@ down_revision: str | None = "20260719_01"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-SQLITE_NAMING_CONVENTION = {
+NAMING_CONVENTION = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
 }
 
@@ -24,7 +24,7 @@ SQLITE_NAMING_CONVENTION = {
 def upgrade() -> None:
     with op.batch_alter_table(
         "articles",
-        naming_convention=SQLITE_NAMING_CONVENTION,
+        naming_convention=NAMING_CONVENTION,
     ) as batch:
         batch.add_column(
             sa.Column(
@@ -80,7 +80,7 @@ def upgrade() -> None:
 
     with op.batch_alter_table(
         "media_assets",
-        naming_convention=SQLITE_NAMING_CONVENTION,
+        naming_convention=NAMING_CONVENTION,
     ) as batch:
         batch.drop_column("uploaded_by")
 
@@ -163,7 +163,7 @@ def downgrade() -> None:
 
     with op.batch_alter_table(
         "articles",
-        naming_convention=SQLITE_NAMING_CONVENTION,
+        naming_convention=NAMING_CONVENTION,
     ) as batch:
         batch.add_column(sa.Column("author_id", sa.String(36)))
         batch.create_foreign_key(
@@ -189,7 +189,7 @@ def downgrade() -> None:
 
     with op.batch_alter_table(
         "media_assets",
-        naming_convention=SQLITE_NAMING_CONVENTION,
+        naming_convention=NAMING_CONVENTION,
     ) as batch:
         batch.add_column(sa.Column("uploaded_by", sa.String(36)))
         batch.create_foreign_key(

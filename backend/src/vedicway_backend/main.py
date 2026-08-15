@@ -33,6 +33,7 @@ from .content_api import build_content_router
 from .content_store import ContentDatabase, fingerprint_hash, production_configuration_errors
 from .email_delivery import production_email_configuration_errors
 from .errors import DomainError
+from .interpretation_prompt import PROMPT_VERSION
 from .legal_config import LEGAL_DOCUMENT_VERSIONS
 from .observability import Metrics
 from .payment_config import PaymentSettings
@@ -125,12 +126,11 @@ def _assert_magic_confirmation_origin(request: Request) -> None:
     # Chromium serializes a native form Origin as "null" under no-referrer.
     # Fetch Metadata remains browser-controlled; the Store still requires both
     # Strict cookies and the one-purpose CSRF hash before it consumes anything.
-    if (
-        origin == "null"
-        and request.headers.get("sec-fetch-site", "").casefold() == "same-origin"
-        and request.headers.get("sec-fetch-mode", "").casefold() == "navigate"
-    ):
-        return
+    if origin == "null":
+        fetch_site = request.headers.get("sec-fetch-site", "").casefold()
+        fetch_mode = request.headers.get("sec-fetch-mode", "").casefold()
+        if fetch_site != "cross-site" and fetch_mode in {"", "navigate"}:
+            return
     if not origin:
         raise DomainError(
             "ORIGIN_REQUIRED",
@@ -357,7 +357,9 @@ def create_app(
     )
     app.state.store = store or Store()
     app.state.metrics = Metrics()
-    app.state.worker = worker or ChartWorker(app.state.store, metrics=app.state.metrics)
+    app.state.worker = worker
+    if app.state.worker is None and os.environ.get("VEDICWAY_INLINE_WORKER", "1").strip() != "0":
+        app.state.worker = ChartWorker(app.state.store, metrics=app.state.metrics)
     app.state.places = PlaceRegistry()
     app.state.content_db = content_db or ContentDatabase()
     app.state.content_db.initialize()
@@ -930,6 +932,11 @@ def create_app(
     async def get_chart(chart_id: str, request: Request) -> dict[str, Any]:
         current_session = session(request)
         assert_owned(chart_id, current_session)
+        if app.state.store.has_entitlement(
+            chart_id
+        ) and not app.state.store.has_successful_agent_run(chart_id, PROMPT_VERSION):
+            app.state.store.enqueue_paid_report_refresh(chart_id)
+            await _launch_worker(app)
         return app.state.store.get_chart_resource(chart_id, include_paid=True)
 
     @app.get("/api/v1/charts/{chart_id}/sections/{section}")

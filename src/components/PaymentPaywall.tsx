@@ -1,5 +1,5 @@
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
-import { Check, LockKeyhole, X } from "lucide-react";
+import { ArrowLeft, Check, LockKeyhole, X } from "lucide-react";
 
 import type { PaymentPublicConfig } from "../lib/chart-api";
 
@@ -33,12 +33,12 @@ export function PaymentPaywall({
   config,
   evidence,
   features = [
-    "Восемь подробных жизненных тем",
-    "Общий синтез карты и двенадцать вопросов",
-    "PDF с южноиндийской картой",
+    "Восемь тем, включая профессии и способы заработка",
+    "Текущий и будущие периоды с точными границами",
+    "Общий синтез, двенадцать вопросов и PDF",
   ],
   kicker = "Продолжение вашей темы",
-  closeLabel = "Вернуться к карте",
+  closeLabel = "Вернуться к разбору",
   initialMessage,
   onClose,
   onCheckout,
@@ -51,6 +51,8 @@ export function PaymentPaywall({
   const [offerError, setOfferError] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const offerRef = useRef<HTMLInputElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
   const pendingRef = useRef(false);
   pendingRef.current = state === "pending";
@@ -92,19 +94,38 @@ export function PaymentPaywall({
     };
   }, [onClose]);
 
+  useEffect(() => {
+    const resetAfterBrowserRestore = (event: PageTransitionEvent) => {
+      if (!event.persisted || !pendingRef.current) return;
+      pendingRef.current = false;
+      setState("idle");
+      setMessage("");
+    };
+    window.addEventListener("pageshow", resetAfterBrowserRestore);
+    return () => window.removeEventListener("pageshow", resetAfterBrowserRestore);
+  }, []);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state === "pending") return;
     const normalizedEmail = email.trim();
     const nextEmailError = !normalizedEmail
-      ? "Укажите email для чека"
+      ? "Укажите email для чека и готового результата"
       : !EMAIL_SHAPE.test(normalizedEmail)
         ? "Проверьте адрес email"
         : "";
     const nextOfferError = accepted ? "" : "Подтвердите оферту перед оплатой";
     setEmailError(nextEmailError);
     setOfferError(nextOfferError);
-    if (nextEmailError || nextOfferError) return;
+    if (nextEmailError || nextOfferError) {
+      const invalidField = nextEmailError ? emailRef.current : offerRef.current;
+      invalidField?.scrollIntoView?.({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "center",
+      });
+      invalidField?.focus({ preventScroll: true });
+      return;
+    }
 
     setState("pending");
     setMessage("Создаём защищённый платёж в YooKassa");
@@ -145,7 +166,7 @@ export function PaymentPaywall({
           <button
             type="button"
             className="icon-button"
-            aria-label={closeLabel}
+            aria-label="Закрыть окно оплаты"
             disabled={state === "pending"}
             onClick={onClose}
           >
@@ -167,26 +188,35 @@ export function PaymentPaywall({
               <span>Один платёж. Без подписки и сохранения карты.</span>
             </div>
 
-            <label className="paywall-field">
-              <span>Email для чека</span>
+            <label className="paywall-field" htmlFor="paywall-email">
+              <span>Email для чека и готового результата</span>
               <input
+                ref={emailRef}
+                id="paywall-email"
+                name="email"
                 type="email"
                 inputMode="email"
                 autoComplete="email"
+                spellCheck={false}
                 value={email}
                 disabled={state === "pending"}
                 aria-invalid={Boolean(emailError)}
-                aria-describedby={emailError ? "paywall-email-error" : undefined}
+                aria-describedby={`paywall-email-hint${emailError ? " paywall-email-error" : ""}`}
                 onChange={(event) => {
                   setEmail(event.target.value);
                   if (emailError) setEmailError("");
                 }}
               />
             </label>
+            <p id="paywall-email-hint" className="paywall-field__hint">
+              На этот адрес отправим чек и готовый PDF. Если письма нет во входящих, проверьте папку Спам.
+            </p>
             {emailError && <p id="paywall-email-error" className="paywall-field__error">{emailError}</p>}
 
             <label className="paywall-consent">
               <input
+                ref={offerRef}
+                name="offerAccepted"
                 type="checkbox"
                 checked={accepted}
                 disabled={state === "pending"}
@@ -215,6 +245,12 @@ export function PaymentPaywall({
             )}
           </div>
           <footer className="workspace-modal__footer workspace-modal__footer--purchase">
+            <button type="button" className="secondary-button paywall-back" disabled={state === "pending"} onClick={onClose}>
+              <ArrowLeft aria-hidden="true" /> {closeLabel}
+            </button>
+            <a className="secondary-button paywall-example" href="/report-example" target="_blank" rel="noreferrer">
+              Посмотреть пример полного отчёта
+            </a>
             <button type="submit" className="primary-button" disabled={state === "pending"}>{buttonLabel}</button>
             <span>После нажатия откроется защищённая страница YooKassa</span>
           </footer>

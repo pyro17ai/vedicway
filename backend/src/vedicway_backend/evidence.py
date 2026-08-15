@@ -6,8 +6,28 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 from typing import Any
 
-from .constants import DOMAIN_LABELS_RU, DOMAIN_ORDER, PLANET_LABELS_RU, DomainSlug
+from .constants import (
+    DOMAIN_LABELS_RU,
+    DOMAIN_ORDER,
+    PLANET_LABELS_RU,
+    DomainSlug,
+)
 from .schemas import ChartSnapshot, Coverage, DomainEvidencePacket, EvidenceFact
+
+SIGN_LORD_CODES = (
+    "MARS",
+    "VENUS",
+    "MERCURY",
+    "MOON",
+    "SUN",
+    "MERCURY",
+    "VENUS",
+    "MARS",
+    "JUPITER",
+    "SATURN",
+    "SATURN",
+    "JUPITER",
+)
 
 
 def _fact_id(kind: str, subject: str, chart: str, source_paths: Iterable[str]) -> str:
@@ -104,6 +124,94 @@ def _ascendant(snapshot: ChartSnapshot, chart_key: str) -> dict[str, Any] | None
     return ascendant if isinstance(ascendant, dict) else None
 
 
+def _timeline_periods(
+    periods: list[dict[str, Any]],
+    reference: datetime,
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Keep the active and nearest future Vimshottari periods with exact bounds."""
+    reference = reference if reference.tzinfo else reference.replace(tzinfo=UTC)
+    current_match = _active_period(periods, reference)
+    if current_match:
+        first_maha_index = current_match[0]
+    else:
+        first_maha_index = next(
+            (
+                index
+                for index, period in enumerate(periods)
+                if (start := _period_datetime(period.get("start"))) is not None
+                and reference.astimezone(start.tzinfo) < start
+            ),
+            len(periods),
+        )
+
+    timeline: list[dict[str, Any]] = []
+    source_paths: list[str] = []
+    for maha_index in range(first_maha_index, min(first_maha_index + 3, len(periods))):
+        maha = periods[maha_index]
+        start = _period_datetime(maha.get("start"))
+        end = _period_datetime(maha.get("end"))
+        if start is None:
+            continue
+        comparable = reference.astimezone(start.tzinfo)
+        status = "current" if comparable >= start and (end is None or comparable < end) else "future"
+        source_paths.append(f"sections.dashas.data.maha_dashas.{maha_index}")
+
+        sub_periods = maha.get("sub_periods", [])
+        selected_sub_periods: list[dict[str, Any]] = []
+        if isinstance(sub_periods, list):
+            active_sub = _active_period(sub_periods, reference) if status == "current" else None
+            if active_sub:
+                first_sub_index = active_sub[0]
+            elif status == "current":
+                first_sub_index = next(
+                    (
+                        index
+                        for index, period in enumerate(sub_periods)
+                        if (sub_start := _period_datetime(period.get("start"))) is not None
+                        and reference.astimezone(sub_start.tzinfo) < sub_start
+                    ),
+                    len(sub_periods),
+                )
+            else:
+                first_sub_index = 0
+            for sub_index in range(first_sub_index, min(first_sub_index + 4, len(sub_periods))):
+                sub_period = sub_periods[sub_index]
+                sub_start = _period_datetime(sub_period.get("start"))
+                sub_end = _period_datetime(sub_period.get("end"))
+                if sub_start is None:
+                    continue
+                comparable_sub = reference.astimezone(sub_start.tzinfo)
+                sub_status = (
+                    "current"
+                    if comparable_sub >= sub_start and (sub_end is None or comparable_sub < sub_end)
+                    else "future"
+                )
+                selected_sub_periods.append(
+                    {
+                        "lord": sub_period.get("lord"),
+                        "lord_label_ru": _period_lord_ru(sub_period.get("lord")),
+                        "status": sub_status,
+                        "start": sub_period.get("start"),
+                        "end": sub_period.get("end"),
+                    }
+                )
+                source_paths.append(
+                    f"sections.dashas.data.maha_dashas.{maha_index}.sub_periods.{sub_index}"
+                )
+
+        timeline.append(
+            {
+                "lord": maha.get("lord"),
+                "lord_label_ru": _period_lord_ru(maha.get("lord")),
+                "status": status,
+                "start": maha.get("start"),
+                "end": maha.get("end"),
+                "antardashas": selected_sub_periods,
+            }
+        )
+    return timeline, source_paths
+
+
 def compile_evidence(snapshot: ChartSnapshot) -> tuple[list[EvidenceFact], list[DomainEvidencePacket]]:
     """Compile fixed, inspectable evidence before interpretation text is requested."""
     facts: list[EvidenceFact] = []
@@ -152,16 +260,88 @@ def compile_evidence(snapshot: ChartSnapshot) -> tuple[list[EvidenceFact], list[
         )
         return _append_fact(facts, fact)
 
+    def add_house_lord(
+        house_number: int,
+        chart: str,
+        domains: list[DomainSlug],
+        label_prefix: str,
+    ) -> EvidenceFact | None:
+        d1_ascendant = _ascendant(snapshot, "d1")
+        if not d1_ascendant or not isinstance(d1_ascendant.get("sign_index"), int):
+            return None
+        house_sign_index = (int(d1_ascendant["sign_index"]) + house_number - 1) % 12
+        lord_code = SIGN_LORD_CODES[house_sign_index]
+        planets = {"d1": d1, "D10": d10, "D2": d2}.get(chart, {})
+        planet = planets.get(lord_code)
+        if not planet:
+            return None
+        fact = _fact(
+            "house_lord_position",
+            f"{house_number}-й дом: {planet['label']}",
+            chart,
+            (
+                f"{label_prefix}: управитель {house_number}-го дома {planet['label']} "
+                f"в знаке {planet['sign_label']}, доме {planet['house_number']}"
+            ),
+            domains,
+            ["sections.d1.data.ascendant.sign_index", planet["source_path"]],
+            sign=planet["sign_label"],
+            house=int(planet["house_number"]),
+            value={
+                "natal_house_number": house_number,
+                "natal_house_sign_index": house_sign_index,
+                "lord_code": lord_code,
+                "planet_sign_index": planet.get("sign_index"),
+                "longitude_in_sign": planet["longitude_in_sign"],
+                "retrograde": planet.get("retrograde"),
+            },
+        )
+        return _append_fact(facts, fact)
+
     character = [add_asc("d1", [DomainSlug.CHARACTER], "Основная карта"), add_planet("SUN", "d1", [DomainSlug.CHARACTER], "Основная карта")]
     inner = [add_planet("MOON", "d1", [DomainSlug.INNER_SUPPORT], "Основная карта"), add_planet("VENUS", "d1", [DomainSlug.INNER_SUPPORT], "Основная карта")]
     relations = [add_asc("D9", [DomainSlug.RELATIONSHIPS], "Навамша D9"), add_planet("VENUS", "D9", [DomainSlug.RELATIONSHIPS], "Навамша D9")]
     family = [add_asc("D4", [DomainSlug.FAMILY_HOME], "Чатуртхамша D4"), add_planet("MOON", "d1", [DomainSlug.FAMILY_HOME], "Основная карта")]
-    work = [add_asc("D10", [DomainSlug.WORK], "Дашамша D10"), add_planet("SATURN", "D10", [DomainSlug.WORK], "Дашамша D10")]
-    money = [add_asc("D2", [DomainSlug.MONEY], "Хора D2"), add_planet("JUPITER", "D2", [DomainSlug.MONEY], "Хора D2")]
+    work = [
+        add_asc("D10", [DomainSlug.WORK], "Дашамша D10"),
+        add_house_lord(10, "d1", [DomainSlug.WORK], "Основная карта D1"),
+        add_house_lord(10, "D10", [DomainSlug.WORK], "Дашамша D10"),
+        add_planet("SATURN", "D10", [DomainSlug.WORK], "Дашамша D10"),
+        add_planet("MERCURY", "D10", [DomainSlug.WORK], "Дашамша D10"),
+    ]
+    money = [
+        add_asc("D2", [DomainSlug.MONEY], "Хора D2"),
+        add_house_lord(2, "d1", [DomainSlug.MONEY], "Основная карта D1"),
+        add_house_lord(2, "D2", [DomainSlug.MONEY], "Хора D2"),
+        add_house_lord(11, "d1", [DomainSlug.MONEY], "Основная карта D1"),
+        add_house_lord(11, "D2", [DomainSlug.MONEY], "Хора D2"),
+    ]
     learning = [add_asc("D24", [DomainSlug.LEARNING], "Чатурвимшамша D24"), add_planet("MERCURY", "D24", [DomainSlug.LEARNING], "Чатурвимшамша D24")]
 
     dashas = _section_data(snapshot, "dashas")
     periods = dashas.get("maha_dashas", []) if dashas else []
+    timeline_fact: EvidenceFact | None = None
+    if isinstance(periods, list):
+        timeline, timeline_paths = _timeline_periods(periods, snapshot.created_at)
+        if timeline:
+            timeline_labels = [
+                f"{period['lord_label_ru']} {str(period['start'])[:10]}–{str(period['end'])[:10]}"
+                for period in timeline
+            ]
+            timeline_fact = _append_fact(
+                facts,
+                _fact(
+                    "dasha_timeline",
+                    "Шкала периодов Вимшоттари",
+                    "D1",
+                    f"Текущий и ближайшие периоды Вимшоттари: {'; '.join(timeline_labels)}",
+                    [DomainSlug.CURRENT_PERIOD, DomainSlug.WORK, DomainSlug.MONEY],
+                    timeline_paths,
+                    value={"reference_at": snapshot.created_at.isoformat(), "mahadashas": timeline},
+                ),
+            )
+            work.append(timeline_fact)
+            money.append(timeline_fact)
     current_match = _active_period(periods, snapshot.created_at) if isinstance(periods, list) else None
     current_missing: list[str] = []
     if current_match:
@@ -179,7 +359,7 @@ def compile_evidence(snapshot: ChartSnapshot) -> tuple[list[EvidenceFact], list[
                 value={"level": "mahadasha", "start": current.get("start"), "end": current.get("end")},
             ),
         )
-        current_period: list[EvidenceFact | None] = [current_fact]
+        current_period: list[EvidenceFact | None] = [timeline_fact, current_fact]
         sub_periods = current.get("sub_periods", [])
         sub_match = _active_period(sub_periods, snapshot.created_at) if isinstance(sub_periods, list) else None
         if sub_match:
@@ -203,7 +383,7 @@ def compile_evidence(snapshot: ChartSnapshot) -> tuple[list[EvidenceFact], list[
             current_period.append(add_planet("MOON", "d1", [DomainSlug.CURRENT_PERIOD], "Основная карта"))
     else:
         current_missing = ["dashas.active_period"]
-        current_period = [add_planet("MOON", "d1", [DomainSlug.CURRENT_PERIOD], "Основная карта")]
+        current_period = [timeline_fact, add_planet("MOON", "d1", [DomainSlug.CURRENT_PERIOD], "Основная карта")]
 
     packets: list[DomainEvidencePacket] = []
     domain_sources = {
@@ -242,7 +422,7 @@ def compile_evidence(snapshot: ChartSnapshot) -> tuple[list[EvidenceFact], list[
             DomainEvidencePacket(
                 slug=slug,
                 primary_facts=[fact.id for fact in available[:1]],
-                confirming_facts=[fact.id for fact in available[1:2]],
+                confirming_facts=[fact.id for fact in available[1:6]],
                 coverage=coverage,
                 allowed_claim_scope=(
                     f"Раздел «{DOMAIN_LABELS_RU[slug]}» описывает наблюдаемые темы для саморефлексии, "

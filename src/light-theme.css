@@ -692,6 +692,29 @@ body {
   background: rgba(251, 246, 238, 0.48);
 }
 
+.workspace-topbar {
+  border-color: var(--line-soft);
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow: var(--paper-shadow-soft);
+  backdrop-filter: blur(14px);
+}
+
+.locked-report__paywall {
+  border-color: rgba(169, 76, 34, 0.24);
+  color: var(--ink-secondary);
+  background: rgba(255, 253, 248, 0.98);
+  box-shadow: 0 28px 80px rgba(92, 53, 24, 0.2);
+}
+
+.data-strip li.is-current {
+  border-color: rgba(85, 113, 76, 0.3);
+  background: rgba(85, 113, 76, 0.11);
+}
+
+.data-strip li.is-current small {
+  color: #4f6c46;
+}
+
 .workspace-rail {
   border-right-color: var(--line-soft);
   background: rgba(247, 236, 220, 0.9);
@@ -711,7 +734,6 @@ body {
 }
 
 .rail-pdf,
-.mode-switch,
 .question-progress,
 .workspace-notice,
 .question-card__note textarea,
@@ -723,7 +745,6 @@ body {
   background: rgba(255, 253, 248, 0.78);
 }
 
-.mode-switch button.is-active,
 .question-progress button.is-active,
 .domain-filter button.is-active,
 .question-status-menu button.is-active {
@@ -853,16 +874,21 @@ body {
 }
 
 .faq-heading p,
-.faq-footer p {
+.faq-footer p,
+.faq-footer__contact-line {
   color: var(--ink-secondary);
 }
 
 .faq-item,
-.faq-item.is-open,
-.faq-answer-stage {
+.faq-item.is-open {
   border-color: rgba(146, 85, 43, 0.22);
   background: rgba(255, 253, 248, 0.91);
   box-shadow: var(--paper-shadow-soft);
+}
+
+.faq-item__answer {
+  border-top-color: rgba(146, 85, 43, 0.18);
+  background: rgba(247, 232, 212, 0.5);
 }
 
 .faq-item.is-open {
@@ -875,17 +901,13 @@ body {
 }
 
 .faq-item.is-open .faq-item__chevron,
-.faq-answer-panel > span,
+.faq-item__answer-inner > span,
 .faq-footer a {
   color: var(--ember-deep);
 }
 
-.faq-answer-stage::before {
+.faq-item__answer::before {
   background: var(--ember);
-}
-
-.faq-answer-panel__placeholder {
-  color: var(--ink-dim);
 }
 
 .faq-legal-footer {
@@ -917,6 +939,21 @@ body {
 
 .faq-legal-footer__copyright {
   border-top-color: rgba(98, 67, 43, 0.14);
+}
+
+.contact-popover__panel {
+  border-color: rgba(169, 76, 34, 0.22);
+  color: var(--ink-secondary);
+  background: var(--paper-raised);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+.contact-popover__panel strong {
+  color: var(--ink);
+}
+
+.contact-popover__panel a {
+  color: var(--ember-deep);
 }
 
 /* Legal, cookie and recovery surfaces */

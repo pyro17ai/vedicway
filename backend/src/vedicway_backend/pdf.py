@@ -10,7 +10,13 @@ from pathlib import Path
 from typing import Any
 
 from .errors import DomainError
-from .schemas import ChartSnapshot, InterpretationBundle, PdfRenderPreferences
+from .schemas import (
+    BirthInput,
+    ChartSnapshot,
+    InterpretationBundle,
+    PdfRenderPreferences,
+    RectificationResult,
+)
 
 SOUTH_INDIAN_POSITIONS = {
     0: (0, 0), 1: (1, 0), 2: (2, 0), 3: (3, 0),
@@ -116,6 +122,12 @@ def report_html(
         )
     questions = "".join(f"<li>{_escape(question.text)}</li>" for question in bundle.questions)
     limitations = "".join(f"<li>{_escape(item)}</li>" for item in bundle.global_limitations)
+    synthesis_paragraphs = "".join(f"<p>{_escape(paragraph)}</p>" for paragraph in bundle.synthesis)
+    synthesis_section = (
+        f'<section class="synthesis"><h2>Общий синтез</h2>{synthesis_paragraphs}</section>'
+        if synthesis_paragraphs
+        else ""
+    )
     mode_label = "Понятный" if preferences.mode == "plain" else "Профессиональный"
     return f"""<!doctype html>
 <html lang="ru">
@@ -146,6 +158,7 @@ def report_html(
   <div class="chart">{chart_svg}</div>
   <h2>Первое чтение</h2>
   <p class="summary">{_escape(bundle.overview.summary)}</p>
+  {synthesis_section}
   {''.join(sections)}
   <section><h2>Вопросы к себе</h2><ol>{questions}</ol></section>
   <section class="notice"><strong>Границы материала</strong><ul>{limitations}</ul></section>
@@ -153,11 +166,98 @@ def report_html(
 </html>"""
 
 
+def rectification_report_html(birth: BirthInput, result: RectificationResult) -> str:
+    confidence_labels = {"low": "предварительная", "medium": "средняя", "high": "высокая"}
+    alternatives = "".join(
+        "<li>"
+        f"<strong>{_escape(item.get('time', ''))}</strong> · "
+        f"лагна {_escape(item.get('lagna', ''))} · "
+        f"совпадение {_escape(item.get('score_percent', ''))}%"
+        "</li>"
+        for item in result.alternatives
+    )
+    alternatives_section = (
+        f"<section><h2>Ближайшие альтернативы</h2><ol>{alternatives}</ol></section>"
+        if alternatives
+        else ""
+    )
+    birth_date = birth.local_datetime.strftime("%d.%m.%Y")
+    return f"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {{ size: A4; margin: 16mm; }}
+    * {{ box-sizing: border-box; }}
+    body {{ color: #2d1a13; font: 11pt/1.55 Arial, sans-serif; margin: 0; }}
+    h1, h2 {{ font-family: Georgia, serif; color: #3b2116; }}
+    h1 {{ font-size: 25pt; margin: 0 0 4mm; }}
+    h2 {{ border-top: 1px solid #c59a75; padding-top: 6mm; font-size: 17pt; margin: 10mm 0 3mm; }}
+    .brand {{ color: #b05d32; font-size: 10pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }}
+    .meta {{ color: #6c5a50; margin: 0 0 10mm; }}
+    .result {{ background: #fbf4eb; border: 1px solid #dec7b3; padding: 8mm; text-align: center; }}
+    .time {{ color: #b05d32; font: 700 42pt/1 Georgia, serif; margin: 3mm 0; }}
+    .metrics {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; margin-top: 7mm; }}
+    .metric {{ border: 1px solid #dec7b3; padding: 4mm; }}
+    .metric strong {{ display: block; font-size: 17pt; }}
+    .metric span {{ color: #6c5a50; font-size: 9pt; }}
+    .notice {{ background: #fbf4eb; border-left: 3px solid #bb6734; padding: 4mm 5mm; margin-top: 10mm; }}
+    li {{ margin-bottom: 2mm; }}
+  </style>
+</head>
+<body>
+  <p class="brand">VedicWay</p>
+  <h1>Отчёт по времени рождения</h1>
+  <p class="meta">{_escape(birth_date)} · {_escape(birth.place.display_name)}</p>
+  <section class="result">
+    <span>Наиболее согласованное время</span>
+    <div class="time">{_escape(result.selected_time)}</div>
+    <p>Диапазон уверенности ±{_escape(result.uncertainty_minutes)} минут · лагна {_escape(result.lagna)}</p>
+  </section>
+  <div class="metrics">
+    <div class="metric"><strong>{_escape(result.score_percent)}%</strong><span>совпадение правил</span></div>
+    <div class="metric"><strong>{_escape(result.candidate_count_scored)}</strong><span>вариантов проверено</span></div>
+    <div class="metric"><strong>{_escape(confidence_labels[result.confidence])}</strong><span>оценка уверенности</span></div>
+  </div>
+  {alternatives_section}
+  <section class="notice"><strong>Границы результата</strong><p>{_escape(result.disclaimer)}</p></section>
+</body>
+</html>"""
+
+
+def _render_html_pdf(source: str, output: Path) -> bytes:
+    script = Path(__file__).resolve().parents[2] / "scripts" / "render_pdf.mjs"
+    if not script.exists():
+        raise DomainError("PDF_RENDER_FAILED", "Не найден безопасный рендерер PDF", recoverable=False)
+    with tempfile.TemporaryDirectory(prefix="vedicway-pdf-") as temporary:
+        html_path = Path(temporary) / "report.html"
+        html_path.write_text(source, encoding="utf-8")
+        completed = subprocess.run(
+            ["node", str(script), str(html_path), str(output)],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=90,
+            shell=False,
+            cwd=script.parents[2],
+            env=os.environ.copy(),
+            check=False,
+        )
+    if completed.returncode != 0 or not output.exists():
+        raise DomainError("PDF_RENDER_FAILED", "Не удалось собрать PDF", recoverable=True)
+    return output.read_bytes()
+
+
+def rectification_report_pdf(birth: BirthInput, result: RectificationResult) -> bytes:
+    with tempfile.TemporaryDirectory(prefix="vedicway-rectification-pdf-") as temporary:
+        output = Path(temporary) / "vedicway-birth-time-report.pdf"
+        return _render_html_pdf(rectification_report_html(birth, result), output)
+
+
 class PdfRenderer:
     def __init__(self, reports_dir: str | Path) -> None:
         self.reports_dir = Path(reports_dir)
         self.reports_dir.mkdir(parents=True, exist_ok=True)
-        self.script = Path(__file__).resolve().parents[2] / "scripts" / "render_pdf.mjs"
 
     def render(
         self,
@@ -167,26 +267,8 @@ class PdfRenderer:
         preferences: PdfRenderPreferences,
         render_request_id: str,
     ) -> dict[str, Any]:
-        if not self.script.exists():
-            raise DomainError("PDF_RENDER_FAILED", "Не найден безопасный рендерер PDF", recoverable=False)
         output = self.reports_dir / f"{chart_id}_{render_request_id}_{secrets.token_urlsafe(8)}.pdf"
-        with tempfile.TemporaryDirectory(prefix="vedicway-pdf-") as temporary:
-            html_path = Path(temporary) / "report.html"
-            html_path.write_text(report_html(snapshot, bundle, preferences), encoding="utf-8")
-            completed = subprocess.run(
-                ["node", str(self.script), str(html_path), str(output)],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=90,
-                shell=False,
-                cwd=self.script.parents[2],
-                env=os.environ.copy(),
-                check=False,
-            )
-        if completed.returncode != 0 or not output.exists():
-            raise DomainError("PDF_RENDER_FAILED", "Не удалось собрать PDF", recoverable=True)
-        payload = output.read_bytes()
+        payload = _render_html_pdf(report_html(snapshot, bundle, preferences), output)
         return {
             "path": str(output),
             "checksum": f"sha256:{hashlib.sha256(payload).hexdigest()}",

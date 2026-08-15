@@ -35,18 +35,26 @@ ROLE_CONTRACTS = {
             "vedicway_data_key",
             "vedicway_signing_key",
             "codex_api_key",
+            "codex_auth",
         },
         "files": {
             "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password",
             "VEDICWAY_DATA_KEY_FILE": "/run/secrets/vedicway_data_key",
             "VEDICWAY_SIGNING_KEY_FILE": "/run/secrets/vedicway_signing_key",
             "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
+            "CODEX_AUTH_FILE": "/run/secrets/codex_auth",
         },
     },
     "email": {
         "profile": "email",
-        "secrets": {"vedicway_data_key", "vedicway_signing_key", "smtp_password"},
+        "secrets": {
+            "postgres_password",
+            "vedicway_data_key",
+            "vedicway_signing_key",
+            "smtp_password",
+        },
         "files": {
+            "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password",
             "VEDICWAY_DATA_KEY_FILE": "/run/secrets/vedicway_data_key",
             "VEDICWAY_SIGNING_KEY_FILE": "/run/secrets/vedicway_signing_key",
             "VEDICWAY_SMTP_PASSWORD_FILE": "/run/secrets/smtp_password",
@@ -55,6 +63,7 @@ ROLE_CONTRACTS = {
     "seo-agent": {
         "profile": "seo-agent",
         "secrets": {
+            "postgres_password",
             "codex_api_key",
             "vedicway_seo_agent_token",
             "yandex_search_api_key",
@@ -63,6 +72,7 @@ ROLE_CONTRACTS = {
             "yandex_metrika_token",
         },
         "files": {
+            "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password",
             "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
             "VEDICWAY_SEO_AGENT_TOKEN_FILE": "/run/secrets/vedicway_seo_agent_token",
             "VEDICWAY_YANDEX_SEARCH_API_KEY_FILE": "/run/secrets/yandex_search_api_key",
@@ -118,17 +128,10 @@ def main() -> None:
         "ops-gateway",
         "backup-bundle",
         "seo-agent",
-        "seo-agent-backup",
-        "seo-agent-restore",
     }
     missing = required.difference(services)
     if missing:
         raise SystemExit(f"Missing production services: {', '.join(sorted(missing))}")
-    if "migrate" in services:
-        raise SystemExit(
-            "production must not run chart/payment PostgreSQL migrations while runtime is single-node-sqlite"
-        )
-
     for service_name, contract in ROLE_CONTRACTS.items():
         service = services[service_name]
         environment = service.get("environment", {})
@@ -158,27 +161,30 @@ def main() -> None:
 
     for service_name in ("backend", "worker"):
         service = services[service_name]
-        environment = service.get("environment", {})
-        if environment.get("VEDICWAY_RUNTIME_PROFILE") != "single-node-sqlite":
-            raise SystemExit(f"{service_name} must use the single-node-sqlite runtime profile")
         if int(service.get("deploy", {}).get("replicas", 1)) != 1:
             raise SystemExit(f"{service_name} must have exactly one replica")
 
     api_secrets = _secret_sources(services["backend"])
     worker_secrets = _secret_sources(services["worker"])
-    if "codex_api_key" in api_secrets:
-        raise SystemExit("backend API must not mount the Codex key")
+    if api_secrets.intersection({"codex_api_key", "codex_auth"}):
+        raise SystemExit("backend API must not mount Codex credentials")
     forbidden_worker = {"vedicway_operations_token", "vedicway_metrics_token", "vedicway_seo_agent_token", "yookassa_shop_id", "yookassa_secret_key"}
     if worker_secrets.intersection(forbidden_worker):
         raise SystemExit("worker mounts API-only operations or payment secrets")
-    if worker_secrets != {"postgres_password", "vedicway_data_key", "vedicway_signing_key", "codex_api_key"}:
+    if worker_secrets != {
+        "postgres_password",
+        "vedicway_data_key",
+        "vedicway_signing_key",
+        "codex_api_key",
+        "codex_auth",
+    }:
         raise SystemExit("worker secret mount set is not least-privilege")
 
     seo = services["seo-agent"]
-    if set(seo.get("networks", {})) != {"edge", "seo-egress"}:
-        raise SystemExit("SEO agent must use only the internal edge and dedicated SEO egress networks")
-    if "data" in seo.get("networks", {}) or "POSTGRES_PASSWORD_FILE" in seo.get("environment", {}):
-        raise SystemExit("SEO agent must not receive the PostgreSQL network or credentials")
+    if set(seo.get("networks", {})) != {"edge", "data", "seo-egress"}:
+        raise SystemExit("SEO agent must use edge, PostgreSQL data and dedicated egress networks")
+    if seo.get("environment", {}).get("POSTGRES_PASSWORD_FILE") != "/run/secrets/postgres_password":
+        raise SystemExit("SEO agent must receive PostgreSQL credentials from the mounted secret")
     if "seo" not in seo.get("profiles", []):
         raise SystemExit("SEO agent must stay behind the explicit seo Compose profile")
     if "seo_agent.scheduler" not in " ".join(seo.get("command", [])):
@@ -212,8 +218,8 @@ def main() -> None:
     ops_hosts = {str(item.get("host_ip", "")) for item in ops_ports if isinstance(item, dict)}
     if not ops_hosts or not ops_hosts.issubset({"127.0.0.1", "::1"}):
         raise SystemExit("ops gateway must bind only to loopback")
-    if set(services["ops-gateway"].get("networks", {})) != {"ops"}:
-        raise SystemExit("ops gateway must live only on the isolated ops network")
+    if set(services["ops-gateway"].get("networks", {})) != {"ops", "loopback"}:
+        raise SystemExit("ops gateway must use only the isolated ops and loopback networks")
     if services["backup-bundle"].get("network_mode") != "none":
         raise SystemExit("backup bundle service must have networking disabled")
     if _secret_sources(services["backup-bundle"]) != {"backup_encryption_key"}:
@@ -222,13 +228,13 @@ def main() -> None:
     entrypoint = (Path(__file__).resolve().parents[1] / "docker/backend/entrypoint.sh").read_text(
         encoding="utf-8"
     )
-    if '"$profile" = "worker"' not in entrypoint or "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
+    if "worker)" not in entrypoint or "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
         raise SystemExit("backend entrypoint must export the Codex secret as OPENAI_API_KEY")
-    if 'if [ "$profile" = "email" ]' not in entrypoint:
+    if "email)" not in entrypoint:
         raise SystemExit("backend entrypoint must isolate the email secret profile")
     if "read_secret VEDICWAY_SMTP_PASSWORD" not in entrypoint:
         raise SystemExit("backend entrypoint must load the SMTP password from a mounted secret")
-    if 'if [ "$profile" = "seo-agent" ]' not in entrypoint:
+    if "seo-agent)" not in entrypoint:
         raise SystemExit("backend entrypoint must isolate the SEO agent secret profile")
     if "read_secret VEDICWAY_SEO_AGENT_TOKEN" not in entrypoint:
         raise SystemExit("backend entrypoint must load the internal SEO bearer token from a secret")
@@ -236,8 +242,8 @@ def main() -> None:
     email = services["email"]
     if "vedicway_backend.email_worker" not in " ".join(email.get("command", [])):
         raise SystemExit("email service must run the dedicated transactional email worker")
-    if set(email.get("networks", {})) != {"email-egress"}:
-        raise SystemExit("email service must use only the isolated egress network")
+    if set(email.get("networks", {})) != {"data", "email-egress"}:
+        raise SystemExit("email service must use PostgreSQL data and isolated egress networks")
     if int(email.get("deploy", {}).get("replicas", 1)) != 1:
         raise SystemExit("email service must have exactly one replica")
 
@@ -246,21 +252,22 @@ def main() -> None:
         command = service.get("command", [])
         if mode not in command or "data_lifecycle.py" not in " ".join(command):
             raise SystemExit(f"{service_name} must run data_lifecycle.py {mode}")
-        if service.get("network_mode") != "none":
-            raise SystemExit(f"{service_name} must not have network access")
+        if set(service.get("networks", {})) != {"data"}:
+            raise SystemExit(f"{service_name} must use only the PostgreSQL data network")
         if service.get("environment", {}).get("VEDICWAY_SECRET_PROFILE") != "lifecycle":
             raise SystemExit(f"{service_name} must use the lifecycle secret profile")
         mounted_secrets = {
             item.get("source") if isinstance(item, dict) else item
             for item in service.get("secrets", [])
         }
-        if mounted_secrets != {"vedicway_data_key", "vedicway_signing_key"}:
-            raise SystemExit(f"{service_name} must mount only runtime encryption secrets")
-    for service_name in ("seo-agent-backup", "seo-agent-restore"):
-        if services[service_name].get("network_mode") != "none":
-            raise SystemExit(f"{service_name} must not have network access")
-        if _secret_sources(services[service_name]):
-            raise SystemExit(f"{service_name} must not mount application secrets")
+        if mounted_secrets != {
+            "postgres_password",
+            "vedicway_data_key",
+            "vedicway_signing_key",
+        }:
+            raise SystemExit(
+                f"{service_name} must mount PostgreSQL and runtime encryption secrets"
+            )
     print("Resolved production Compose contract passed.")
 
 

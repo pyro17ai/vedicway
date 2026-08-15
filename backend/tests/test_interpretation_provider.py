@@ -13,6 +13,7 @@ from vedicway_backend.interpretation import (
     CodexExecSettings,
     DevelopmentInterpretationProvider,
     UnavailableInterpretationProvider,
+    free_projection,
     provider_from_environment,
     validate_bundle,
 )
@@ -101,13 +102,22 @@ def test_prompt_and_schema_keep_personal_data_out_of_runner_contract() -> None:
     required = schema["$defs"]["DomainInterpretation"]["required"]
     assert "paragraphs" in required and "manifestations" in required and "reflection_prompts" in required
 
+    paid_schema = codex_output_schema(paid=True)
+    paid_domain = paid_schema["$defs"]["DomainInterpretation"]["properties"]
+    assert paid_domain["evidence_ids"]["maxItems"] == 6
+    assert paid_domain["paragraphs"]["items"]["minLength"] == 240
+    assert paid_schema["properties"]["synthesis"]["items"]["minLength"] == 300
+    assert "управителя 10-го дома" in build_interpretation_prompt(facts, packets, paid=True)
+    assert "управителей 2-го и 11-го домов" in build_interpretation_prompt(facts, packets, paid=True)
+    assert "dasha_timeline" in build_interpretation_prompt(facts, packets, paid=True)
+
 
 @pytest.mark.parametrize("paid", [False, True])
 def test_prompt_ends_with_requested_russian_answering_format(paid: bool) -> None:
     facts, packets = _evidence()
     prompt = build_interpretation_prompt(facts, packets, paid=paid)
 
-    assert PROMPT_VERSION == "interpretation-editor-ru.v3"
+    assert PROMPT_VERSION == "interpretation-editor-ru.v4"
     assert "\n\n<!-- answering format -->\n" in prompt
     assert "Отвечай мне всегда естественным публицистическим русским языком" in prompt
     assert "Не пиши заключительный абзац" in prompt
@@ -125,6 +135,66 @@ def test_explicit_contract_stub_is_valid_but_never_selected_implicitly(monkeypat
     assert isinstance(provider, UnavailableInterpretationProvider)
     with pytest.raises(DomainError, match="Персональное объяснение отключено"):
         provider.generate("snapshot_stub", facts, packets, paid=False)
+
+
+def test_full_bundle_yields_valid_preview_without_second_generation() -> None:
+    facts, packets = _evidence()
+    full = DevelopmentInterpretationProvider().generate("snapshot_stub", facts, packets, paid=True)
+
+    preview = free_projection(full)
+
+    validate_bundle(full, "snapshot_stub", facts, packets, paid=True)
+    validate_bundle(preview, "snapshot_stub", facts, packets, paid=False)
+    assert len(full.questions) == 12
+    assert len(preview.questions) == 6
+    assert preview.overview.summary == full.overview.summary
+    assert all(not domain.paragraphs for domain in preview.domains)
+
+
+def test_paid_validator_rejects_thin_domain_and_synthesis() -> None:
+    facts, packets = _evidence()
+    full = DevelopmentInterpretationProvider().generate("snapshot_thin", facts, packets, paid=True)
+
+    thin_domain = full.model_copy(deep=True)
+    thin_domain.domains[0].paragraphs = ["Короткое повторение без подробного разбора."] * 4
+    with pytest.raises(DomainError, match="Платный раздел раскрыт слишком кратко"):
+        validate_bundle(thin_domain, "snapshot_thin", facts, packets, paid=True)
+
+    thin_synthesis = full.model_copy(deep=True)
+    thin_synthesis.synthesis = ["Короткий общий вывод без подробного синтеза."] * 4
+    with pytest.raises(DomainError, match="Общий синтез раскрыт слишком кратко"):
+        validate_bundle(thin_synthesis, "snapshot_thin", facts, packets, paid=True)
+
+
+def test_paid_validator_requires_available_future_period_timeline() -> None:
+    facts, packets = _evidence()
+    timeline_id = "ev_shared_dasha_timeline"
+    facts.append(
+        EvidenceFact(
+            id=timeline_id,
+            kind="dasha_timeline",
+            subject="Шкала периодов Вимшоттари",
+            chart="D1",
+            value={"mahadashas": []},
+            human_label_ru="Текущий и ближайшие будущие периоды Вимшоттари",
+            domains=[DomainSlug.CURRENT_PERIOD, DomainSlug.WORK, DomainSlug.MONEY],
+            source_paths=["sections.dashas.data.maha_dashas"],
+        )
+    )
+    for packet in packets:
+        if packet.slug in {DomainSlug.CURRENT_PERIOD, DomainSlug.WORK, DomainSlug.MONEY}:
+            packet.confirming_facts.append(timeline_id)
+
+    full = DevelopmentInterpretationProvider().generate(
+        "snapshot_timeline", facts, packets, paid=True
+    )
+    validate_bundle(full, "snapshot_timeline", facts, packets, paid=True)
+
+    without_timeline = full.model_copy(deep=True)
+    work = next(domain for domain in without_timeline.domains if domain.slug == DomainSlug.WORK)
+    work.evidence_ids.remove(timeline_id)
+    with pytest.raises(DomainError, match="не использует шкалу текущих и будущих периодов"):
+        validate_bundle(without_timeline, "snapshot_timeline", facts, packets, paid=True)
 
 
 def test_production_provider_configuration_fails_closed(
@@ -224,6 +294,7 @@ def test_codex_provider_uses_native_executable_and_repairs_invalid_output(
     first_command = calls[0]["command"]
     assert first_command[0] == str(executable)
     assert calls[0]["shell"] is False
+    assert "timeout" not in calls[0]
     assert calls[0]["env"]["CODEX_HOME"] == str(codex_home)
     assert calls[0]["env"]["OPENAI_API_KEY"] == "standard-cli-key"
     assert "CODEX_API_KEY" not in calls[0]["env"]
@@ -244,6 +315,8 @@ def test_codex_provider_derives_overview_citations_and_fixed_limitations(
     facts, packets = _evidence()
     generated = DevelopmentInterpretationProvider().generate("snapshot_normalized", facts, packets, paid=False)
     generated.overview.evidence_ids = ["invented_overview_fact"]
+    generated.domains[0].evidence_ids = ["invented_domain_fact"]
+    generated.questions[0].evidence_ids = ["invented_question_fact"]
     generated.global_limitations = ["Свободная формулировка 1", "Свободная формулировка 2"]
     codex_home = tmp_path / "codex-home"
     workdir = tmp_path / "empty-workdir"
@@ -269,4 +342,8 @@ def test_codex_provider_derives_overview_citations_and_fixed_limitations(
     assert calls == 1
     assert result.overview.evidence_ids
     assert "invented_overview_fact" not in result.overview.evidence_ids
+    assert result.domains[0].evidence_ids
+    assert "invented_domain_fact" not in result.domains[0].evidence_ids
+    assert result.questions[0].evidence_ids
+    assert "invented_question_fact" not in result.questions[0].evidence_ids
     assert tuple(result.global_limitations) == GLOBAL_LIMITATIONS

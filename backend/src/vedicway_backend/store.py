@@ -6,16 +6,18 @@ import hmac
 import json
 import os
 import secrets
-import sqlite3
 import threading
 import time
+import uuid
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import psycopg
 from cryptography.fernet import Fernet
+from psycopg.rows import dict_row
 
 from .errors import DomainError
 from .schemas import (
@@ -56,21 +58,32 @@ def _json_load(value: str | None, fallback: Any) -> Any:
 
 
 class Store:
-    """Durable local runtime store.
-
-    PostgreSQL DDL lives in migrations for deployment. SQLite keeps the same resource
-    boundaries and lets the complete BFF flow run locally without a service dependency.
-    """
+    """Durable PostgreSQL runtime store."""
 
     _PUBLIC_BIRTH_PREFIX = "fernet:v1:"
 
-    def __init__(self, data_dir: str | Path | None = None) -> None:
+    def __init__(
+        self,
+        data_dir: str | Path | None = None,
+        *,
+        database_url: str | None = None,
+    ) -> None:
         default_dir = Path(__file__).resolve().parents[2] / ".data"
         self.data_dir = Path(data_dir or os.environ.get("VEDICWAY_DATA_DIR", default_dir)).resolve()
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.reports_dir = self.data_dir / "reports"
         self.reports_dir.mkdir(exist_ok=True)
-        self.db_path = self.data_dir / "vedicway.sqlite3"
+        configured_url = (
+            database_url
+            or os.environ.get("DATABASE_URL")
+            or os.environ.get("VEDICWAY_DATABASE_URL")
+        )
+        if not configured_url:
+            raise RuntimeError("DATABASE_URL is required")
+        if not configured_url.startswith(("postgresql://", "postgresql+psycopg://")):
+            raise RuntimeError("DATABASE_URL must use PostgreSQL")
+        self.database_url = configured_url
+        self._database_dsn = configured_url.replace("postgresql+psycopg://", "postgresql://", 1)
         self._lock = threading.RLock()
         self._fernet = Fernet(self._load_key())
         self._signing_key = self._load_signing_key()
@@ -106,369 +119,25 @@ class Store:
         return key
 
     @contextmanager
-    def _connection(self) -> Iterator[sqlite3.Connection]:
-        connection = sqlite3.connect(self.db_path, timeout=15, isolation_level=None)
-        connection.row_factory = sqlite3.Row
+    def _connection(self) -> Iterator[psycopg.Connection[dict[str, Any]]]:
+        connection = psycopg.connect(
+            self._database_dsn,
+            autocommit=True,
+            row_factory=dict_row,
+        )
         try:
-            connection.execute("PRAGMA foreign_keys=ON")
-            connection.execute("PRAGMA journal_mode=WAL")
+            connection.execute("SET search_path TO runtime, public")
             yield connection
         finally:
             connection.close()
 
     def _initialize(self) -> None:
-        statements = """
-        CREATE TABLE IF NOT EXISTS anonymous_sessions (
-          id TEXT PRIMARY KEY,
-          token_hash TEXT UNIQUE NOT NULL,
-          created_at TEXT NOT NULL,
-          last_seen_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS birth_profiles (
-          id TEXT PRIMARY KEY,
-          session_id TEXT NOT NULL REFERENCES anonymous_sessions(id),
-          encrypted_payload BLOB NOT NULL,
-          created_at TEXT NOT NULL,
-          deleted_at TEXT
-        );
-        CREATE TABLE IF NOT EXISTS charts (
-          id TEXT PRIMARY KEY,
-          session_id TEXT NOT NULL REFERENCES anonymous_sessions(id),
-          birth_profile_id TEXT NOT NULL REFERENCES birth_profiles(id),
-          idempotency_key TEXT NOT NULL,
-          status TEXT NOT NULL,
-          birth_public_json TEXT NOT NULL,
-          snapshot_json TEXT,
-          evidence_json TEXT,
-          free_bundle_json TEXT,
-          paid_bundle_json TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          soft_deleted_at TEXT,
-          UNIQUE(session_id, idempotency_key)
-        );
-        CREATE TABLE IF NOT EXISTS chart_access (
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          session_id TEXT NOT NULL REFERENCES anonymous_sessions(id),
-          granted_at TEXT NOT NULL,
-          PRIMARY KEY(chart_id, session_id)
-        );
-        CREATE TABLE IF NOT EXISTS jobs (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          job_type TEXT NOT NULL,
-          status TEXT NOT NULL,
-          priority INTEGER NOT NULL,
-          attempts INTEGER NOT NULL DEFAULT 0,
-          input_checksum TEXT,
-          payload_json TEXT,
-          error_json TEXT,
-          scheduled_at TEXT NOT NULL,
-          started_at TEXT,
-          finished_at TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS jobs_queue_idx ON jobs(status, priority DESC, scheduled_at, created_at);
-        CREATE TABLE IF NOT EXISTS outbox_events (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          event TEXT NOT NULL,
-          payload_json TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS outbox_chart_idx ON outbox_events(chart_id, id);
-        CREATE TABLE IF NOT EXISTS agent_runs (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          job_id TEXT NOT NULL REFERENCES jobs(id),
-          provider TEXT NOT NULL,
-          prompt_version TEXT NOT NULL,
-          input_checksum TEXT NOT NULL,
-          output_checksum TEXT,
-          status TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          finished_at TEXT
-        );
-        CREATE TABLE IF NOT EXISTS purchases (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          idempotency_key TEXT NOT NULL,
-          email_ciphertext BLOB,
-          email_lookup_hmac TEXT,
-          product_code TEXT NOT NULL DEFAULT 'full_report_v1',
-          provider TEXT NOT NULL,
-          provider_idempotency_key TEXT,
-          provider_payment_id TEXT,
-          checkout_url TEXT,
-          status TEXT NOT NULL,
-          provider_status TEXT,
-          provider_payload_json TEXT,
-          failure_code TEXT,
-          amount_minor INTEGER NOT NULL,
-          paid_amount_minor INTEGER,
-          refunded_amount_minor INTEGER NOT NULL DEFAULT 0,
-          currency TEXT NOT NULL,
-          offer_version TEXT,
-          last_reconciled_at TEXT,
-          paid_at TEXT,
-          canceled_at TEXT,
-          receipt_registration TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          UNIQUE(chart_id, idempotency_key)
-        );
-        CREATE TABLE IF NOT EXISTS payment_events (
-          provider TEXT NOT NULL,
-          provider_event_id TEXT NOT NULL,
-          event_type TEXT,
-          object_id TEXT,
-          payload_checksum TEXT NOT NULL,
-          received_at TEXT NOT NULL,
-          PRIMARY KEY(provider, provider_event_id)
-        );
-        CREATE TABLE IF NOT EXISTS payment_incidents (
-          id TEXT PRIMARY KEY,
-          purchase_id TEXT REFERENCES purchases(id),
-          category TEXT NOT NULL,
-          detail_json TEXT NOT NULL,
-          trace_id TEXT,
-          created_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS payment_incidents_purchase_idx
-          ON payment_incidents(purchase_id, created_at);
-        CREATE TABLE IF NOT EXISTS entitlements (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          product_code TEXT NOT NULL,
-          purchase_id TEXT REFERENCES purchases(id),
-          granted_at TEXT NOT NULL,
-          revoked_at TEXT,
-          revocation_reason TEXT,
-          UNIQUE(chart_id, product_code)
-        );
-        CREATE TABLE IF NOT EXISTS rectifications (
-          chart_id TEXT PRIMARY KEY REFERENCES charts(id),
-          status TEXT NOT NULL,
-          answers_ciphertext BLOB,
-          result_ciphertext BLOB,
-          error_code TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS refunds (
-          id TEXT PRIMARY KEY,
-          purchase_id TEXT NOT NULL REFERENCES purchases(id),
-          idempotency_key TEXT NOT NULL,
-          provider_idempotency_key TEXT NOT NULL,
-          provider_refund_id TEXT,
-          status TEXT NOT NULL,
-          amount_minor INTEGER NOT NULL,
-          currency TEXT NOT NULL,
-          reason_ciphertext BLOB,
-          actor_fingerprint TEXT NOT NULL,
-          failure_code TEXT,
-          receipt_registration TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          UNIQUE(purchase_id, idempotency_key),
-          UNIQUE(provider_idempotency_key),
-          UNIQUE(provider_refund_id)
-        );
-        CREATE INDEX IF NOT EXISTS refunds_purchase_idx ON refunds(purchase_id, status, created_at);
-        CREATE TABLE IF NOT EXISTS payment_operations (
-          id TEXT PRIMARY KEY,
-          action TEXT NOT NULL,
-          purchase_id TEXT REFERENCES purchases(id),
-          refund_id TEXT REFERENCES refunds(id),
-          actor_fingerprint TEXT NOT NULL,
-          source_ip TEXT NOT NULL,
-          trace_id TEXT NOT NULL,
-          reason_ciphertext BLOB,
-          amount_minor INTEGER,
-          result TEXT NOT NULL,
-          detail_json TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS payment_operations_purchase_idx
-          ON payment_operations(purchase_id, created_at);
-        CREATE TABLE IF NOT EXISTS reports (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          status TEXT NOT NULL,
-          path TEXT,
-          checksum TEXT,
-          size_bytes INTEGER,
-          pages INTEGER,
-          error_code TEXT,
-          render_request_id TEXT,
-          preferences_checksum TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL,
-          UNIQUE(chart_id)
-        );
-        CREATE TABLE IF NOT EXISTS pdf_render_requests (
-          id TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          job_id TEXT,
-          preferences_json TEXT NOT NULL,
-          preferences_checksum TEXT NOT NULL,
-          status TEXT NOT NULL,
-          path TEXT,
-          checksum TEXT,
-          size_bytes INTEGER,
-          pages INTEGER,
-          error_code TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS pdf_render_requests_chart_idx ON pdf_render_requests(chart_id, created_at DESC);
-        CREATE TABLE IF NOT EXISTS rate_limit_events (
-          bucket_key TEXT NOT NULL,
-          occurred_at REAL NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS rate_limit_events_bucket_idx
-          ON rate_limit_events(bucket_key, occurred_at);
-        CREATE TABLE IF NOT EXISTS saved_questions (
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          question_id TEXT NOT NULL,
-          saved INTEGER NOT NULL DEFAULT 0,
-          reflection_status TEXT NOT NULL DEFAULT 'saved',
-          note_ciphertext BLOB,
-          updated_at TEXT NOT NULL,
-          PRIMARY KEY(chart_id, question_id)
-        );
-        CREATE TABLE IF NOT EXISTS magic_links (
-          token_hash TEXT PRIMARY KEY,
-          chart_id TEXT NOT NULL REFERENCES charts(id),
-          scope TEXT NOT NULL,
-          render_request_id TEXT,
-          expires_at TEXT NOT NULL,
-          used_at TEXT,
-          created_at TEXT NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS magic_link_confirmations (
-          nonce_hash TEXT PRIMARY KEY,
-          magic_token_hash TEXT NOT NULL REFERENCES magic_links(token_hash) ON DELETE CASCADE,
-          csrf_token_hash TEXT NOT NULL,
-          expires_at TEXT NOT NULL,
-          used_at TEXT,
-          created_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS magic_link_confirmations_token_idx
-          ON magic_link_confirmations(magic_token_hash, created_at DESC);
-        CREATE TABLE IF NOT EXISTS privacy_requests (
-          id TEXT PRIMARY KEY,
-          request_type TEXT NOT NULL,
-          email_lookup_hmac TEXT NOT NULL,
-          email_ciphertext BLOB NOT NULL,
-          status TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS privacy_requests_lookup_idx
-          ON privacy_requests(email_lookup_hmac, created_at DESC);
-        CREATE TABLE IF NOT EXISTS erasure_tombstones (
-          chart_id TEXT PRIMARY KEY,
-          reason TEXT NOT NULL,
-          financial_records_retained INTEGER NOT NULL,
-          report_paths_json TEXT NOT NULL,
-          status TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          files_deleted_at TEXT,
-          last_error_code TEXT
-        );
-        CREATE TABLE IF NOT EXISTS retention_runs (
-          id TEXT PRIMARY KEY,
-          mode TEXT NOT NULL,
-          cutoff_at TEXT NOT NULL,
-          candidates INTEGER NOT NULL,
-          erased INTEGER NOT NULL,
-          failed INTEGER NOT NULL,
-          detail_json TEXT NOT NULL,
-          created_at TEXT NOT NULL,
-          finished_at TEXT
-        );
-        CREATE TABLE IF NOT EXISTS email_deliveries (
-          id TEXT PRIMARY KEY,
-          purpose TEXT NOT NULL,
-          request_key TEXT NOT NULL UNIQUE,
-          email_lookup_hmac TEXT,
-          purchase_id TEXT REFERENCES purchases(id),
-          chart_id TEXT REFERENCES charts(id),
-          render_request_id TEXT,
-          status TEXT NOT NULL,
-          attempts INTEGER NOT NULL DEFAULT 0,
-          scheduled_at TEXT NOT NULL,
-          provider_message_id TEXT,
-          error_code TEXT,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
-        );
-        CREATE INDEX IF NOT EXISTS email_deliveries_queue_idx
-          ON email_deliveries(status, scheduled_at, created_at);
-        """
         with self._lock, self._connection() as connection:
-            connection.executescript(statements)
-            self._ensure_columns(
-                connection,
-                "saved_questions",
-                {"reflection_status": "TEXT NOT NULL DEFAULT 'saved'"},
-            )
-            self._ensure_columns(
-                connection,
-                "purchases",
-                {
-                    "email_lookup_hmac": "TEXT",
-                    "product_code": "TEXT NOT NULL DEFAULT 'full_report_v1'",
-                    "provider_idempotency_key": "TEXT",
-                    "checkout_url": "TEXT",
-                    "provider_status": "TEXT",
-                    "provider_payload_json": "TEXT",
-                    "failure_code": "TEXT",
-                    "paid_amount_minor": "INTEGER",
-                    "refunded_amount_minor": "INTEGER NOT NULL DEFAULT 0",
-                    "offer_version": "TEXT",
-                    "last_reconciled_at": "TEXT",
-                    "paid_at": "TEXT",
-                    "canceled_at": "TEXT",
-                    "receipt_registration": "TEXT",
-                },
-            )
-            self._ensure_columns(connection, "birth_profiles", {"deleted_at": "TEXT"})
-            self._ensure_columns(connection, "charts", {"soft_deleted_at": "TEXT"})
-            self._ensure_columns(connection, "magic_links", {"render_request_id": "TEXT"})
-            self._ensure_columns(
-                connection,
-                "payment_events",
-                {"event_type": "TEXT", "object_id": "TEXT"},
-            )
-            self._ensure_columns(
-                connection,
-                "entitlements",
-                {"revoked_at": "TEXT", "revocation_reason": "TEXT"},
-            )
-            self._ensure_columns(
-                connection,
-                "jobs",
-                {"payload_json": "TEXT"},
-            )
-            self._ensure_columns(
-                connection,
-                "reports",
-                {"render_request_id": "TEXT", "preferences_checksum": "TEXT"},
-            )
-            self._ensure_columns(
-                connection,
-                "pdf_render_requests",
-                {
-                    "path": "TEXT",
-                    "checksum": "TEXT",
-                    "size_bytes": "INTEGER",
-                    "pages": "INTEGER",
-                    "error_code": "TEXT",
-                },
-            )
+            schema = connection.execute(
+                "SELECT to_regclass('runtime.charts') AS table_name"
+            ).fetchone()
+            if not schema or not schema["table_name"]:
+                raise RuntimeError("PostgreSQL runtime schema is missing; apply database migrations")
             connection.execute(
                 """UPDATE pdf_render_requests
                    SET path = COALESCE(path, (SELECT reports.path FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
@@ -479,30 +148,19 @@ class Store:
                    WHERE EXISTS (SELECT 1 FROM reports WHERE reports.render_request_id = pdf_render_requests.id)"""
             )
             connection.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS purchases_provider_key_idx ON purchases(provider, provider_idempotency_key)"
-            )
-            connection.execute(
-                "CREATE INDEX IF NOT EXISTS purchases_active_idx ON purchases(chart_id, product_code, status, created_at)"
-            )
-            connection.execute(
-                "CREATE INDEX IF NOT EXISTS purchases_email_lookup_idx ON purchases(email_lookup_hmac)"
-            )
-            connection.execute(
-                "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) SELECT id, session_id, created_at FROM charts"
+                """INSERT INTO chart_access (chart_id, session_id, granted_at)
+                   SELECT id, session_id, created_at FROM charts
+                   ON CONFLICT DO NOTHING"""
             )
             self._backfill_purchase_email_hmacs(connection)
             self._migrate_public_birth_payloads(connection)
 
     @staticmethod
-    def _ensure_columns(
-        connection: sqlite3.Connection,
-        table: str,
-        columns: dict[str, str],
-    ) -> None:
-        existing = {row["name"] for row in connection.execute(f"PRAGMA table_info({table})").fetchall()}
-        for name, definition in columns.items():
-            if name not in existing:
-                connection.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
+    def _begin(connection: psycopg.Connection[dict[str, Any]]) -> None:
+        connection.execute("BEGIN")
+        connection.execute(
+            "SELECT pg_advisory_xact_lock(hashtextextended('vedicway-runtime-store', 0))"
+        )
 
     @staticmethod
     def _token_hash(token: str) -> str:
@@ -516,7 +174,9 @@ class Store:
         normalized = self.normalize_email(email).encode("utf-8")
         return hmac.new(self._signing_key, b"email-lookup-v1:" + normalized, hashlib.sha256).hexdigest()
 
-    def _backfill_purchase_email_hmacs(self, connection: sqlite3.Connection) -> None:
+    def _backfill_purchase_email_hmacs(
+        self, connection: psycopg.Connection[dict[str, Any]]
+    ) -> None:
         rows = connection.execute(
             "SELECT id, email_ciphertext FROM purchases WHERE email_lookup_hmac IS NULL AND email_ciphertext IS NOT NULL"
         ).fetchall()
@@ -527,7 +187,7 @@ class Store:
                 continue
             if email:
                 connection.execute(
-                    "UPDATE purchases SET email_lookup_hmac = ? WHERE id = ?",
+                    "UPDATE purchases SET email_lookup_hmac = %s WHERE id = %s",
                     (self.email_lookup_hmac(email), row["id"]),
                 )
 
@@ -536,15 +196,15 @@ class Store:
         now = time.time()
         cutoff = now - window_seconds
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    "DELETE FROM rate_limit_events WHERE bucket_key = ? AND occurred_at <= ?",
+                    "DELETE FROM rate_limit_events WHERE bucket_key = %s AND occurred_at <= %s",
                     (bucket_key, cutoff),
                 )
                 row = connection.execute(
                     """SELECT COUNT(*) AS hits, MIN(occurred_at) AS oldest
-                       FROM rate_limit_events WHERE bucket_key = ?""",
+                       FROM rate_limit_events WHERE bucket_key = %s""",
                     (bucket_key,),
                 ).fetchone()
                 if row and int(row["hits"]) >= limit:
@@ -552,7 +212,7 @@ class Store:
                     connection.commit()
                     return retry_after
                 connection.execute(
-                    "INSERT INTO rate_limit_events (bucket_key, occurred_at) VALUES (?, ?)",
+                    "INSERT INTO rate_limit_events (bucket_key, occurred_at) VALUES (%s, %s)",
                     (bucket_key, now),
                 )
                 connection.commit()
@@ -586,17 +246,19 @@ class Store:
         # were encrypted. Startup rewrites every such row in one transaction.
         return _json_load(value, {})
 
-    def _migrate_public_birth_payloads(self, connection: sqlite3.Connection) -> None:
+    def _migrate_public_birth_payloads(
+        self, connection: psycopg.Connection[dict[str, Any]]
+    ) -> None:
         rows = connection.execute("SELECT id, birth_public_json FROM charts").fetchall()
         legacy = [row for row in rows if not str(row["birth_public_json"]).startswith(self._PUBLIC_BIRTH_PREFIX)]
         if not legacy:
             return
-        connection.execute("BEGIN IMMEDIATE")
+        self._begin(connection)
         try:
             for row in legacy:
                 payload = _json_load(str(row["birth_public_json"]), {})
                 connection.execute(
-                    "UPDATE charts SET birth_public_json = ? WHERE id = ?",
+                    "UPDATE charts SET birth_public_json = %s WHERE id = %s",
                     (self._encode_public_birth(payload), row["id"]),
                 )
             connection.commit()
@@ -610,7 +272,7 @@ class Store:
         now = _iso()
         with self._lock, self._connection() as connection:
             connection.execute(
-                "INSERT INTO anonymous_sessions (id, token_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)",
+                "INSERT INTO anonymous_sessions (id, token_hash, created_at, last_seen_at) VALUES (%s, %s, %s, %s)",
                 (session_id, self._token_hash(token), now, now),
             )
         return session_id, token
@@ -620,11 +282,11 @@ class Store:
             return None
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT id FROM anonymous_sessions WHERE token_hash = ?", (self._token_hash(token),)
+                "SELECT id FROM anonymous_sessions WHERE token_hash = %s", (self._token_hash(token),)
             ).fetchone()
             if not row:
                 return None
-            connection.execute("UPDATE anonymous_sessions SET last_seen_at = ? WHERE id = ?", (_iso(), row["id"]))
+            connection.execute("UPDATE anonymous_sessions SET last_seen_at = %s WHERE id = %s", (_iso(), row["id"]))
             return str(row["id"])
 
     def ensure_session(self, token: str | None) -> tuple[str, str | None]:
@@ -643,7 +305,7 @@ class Store:
     ) -> tuple[str, bool]:
         with self._lock, self._connection() as connection:
             existing = connection.execute(
-                "SELECT id FROM charts WHERE session_id = ? AND idempotency_key = ?",
+                "SELECT id FROM charts WHERE session_id = %s AND idempotency_key = %s",
                 (session_id, idempotency_key),
             ).fetchone()
             if existing:
@@ -659,16 +321,16 @@ class Store:
                 "utc_offset_seconds": birth.resolved_time.utc_offset_seconds,
                 "time_accuracy": birth.time_accuracy.value,
             }
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    "INSERT INTO birth_profiles (id, session_id, encrypted_payload, created_at) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO birth_profiles (id, session_id, encrypted_payload, created_at) VALUES (%s, %s, %s, %s)",
                     (profile_id, session_id, self._encrypt(birth.model_dump(mode="json")), now),
                 )
                 connection.execute(
                     """INSERT INTO charts
                     (id, session_id, birth_profile_id, idempotency_key, status, birth_public_json, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         chart_id,
                         session_id,
@@ -681,7 +343,7 @@ class Store:
                     ),
                 )
                 connection.execute(
-                    "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
+                    "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (%s, %s, %s)",
                     (chart_id, session_id, now),
                 )
                 if activate:
@@ -701,21 +363,21 @@ class Store:
     def activate_chart_after_consent(self, chart_id: str) -> bool:
         """Make a consent-pending chart visible to the calculation queue exactly once."""
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 chart = connection.execute(
-                    "SELECT status FROM charts WHERE id = ?", (chart_id,)
+                    "SELECT status FROM charts WHERE id = %s", (chart_id,)
                 ).fetchone()
                 if not chart:
                     raise RuntimeError("Consent-pending chart no longer exists")
                 existing_job = connection.execute(
-                    "SELECT 1 FROM jobs WHERE chart_id = ? AND job_type = 'instant_v1' LIMIT 1",
+                    "SELECT 1 FROM jobs WHERE chart_id = %s AND job_type = 'instant_v1' LIMIT 1",
                     (chart_id,),
                 ).fetchone()
                 if chart["status"] == "awaiting_consent":
                     now = _iso()
                     connection.execute(
-                        "UPDATE charts SET status = 'accepted', updated_at = ? WHERE id = ?",
+                        "UPDATE charts SET status = 'accepted', updated_at = %s WHERE id = %s",
                         (now, chart_id),
                     )
                     if not existing_job:
@@ -742,23 +404,23 @@ class Store:
     ) -> bool:
         """Remove every runtime artifact for a chart that never passed consent audit."""
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 chart = connection.execute(
                     """SELECT birth_profile_id FROM charts
-                       WHERE id = ? AND session_id = ? AND idempotency_key = ?
+                       WHERE id = %s AND session_id = %s AND idempotency_key = %s
                          AND status = 'awaiting_consent'""",
                     (chart_id, session_id, idempotency_key),
                 ).fetchone()
                 if not chart:
                     connection.rollback()
                     return False
-                connection.execute("DELETE FROM chart_access WHERE chart_id = ?", (chart_id,))
-                connection.execute("DELETE FROM outbox_events WHERE chart_id = ?", (chart_id,))
-                connection.execute("DELETE FROM jobs WHERE chart_id = ?", (chart_id,))
-                connection.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
+                connection.execute("DELETE FROM chart_access WHERE chart_id = %s", (chart_id,))
+                connection.execute("DELETE FROM outbox_events WHERE chart_id = %s", (chart_id,))
+                connection.execute("DELETE FROM jobs WHERE chart_id = %s", (chart_id,))
+                connection.execute("DELETE FROM charts WHERE id = %s", (chart_id,))
                 connection.execute(
-                    "DELETE FROM birth_profiles WHERE id = ?", (chart["birth_profile_id"],)
+                    "DELETE FROM birth_profiles WHERE id = %s", (chart["birth_profile_id"],)
                 )
                 connection.commit()
                 return True
@@ -771,7 +433,7 @@ class Store:
             row = connection.execute(
                 """SELECT 1 FROM chart_access
                    JOIN charts ON charts.id = chart_access.chart_id
-                   WHERE chart_access.chart_id = ? AND chart_access.session_id = ?
+                   WHERE chart_access.chart_id = %s AND chart_access.session_id = %s
                      AND charts.soft_deleted_at IS NULL""",
                 (chart_id, session_id),
             ).fetchone()
@@ -780,11 +442,13 @@ class Store:
     def grant_chart_access(self, chart_id: str, session_id: str) -> None:
         with self._lock, self._connection() as connection:
             chart = connection.execute(
-                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+                "SELECT 1 FROM charts WHERE id = %s AND soft_deleted_at IS NULL", (chart_id,)
             ).fetchone()
             if chart:
                 connection.execute(
-                    "INSERT OR IGNORE INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
+                    """INSERT INTO chart_access (chart_id, session_id, granted_at)
+                       VALUES (%s, %s, %s)
+                       ON CONFLICT DO NOTHING""",
                     (chart_id, session_id, _iso()),
                 )
 
@@ -793,17 +457,17 @@ class Store:
             row = connection.execute(
                 """SELECT birth_profiles.encrypted_payload FROM charts
                    JOIN birth_profiles ON birth_profiles.id = charts.birth_profile_id
-                   WHERE charts.id = ? AND charts.soft_deleted_at IS NULL""",
+                   WHERE charts.id = %s AND charts.soft_deleted_at IS NULL""",
                 (chart_id,),
             ).fetchone()
         if not row:
             raise LookupError(chart_id)
         return BirthInput.model_validate(self._decrypt(row["encrypted_payload"]))
 
-    def _get_chart_row(self, chart_id: str) -> sqlite3.Row:
+    def _get_chart_row(self, chart_id: str) -> dict[str, Any]:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+                "SELECT * FROM charts WHERE id = %s AND soft_deleted_at IS NULL", (chart_id,)
             ).fetchone()
         if not row:
             raise LookupError(chart_id)
@@ -818,7 +482,7 @@ class Store:
     def save_snapshot(self, chart_id: str, snapshot: ChartSnapshot) -> None:
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE charts SET snapshot_json = ?, status = 'partial_ready', updated_at = ? WHERE id = ?",
+                "UPDATE charts SET snapshot_json = %s, status = 'partial_ready', updated_at = %s WHERE id = %s",
                 (_json_dump(snapshot.model_dump(mode="json")), _iso(), chart_id),
             )
 
@@ -831,10 +495,10 @@ class Store:
     ) -> None:
         """Persist a state transition and its outbox records in one transaction."""
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    "UPDATE charts SET snapshot_json = ?, status = ?, updated_at = ? WHERE id = ?",
+                    "UPDATE charts SET snapshot_json = %s, status = %s, updated_at = %s WHERE id = %s",
                     (_json_dump(snapshot.model_dump(mode="json")), status, _iso(), chart_id),
                 )
                 for event, payload in events:
@@ -858,7 +522,7 @@ class Store:
         payload = {"facts": facts, "packets": packets}
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE charts SET evidence_json = ?, updated_at = ? WHERE id = ?",
+                "UPDATE charts SET evidence_json = %s, updated_at = %s WHERE id = %s",
                 (_json_dump(payload), _iso(), chart_id),
             )
 
@@ -871,10 +535,10 @@ class Store:
         events: list[tuple[str, dict[str, Any]]],
     ) -> None:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    "UPDATE charts SET snapshot_json = ?, evidence_json = ?, status = 'partial_ready', updated_at = ? WHERE id = ?",
+                    "UPDATE charts SET snapshot_json = %s, evidence_json = %s, status = 'partial_ready', updated_at = %s WHERE id = %s",
                     (
                         _json_dump(snapshot.model_dump(mode="json")),
                         _json_dump({"facts": facts, "packets": packets}),
@@ -897,7 +561,7 @@ class Store:
         field = "paid_bundle_json" if paid else "free_bundle_json"
         with self._lock, self._connection() as connection:
             connection.execute(
-                f"UPDATE charts SET {field} = ?, status = 'ready', updated_at = ? WHERE id = ?",
+                f"UPDATE charts SET {field} = %s, status = 'ready', updated_at = %s WHERE id = %s",
                 (_json_dump(bundle.model_dump(mode="json")), _iso(), chart_id),
             )
 
@@ -910,10 +574,10 @@ class Store:
     ) -> None:
         field = "paid_bundle_json" if paid else "free_bundle_json"
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    f"UPDATE charts SET {field} = ?, status = 'ready', updated_at = ? WHERE id = ?",
+                    f"UPDATE charts SET {field} = %s, status = 'ready', updated_at = %s WHERE id = %s",
                     (_json_dump(bundle.model_dump(mode="json")), _iso(), chart_id),
                 )
                 for event, payload in events:
@@ -943,8 +607,19 @@ class Store:
         # Interpretation and reflection questions are persisted separately from the
         # immutable calculation snapshot. Publish their concrete readiness beside
         # the calculation sections so each tab can expose its own state.
-        section_statuses.setdefault("interpretation", "ready" if bundle else "queued")
-        section_statuses.setdefault("questions", "ready" if bundle else "queued")
+        interpretation_status = "ready" if bundle else "queued"
+        if not bundle:
+            interpretation_job = self.get_job(chart_id, "interpretation_free_v1")
+            if interpretation_job:
+                job_status = str(interpretation_job["status"])
+                if job_status in {JobStatus.RUNNING.value, JobStatus.VALIDATING.value}:
+                    interpretation_status = "running"
+                elif job_status == JobStatus.FAILED_RETRYABLE.value:
+                    interpretation_status = "error"
+                elif job_status == JobStatus.FAILED_TERMINAL.value:
+                    interpretation_status = "unavailable"
+        section_statuses.setdefault("interpretation", interpretation_status)
+        section_statuses.setdefault("questions", interpretation_status)
         return {
             "chart_id": chart_id,
             "status": row["status"],
@@ -959,7 +634,7 @@ class Store:
 
     def mark_chart_status(self, chart_id: str, status: str) -> None:
         with self._lock, self._connection() as connection:
-            connection.execute("UPDATE charts SET status = ?, updated_at = ? WHERE id = ?", (status, _iso(), chart_id))
+            connection.execute("UPDATE charts SET status = %s, updated_at = %s WHERE id = %s", (status, _iso(), chart_id))
 
     def get_section(self, chart_id: str, section: str, include_paid: bool = False) -> dict[str, Any] | None:
         if section in {"interpretation", "questions"}:
@@ -980,7 +655,7 @@ class Store:
 
     def _enqueue(
         self,
-        connection: sqlite3.Connection,
+        connection: psycopg.Connection[dict[str, Any]],
         chart_id: str,
         job_type: str,
         priority: int = 10,
@@ -990,17 +665,17 @@ class Store:
         job_id = self._new_id("job")
         connection.execute(
             """INSERT INTO jobs (id, chart_id, job_type, status, priority, payload_json, scheduled_at, created_at, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             (job_id, chart_id, job_type, JobStatus.QUEUED.value, priority, _json_dump(payload) if payload else None, now, now, now),
         )
         return job_id
 
     def enqueue_job(self, chart_id: str, job_type: str, priority: int = 10) -> str:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 existing = connection.execute(
-                    """SELECT id FROM jobs WHERE chart_id = ? AND job_type = ?
+                    """SELECT id FROM jobs WHERE chart_id = %s AND job_type = %s
                        AND status IN ('queued', 'running', 'validating', 'succeeded') ORDER BY created_at DESC LIMIT 1""",
                     (chart_id, job_type),
                 ).fetchone()
@@ -1021,7 +696,7 @@ class Store:
         now = _iso()
         request_id = self._new_id("pdfreq")
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
                     """UPDATE pdf_render_requests
@@ -1030,12 +705,12 @@ class Store:
                            size_bytes = COALESCE(size_bytes, (SELECT reports.size_bytes FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
                            pages = COALESCE(pages, (SELECT reports.pages FROM reports WHERE reports.render_request_id = pdf_render_requests.id)),
                            error_code = COALESCE(error_code, (SELECT reports.error_code FROM reports WHERE reports.render_request_id = pdf_render_requests.id))
-                       WHERE id = (SELECT render_request_id FROM reports WHERE chart_id = ?)""",
+                       WHERE id = (SELECT render_request_id FROM reports WHERE chart_id = %s)""",
                     (chart_id,),
                 )
                 active = connection.execute(
                     """SELECT id, job_id, preferences_checksum FROM pdf_render_requests
-                       WHERE chart_id = ? AND status IN ('queued', 'generating')
+                       WHERE chart_id = %s AND status IN ('queued', 'generating')
                        ORDER BY created_at DESC LIMIT 1""",
                     (chart_id,),
                 ).fetchone()
@@ -1049,10 +724,10 @@ class Store:
                         status_code=409,
                     )
                 recent_renders = connection.execute(
-                    """SELECT COUNT(*) FROM pdf_render_requests
-                       WHERE chart_id = ? AND created_at >= ?""",
+                    """SELECT COUNT(*) AS render_count FROM pdf_render_requests
+                       WHERE chart_id = %s AND created_at >= %s""",
                     (chart_id, _iso(_utc_now() - timedelta(days=1))),
-                ).fetchone()[0]
+                ).fetchone()["render_count"]
                 if recent_renders >= 10:
                     raise DomainError(
                         "PDF_RENDER_LIMIT",
@@ -1063,7 +738,7 @@ class Store:
                 connection.execute(
                     """INSERT INTO pdf_render_requests
                        (id, chart_id, preferences_json, preferences_checksum, status, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, 'queued', ?, ?)""",
+                       VALUES (%s, %s, %s, %s, 'queued', %s, %s)""",
                     (request_id, chart_id, raw_preferences, checksum, now, now),
                 )
                 job_id = self._enqueue(
@@ -1074,13 +749,13 @@ class Store:
                     {"render_request_id": request_id},
                 )
                 connection.execute(
-                    "UPDATE pdf_render_requests SET job_id = ?, updated_at = ? WHERE id = ?",
+                    "UPDATE pdf_render_requests SET job_id = %s, updated_at = %s WHERE id = %s",
                     (job_id, now, request_id),
                 )
                 connection.execute(
                     """INSERT INTO reports
                        (id, chart_id, status, render_request_id, preferences_checksum, created_at, updated_at)
-                       VALUES (?, ?, 'generating', ?, ?, ?, ?)
+                       VALUES (%s, %s, 'generating', %s, %s, %s, %s)
                        ON CONFLICT(chart_id) DO UPDATE SET
                          status = 'generating', path = NULL, checksum = NULL, size_bytes = NULL,
                          pages = NULL, error_code = NULL, render_request_id = excluded.render_request_id,
@@ -1096,7 +771,7 @@ class Store:
 
     def get_pdf_render_request(self, request_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT * FROM pdf_render_requests WHERE id = ?", (request_id,)).fetchone()
+            row = connection.execute("SELECT * FROM pdf_render_requests WHERE id = %s", (request_id,)).fetchone()
         if not row:
             return None
         result = dict(row)
@@ -1106,16 +781,16 @@ class Store:
     def update_pdf_render_request(self, request_id: str, status: str) -> None:
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE pdf_render_requests SET status = ?, updated_at = ? WHERE id = ?",
+                "UPDATE pdf_render_requests SET status = %s, updated_at = %s WHERE id = %s",
                 (status, _iso(), request_id),
             )
 
     def claim_next_job(self) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 row = connection.execute(
-                    """SELECT * FROM jobs WHERE status = 'queued' AND scheduled_at <= ?
+                    """SELECT * FROM jobs WHERE status = 'queued' AND scheduled_at <= %s
                        ORDER BY priority DESC, created_at ASC LIMIT 1""",
                     (_iso(),),
                 ).fetchone()
@@ -1124,7 +799,7 @@ class Store:
                     return None
                 now = _iso()
                 connection.execute(
-                    """UPDATE jobs SET status = ?, attempts = attempts + 1, started_at = ?, updated_at = ? WHERE id = ?""",
+                    """UPDATE jobs SET status = %s, attempts = attempts + 1, started_at = %s, updated_at = %s WHERE id = %s""",
                     (JobStatus.RUNNING.value, now, now, row["id"]),
                 )
                 connection.commit()
@@ -1137,14 +812,14 @@ class Store:
         finished = _iso() if status in {JobStatus.SUCCEEDED, JobStatus.FAILED_RETRYABLE, JobStatus.FAILED_TERMINAL} else None
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE jobs SET status = ?, error_json = ?, finished_at = ?, updated_at = ? WHERE id = ?",
+                "UPDATE jobs SET status = %s, error_json = %s, finished_at = %s, updated_at = %s WHERE id = %s",
                 (status.value, _json_dump(error) if error else None, finished, _iso(), job_id),
             )
 
     def get_job(self, chart_id: str, job_type: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM jobs WHERE chart_id = ? AND job_type = ? ORDER BY created_at DESC LIMIT 1",
+                "SELECT * FROM jobs WHERE chart_id = %s AND job_type = %s ORDER BY created_at DESC LIMIT 1",
                 (chart_id, job_type),
             ).fetchone()
             return dict(row) if row else None
@@ -1161,7 +836,7 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """INSERT INTO agent_runs (id, chart_id, job_id, provider, prompt_version, input_checksum, status, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, 'running', ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s, 'running', %s)""",
                 (run_id, chart_id, job_id, provider, prompt_version, input_checksum, _iso()),
             )
         return run_id
@@ -1169,31 +844,69 @@ class Store:
     def finish_agent_run(self, run_id: str, status: str, output_checksum: str | None = None) -> None:
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE agent_runs SET status = ?, output_checksum = ?, finished_at = ? WHERE id = ?",
+                "UPDATE agent_runs SET status = %s, output_checksum = %s, finished_at = %s WHERE id = %s",
                 (status, output_checksum, _iso(), run_id),
             )
+
+    def has_successful_agent_run(self, chart_id: str, prompt_version: str) -> bool:
+        with self._lock, self._connection() as connection:
+            return connection.execute(
+                """SELECT 1 FROM agent_runs
+                   WHERE chart_id = %s AND prompt_version = %s AND status = 'succeeded'
+                     AND output_checksum IS NOT NULL
+                   LIMIT 1""",
+                (chart_id, prompt_version),
+            ).fetchone() is not None
+
+    def enqueue_paid_report_refresh(self, chart_id: str, priority: int = 90) -> str:
+        with self._lock, self._connection() as connection:
+            self._begin(connection)
+            try:
+                existing = connection.execute(
+                    """SELECT id FROM jobs WHERE chart_id = %s AND job_type = 'paid_report_v1'
+                       AND status IN ('queued', 'running', 'validating')
+                       ORDER BY created_at DESC LIMIT 1""",
+                    (chart_id,),
+                ).fetchone()
+                if existing:
+                    connection.commit()
+                    return str(existing["id"])
+                job_id = self._enqueue(connection, chart_id, "paid_report_v1", priority)
+                connection.commit()
+                return job_id
+            except Exception:
+                connection.rollback()
+                raise
 
     def retry_job(self, chart_id: str, job_type: str) -> str | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM jobs WHERE chart_id = ? AND job_type = ? ORDER BY created_at DESC LIMIT 1",
+                "SELECT * FROM jobs WHERE chart_id = %s AND job_type = %s ORDER BY created_at DESC LIMIT 1",
                 (chart_id, job_type),
             ).fetchone()
             if not row or row["status"] != JobStatus.FAILED_RETRYABLE.value:
                 return None
             now = _iso()
             connection.execute(
-                "UPDATE jobs SET status = 'queued', error_json = NULL, scheduled_at = ?, updated_at = ? WHERE id = ?",
+                "UPDATE jobs SET status = 'queued', error_json = NULL, scheduled_at = %s, updated_at = %s WHERE id = %s",
                 (now, now, row["id"]),
             )
             return str(row["id"])
 
-    def _emit(self, connection: sqlite3.Connection, chart_id: str, event: str, payload: dict[str, Any]) -> int:
-        cursor = connection.execute(
-            "INSERT INTO outbox_events (chart_id, event, payload_json, created_at) VALUES (?, ?, ?, ?)",
+    def _emit(
+        self,
+        connection: psycopg.Connection[dict[str, Any]],
+        chart_id: str,
+        event: str,
+        payload: dict[str, Any],
+    ) -> int:
+        row = connection.execute(
+            """INSERT INTO outbox_events (chart_id, event, payload_json, created_at)
+               VALUES (%s, %s, %s, %s)
+               RETURNING id""",
             (chart_id, event, _json_dump(payload), _iso()),
-        )
-        return int(cursor.lastrowid)
+        ).fetchone()
+        return int(row["id"])
 
     def emit(self, chart_id: str, event: str, payload: dict[str, Any]) -> int:
         with self._lock, self._connection() as connection:
@@ -1202,7 +915,7 @@ class Store:
     def events_since(self, chart_id: str, last_id: int = 0) -> list[ChartEvent]:
         with self._lock, self._connection() as connection:
             rows = connection.execute(
-                "SELECT * FROM outbox_events WHERE chart_id = ? AND id > ? ORDER BY id ASC",
+                "SELECT * FROM outbox_events WHERE chart_id = %s AND id > %s ORDER BY id ASC",
                 (chart_id, last_id),
             ).fetchall()
         return [
@@ -1237,10 +950,10 @@ class Store:
             "test" if os.environ.get("VEDICWAY_TEST_PAYMENTS") == "1" else "pending_provider"
         )
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 existing = connection.execute(
-                    "SELECT * FROM purchases WHERE chart_id = ? AND idempotency_key = ?",
+                    "SELECT * FROM purchases WHERE chart_id = %s AND idempotency_key = %s",
                     (chart_id, idempotency_key),
                 ).fetchone()
                 if existing:
@@ -1248,7 +961,7 @@ class Store:
                     return dict(existing), False
                 active = connection.execute(
                     """SELECT * FROM purchases
-                       WHERE chart_id = ? AND product_code = ? AND status IN ('created', 'pending', 'unknown')
+                       WHERE chart_id = %s AND product_code = %s AND status IN ('created', 'pending', 'unknown')
                        ORDER BY created_at DESC LIMIT 1""",
                     (chart_id, product_code),
                 ).fetchone()
@@ -1262,7 +975,7 @@ class Store:
                     "idempotency_key": idempotency_key,
                     "product_code": product_code,
                     "provider": selected_provider,
-                    "provider_idempotency_key": secrets.token_urlsafe(32),
+                    "provider_idempotency_key": str(uuid.uuid4()),
                     "provider_payment_id": None,
                     "checkout_url": None,
                     "status": "created",
@@ -1281,7 +994,7 @@ class Store:
                         provider_idempotency_key, provider_payment_id, checkout_url, status,
                         provider_status, amount_minor, paid_amount_minor, refunded_amount_minor,
                         currency, offer_version, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         purchase["id"], chart_id, idempotency_key,
                         self._encrypt({"email": email}) if email else None,
@@ -1300,13 +1013,13 @@ class Store:
 
     def get_purchase(self, purchase_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
+            row = connection.execute("SELECT * FROM purchases WHERE id = %s", (purchase_id,)).fetchone()
             return dict(row) if row else None
 
     def get_purchase_email(self, purchase_id: str) -> str | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT email_ciphertext FROM purchases WHERE id = ?", (purchase_id,)
+                "SELECT email_ciphertext FROM purchases WHERE id = %s", (purchase_id,)
             ).fetchone()
         if not row:
             raise LookupError(purchase_id)
@@ -1323,7 +1036,7 @@ class Store:
             connection.execute(
                 """INSERT INTO privacy_requests
                    (id, request_type, email_lookup_hmac, email_ciphertext, status, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, 'received', ?, ?)""",
+                   VALUES (%s, %s, %s, %s, 'received', %s, %s)""",
                 (
                     request_id,
                     request_type,
@@ -1342,7 +1055,7 @@ class Store:
             connection.execute(
                 """INSERT INTO email_deliveries
                    (id, purpose, request_key, email_lookup_hmac, status, scheduled_at, created_at, updated_at)
-                   VALUES (?, 'access_recovery', ?, ?, 'queued', ?, ?, ?)""",
+                   VALUES (%s, 'access_recovery', %s, %s, 'queued', %s, %s, %s)""",
                 (
                     delivery_id,
                     f"access-recovery:{secrets.token_urlsafe(24)}",
@@ -1359,7 +1072,8 @@ class Store:
         with self._lock, self._connection() as connection:
             purchase = connection.execute(
                 """SELECT id FROM purchases
-                   WHERE chart_id = ? AND status IN ('succeeded', 'partially_refunded')
+                   WHERE chart_id = %s AND status IN ('succeeded', 'partially_refunded')
+                     AND product_code = 'full_report_v1'
                      AND email_ciphertext IS NOT NULL
                    ORDER BY paid_at DESC, created_at DESC LIMIT 1""",
                 (chart_id,),
@@ -1368,10 +1082,11 @@ class Store:
                 return None
             delivery_id = self._new_id("mail")
             cursor = connection.execute(
-                """INSERT OR IGNORE INTO email_deliveries
+                """INSERT INTO email_deliveries
                    (id, purpose, request_key, purchase_id, chart_id, render_request_id,
-                    status, scheduled_at, created_at, updated_at)
-                   VALUES (?, 'purchase_ready', ?, ?, ?, ?, 'queued', ?, ?, ?)""",
+                     status, scheduled_at, created_at, updated_at)
+                   VALUES (%s, 'purchase_ready', %s, %s, %s, %s, 'queued', %s, %s, %s)
+                   ON CONFLICT DO NOTHING""",
                 (
                     delivery_id,
                     f"purchase-ready:{purchase['id']}",
@@ -1385,20 +1100,52 @@ class Store:
             )
             return delivery_id if cursor.rowcount else None
 
+    def enqueue_rectification_ready_email(self, chart_id: str) -> str | None:
+        now = _iso()
+        with self._lock, self._connection() as connection:
+            purchase = connection.execute(
+                """SELECT id FROM purchases
+                   WHERE chart_id = %s AND status IN ('succeeded', 'partially_refunded')
+                     AND product_code = 'birth_time_rectification_v1'
+                     AND email_ciphertext IS NOT NULL
+                   ORDER BY paid_at DESC, created_at DESC LIMIT 1""",
+                (chart_id,),
+            ).fetchone()
+            if not purchase:
+                return None
+            delivery_id = self._new_id("mail")
+            cursor = connection.execute(
+                """INSERT INTO email_deliveries
+                   (id, purpose, request_key, purchase_id, chart_id,
+                     status, scheduled_at, created_at, updated_at)
+                   VALUES (%s, 'rectification_ready', %s, %s, %s, 'queued', %s, %s, %s)
+                   ON CONFLICT DO NOTHING""",
+                (
+                    delivery_id,
+                    f"rectification-ready:{purchase['id']}",
+                    purchase["id"],
+                    chart_id,
+                    now,
+                    now,
+                    now,
+                ),
+            )
+            return delivery_id if cursor.rowcount else None
+
     def claim_next_email_delivery(self) -> dict[str, Any] | None:
         now = _utc_now()
         stale = _iso(now - timedelta(minutes=15))
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
-                    """UPDATE email_deliveries SET status = 'queued', updated_at = ?
-                       WHERE status = 'sending' AND updated_at < ? AND attempts < 3""",
+                    """UPDATE email_deliveries SET status = 'queued', updated_at = %s
+                       WHERE status = 'sending' AND updated_at < %s AND attempts < 3""",
                     (_iso(now), stale),
                 )
                 row = connection.execute(
                     """SELECT * FROM email_deliveries
-                       WHERE status = 'queued' AND scheduled_at <= ? AND attempts < 3
+                       WHERE status = 'queued' AND scheduled_at <= %s AND attempts < 3
                        ORDER BY created_at, id LIMIT 1""",
                     (_iso(now),),
                 ).fetchone()
@@ -1407,11 +1154,11 @@ class Store:
                     return None
                 connection.execute(
                     """UPDATE email_deliveries
-                       SET status = 'sending', attempts = attempts + 1, updated_at = ? WHERE id = ?""",
+                       SET status = 'sending', attempts = attempts + 1, updated_at = %s WHERE id = %s""",
                     (_iso(now), row["id"]),
                 )
                 claimed = connection.execute(
-                    "SELECT * FROM email_deliveries WHERE id = ?", (row["id"],)
+                    "SELECT * FROM email_deliveries WHERE id = %s", (row["id"],)
                 ).fetchone()
                 connection.commit()
                 return dict(claimed)
@@ -1430,7 +1177,7 @@ class Store:
     ) -> None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT attempts FROM email_deliveries WHERE id = ?", (delivery_id,)
+                "SELECT attempts FROM email_deliveries WHERE id = %s", (delivery_id,)
             ).fetchone()
             if not row:
                 return
@@ -1443,8 +1190,8 @@ class Store:
                 scheduled_at = _iso()
             connection.execute(
                 """UPDATE email_deliveries
-                   SET status = ?, scheduled_at = ?, provider_message_id = ?, error_code = ?, updated_at = ?
-                   WHERE id = ?""",
+                   SET status = %s, scheduled_at = %s, provider_message_id = %s, error_code = %s, updated_at = %s
+                   WHERE id = %s""",
                 (
                     next_status,
                     scheduled_at,
@@ -1472,7 +1219,7 @@ class Store:
                      WHERE pr.chart_id = p.chart_id AND pr.status = 'ready' AND pr.path IS NOT NULL
                      ORDER BY pr.updated_at DESC, pr.created_at DESC LIMIT 1
                    )
-                   WHERE p.email_lookup_hmac = ?
+                   WHERE p.email_lookup_hmac = %s
                      AND p.status IN ('succeeded', 'partially_refunded')
                    ORDER BY p.paid_at DESC, p.created_at DESC""",
                 (email_lookup_hmac,),
@@ -1509,11 +1256,12 @@ class Store:
                 """SELECT p.chart_id, p.email_ciphertext
                    FROM purchases p
                    JOIN charts c ON c.id = p.chart_id AND c.soft_deleted_at IS NULL
-                   JOIN entitlements e ON e.chart_id = p.chart_id
+                   JOIN entitlements e ON e.chart_id = p.chart_id AND e.purchase_id = p.id
                      AND e.product_code = 'report_full' AND e.revoked_at IS NULL
-                   JOIN pdf_render_requests r ON r.id = ? AND r.chart_id = p.chart_id
+                   JOIN pdf_render_requests r ON r.id = %s AND r.chart_id = p.chart_id
                      AND r.status = 'ready' AND r.path IS NOT NULL
-                   WHERE p.id = ? AND p.status IN ('succeeded', 'partially_refunded')""",
+                   WHERE p.id = %s AND p.product_code = 'full_report_v1'
+                     AND p.status IN ('succeeded', 'partially_refunded')""",
                 (render_request_id, purchase_id),
             ).fetchone()
         if not row or not row["email_ciphertext"]:
@@ -1526,6 +1274,33 @@ class Store:
             "chart_id": str(row["chart_id"]),
             "email": email,
             "render_request_id": render_request_id,
+        }
+
+    def rectification_ready_target(self, purchase_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connection() as connection:
+            row = connection.execute(
+                """SELECT p.chart_id, p.email_ciphertext, rr.result_ciphertext
+                   FROM purchases p
+                   JOIN charts c ON c.id = p.chart_id AND c.soft_deleted_at IS NULL
+                   JOIN entitlements e ON e.chart_id = p.chart_id AND e.purchase_id = p.id
+                     AND e.product_code = 'birth_time_rectification' AND e.revoked_at IS NULL
+                   JOIN rectifications rr ON rr.chart_id = p.chart_id
+                     AND rr.status = 'ready' AND rr.result_ciphertext IS NOT NULL
+                   WHERE p.id = %s AND p.product_code = 'birth_time_rectification_v1'
+                     AND p.status IN ('succeeded', 'partially_refunded')""",
+                (purchase_id,),
+            ).fetchone()
+        if not row or not row["email_ciphertext"] or not row["result_ciphertext"]:
+            return None
+        email = str(self._decrypt(row["email_ciphertext"]).get("email") or "")
+        result = self._decrypt(row["result_ciphertext"])
+        if not email:
+            return None
+        return {
+            "purchase_id": purchase_id,
+            "chart_id": str(row["chart_id"]),
+            "email": email,
+            "result": result,
         }
 
     def set_provider_payment(
@@ -1544,11 +1319,11 @@ class Store:
         with self._lock, self._connection() as connection:
             cursor = connection.execute(
                 """UPDATE purchases
-                   SET provider = ?, provider_payment_id = COALESCE(?, provider_payment_id),
-                       checkout_url = COALESCE(?, checkout_url), status = ?,
-                       provider_status = ?, provider_payload_json = COALESCE(?, provider_payload_json), failure_code = ?,
-                       receipt_registration = ?, updated_at = ?
-                   WHERE id = ?""",
+                   SET provider = %s, provider_payment_id = COALESCE(%s, provider_payment_id),
+                       checkout_url = COALESCE(%s, checkout_url), status = %s,
+                       provider_status = %s, provider_payload_json = COALESCE(%s, provider_payload_json), failure_code = %s,
+                       receipt_registration = %s, updated_at = %s
+                   WHERE id = %s""",
                 (
                     provider, provider_payment_id, checkout_url, status,
                     provider_status or status,
@@ -1562,7 +1337,7 @@ class Store:
     def get_purchase_by_provider_payment_id(self, provider: str, provider_payment_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM purchases WHERE provider = ? AND provider_payment_id = ?",
+                "SELECT * FROM purchases WHERE provider = %s AND provider_payment_id = %s",
                 (provider, provider_payment_id),
             ).fetchone()
             return dict(row) if row else None
@@ -1570,16 +1345,16 @@ class Store:
     def payment_event_exists(self, provider: str, provider_event_id: str) -> bool:
         with self._lock, self._connection() as connection:
             return connection.execute(
-                "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
+                "SELECT 1 FROM payment_events WHERE provider = %s AND provider_event_id = %s",
                 (provider, provider_event_id),
             ).fetchone() is not None
 
     def claim_purchase_reconciliation(self, purchase_id: str, cooldown_seconds: int = 5) -> bool:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 row = connection.execute(
-                    "SELECT last_reconciled_at FROM purchases WHERE id = ?", (purchase_id,)
+                    "SELECT last_reconciled_at FROM purchases WHERE id = %s", (purchase_id,)
                 ).fetchone()
                 if not row:
                     connection.rollback()
@@ -1592,7 +1367,7 @@ class Store:
                         connection.commit()
                         return False
                 connection.execute(
-                    "UPDATE purchases SET last_reconciled_at = ?, updated_at = ? WHERE id = ?",
+                    "UPDATE purchases SET last_reconciled_at = %s, updated_at = %s WHERE id = %s",
                     (_iso(now), _iso(now), purchase_id),
                 )
                 connection.commit()
@@ -1613,7 +1388,7 @@ class Store:
             connection.execute(
                 """INSERT INTO payment_incidents
                    (id, purchase_id, category, detail_json, trace_id, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
                 (incident_id, purchase_id, category, _json_dump(detail), trace_id, _iso()),
             )
         return incident_id
@@ -1621,7 +1396,7 @@ class Store:
     def payment_incidents(self, purchase_id: str) -> list[dict[str, Any]]:
         with self._lock, self._connection() as connection:
             rows = connection.execute(
-                "SELECT * FROM payment_incidents WHERE purchase_id = ? ORDER BY created_at, id",
+                "SELECT * FROM payment_incidents WHERE purchase_id = %s ORDER BY created_at, id",
                 (purchase_id,),
             ).fetchall()
         return [
@@ -1662,14 +1437,14 @@ class Store:
         """Apply a verified provider state after checking immutable order data."""
         metadata = metadata or {}
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
-                purchase = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
+                purchase = connection.execute("SELECT * FROM purchases WHERE id = %s", (purchase_id,)).fetchone()
                 if not purchase:
                     connection.rollback()
                     raise LookupError(purchase_id)
                 duplicate = connection.execute(
-                    "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
+                    "SELECT 1 FROM payment_events WHERE provider = %s AND provider_event_id = %s",
                     (purchase["provider"], provider_event_id),
                 ).fetchone()
                 if duplicate:
@@ -1710,7 +1485,7 @@ class Store:
                 connection.execute(
                     """INSERT INTO payment_events
                        (provider, provider_event_id, event_type, object_id, payload_checksum, received_at)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
+                       VALUES (%s, %s, %s, %s, %s, %s)""",
                     (purchase["provider"], provider_event_id, event_type, object_id, payload_checksum, now),
                 )
                 normalized = "cancelled" if status in {"cancelled", "canceled"} else status
@@ -1720,10 +1495,10 @@ class Store:
                 if normalized == "succeeded":
                     connection.execute(
                         """UPDATE purchases
-                           SET provider_payment_id = ?, status = 'succeeded', provider_status = ?,
-                               paid_amount_minor = ?, failure_code = NULL, paid_at = COALESCE(paid_at, ?),
-                               last_reconciled_at = ?, receipt_registration = COALESCE(?, receipt_registration),
-                               updated_at = ? WHERE id = ?""",
+                           SET provider_payment_id = %s, status = 'succeeded', provider_status = %s,
+                               paid_amount_minor = %s, failure_code = NULL, paid_at = COALESCE(paid_at, %s),
+                               last_reconciled_at = %s, receipt_registration = COALESCE(%s, receipt_registration),
+                               updated_at = %s WHERE id = %s""",
                         (
                             provider_payment_id, provider_status, amount_minor, now, now,
                             receipt_registration, now, purchase_id,
@@ -1732,14 +1507,14 @@ class Store:
                     entitlement_code = _entitlement_for_product(str(purchase["product_code"]))
                     entitlement = connection.execute(
                         """SELECT * FROM entitlements
-                           WHERE chart_id = ? AND product_code = ?""",
+                           WHERE chart_id = %s AND product_code = %s""",
                         (purchase["chart_id"], entitlement_code),
                     ).fetchone()
                     if not entitlement or entitlement["revoked_at"] is not None:
                         connection.execute(
                             """INSERT INTO entitlements
                                (id, chart_id, product_code, purchase_id, granted_at, revoked_at, revocation_reason)
-                               VALUES (?, ?, ?, ?, ?, NULL, NULL)
+                               VALUES (%s, %s, %s, %s, %s, NULL, NULL)
                                ON CONFLICT(chart_id, product_code) DO UPDATE SET
                                  purchase_id = excluded.purchase_id,
                                  granted_at = excluded.granted_at,
@@ -1765,7 +1540,7 @@ class Store:
                             connection.execute(
                                 """INSERT INTO rectifications
                                    (chart_id, status, created_at, updated_at)
-                                   VALUES (?, 'awaiting_answers', ?, ?)
+                                   VALUES (%s, 'awaiting_answers', %s, %s)
                                    ON CONFLICT(chart_id) DO UPDATE SET
                                      status = CASE
                                        WHEN rectifications.status = 'failed' THEN 'awaiting_answers'
@@ -1779,9 +1554,9 @@ class Store:
                 elif normalized == "cancelled" and current_status not in {"succeeded", "partially_refunded", "refunded"}:
                     connection.execute(
                         """UPDATE purchases
-                           SET provider_payment_id = ?, status = 'cancelled', provider_status = ?,
-                               failure_code = ?, canceled_at = COALESCE(canceled_at, ?),
-                               last_reconciled_at = ?, updated_at = ? WHERE id = ?""",
+                           SET provider_payment_id = %s, status = 'cancelled', provider_status = %s,
+                               failure_code = %s, canceled_at = COALESCE(canceled_at, %s),
+                               last_reconciled_at = %s, updated_at = %s WHERE id = %s""",
                         (provider_payment_id, provider_status, failure_code, now, now, now, purchase_id),
                     )
                     self._emit(
@@ -1794,11 +1569,11 @@ class Store:
                     next_status = normalized if current_status not in {"succeeded", "partially_refunded", "refunded"} else current_status
                     connection.execute(
                         """UPDATE purchases
-                           SET provider_payment_id = ?, status = ?, provider_status = ?, failure_code = ?,
-                               last_reconciled_at = ?, updated_at = ? WHERE id = ?""",
+                           SET provider_payment_id = %s, status = %s, provider_status = %s, failure_code = %s,
+                               last_reconciled_at = %s, updated_at = %s WHERE id = %s""",
                         (provider_payment_id, next_status, provider_status, failure_code, now, now, purchase_id),
                     )
-                final = connection.execute("SELECT status FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
+                final = connection.execute("SELECT status FROM purchases WHERE id = %s", (purchase_id,)).fetchone()
                 connection.commit()
                 return {
                     "duplicate": False,
@@ -1845,16 +1620,16 @@ class Store:
         actor_fingerprint: str,
     ) -> tuple[dict[str, Any], bool]:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 existing = connection.execute(
-                    "SELECT * FROM refunds WHERE purchase_id = ? AND idempotency_key = ?",
+                    "SELECT * FROM refunds WHERE purchase_id = %s AND idempotency_key = %s",
                     (purchase_id, idempotency_key),
                 ).fetchone()
                 if existing:
                     connection.commit()
                     return dict(existing), False
-                purchase = connection.execute("SELECT * FROM purchases WHERE id = ?", (purchase_id,)).fetchone()
+                purchase = connection.execute("SELECT * FROM purchases WHERE id = %s", (purchase_id,)).fetchone()
                 if not purchase:
                     raise DomainError("PURCHASE_NOT_FOUND", "Заказ не найден.", status_code=404)
                 if purchase["status"] not in {"succeeded", "partially_refunded"}:
@@ -1867,7 +1642,7 @@ class Store:
                 paid_amount = int(purchase["paid_amount_minor"] or purchase["amount_minor"])
                 reserved_row = connection.execute(
                     """SELECT COALESCE(SUM(amount_minor), 0) AS total FROM refunds
-                       WHERE purchase_id = ? AND status IN ('created', 'pending', 'unknown', 'succeeded')""",
+                       WHERE purchase_id = %s AND status IN ('created', 'pending', 'unknown', 'succeeded')""",
                     (purchase_id,),
                 ).fetchone()
                 reserved = int(reserved_row["total"])
@@ -1886,7 +1661,7 @@ class Store:
                     "id": self._new_id("ref"),
                     "purchase_id": purchase_id,
                     "idempotency_key": idempotency_key,
-                    "provider_idempotency_key": secrets.token_urlsafe(32),
+                    "provider_idempotency_key": str(uuid.uuid4()),
                     "provider_refund_id": None,
                     "status": "created",
                     "amount_minor": amount_minor,
@@ -1900,7 +1675,7 @@ class Store:
                        (id, purchase_id, idempotency_key, provider_idempotency_key, provider_refund_id,
                         status, amount_minor, currency, reason_ciphertext, actor_fingerprint,
                         created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                     (
                         refund["id"], purchase_id, idempotency_key, refund["provider_idempotency_key"],
                         None, refund["status"], amount_minor, refund["currency"],
@@ -1915,19 +1690,19 @@ class Store:
 
     def get_refund(self, refund_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT * FROM refunds WHERE id = ?", (refund_id,)).fetchone()
+            row = connection.execute("SELECT * FROM refunds WHERE id = %s", (refund_id,)).fetchone()
             return dict(row) if row else None
 
     def get_refund_by_provider_refund_id(self, provider_refund_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM refunds WHERE provider_refund_id = ?", (provider_refund_id,)
+                "SELECT * FROM refunds WHERE provider_refund_id = %s", (provider_refund_id,)
             ).fetchone()
             return dict(row) if row else None
 
     def get_refund_reason(self, refund_id: str) -> str | None:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT reason_ciphertext FROM refunds WHERE id = ?", (refund_id,)).fetchone()
+            row = connection.execute("SELECT reason_ciphertext FROM refunds WHERE id = %s", (refund_id,)).fetchone()
         if not row:
             raise LookupError(refund_id)
         return self._decrypt(row["reason_ciphertext"]).get("reason") if row["reason_ciphertext"] else None
@@ -1943,8 +1718,8 @@ class Store:
     ) -> None:
         with self._lock, self._connection() as connection:
             cursor = connection.execute(
-                """UPDATE refunds SET provider_refund_id = ?, status = ?, receipt_registration = ?,
-                   failure_code = ?, updated_at = ? WHERE id = ?""",
+                """UPDATE refunds SET provider_refund_id = %s, status = %s, receipt_registration = %s,
+                   failure_code = %s, updated_at = %s WHERE id = %s""",
                 (provider_refund_id, status, receipt_registration, failure_code, _iso(), refund_id),
             )
             if cursor.rowcount == 0:
@@ -1966,7 +1741,7 @@ class Store:
         receipt_registration: str | None = None,
     ) -> dict[str, Any]:
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 row = connection.execute(
                     """SELECT refunds.*, purchases.chart_id, purchases.provider,
@@ -1975,14 +1750,14 @@ class Store:
                                purchases.currency AS purchase_currency,
                                purchases.product_code AS purchase_product_code
                        FROM refunds JOIN purchases ON purchases.id = refunds.purchase_id
-                       WHERE refunds.id = ?""",
+                       WHERE refunds.id = %s""",
                     (refund_id,),
                 ).fetchone()
                 if not row:
                     connection.rollback()
                     raise LookupError(refund_id)
                 duplicate = connection.execute(
-                    "SELECT 1 FROM payment_events WHERE provider = ? AND provider_event_id = ?",
+                    "SELECT 1 FROM payment_events WHERE provider = %s AND provider_event_id = %s",
                     (row["provider"], provider_event_id),
                 ).fetchone()
                 if duplicate:
@@ -2006,19 +1781,19 @@ class Store:
                 connection.execute(
                     """INSERT INTO payment_events
                        (provider, provider_event_id, event_type, object_id, payload_checksum, received_at)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
+                       VALUES (%s, %s, %s, %s, %s, %s)""",
                     (row["provider"], provider_event_id, event_type, object_id, payload_checksum, now),
                 )
                 normalized = "cancelled" if status in {"cancelled", "canceled"} else status
                 connection.execute(
-                    """UPDATE refunds SET provider_refund_id = ?, status = ?, failure_code = ?,
-                       receipt_registration = COALESCE(?, receipt_registration), updated_at = ? WHERE id = ?""",
+                    """UPDATE refunds SET provider_refund_id = %s, status = %s, failure_code = %s,
+                       receipt_registration = COALESCE(%s, receipt_registration), updated_at = %s WHERE id = %s""",
                     (object_id, normalized, failure_code, receipt_registration, now, refund_id),
                 )
                 entitlement_changed = False
                 if normalized == "succeeded":
                     total_row = connection.execute(
-                        "SELECT COALESCE(SUM(amount_minor), 0) AS total FROM refunds WHERE purchase_id = ? AND status = 'succeeded'",
+                        "SELECT COALESCE(SUM(amount_minor), 0) AS total FROM refunds WHERE purchase_id = %s AND status = 'succeeded'",
                         (row["purchase_id"],),
                     ).fetchone()
                     refunded_total = int(total_row["total"])
@@ -2027,8 +1802,8 @@ class Store:
                         raise self._payment_mismatch("Сумма подтвержденных возвратов превышает сумму платежа.")
                     purchase_status = "refunded" if refunded_total == paid_total else "partially_refunded"
                     connection.execute(
-                        """UPDATE purchases SET status = ?, refunded_amount_minor = ?,
-                           updated_at = ? WHERE id = ?""",
+                        """UPDATE purchases SET status = %s, refunded_amount_minor = %s,
+                           updated_at = %s WHERE id = %s""",
                         (purchase_status, refunded_total, now, row["purchase_id"]),
                     )
                     if purchase_status == "refunded":
@@ -2036,14 +1811,14 @@ class Store:
                             str(row["purchase_product_code"])
                         )
                         active = connection.execute(
-                            """SELECT id FROM entitlements WHERE chart_id = ? AND product_code = ?
+                            """SELECT id FROM entitlements WHERE chart_id = %s AND product_code = %s
                                AND revoked_at IS NULL""",
                             (row["chart_id"], entitlement_code),
                         ).fetchone()
                         if active:
                             connection.execute(
-                                """UPDATE entitlements SET revoked_at = ?, revocation_reason = 'full_refund'
-                                   WHERE id = ?""",
+                                """UPDATE entitlements SET revoked_at = %s, revocation_reason = 'full_refund'
+                                   WHERE id = %s""",
                                 (now, active["id"]),
                             )
                             self._emit(
@@ -2084,7 +1859,7 @@ class Store:
                 """INSERT INTO payment_operations
                    (id, action, purchase_id, refund_id, actor_fingerprint, source_ip,
                     trace_id, reason_ciphertext, amount_minor, result, detail_json, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     operation_id, action, purchase_id, refund_id, actor_fingerprint, source_ip,
                     trace_id, self._encrypt({"reason": reason}) if reason else None,
@@ -2096,7 +1871,7 @@ class Store:
     def payment_operations(self, purchase_id: str) -> list[dict[str, Any]]:
         with self._lock, self._connection() as connection:
             rows = connection.execute(
-                "SELECT * FROM payment_operations WHERE purchase_id = ? ORDER BY created_at, id",
+                "SELECT * FROM payment_operations WHERE purchase_id = %s ORDER BY created_at, id",
                 (purchase_id,),
             ).fetchall()
         return [
@@ -2113,7 +1888,7 @@ class Store:
     def has_entitlement(self, chart_id: str, product_code: str = "report_full") -> bool:
         with self._lock, self._connection() as connection:
             return connection.execute(
-                """SELECT 1 FROM entitlements WHERE chart_id = ? AND product_code = ?
+                """SELECT 1 FROM entitlements WHERE chart_id = %s AND product_code = %s
                    AND revoked_at IS NULL""",
                 (chart_id, product_code),
             ).fetchone() is not None
@@ -2121,7 +1896,7 @@ class Store:
     def get_rectification(self, chart_id: str) -> dict[str, Any] | None:
         with self._lock, self._connection() as connection:
             row = connection.execute(
-                "SELECT * FROM rectifications WHERE chart_id = ?",
+                "SELECT * FROM rectifications WHERE chart_id = %s",
                 (chart_id,),
             ).fetchone()
         if not row:
@@ -2139,10 +1914,10 @@ class Store:
     def submit_rectification(self, chart_id: str, answers: dict[str, Any]) -> str:
         now = _iso()
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 row = connection.execute(
-                    "SELECT status FROM rectifications WHERE chart_id = ?",
+                    "SELECT status FROM rectifications WHERE chart_id = %s",
                     (chart_id,),
                 ).fetchone()
                 if not row:
@@ -2152,7 +1927,7 @@ class Store:
                     return ""
                 if row["status"] in {"queued", "running"}:
                     existing = connection.execute(
-                        """SELECT id FROM jobs WHERE chart_id = ? AND job_type = 'rectification_v1'
+                        """SELECT id FROM jobs WHERE chart_id = %s AND job_type = 'rectification_v1'
                            AND status IN ('queued', 'running', 'validating')
                            ORDER BY created_at DESC LIMIT 1""",
                         (chart_id,),
@@ -2161,8 +1936,8 @@ class Store:
                     return str(existing["id"]) if existing else ""
                 connection.execute(
                     """UPDATE rectifications
-                       SET status = 'queued', answers_ciphertext = ?, result_ciphertext = NULL,
-                           error_code = NULL, updated_at = ? WHERE chart_id = ?""",
+                       SET status = 'queued', answers_ciphertext = %s, result_ciphertext = NULL,
+                           error_code = NULL, updated_at = %s WHERE chart_id = %s""",
                     (self._encrypt(answers), now, chart_id),
                 )
                 job_id = self._enqueue(connection, chart_id, "rectification_v1", priority=85)
@@ -2176,7 +1951,7 @@ class Store:
     def mark_rectification_running(self, chart_id: str) -> None:
         with self._lock, self._connection() as connection:
             connection.execute(
-                "UPDATE rectifications SET status = 'running', updated_at = ? WHERE chart_id = ?",
+                "UPDATE rectifications SET status = 'running', updated_at = %s WHERE chart_id = %s",
                 (_iso(), chart_id),
             )
             self._emit(connection, chart_id, "rectification.started", {})
@@ -2185,8 +1960,8 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """UPDATE rectifications
-                   SET status = 'ready', result_ciphertext = ?, error_code = NULL, updated_at = ?
-                   WHERE chart_id = ?""",
+                   SET status = 'ready', result_ciphertext = %s, error_code = NULL, updated_at = %s
+                   WHERE chart_id = %s""",
                 (self._encrypt(result), _iso(), chart_id),
             )
             self._emit(
@@ -2203,7 +1978,7 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """UPDATE rectifications
-                   SET status = 'failed', error_code = ?, updated_at = ? WHERE chart_id = ?""",
+                   SET status = 'failed', error_code = %s, updated_at = %s WHERE chart_id = %s""",
                 (error_code, _iso(), chart_id),
             )
 
@@ -2211,14 +1986,14 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """INSERT INTO saved_questions (chart_id, question_id, saved, reflection_status, note_ciphertext, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?)
+                   VALUES (%s, %s, %s, %s, %s, %s)
                    ON CONFLICT(chart_id, question_id) DO UPDATE SET saved = excluded.saved, reflection_status = excluded.reflection_status, note_ciphertext = excluded.note_ciphertext, updated_at = excluded.updated_at""",
                 (chart_id, question_id, int(saved), reflection_status, self._encrypt({"note": note}) if note else None, _iso()),
             )
 
     def saved_questions(self, chart_id: str) -> list[dict[str, Any]]:
         with self._lock, self._connection() as connection:
-            rows = connection.execute("SELECT * FROM saved_questions WHERE chart_id = ?", (chart_id,)).fetchall()
+            rows = connection.execute("SELECT * FROM saved_questions WHERE chart_id = %s", (chart_id,)).fetchall()
         return [
             {
                 "question_id": row["question_id"],
@@ -2238,10 +2013,10 @@ class Store:
     ) -> dict[str, Any]:
         """Atomically redact a chart, then finish bounded file deletion from its tombstone."""
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 chart = connection.execute(
-                    "SELECT id, session_id, birth_profile_id, soft_deleted_at FROM charts WHERE id = ?",
+                    "SELECT id, session_id, birth_profile_id, soft_deleted_at FROM charts WHERE id = %s",
                     (chart_id,),
                 ).fetchone()
                 if not chart:
@@ -2258,7 +2033,7 @@ class Store:
                         **retried,
                     }
                 active = connection.execute(
-                    """SELECT 1 FROM jobs WHERE chart_id = ?
+                    """SELECT 1 FROM jobs WHERE chart_id = %s
                        AND status IN ('running', 'validating') LIMIT 1""",
                     (chart_id,),
                 ).fetchone()
@@ -2273,15 +2048,15 @@ class Store:
                     {
                         str(row["path"])
                         for row in connection.execute(
-                            """SELECT path FROM reports WHERE chart_id = ? AND path IS NOT NULL
+                            """SELECT path FROM reports WHERE chart_id = %s AND path IS NOT NULL
                                UNION SELECT path FROM pdf_render_requests
-                               WHERE chart_id = ? AND path IS NOT NULL""",
+                               WHERE chart_id = %s AND path IS NOT NULL""",
                             (chart_id, chart_id),
                         ).fetchall()
                     }
                 )
                 retains_financial_records = connection.execute(
-                    "SELECT 1 FROM purchases WHERE chart_id = ? LIMIT 1",
+                    "SELECT 1 FROM purchases WHERE chart_id = %s LIMIT 1",
                     (chart_id,),
                 ).fetchone() is not None
                 now = _iso()
@@ -2289,7 +2064,7 @@ class Store:
                     """INSERT INTO erasure_tombstones
                        (chart_id, reason, financial_records_retained, report_paths_json,
                         status, created_at)
-                       VALUES (?, ?, ?, ?, 'pending_files', ?)
+                       VALUES (%s, %s, %s, %s, 'pending_files', %s)
                        ON CONFLICT(chart_id) DO UPDATE SET
                          reason = excluded.reason,
                          financial_records_retained = excluded.financial_records_retained,
@@ -2308,14 +2083,14 @@ class Store:
                     str(row["email_lookup_hmac"])
                     for row in connection.execute(
                         """SELECT DISTINCT email_lookup_hmac FROM purchases
-                           WHERE chart_id = ? AND email_lookup_hmac IS NOT NULL""",
+                           WHERE chart_id = %s AND email_lookup_hmac IS NOT NULL""",
                         (chart_id,),
                     ).fetchall()
                 ]
-                connection.execute("DELETE FROM email_deliveries WHERE chart_id = ?", (chart_id,))
+                connection.execute("DELETE FROM email_deliveries WHERE chart_id = %s", (chart_id,))
                 for lookup_hash in lookup_hashes:
                     connection.execute(
-                        "DELETE FROM email_deliveries WHERE email_lookup_hmac = ?", (lookup_hash,)
+                        "DELETE FROM email_deliveries WHERE email_lookup_hmac = %s", (lookup_hash,)
                     )
                 for table in (
                     "agent_runs",
@@ -2328,68 +2103,68 @@ class Store:
                     "chart_access",
                     "jobs",
                 ):
-                    connection.execute(f"DELETE FROM {table} WHERE chart_id = ?", (chart_id,))
+                    connection.execute(f"DELETE FROM {table} WHERE chart_id = %s", (chart_id,))
                 if retains_financial_records:
                     connection.execute(
-                        """UPDATE entitlements SET revoked_at = ?, revocation_reason = 'personal_data_erasure'
-                           WHERE chart_id = ? AND revoked_at IS NULL""",
+                        """UPDATE entitlements SET revoked_at = %s, revocation_reason = 'personal_data_erasure'
+                           WHERE chart_id = %s AND revoked_at IS NULL""",
                         (now, chart_id),
                     )
                     purchase_ids = [
                         str(row["id"])
                         for row in connection.execute(
-                            "SELECT id FROM purchases WHERE chart_id = ?", (chart_id,)
+                            "SELECT id FROM purchases WHERE chart_id = %s", (chart_id,)
                         ).fetchall()
                     ]
                     for purchase_id in purchase_ids:
                         connection.execute(
                             """UPDATE payment_operations SET source_ip = 'erased', reason_ciphertext = NULL
-                               WHERE purchase_id = ?""",
+                               WHERE purchase_id = %s""",
                             (purchase_id,),
                         )
                         connection.execute(
-                            "UPDATE refunds SET reason_ciphertext = NULL WHERE purchase_id = ?",
+                            "UPDATE refunds SET reason_ciphertext = NULL WHERE purchase_id = %s",
                             (purchase_id,),
                         )
                     connection.execute(
                         """UPDATE purchases SET email_ciphertext = NULL, email_lookup_hmac = NULL,
-                           checkout_url = NULL, provider_payload_json = NULL, updated_at = ?
-                           WHERE chart_id = ?""",
+                           checkout_url = NULL, provider_payload_json = NULL, updated_at = %s
+                           WHERE chart_id = %s""",
                         (now, chart_id),
                     )
                     connection.execute(
-                        """UPDATE charts SET status = 'erased', birth_public_json = ?, snapshot_json = NULL,
+                        """UPDATE charts SET status = 'erased', birth_public_json = %s, snapshot_json = NULL,
                            evidence_json = NULL, free_bundle_json = NULL, paid_bundle_json = NULL,
-                           soft_deleted_at = ?, updated_at = ? WHERE id = ?""",
+                           soft_deleted_at = %s, updated_at = %s WHERE id = %s""",
                         (self._encode_public_birth({"erased": True}), now, now, chart_id),
                     )
                     connection.execute(
-                        """UPDATE birth_profiles SET encrypted_payload = ?, deleted_at = ? WHERE id = ?""",
+                        """UPDATE birth_profiles SET encrypted_payload = %s, deleted_at = %s WHERE id = %s""",
                         (self._encrypt({"erased": True}), now, chart["birth_profile_id"]),
                     )
                 else:
                     purchase_ids = [
                         str(row["id"])
                         for row in connection.execute(
-                            "SELECT id FROM purchases WHERE chart_id = ?", (chart_id,)
+                            "SELECT id FROM purchases WHERE chart_id = %s", (chart_id,)
                         ).fetchall()
                     ]
                     for purchase_id in purchase_ids:
-                        connection.execute("DELETE FROM payment_operations WHERE purchase_id = ?", (purchase_id,))
-                        connection.execute("DELETE FROM payment_incidents WHERE purchase_id = ?", (purchase_id,))
-                        connection.execute("DELETE FROM refunds WHERE purchase_id = ?", (purchase_id,))
-                    connection.execute("DELETE FROM entitlements WHERE chart_id = ?", (chart_id,))
-                    connection.execute("DELETE FROM purchases WHERE chart_id = ?", (chart_id,))
-                    connection.execute("DELETE FROM charts WHERE id = ?", (chart_id,))
+                        connection.execute("DELETE FROM payment_operations WHERE purchase_id = %s", (purchase_id,))
+                        connection.execute("DELETE FROM payment_incidents WHERE purchase_id = %s", (purchase_id,))
+                        connection.execute("DELETE FROM refunds WHERE purchase_id = %s", (purchase_id,))
+                    connection.execute("DELETE FROM entitlements WHERE chart_id = %s", (chart_id,))
+                    connection.execute("DELETE FROM purchases WHERE chart_id = %s", (chart_id,))
+                    connection.execute("DELETE FROM charts WHERE id = %s", (chart_id,))
                     connection.execute(
-                        """DELETE FROM birth_profiles WHERE id = ?
-                           AND NOT EXISTS (SELECT 1 FROM charts WHERE birth_profile_id = ?)""",
+                        """DELETE FROM birth_profiles WHERE id = %s
+                           AND NOT EXISTS (SELECT 1 FROM charts WHERE birth_profile_id = %s)""",
                         (chart["birth_profile_id"], chart["birth_profile_id"]),
                     )
                     connection.execute(
-                        """DELETE FROM anonymous_sessions WHERE id = ?
-                           AND NOT EXISTS (SELECT 1 FROM charts WHERE session_id = ?)
-                           AND NOT EXISTS (SELECT 1 FROM birth_profiles WHERE session_id = ?)""",
+                        """DELETE FROM anonymous_sessions WHERE id = %s
+                           AND NOT EXISTS (SELECT 1 FROM charts WHERE session_id = %s)
+                           AND NOT EXISTS (SELECT 1 FROM birth_profiles WHERE session_id = %s)""",
                         (chart["session_id"], chart["session_id"], chart["session_id"]),
                     )
                 connection.commit()
@@ -2408,7 +2183,7 @@ class Store:
     def _finish_tombstone_files(self, chart_id: str) -> dict[str, Any]:
         with self._lock, self._connection() as connection:
             tombstone = connection.execute(
-                "SELECT * FROM erasure_tombstones WHERE chart_id = ?", (chart_id,)
+                "SELECT * FROM erasure_tombstones WHERE chart_id = %s", (chart_id,)
             ).fetchone()
         if not tombstone:
             return {"report_files_deleted": 0, "file_cleanup_pending": False}
@@ -2430,7 +2205,7 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """UPDATE erasure_tombstones
-                   SET status = ?, files_deleted_at = ?, last_error_code = ? WHERE chart_id = ?""",
+                   SET status = %s, files_deleted_at = %s, last_error_code = %s WHERE chart_id = %s""",
                 (
                     "pending_files" if failures else "complete",
                     None if failures else _iso(),
@@ -2452,7 +2227,7 @@ class Store:
                 str(row["id"])
                 for row in connection.execute(
                     """SELECT id FROM charts
-                       WHERE created_at < ? AND soft_deleted_at IS NULL
+                       WHERE created_at < %s AND soft_deleted_at IS NULL
                        AND NOT EXISTS (
                          SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id
                          AND purchases.status IN ('succeeded', 'partially_refunded', 'refunded')
@@ -2474,7 +2249,7 @@ class Store:
                 str(row["id"])
                 for row in connection.execute(
                     """SELECT id FROM charts
-                       WHERE created_at < ? AND soft_deleted_at IS NULL
+                       WHERE created_at < %s AND soft_deleted_at IS NULL
                        AND NOT EXISTS (
                          SELECT 1 FROM purchases WHERE purchases.chart_id = charts.id
                          AND purchases.status IN ('succeeded', 'partially_refunded', 'refunded')
@@ -2486,7 +2261,7 @@ class Store:
                 dict(row)
                 for row in connection.execute(
                     """SELECT id, chart_id, path FROM pdf_render_requests
-                       WHERE status = 'ready' AND path IS NOT NULL AND updated_at < ?
+                       WHERE status = 'ready' AND path IS NOT NULL AND updated_at < %s
                        ORDER BY updated_at, id""",
                     (report_cutoff,),
                 ).fetchall()
@@ -2522,7 +2297,7 @@ class Store:
             connection.execute(
                 """INSERT INTO retention_runs
                    (id, mode, cutoff_at, candidates, erased, failed, detail_json, created_at)
-                   VALUES (?, 'apply', ?, ?, 0, 0, ?, ?)""",
+                   VALUES (%s, 'apply', %s, %s, 0, 0, %s, %s)""",
                 (
                     run_id,
                     str(plan["chart_cutoff"]),
@@ -2549,13 +2324,13 @@ class Store:
                     connection.execute(
                         """UPDATE pdf_render_requests
                            SET status = 'failed', path = NULL, checksum = NULL, size_bytes = NULL,
-                               pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ? WHERE id = ?""",
+                               pages = NULL, error_code = 'PDF_EXPIRED', updated_at = %s WHERE id = %s""",
                         (_iso(), report["id"]),
                     )
                     connection.execute(
                         """UPDATE reports SET status = 'failed', path = NULL, checksum = NULL,
-                           size_bytes = NULL, pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ?
-                           WHERE render_request_id = ?""",
+                           size_bytes = NULL, pages = NULL, error_code = 'PDF_EXPIRED', updated_at = %s
+                           WHERE render_request_id = %s""",
                         (_iso(), report["id"]),
                     )
                 expired_reports += 1
@@ -2566,14 +2341,14 @@ class Store:
             failed += int(bool(retry["file_cleanup_pending"]))
         cutoff_epoch = (_utc_now() - timedelta(days=security_log_days)).timestamp()
         with self._lock, self._connection() as connection:
-            connection.execute("DELETE FROM rate_limit_events WHERE occurred_at < ?", (cutoff_epoch,))
+            connection.execute("DELETE FROM rate_limit_events WHERE occurred_at < %s", (cutoff_epoch,))
             detail = {
                 "expired_reports": expired_reports,
                 "pending_tombstones_retried": len(plan["pending_tombstone_chart_ids"]),
             }
             connection.execute(
-                """UPDATE retention_runs SET erased = ?, failed = ?, detail_json = ?, finished_at = ?
-                   WHERE id = ?""",
+                """UPDATE retention_runs SET erased = %s, failed = %s, detail_json = %s, finished_at = %s
+                   WHERE id = %s""",
                 (erased, failed, _json_dump(detail), _iso(), run_id),
             )
         return {
@@ -2599,7 +2374,7 @@ class Store:
         with self._lock, self._connection() as connection:
             connection.execute(
                 """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, render_request_id, preferences_checksum, created_at, updated_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                    ON CONFLICT(chart_id) DO UPDATE SET status = excluded.status, path = excluded.path, checksum = excluded.checksum,
                    size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code,
                    render_request_id = excluded.render_request_id, preferences_checksum = excluded.preferences_checksum,
@@ -2610,11 +2385,11 @@ class Store:
     def commit_report_event(self, chart_id: str, status: str, payload: dict[str, Any], **report: Any) -> None:
         now = _iso()
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             try:
                 connection.execute(
                     """INSERT INTO reports (id, chart_id, status, path, checksum, size_bytes, pages, error_code, render_request_id, preferences_checksum, created_at, updated_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                        ON CONFLICT(chart_id) DO UPDATE SET status = excluded.status, path = excluded.path, checksum = excluded.checksum,
                        size_bytes = excluded.size_bytes, pages = excluded.pages, error_code = excluded.error_code,
                        preferences_checksum = excluded.preferences_checksum, updated_at = excluded.updated_at
@@ -2628,8 +2403,8 @@ class Store:
                 if report.get("render_request_id"):
                     connection.execute(
                         """UPDATE pdf_render_requests
-                           SET status = ?, path = ?, checksum = ?, size_bytes = ?, pages = ?, error_code = ?, updated_at = ?
-                           WHERE id = ? AND chart_id = ?""",
+                           SET status = %s, path = %s, checksum = %s, size_bytes = %s, pages = %s, error_code = %s, updated_at = %s
+                           WHERE id = %s AND chart_id = %s""",
                         (
                             status,
                             report.get("path"),
@@ -2655,7 +2430,7 @@ class Store:
         with self._lock, self._connection() as connection:
             rows = connection.execute(
                 """SELECT id, path FROM pdf_render_requests
-                   WHERE chart_id = ? AND status = 'ready' AND path IS NOT NULL
+                   WHERE chart_id = %s AND status = 'ready' AND path IS NOT NULL
                    ORDER BY updated_at DESC, created_at DESC""",
                 (chart_id,),
             ).fetchall()
@@ -2668,16 +2443,16 @@ class Store:
                 connection.execute(
                     """UPDATE pdf_render_requests
                        SET status = 'failed', path = NULL, checksum = NULL, size_bytes = NULL,
-                           pages = NULL, error_code = 'PDF_EXPIRED', updated_at = ?
-                       WHERE id = ?""",
+                           pages = NULL, error_code = 'PDF_EXPIRED', updated_at = %s
+                       WHERE id = %s""",
                     (_iso(), row["id"]),
                 )
 
     def get_report(self, chart_id: str) -> dict[str, Any]:
         with self._lock, self._connection() as connection:
-            row = connection.execute("SELECT * FROM reports WHERE chart_id = ?", (chart_id,)).fetchone()
+            row = connection.execute("SELECT * FROM reports WHERE chart_id = %s", (chart_id,)).fetchone()
             render_request = connection.execute(
-                "SELECT preferences_json FROM pdf_render_requests WHERE id = ?",
+                "SELECT preferences_json FROM pdf_render_requests WHERE id = %s",
                 (row["render_request_id"],),
             ).fetchone() if row and row["render_request_id"] else None
         if not row:
@@ -2697,11 +2472,11 @@ class Store:
             if render_request_id:
                 row = connection.execute(
                     """SELECT path FROM pdf_render_requests
-                       WHERE id = ? AND chart_id = ? AND status = 'ready'""",
+                       WHERE id = %s AND chart_id = %s AND status = 'ready'""",
                     (render_request_id, chart_id),
                 ).fetchone()
             else:
-                row = connection.execute("SELECT path FROM reports WHERE chart_id = ? AND status = 'ready'", (chart_id,)).fetchone()
+                row = connection.execute("SELECT path FROM reports WHERE chart_id = %s AND status = 'ready'", (chart_id,)).fetchone()
         return Path(row["path"]) if row and row["path"] else None
 
     def issue_download_token(self, chart_id: str, render_request_id: str, ttl_minutes: int = 10) -> str:
@@ -2741,14 +2516,14 @@ class Store:
         expires = _utc_now() + timedelta(hours=ttl_hours)
         with self._lock, self._connection() as connection:
             chart = connection.execute(
-                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL", (chart_id,)
+                "SELECT 1 FROM charts WHERE id = %s AND soft_deleted_at IS NULL", (chart_id,)
             ).fetchone()
             if not chart:
                 raise LookupError(chart_id)
             if render_request_id:
                 rendered = connection.execute(
                     """SELECT 1 FROM pdf_render_requests
-                       WHERE id = ? AND chart_id = ? AND status = 'ready' AND path IS NOT NULL""",
+                       WHERE id = %s AND chart_id = %s AND status = 'ready' AND path IS NOT NULL""",
                     (render_request_id, chart_id),
                 ).fetchone()
                 if not rendered:
@@ -2756,7 +2531,7 @@ class Store:
             connection.execute(
                 """INSERT INTO magic_links
                    (token_hash, chart_id, scope, render_request_id, expires_at, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
                 (
                     self._token_hash(token),
                     chart_id,
@@ -2782,28 +2557,28 @@ class Store:
         now = _utc_now()
         expires_at = now + timedelta(minutes=ttl_minutes)
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             row = connection.execute(
-                "SELECT * FROM magic_links WHERE token_hash = ?", (token_hash,)
+                "SELECT * FROM magic_links WHERE token_hash = %s", (token_hash,)
             ).fetchone()
             if not row or row["used_at"] or datetime.fromisoformat(row["expires_at"]) < now:
                 connection.commit()
                 return None
             chart = connection.execute(
-                "SELECT 1 FROM charts WHERE id = ? AND soft_deleted_at IS NULL",
+                "SELECT 1 FROM charts WHERE id = %s AND soft_deleted_at IS NULL",
                 (row["chart_id"],),
             ).fetchone()
             if not chart:
                 connection.commit()
                 return None
             connection.execute(
-                "DELETE FROM magic_link_confirmations WHERE expires_at < ? OR used_at IS NOT NULL",
+                "DELETE FROM magic_link_confirmations WHERE expires_at < %s OR used_at IS NOT NULL",
                 (_iso(now),),
             )
             connection.execute(
                 """INSERT INTO magic_link_confirmations
                    (nonce_hash, magic_token_hash, csrf_token_hash, expires_at, created_at)
-                   VALUES (?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s)""",
                 (
                     self._token_hash(nonce),
                     token_hash,
@@ -2824,9 +2599,9 @@ class Store:
         csrf_hash = self._token_hash(csrf_token)
         now = _utc_now()
         with self._lock, self._connection() as connection:
-            connection.execute("BEGIN IMMEDIATE")
+            self._begin(connection)
             confirmation = connection.execute(
-                "SELECT * FROM magic_link_confirmations WHERE nonce_hash = ?",
+                "SELECT * FROM magic_link_confirmations WHERE nonce_hash = %s",
                 (nonce_hash,),
             ).fetchone()
             if (
@@ -2838,14 +2613,14 @@ class Store:
                 connection.commit()
                 return None
             link = connection.execute(
-                "SELECT * FROM magic_links WHERE token_hash = ?",
+                "SELECT * FROM magic_links WHERE token_hash = %s",
                 (confirmation["magic_token_hash"],),
             ).fetchone()
             if not link or link["used_at"] or datetime.fromisoformat(link["expires_at"]) < now:
                 connection.commit()
                 return None
             chart = connection.execute(
-                "SELECT id FROM charts WHERE id = ? AND soft_deleted_at IS NULL",
+                "SELECT id FROM charts WHERE id = %s AND soft_deleted_at IS NULL",
                 (link["chart_id"],),
             ).fetchone()
             if not chart:
@@ -2857,19 +2632,19 @@ class Store:
             now_iso = _iso(now)
             connection.execute(
                 """INSERT INTO anonymous_sessions
-                   (id, token_hash, created_at, last_seen_at) VALUES (?, ?, ?, ?)""",
+                   (id, token_hash, created_at, last_seen_at) VALUES (%s, %s, %s, %s)""",
                 (session_id, self._token_hash(session_token), now_iso, now_iso),
             )
             connection.execute(
-                "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (?, ?, ?)",
+                "INSERT INTO chart_access (chart_id, session_id, granted_at) VALUES (%s, %s, %s)",
                 (chart["id"], session_id, now_iso),
             )
             connection.execute(
-                "UPDATE magic_link_confirmations SET used_at = ? WHERE nonce_hash = ?",
+                "UPDATE magic_link_confirmations SET used_at = %s WHERE nonce_hash = %s",
                 (now_iso, nonce_hash),
             )
             connection.execute(
-                "UPDATE magic_links SET used_at = ? WHERE token_hash = ?",
+                "UPDATE magic_links SET used_at = %s WHERE token_hash = %s",
                 (now_iso, link["token_hash"]),
             )
             connection.commit()
@@ -2888,7 +2663,7 @@ class Store:
         if not tokens:
             return
         hashes = [self._token_hash(token) for token in tokens]
-        placeholders = ",".join("?" for _ in hashes)
+        placeholders = ",".join("%s" for _ in hashes)
         with self._lock, self._connection() as connection:
             connection.execute(
                 f"DELETE FROM magic_links WHERE token_hash IN ({placeholders})", hashes

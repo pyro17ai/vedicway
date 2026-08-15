@@ -43,7 +43,6 @@ def backup(base: list[str], env: dict[str, str]) -> str:
     try:
         _run(base, "--profile", "ops", "run", "--rm", "backup", env=operation_env)
         _run(base, "--profile", "ops", "run", "--rm", "runtime-backup", env=operation_env)
-        _run(base, "--profile", "ops", "run", "--rm", "seo-agent-backup", env=operation_env)
         _run(base, "--profile", "ops", "run", "--rm", "backup-bundle", "seal", env=operation_env)
     finally:
         _resume(base, operation_env)
@@ -63,10 +62,8 @@ def restore(base: list[str], env: dict[str, str], bundle: str) -> None:
         "RESTORE_SET_ID": pair_id,
         "RESTORE_FILE": "postgres.dump",
         "RESTORE_RUNTIME_FILE": "runtime.tar.gz",
-        "RESTORE_SEO_FILE": "seo-agent.sqlite3",
         "CONFIRM_RESTORE": f"restore-{env.get('POSTGRES_DB', 'vedicway')}",
         "CONFIRM_RUNTIME_RESTORE": "restore-runtime",
-        "CONFIRM_SEO_RESTORE": "restore-seo-agent",
     }
     _run(base, "stop", *_services(operation_env), env=operation_env)
     try:
@@ -75,18 +72,15 @@ def restore(base: list[str], env: dict[str, str], bundle: str) -> None:
             prepare_env = {**operation_env, "RESTORE_BACKUP_DIR": stage, "RESTORE_PHASE": "prepare"}
             _run(base, "--profile", "ops", "run", "--rm", "restore", env=prepare_env)
             _run(base, "--profile", "ops", "run", "--rm", "runtime-restore", "prepare", env=prepare_env)
-            _run(base, "--profile", "ops", "run", "--rm", "seo-agent-restore", "prepare", env=prepare_env)
 
             commit_env = {**prepare_env, "RESTORE_PHASE": "commit"}
             _run(base, "--profile", "ops", "run", "--rm", "restore", env=commit_env)
             _run(base, "--profile", "ops", "run", "--rm", "runtime-restore", "commit", env=commit_env)
-            _run(base, "--profile", "ops", "run", "--rm", "seo-agent-restore", "commit", env=commit_env)
         except Exception:
             rollback_env = {**operation_env, "RESTORE_BACKUP_DIR": stage, "RESTORE_PHASE": "rollback"}
             runtime_rollback = subprocess.run([*base, "--profile", "ops", "run", "--rm", "runtime-restore", "rollback"], env=rollback_env, check=False)
-            seo_rollback = subprocess.run([*base, "--profile", "ops", "run", "--rm", "seo-agent-restore", "rollback"], env=rollback_env, check=False)
             postgres_rollback = subprocess.run([*base, "--profile", "ops", "run", "--rm", "restore"], env=rollback_env, check=False)
-            if runtime_rollback.returncode == 0 and seo_rollback.returncode == 0 and postgres_rollback.returncode == 0:
+            if runtime_rollback.returncode == 0 and postgres_rollback.returncode == 0:
                 _resume(base, operation_env)
             raise
 
@@ -95,7 +89,6 @@ def restore(base: list[str], env: dict[str, str], bundle: str) -> None:
         for service, command in (
             ("restore", ()),
             ("runtime-restore", ("finalize",)),
-            ("seo-agent-restore", ("finalize",)),
         ):
             try:
                 _run(base, "--profile", "ops", "run", "--rm", service, *command, env=finalize_env)

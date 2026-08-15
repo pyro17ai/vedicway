@@ -26,7 +26,11 @@ print(f"postgresql+psycopg://{user}:{quote(password, safe='')}@{host}:{port}/{da
 PY
 )"
 export VEDICWAY_DATABASE_URL="$database_url"
+export DATABASE_URL="$database_url"
 unset database_url
 
 cd /opt/vedicway/backend
-exec /opt/venv/bin/alembic -c alembic.ini upgrade head
+/opt/venv/bin/python -m vedicway_backend.migrations
+/opt/venv/bin/alembic -c alembic.ini upgrade head
+cd /opt/vedicway
+exec /opt/venv/bin/python -m seo_agent.cli init

@@ -1,7 +1,7 @@
 export const LEGAL_DOCUMENT_VERSIONS = {
-  terms: "2026-07-30",
-  privacy: "2026-07-30",
-  personalDataConsent: "2026-07-30",
+  terms: "2026-07-31",
+  privacy: "2026-07-31",
+  personalDataConsent: "2026-07-31",
   cookies: "2026-07-19",
 } as const;
 
@@ -59,6 +59,7 @@ const GOAL_NAMES = new Set([
   "domain_detail_requested",
   "checkout_started",
   "rectification_checkout_opened",
+  "access_recovery_requested",
   "question_saved",
   "question_status_changed",
   "pdf_requested",
@@ -111,6 +112,12 @@ function safePagePath(value: unknown) {
     "/",
     "/guide",
     "/blog",
+    "/about",
+    "/methodology",
+    "/editorial-policy",
+    "/access/recovery",
+    "/access/confirm",
+    "/privacy/request",
     "/legal/offer",
     "/legal/privacy",
     "/legal/user-agreement",

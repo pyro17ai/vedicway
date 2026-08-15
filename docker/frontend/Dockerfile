@@ -17,7 +17,6 @@ COPY src ./src
 
 RUN test -n "$VITE_PUBLIC_ORIGIN" \
     && npm run build \
-    && node scripts/prerender-seo.mjs \
     && test -s dist/index.html \
     && test -s dist/guide/index.html \
     && test -s dist/legal/offer/index.html \
@@ -26,6 +25,7 @@ RUN test -n "$VITE_PUBLIC_ORIGIN" \
     && test -s dist/legal/privacy-policy/index.html \
     && test -s dist/legal/personal-data-consent/index.html \
     && test -s dist/legal/cookies/index.html \
+    && test -s dist/report-example/index.html \
     && test -s dist/404.html \
     && test -s dist/assets/seo-entry.js \
     && test -s dist/assets/seo-entry.css \

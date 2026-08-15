@@ -201,8 +201,11 @@ export function ArticlePage({
       article.canonical_url || `${publicOrigin()}${articlePath}`;
     const articleType = section === "blog" ? "BlogPosting" : "Article";
     const rawTitle = article.seo_title || article.title;
+    const brandedTitle = rawTitle.includes("VedicWay")
+      ? rawTitle
+      : `${rawTitle} | VedicWay`;
     return applySeo({
-      title: rawTitle.includes("VedicWay") ? rawTitle : `${rawTitle} | VedicWay`,
+      title: brandedTitle.length <= 60 ? brandedTitle : rawTitle,
       description: article.meta_description || article.excerpt,
       path: articlePath,
       canonicalUrl: canonical,

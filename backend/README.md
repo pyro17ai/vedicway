@@ -7,24 +7,31 @@
 Для локального интерфейса с настоящими персональными объяснениями запускайте готовый изолированный контур. Первый запуск копирует только файл авторизации в отдельный `CODEX_HOME`; пользовательские настройки, skills, MCP, память и рабочие файлы runner не видит:
 
 ```powershell
-.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015 -BootstrapAuthFromCurrentUser
+.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015 -BootstrapAuthFromCurrentUser `
+  -DatabaseUrl "postgresql+psycopg://vedicway:vedicway-local-only@127.0.0.1:5432/vedicway"
 ```
 
 Следующие запуски не требуют bootstrap-флага:
 
 ```powershell
-.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015
+.\scripts\Start-VedicWayCodexBackend.ps1 -Port 8015 `
+  -DatabaseUrl "postgresql+psycopg://vedicway:vedicway-local-only@127.0.0.1:5432/vedicway"
 ```
 
-Скрипт находит настоящий `codex.exe`, создаёт пустой read-only workdir в `%LOCALAPPDATA%\VedicWay\codex-runner`, включает `VEDICWAY_INTERPRETATION_PROVIDER=codex` и хранит локальную БД отдельно от основной рабочей копии.
+Скрипт находит настоящий `codex.exe`, создаёт пустой read-only workdir в `%LOCALAPPDATA%\VedicWay\codex-runner`, включает `VEDICWAY_INTERPRETATION_PROVIDER=codex` и подключает backend к указанной базе PostgreSQL. В локальном каталоге остаются только отчёты и служебные файлы.
 
-Укажите путь к исходникам собственного PyJHora MCP и используйте Python 3.11 из его виртуального окружения:
+Укажите путь к исходникам собственного PyJHora MCP и используйте Python 3.11 из виртуального окружения backend:
 
 ```powershell
 $env:PYTHONPATH = "D:\VedicWay\backend\src"
+$env:DATABASE_URL = "postgresql+psycopg://vedicway:vedicway-local-only@127.0.0.1:5432/vedicway"
+$env:VEDICWAY_DATABASE_URL = $env:DATABASE_URL
 $env:VEDICWAY_PYJHORA_SOURCE = "C:\Users\Huawei\.codex\mcp\pyjhora-mcp\src"
 $env:VEDICWAY_TEST_PAYMENTS = "1"
-C:\Users\Huawei\.codex\mcp\pyjhora-mcp\.venv\Scripts\python.exe -m uvicorn vedicway_backend.main:app --host 127.0.0.1 --port 8000
+$python = "D:\VedicWay\backend\.venv\Scripts\python.exe"
+& $python -m vedicway_backend.migrations
+& $python -m alembic -c D:\VedicWay\backend\alembic.ini upgrade head
+& $python -m uvicorn vedicway_backend.main:app --host 127.0.0.1 --port 8000
 ```
 
 `VEDICWAY_TEST_PAYMENTS=1` открывает только локальный тестовый провайдер. Production-процесс принимает реальный payment adapter по конфигурации и не подтверждает оплату браузерным query-параметром.
@@ -59,12 +66,15 @@ backend/migrations/004_runtime_rate_limits.sql
 backend/migrations/005_recovery_retention.sql
 backend/migrations/006_magic_link_confirmation.sql
 backend/migrations/007_birth_time_rectification.sql
+backend/migrations/008_runtime_schema.sql
 ```
 
-SQLite остаётся runnable-контуром для текущего production-профиля `single-node-sqlite` и обновляет старую базу совместимыми `ALTER TABLE`. Файлы `backend/migrations/*.sql` остаются заготовкой для будущего PostgreSQL-backed Store и не запускаются в production до появления этого adapter.
+Перед запуском приложение применяет runtime-миграции, Alembic-схему контента и миграции `seo_agent`. `Store`, `ContentDatabase` и `AgentLedger` отклоняют отсутствующий URL и любой драйвер, кроме PostgreSQL.
+
+Старые локальные данные переносятся один раз после применения схем командой `python ../scripts/migrate_legacy_sqlite.py --database-url postgresql+psycopg://...`. Импортер читает прежние файлы только в режиме `read-only`, не входит в startup и пропускает уже существующие строки. Для расшифровки перенесённых полей приложение должно получить прежние `VEDICWAY_DATA_KEY` и `VEDICWAY_SIGNING_KEY`.
 
 ## Границы
 
-- SQLite используется для локального runnable-контура. PostgreSQL DDL лежит в последовательных миграциях `001_chart_result.sql` - `004_runtime_rate_limits.sql`.
+- Все постоянные данные хранятся в PostgreSQL. Каталоги `VEDICWAY_DATA_DIR` и `VEDICWAY_MEDIA_DIR` содержат только PDF, изображения и ключевые файлы.
 - `DevelopmentInterpretationProvider` служит только явным контрактным stub в тестах. Рабочий процесс не подставляет его при сбое: D1 остаётся доступной, а вкладка объяснений получает локальную retryable-ошибку. `CodexExecProvider` делает до двух one-shot вызовов: основной и один repair после schema/semantic validation.
 - PDF создаёт Node/Playwright worker через `scripts/render_pdf.mjs`. Он строит HTML из экранированных строк и SVG D1, без model HTML и внешней сети.

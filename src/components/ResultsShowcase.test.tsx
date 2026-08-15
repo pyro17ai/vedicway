@@ -58,7 +58,7 @@ describe("ResultsShowcase", () => {
     expect(screen.getByRole("tab", { name: "Вопросы к себе" })).toHaveFocus();
   });
 
-  it("даёт читать D1 через выбор знака и режим просмотра", async () => {
+  it("даёт читать D1 через выбор знака в едином понятном режиме", async () => {
     const user = userEvent.setup();
     render(<ResultsShowcase />);
 
@@ -66,9 +66,8 @@ describe("ResultsShowcase", () => {
     expect(screen.getByText("Выбранный знак · дом 1")).toBeInTheDocument();
     expect(screen.getByText("Скорпион · Лагна")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Профессионально" }));
-    expect(screen.getAllByText("Уран").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Нептун").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "Профессионально" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Режим просмотра")).not.toBeInTheDocument();
   });
 
   it("оставляет демонстрационные объяснения некликабельными и возвращает пользователя к карте", async () => {

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import sqlite3
 from datetime import UTC, datetime
 
 import pytest
 from cryptography.fernet import Fernet
 
-from vedicway_backend.schemas import BirthInput, Place, ResolvedTime, TimeAccuracy
+from vedicway_backend.schemas import BirthInput, JobStatus, Place, ResolvedTime, TimeAccuracy
 from vedicway_backend.store import Store
 
 
@@ -62,10 +61,10 @@ def test_public_birth_is_encrypted_at_rest(tmp_path) -> None:
     session_id, _ = store.create_session()
     chart_id, _ = store.create_chart(session_id, _birth(), "encrypted-birth")
 
-    with sqlite3.connect(store.db_path) as connection:
+    with store._connection() as connection:
         raw = connection.execute(
-            "SELECT birth_public_json FROM charts WHERE id = ?", (chart_id,)
-        ).fetchone()[0]
+            "SELECT birth_public_json FROM charts WHERE id = %s", (chart_id,)
+        ).fetchone()["birth_public_json"]
 
     assert raw.startswith("fernet:v1:")
     assert "1998-09-15" not in raw
@@ -79,17 +78,33 @@ def test_legacy_public_birth_is_migrated_and_remains_readable(tmp_path) -> None:
     session_id, _ = store.create_session()
     chart_id, _ = store.create_chart(session_id, _birth(), "legacy-birth")
     legacy = '{"local_date":"1998-09-15","local_time":"17:28","place":"Москва, Россия"}'
-    with sqlite3.connect(store.db_path) as connection:
+    with store._connection() as connection:
         connection.execute(
-            "UPDATE charts SET birth_public_json = ? WHERE id = ?", (legacy, chart_id)
+            "UPDATE charts SET birth_public_json = %s WHERE id = %s", (legacy, chart_id)
         )
-        connection.commit()
 
     reopened = Store(data_dir)
     assert reopened.get_chart_resource(chart_id)["birth"]["place"] == "Москва, Россия"
-    with sqlite3.connect(reopened.db_path) as connection:
+    with reopened._connection() as connection:
         migrated = connection.execute(
-            "SELECT birth_public_json FROM charts WHERE id = ?", (chart_id,)
-        ).fetchone()[0]
+            "SELECT birth_public_json FROM charts WHERE id = %s", (chart_id,)
+        ).fetchone()["birth_public_json"]
     assert migrated.startswith("fernet:v1:")
     assert "Москва" not in migrated
+
+
+def test_failed_interpretation_is_not_reported_as_queued_forever(tmp_path) -> None:
+    store = Store(tmp_path / "runtime")
+    session_id, _ = store.create_session()
+    chart_id, _ = store.create_chart(session_id, _birth(), "failed-interpretation")
+    job_id = store.enqueue_job(chart_id, "interpretation_free_v1")
+    store.update_job_status(
+        job_id,
+        JobStatus.FAILED_RETRYABLE,
+        {"code": "INTERPRETATION_UNAVAILABLE", "recoverable": True},
+    )
+
+    resource = store.get_chart_resource(chart_id)
+
+    assert resource["sections"]["interpretation"] == "error"
+    assert resource["sections"]["questions"] == "error"

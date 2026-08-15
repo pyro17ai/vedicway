@@ -24,7 +24,7 @@ def _app(tmp_path, monkeypatch):
         "vedicway_backend.main.warm_instant_runtime",
         lambda: None,
     )
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
+    database = ContentDatabase()
     return create_app(store=Store(tmp_path / "runtime"), content_db=database), database
 
 
@@ -122,45 +122,53 @@ def test_consent_audit_failure_removes_pending_chart_and_personal_data(
             "jobs",
             "outbox_events",
         ):
-            assert connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0] == 0
+            assert (
+                connection.execute(
+                    f"SELECT COUNT(*) AS count FROM {table}"
+                ).fetchone()["count"]
+                == 0
+            )
 
 
-def test_production_readiness_rejects_placeholders_and_sqlite(tmp_path, monkeypatch) -> None:
+def test_content_database_rejects_non_postgresql_url(tmp_path, monkeypatch) -> None:
+    with pytest.raises(RuntimeError, match="must use PostgreSQL"):
+        ContentDatabase("unsupported-database-url")
+
+
+def test_production_readiness_rejects_placeholders(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("VEDICWAY_ENV", "development")
     monkeypatch.setenv("VEDICWAY_DATA_KEY", Fernet.generate_key().decode("ascii"))
     monkeypatch.setattr(
         "vedicway_backend.main.validate_instant_runtime",
         lambda: "test-runtime-fingerprint",
     )
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'content.sqlite3').as_posix()}")
-    app = create_app(store=Store(tmp_path / "runtime"), content_db=database)
+    app = create_app(store=Store(tmp_path / "runtime"), content_db=ContentDatabase())
     monkeypatch.setenv("VEDICWAY_ENV", "production")
     with TestClient(app) as client:
         response = client.get("/api/v1/health/ready")
         assert response.status_code == 503
         reasons = response.json()["reasons"]
-        assert "database:postgresql_required" in reasons
         assert "missing:VEDICWAY_LEGAL_OPERATOR_NAME" in reasons
 
 
 def test_content_database_requires_current_alembic_revision(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("VEDICWAY_ENV", "development")
-    database = ContentDatabase(f"sqlite:///{(tmp_path / 'schema.sqlite3').as_posix()}")
-    database.initialize()
-    with pytest.raises(RuntimeError):
-        database.ping(require_migrations=True)
-
-    with database.engine.begin() as connection:
-        connection.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)"))
-        connection.execute(
-            text(f"INSERT INTO alembic_version (version_num) VALUES ('{CONTENT_SCHEMA_REVISION}')")
-        )
+    database = ContentDatabase()
     database.ping(require_migrations=True)
 
-    with database.engine.begin() as connection:
-        connection.execute(text("UPDATE alembic_version SET version_num = 'stale_revision'"))
-    with pytest.raises(RuntimeError):
-        database.ping(require_migrations=True)
+    try:
+        with database.engine.begin() as connection:
+            connection.execute(text("UPDATE alembic_version SET version_num = 'stale_revision'"))
+        with pytest.raises(RuntimeError):
+            database.ping(require_migrations=True)
+    finally:
+        with database.engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE alembic_version SET version_num = "
+                    f"'{CONTENT_SCHEMA_REVISION}'"
+                )
+            )
 
 
 def test_low_entropy_fingerprints_are_secret_keyed_and_domain_separated(
