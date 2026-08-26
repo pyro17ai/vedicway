@@ -12,6 +12,7 @@ host="${POSTGRES_HOST:-postgres}"
 port="${POSTGRES_PORT:-5432}"
 database="${POSTGRES_DB:-vedicway}"
 user="${POSTGRES_USER:-vedicway}"
+migration_dir="${MIGRATIONS_DIR:-/migrations}"
 
 psql -h "$host" -p "$port" -U "$user" -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -21,7 +22,7 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 );
 SQL
 
-for migration in /migrations/*.sql; do
+for migration in "$migration_dir"/*.sql; do
   [ -f "$migration" ] || continue
   version="$(basename "$migration")"
   checksum="$(sha256sum "$migration" | awk '{print $1}')"

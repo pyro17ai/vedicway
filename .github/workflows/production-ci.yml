@@ -81,7 +81,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends postgresql-client
           printf 'ci-only-password' > /tmp/vedicway-postgres-password
           chmod 600 /tmp/vedicway-postgres-password
-          POSTGRES_HOST=127.0.0.1 POSTGRES_DB=vedicway_ci POSTGRES_USER=vedicway_ci POSTGRES_PASSWORD_FILE=/tmp/vedicway-postgres-password sh docker/postgres/run-migrations.sh
+          POSTGRES_HOST=127.0.0.1 POSTGRES_DB=vedicway_ci POSTGRES_USER=vedicway_ci POSTGRES_PASSWORD_FILE=/tmp/vedicway-postgres-password MIGRATIONS_DIR=backend/migrations sh docker/postgres/run-migrations.sh
           (cd backend && python -m alembic -c alembic.ini upgrade head)
           python -m seo_agent.cli init
           python -c "from vedicway_backend.content_store import ContentDatabase; ContentDatabase().ping(require_migrations=True)"
