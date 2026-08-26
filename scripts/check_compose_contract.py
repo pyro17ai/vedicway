@@ -34,14 +34,12 @@ ROLE_CONTRACTS = {
             "postgres_password",
             "vedicway_data_key",
             "vedicway_signing_key",
-            "codex_api_key",
             "codex_auth",
         },
         "files": {
             "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password",
             "VEDICWAY_DATA_KEY_FILE": "/run/secrets/vedicway_data_key",
             "VEDICWAY_SIGNING_KEY_FILE": "/run/secrets/vedicway_signing_key",
-            "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
             "CODEX_AUTH_FILE": "/run/secrets/codex_auth",
         },
     },
@@ -64,21 +62,25 @@ ROLE_CONTRACTS = {
         "profile": "seo-agent",
         "secrets": {
             "postgres_password",
-            "codex_api_key",
+            "codex_auth",
             "vedicway_seo_agent_token",
             "yandex_search_api_key",
             "yandex_folder_id",
             "yandex_webmaster_token",
             "yandex_metrika_token",
+            "vedicway_vk_group_access_token",
+            "vedicway_vk_user_access_token",
         },
         "files": {
             "POSTGRES_PASSWORD_FILE": "/run/secrets/postgres_password",
-            "OPENAI_API_KEY_FILE": "/run/secrets/codex_api_key",
+            "CODEX_AUTH_FILE": "/run/secrets/codex_auth",
             "VEDICWAY_SEO_AGENT_TOKEN_FILE": "/run/secrets/vedicway_seo_agent_token",
             "VEDICWAY_YANDEX_SEARCH_API_KEY_FILE": "/run/secrets/yandex_search_api_key",
             "VEDICWAY_YANDEX_FOLDER_ID_FILE": "/run/secrets/yandex_folder_id",
             "VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE": "/run/secrets/yandex_webmaster_token",
             "VEDICWAY_YANDEX_METRIKA_TOKEN_FILE": "/run/secrets/yandex_metrika_token",
+            "VEDICWAY_VK_GROUP_ACCESS_TOKEN_FILE": "/run/secrets/vedicway_vk_group_access_token",
+            "VEDICWAY_VK_USER_ACCESS_TOKEN_FILE": "/run/secrets/vedicway_vk_user_access_token",
         },
     },
 }
@@ -175,14 +177,13 @@ def main() -> None:
         "postgres_password",
         "vedicway_data_key",
         "vedicway_signing_key",
-        "codex_api_key",
         "codex_auth",
     }:
         raise SystemExit("worker secret mount set is not least-privilege")
 
     seo = services["seo-agent"]
-    if set(seo.get("networks", {})) != {"edge", "data", "seo-egress"}:
-        raise SystemExit("SEO agent must use edge, PostgreSQL data and dedicated egress networks")
+    if set(seo.get("networks", {})) != {"edge", "data", "seo-browser", "seo-egress"}:
+        raise SystemExit("SEO agent must use edge, PostgreSQL data, browser and dedicated egress networks")
     if seo.get("environment", {}).get("POSTGRES_PASSWORD_FILE") != "/run/secrets/postgres_password":
         raise SystemExit("SEO agent must receive PostgreSQL credentials from the mounted secret")
     if "seo" not in seo.get("profiles", []):
@@ -193,6 +194,8 @@ def main() -> None:
     if (
         seo_environment.get("CODEX_HOME") != "/var/lib/vedicway/seo-codex-home"
         or seo_environment.get("VEDICWAY_SEO_CODEX_HOME")
+        != "/var/lib/vedicway/seo-codex-home"
+        or seo_environment.get("VEDICWAY_CODEX_HOME")
         != "/var/lib/vedicway/seo-codex-home"
     ):
         raise SystemExit("SEO agent must use its dedicated Codex home")
@@ -228,8 +231,8 @@ def main() -> None:
     entrypoint = (Path(__file__).resolve().parents[1] / "docker/backend/entrypoint.sh").read_text(
         encoding="utf-8"
     )
-    if "worker)" not in entrypoint or "read_secret OPENAI_API_KEY" not in entrypoint or "read_secret CODEX_API_KEY" in entrypoint:
-        raise SystemExit("backend entrypoint must export the Codex secret as OPENAI_API_KEY")
+    if "worker)" not in entrypoint or "install_codex_auth" not in entrypoint or "OPENAI_API_KEY" in entrypoint:
+        raise SystemExit("backend entrypoint must use Codex ChatGPT auth without an API key")
     if "email)" not in entrypoint:
         raise SystemExit("backend entrypoint must isolate the email secret profile")
     if "read_secret VEDICWAY_SMTP_PASSWORD" not in entrypoint:

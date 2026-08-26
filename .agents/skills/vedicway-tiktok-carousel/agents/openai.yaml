@@ -1,0 +1,4 @@
+interface:
+  display_name: "TikTok-карусели VedicWay"
+  short_description: "Исследование, шесть слайдов и публикация"
+  default_prompt: "Используй $vedicway-tiktok-carousel, чтобы подготовить проверенную карусель по астрологии для TikTok."

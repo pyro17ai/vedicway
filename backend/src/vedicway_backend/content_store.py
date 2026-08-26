@@ -39,7 +39,7 @@ from sqlalchemy.orm.exc import StaleDataError
 
 from .legal_config import INTERPRETATION_PROCESSOR_ENV, interpretation_processor_config
 
-CONTENT_SCHEMA_REVISION = "20260728_01"
+CONTENT_SCHEMA_REVISION = "20260819_01"
 CONTENT_SCHEMA_TABLES = {
     "articles",
     "article_comments",
@@ -149,6 +149,7 @@ class MediaAsset(Base):
     alt_text: Mapped[str] = mapped_column(String(300), default="")
     title: Mapped[str] = mapped_column(String(240), default="")
     caption: Mapped[str] = mapped_column(String(500), default="")
+    public_unlisted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
 
 
@@ -181,6 +182,28 @@ class ConsentRecord(Base):
 
 class ArticleRevisionConflict(RuntimeError):
     pass
+
+
+def _media_is_public(asset: Any, filename: str, articles: list[Any]) -> bool:
+    urls = [
+        asset.public_url,
+        *(source.get("url", "") for source in asset.sources or []),
+    ]
+    allowed_filenames = {
+        PurePosixPath(urlsplit(url).path).name
+        for url in urls
+        if isinstance(url, str) and url
+    }
+    if filename not in allowed_filenames:
+        return False
+    if asset.public_unlisted:
+        return True
+    return any(
+        article.cover_media_id == asset.id
+        or asset.id in (article.body_media_ids or [])
+        or article.cover_image_url == asset.public_url
+        for article in articles
+    )
 
 
 class ContentDatabase:
@@ -416,7 +439,7 @@ class ContentDatabase:
                     Article.cover_image_url,
                 )
             ).all()
-            return any(
+            return asset.public_unlisted or any(
                 article.cover_media_id == asset_id
                 or asset_id in (article.body_media_ids or [])
                 or article.cover_image_url == asset.public_url
@@ -428,14 +451,6 @@ class ContentDatabase:
             asset = database.get(MediaAsset, asset_id)
             if not asset:
                 return False
-            urls = [asset.public_url, *(source.get("url", "") for source in asset.sources or [])]
-            allowed_filenames = {
-                PurePosixPath(urlsplit(url).path).name
-                for url in urls
-                if isinstance(url, str) and url
-            }
-            if filename not in allowed_filenames:
-                return False
             articles = database.execute(
                 select(
                     Article.cover_media_id,
@@ -443,12 +458,7 @@ class ContentDatabase:
                     Article.cover_image_url,
                 ).where(Article.status == "published")
             ).all()
-            return any(
-                article.cover_media_id == asset_id
-                or asset_id in (article.body_media_ids or [])
-                or article.cover_image_url == asset.public_url
-                for article in articles
-            )
+            return _media_is_public(asset, filename, articles)
 
     def delete_media(self, asset_id: str) -> bool:
         with self.session() as database:

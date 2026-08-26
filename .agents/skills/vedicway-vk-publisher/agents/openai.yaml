@@ -1,0 +1,4 @@
+interface:
+  display_name: "VK-публикатор VedicWay"
+  short_description: "Публикует материалы VedicWay в VK"
+  default_prompt: "Use $vedicway-vk-publisher to publish one approved VedicWay VK post and verify the external evidence."

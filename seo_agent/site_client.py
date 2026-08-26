@@ -14,10 +14,76 @@ import httpx
 from PIL import Image, UnidentifiedImageError
 
 from .db import AgentLedger, LedgerError, canonical_json, utc_now
+from .markdown_renderer import render_markdown
 from .quality_gate import evaluate
 
 MAX_MEDIA_BYTES = 12 * 1024 * 1024
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "AVIF"}
+
+
+def _require_success(response: httpx.Response, operation: str) -> None:
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as error:
+        detail = response.text.strip().replace("\n", " ")[:1000]
+        message = f"{operation} returned HTTP {response.status_code}"
+        if detail:
+            message = f"{message}: {detail}"
+        raise LedgerError(message) from error
+
+
+def _manifest_from_active_run_claim(
+    ledger: AgentLedger, manifest: dict[str, Any]
+) -> dict[str, Any]:
+    run_id = os.environ.get("VEDICWAY_SEO_RUN_ID", "").strip()
+    if not run_id:
+        return manifest
+    now = utc_now()
+    with ledger.connect() as connection:
+        rows = connection.execute(
+            """SELECT d.id,d.claim_token,d.content_hash,d.slug,d.title,d.excerpt,
+            d.content_markdown,d.seo_title,d.meta_description,d.focus_keyphrase,
+            d.category,d.author_name
+            FROM article_drafts d
+            JOIN cron_runs r ON r.id=d.claim_run_id
+            WHERE d.claim_run_id=%s AND d.status IN ('publishing','published')
+              AND d.claim_expires_at>=%s AND r.status='running'
+              AND r.job_name='article_site_publish'
+            ORDER BY d.updated_at,d.id""",
+            (run_id, now),
+        ).fetchall()
+    if len(rows) != 1:
+        raise LedgerError(
+            "Site publication requires exactly one active draft claim for this run"
+        )
+    draft = rows[0]
+    supplied_article = manifest.get("article")
+    if not isinstance(supplied_article, dict):
+        raise LedgerError("Publication manifest must contain an article object")
+    article = {
+        "section": "blog",
+        "difficulty": supplied_article.get("difficulty", "beginner"),
+        "title": draft["title"],
+        "slug": draft["slug"],
+        "category": draft["category"],
+        "excerpt": draft["excerpt"],
+        "content_markdown": draft["content_markdown"],
+        "seo_title": draft["seo_title"],
+        "meta_description": draft["meta_description"],
+        "focus_keyphrase": draft["focus_keyphrase"],
+        "tags": supplied_article.get("tags", []),
+        "schema_extra": supplied_article.get("schema_extra", {}),
+        "author_name": draft["author_name"],
+        "cover_image_alt": "pending canonical media",
+    }
+    return {
+        "schema_version": "2.0",
+        "draft_id": str(draft["id"]),
+        "claim_token": str(draft["claim_token"]),
+        "content_hash": str(draft["content_hash"]),
+        "article": article,
+        "media": [],
+    }
 
 
 def _owned_path(value: str, data_dir: Path) -> Path:
@@ -63,6 +129,7 @@ def _media_request_hash(item: dict[str, Any], content_sha256: str) -> str:
         str(item["alt_text"]),
         str(item.get("title", "")),
         str(item.get("caption", "")),
+        item.get("distribution_role") == "pinterest",
     )
 
 
@@ -89,6 +156,49 @@ def _validate_media_file(item: dict[str, Any]) -> None:
         raise LedgerError(f"Publication media format is not supported: {path.name}")
     if item.get("purpose") == "cover" and width < 1200:
         raise LedgerError("SEO agent cover must be at least 1200 pixels wide")
+    if item.get("distribution_role") == "pinterest" and (width, height) != (
+        1000,
+        1500,
+    ):
+        raise LedgerError("Pinterest distribution media must be exactly 1000x1500")
+
+
+def _manifest_media_from_ledger(
+    ledger: AgentLedger, draft_id: str, claim_token: str
+) -> list[dict[str, Any]]:
+    with ledger.connect() as connection:
+        rows = connection.execute(
+            """SELECT m.id,m.local_path,m.purpose,m.alt_text,m.title,m.caption,
+            m.source_kind,m.source_url,m.license_note,m.distribution_role,
+            m.width,m.height
+            FROM article_media m
+            JOIN article_drafts d ON d.id=m.draft_id
+            WHERE d.id=%s AND d.status IN ('publishing','published')
+              AND d.claim_token=%s
+            ORDER BY CASE m.purpose WHEN 'cover' THEN 0 ELSE 1 END,m.created_at,m.id""",
+            (draft_id, claim_token),
+        ).fetchall()
+    media: list[dict[str, Any]] = []
+    body_index = 0
+    for row in rows:
+        item = {
+            "media_id": str(row["id"]),
+            "local_path": str(row["local_path"]),
+            "purpose": str(row["purpose"]),
+            "alt_text": str(row["alt_text"]),
+            "source_kind": str(row["source_kind"]),
+            "license_note": str(row["license_note"]),
+            "width": int(row["width"]),
+            "height": int(row["height"]),
+        }
+        for name in ("title", "caption", "source_url", "distribution_role"):
+            if row[name] not in {None, ""}:
+                item[name] = row[name]
+        if item["purpose"] == "body" and "distribution_role" not in item:
+            body_index += 1
+            item["placeholder"] = f"{{{{media:body-{body_index}}}}}"
+        media.append(item)
+    return media
 
 
 def _validate_manifest_claim(
@@ -124,7 +234,7 @@ def _validate_manifest_claim(
         ).fetchone()
         if (
             not draft
-            or draft["status"] != "publishing"
+            or draft["status"] not in {"publishing", "published"}
             or draft["claim_token"] != manifest["claim_token"]
             or not draft["claim_expires_at"]
             or draft["claim_expires_at"] < now
@@ -138,7 +248,7 @@ def _validate_manifest_claim(
             "slug": "slug",
             "title": "title",
             "excerpt": "excerpt",
-            "content_html": "content_markdown",
+            "content_markdown": "content_markdown",
             "seo_title": "seo_title",
             "meta_description": "meta_description",
             "focus_keyphrase": "focus_keyphrase",
@@ -152,7 +262,7 @@ def _validate_manifest_claim(
         recorded_media = [
             dict(row)
             for row in connection.execute(
-                "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum FROM article_media WHERE draft_id=%s",
+                "SELECT purpose,local_path,alt_text,source_kind,license_note,checksum,distribution_role FROM article_media WHERE draft_id=%s",
                 (manifest["draft_id"],),
             )
         ]
@@ -174,6 +284,8 @@ def _validate_manifest_claim(
             for name in ("alt_text", "source_kind", "license_note")
         ):
             raise LedgerError("Publication media differs from the draft media ledger")
+        if item.get("distribution_role") != match["distribution_role"]:
+            raise LedgerError("Publication media distribution role differs from the ledger")
 
 
 def publish_bundle(
@@ -188,7 +300,15 @@ def publish_bundle(
     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
     if not isinstance(manifest, dict) or not isinstance(manifest.get("article"), dict):
         raise LedgerError("Publication manifest must contain an article object")
-    media = manifest.get("media", [])
+    manifest = _manifest_from_active_run_claim(ledger, manifest)
+    if manifest["article"].get("section") != "blog":
+        raise LedgerError("SEO agent publication is restricted to the VedicWay blog section")
+    manifest["media"] = _manifest_media_from_ledger(
+        ledger,
+        str(manifest.get("draft_id", "")),
+        str(manifest.get("claim_token", "")),
+    )
+    media = manifest["media"]
     if (
         not isinstance(media, list)
         or sum(
@@ -197,6 +317,9 @@ def publish_bundle(
         != 1
     ):
         raise LedgerError("Publication manifest must contain exactly one cover")
+    manifest["article"]["cover_image_alt"] = next(
+        str(item["alt_text"]) for item in media if item.get("purpose") == "cover"
+    )
     required_media_keys = {
         "local_path",
         "purpose",
@@ -205,10 +328,14 @@ def publish_bundle(
         "license_note",
     }
     allowed_media_keys = required_media_keys | {
+        "media_id",
         "placeholder",
         "title",
         "caption",
         "source_url",
+        "distribution_role",
+        "width",
+        "height",
     }
     if any(
         not isinstance(item, dict)
@@ -217,17 +344,24 @@ def publish_bundle(
         for item in media
     ):
         raise LedgerError("Publication media does not match the manifest contract")
+    distribution_only_media = [
+        item
+        for item in media
+        if item.get("purpose") == "body" and item.get("distribution_role")
+    ]
+    if any(item.get("placeholder") for item in distribution_only_media):
+        raise LedgerError("Distribution-only media must not appear in article HTML")
     placeholders = [
         str(item.get("placeholder", ""))
         for item in media
-        if item.get("purpose") == "body"
+        if item.get("purpose") == "body" and not item.get("distribution_role")
     ]
     if any(
         not re.fullmatch(r"\{\{media:body-[1-9][0-9]*\}\}", value)
         for value in placeholders
     ) or len(placeholders) != len(set(placeholders)):
         raise LedgerError("Body media requires unique {{media:body-N}} placeholders")
-    article_content = str(manifest["article"].get("content_html", ""))
+    article_content = str(manifest["article"].get("content_markdown", ""))
     content_placeholders = re.findall(
         r"\{\{media:body-[1-9][0-9]*\}\}", article_content
     )
@@ -248,7 +382,7 @@ def publish_bundle(
         "slug": manifest["article"].get("slug"),
         "draft_id": manifest.get("draft_id"),
         "media_count": len(resolved_media),
-        "target": "site+dzen-rss",
+        "target": "site",
     }
     if dry_run:
         return {"dry_run": True, **preview}
@@ -265,6 +399,7 @@ def publish_bundle(
         float(os.environ.get("VEDICWAY_SEO_HTTP_TIMEOUT_SECONDS", "30"))
     )
     article = dict(manifest["article"])
+    article["content_html"] = render_markdown(str(article.pop("content_markdown")))
     uploaded: list[dict[str, Any]] = []
     with httpx.Client(
         timeout=timeout, follow_redirects=True, transport=transport
@@ -273,7 +408,14 @@ def publish_bundle(
             f"{base_url}/internal/content-agent/health",
             headers={"Authorization": f"Bearer {token}"},
         )
-        health.raise_for_status()
+        _require_success(health, "Content-agent health check")
+        if distribution_only_media and (
+            health.json().get("capabilities", {}).get("public_unlisted_media")
+            is not True
+        ):
+            raise LedgerError(
+                "Content-agent does not support public-unlisted distribution media"
+            )
         for index, item in enumerate(resolved_media, start=1):
             raw = item["resolved_path"].read_bytes()
             digest = hashlib.sha256(raw).hexdigest()
@@ -302,16 +444,21 @@ def publish_bundle(
                     "alt": item["alt_text"],
                     "title": item.get("title", ""),
                     "caption": item.get("caption", ""),
+                    "public_unlisted": (
+                        "true"
+                        if item.get("distribution_role") == "pinterest"
+                        else "false"
+                    ),
                 },
             )
-            response.raise_for_status()
+            _require_success(response, f"Media upload {index}")
             asset = response.json()["asset"]
             uploaded.append({"manifest": item, "asset": asset, "sha256": digest})
             if item["purpose"] == "cover":
                 article["cover_media_id"] = asset["id"]
                 article["cover_image_url"] = asset["url"]
                 article["cover_image_alt"] = item["alt_text"]
-            else:
+            elif not item.get("distribution_role"):
                 placeholder = str(item.get("placeholder", ""))
                 if not placeholder or placeholder not in str(
                     article.get("content_html", "")
@@ -336,40 +483,70 @@ def publish_bundle(
         if current.status_code == 200:
             headers["If-Match"] = str(current.json()["revision"])
         elif current.status_code != 404:
-            current.raise_for_status()
+            _require_success(current, "Current article lookup")
         published = client.put(
             f"{base_url}/internal/content-agent/{section}/articles/{slug}",
             headers=headers,
             json=normalized,
         )
-        published.raise_for_status()
+        _require_success(published, "Article publication")
         public_url = f"{public_origin}/{section}/{slug}"
         page = client.get(public_url)
-        page.raise_for_status()
+        _require_success(page, "Public article verification")
         sitemap = client.get(f"{public_origin}/sitemap.xml")
-        sitemap.raise_for_status()
-        feed = client.get(f"{public_origin}/feed/dzen.xml")
-        feed.raise_for_status()
+        _require_success(sitemap, "Sitemap verification")
         cover_url = urljoin(f"{public_origin}/", str(normalized["cover_image_url"]))
-        cover_response = client.get(cover_url)
-        cover_response.raise_for_status()
+        public_article_media = uploaded
+        media_responses: dict[str, httpx.Response] = {}
+        for item in public_article_media:
+            media_url = urljoin(f"{public_origin}/", str(item["asset"]["url"]))
+            media_response = client.get(media_url)
+            _require_success(media_response, "Public media verification")
+            media_responses[media_url] = media_response
     checks = {
         "canonical": str(page.url).rstrip("/") == public_url
         and f'<link rel="canonical" href="{public_url}"' in page.text,
         "article_schema": (
             '"@type":"BlogPosting"' in page.text
             if str(normalized["section"]) == "blog"
-            else '"@type":"Article"' in page.text
+            else False
         ),
         "title": str(normalized["title"]) in page.text,
+        "request_hash": bool(request_hash),
         "sitemap": public_url in sitemap.text,
-        "dzen_feed": public_url in feed.text,
-        "cover": cover_response.headers.get("content-type", "").startswith("image/"),
+        "cover": media_responses[cover_url]
+        .headers.get("content-type", "")
+        .startswith("image/"),
+        "all_media_public": len(media_responses) == len(public_article_media)
+        and all(
+            response.headers.get("content-type", "").startswith("image/")
+            for response in media_responses.values()
+        ),
     }
     if not all(checks.values()):
         raise LedgerError(
             "Public verification failed: "
             + ", ".join(name for name, ok in checks.items() if not ok)
+        )
+    for item in uploaded:
+        manifest_item = item["manifest"]
+        ledger.write_record(
+            "media",
+            {
+                "draft_id": manifest["draft_id"],
+                "purpose": manifest_item["purpose"],
+                "local_path": str(manifest_item["resolved_path"]),
+                "alt_text": manifest_item["alt_text"],
+                "title": manifest_item.get("title", ""),
+                "caption": manifest_item.get("caption", ""),
+                "source_kind": manifest_item["source_kind"],
+                "source_url": manifest_item.get("source_url"),
+                "license_note": manifest_item["license_note"],
+                "checksum": item["sha256"],
+                "distribution_role": manifest_item.get("distribution_role"),
+                "backend_media_id": item["asset"]["id"],
+                "public_url": urljoin(f"{public_origin}/", item["asset"]["url"]),
+            },
         )
     return {
         **preview,
@@ -379,8 +556,15 @@ def publish_bundle(
         "article": published.json()["article"],
         "uploaded_media": [
             {
-                "id": item["asset"]["id"],
-                "url": item["asset"]["url"],
+                "media_id": item["manifest"]["media_id"],
+                "backend_media_id": item["asset"]["id"],
+                "public_url": urljoin(
+                    f"{public_origin}/", str(item["asset"]["url"])
+                ),
+                "purpose": item["manifest"]["purpose"],
+                "distribution_role": item["manifest"].get("distribution_role"),
+                "width": item["manifest"]["width"],
+                "height": item["manifest"]["height"],
                 "sha256": item["sha256"],
             }
             for item in uploaded
@@ -389,7 +573,6 @@ def publish_bundle(
             "checks": checks,
             "page_sha256": hashlib.sha256(page.content).hexdigest(),
             "sitemap_sha256": hashlib.sha256(sitemap.content).hexdigest(),
-            "dzen_feed_sha256": hashlib.sha256(feed.content).hexdigest(),
         },
         "manifest_hash": hashlib.sha256(
             canonical_json(manifest).encode("utf-8")

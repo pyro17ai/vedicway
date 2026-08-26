@@ -5,7 +5,7 @@ description: Исполняй подтвержденные lifecycle-задач�
 
 # Оптимизация опубликованной статьи VedicWay
 
-Забери одно действие командой `python -m seo_agent.cli claim action`. Ответ содержит исходную статью, публичный URL, baseline request hash, гипотезу и метрику успеха. Не начинай работу без действующего `claim_token` и evidence, которое объясняет наблюдаемый разрыв.
+Забери одно действие вызовом `vedicway_ledger_claim` с `entity=action`. Ответ содержит исходную статью, публичный URL, baseline request hash, гипотезу и метрику успеха. Не начинай работу без действующего `claim_token` и evidence, которое объясняет наблюдаемый разрыв.
 
 Для `rewrite`, `expand`, `internal_links` и `title_test` сохрани slug и canonical. Меняй только те поля, которых касается гипотеза. Передай в запись `draft` идентификатор action и его claim token: ledger разрешает открыть опубликованный draft для редактирования только владельцу этой аренды. После `$vedicway-article-editor-ru` заново выполни `$vedicway-article-quality-gate`; report обязан совпасть с текущим content hash.
 

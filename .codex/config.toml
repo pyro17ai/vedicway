@@ -25,3 +25,31 @@ args = ["-m", "seo_agent.mcp_launcher", "metrika"]
 env_vars = ["VEDICWAY_YANDEX_METRIKA_TOKEN"]
 startup_timeout_sec = 20
 tool_timeout_sec = 120
+
+[mcp_servers.vedicway-vk]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "vk"]
+env_vars = ["VEDICWAY_VK_GROUP_ID", "VEDICWAY_VK_GROUP_ACCESS_TOKEN", "VEDICWAY_VK_USER_ACCESS_TOKEN"]
+startup_timeout_sec = 20
+tool_timeout_sec = 120
+
+[mcp_servers.vedicway-dzen-browser]
+command = "python"
+args = ["-m", "seo_agent.browser_mcp_launcher", "dzen"]
+env_vars = ["VEDICWAY_SEO_DATA_DIR", "VEDICWAY_DZEN_CDP_URL"]
+startup_timeout_sec = 20
+tool_timeout_sec = 180
+
+[mcp_servers.vedicway-pinterest-browser]
+command = "python"
+args = ["-m", "seo_agent.browser_mcp_launcher", "pinterest"]
+env_vars = ["VEDICWAY_SEO_DATA_DIR", "VEDICWAY_PINTEREST_CDP_URL"]
+startup_timeout_sec = 20
+tool_timeout_sec = 180
+
+[mcp_servers.vedicway-control]
+command = "python"
+args = ["-m", "seo_agent.mcp_launcher", "control"]
+env_vars = ["PYTHONPATH", "VEDICWAY_SEO_DATABASE_URL", "DATABASE_URL", "VEDICWAY_DATABASE_URL", "VEDICWAY_SEO_DATA_DIR", "VEDICWAY_SEO_RUN_ID", "VEDICWAY_SEO_JOB_NAME", "VEDICWAY_SEO_AGENT_TOKEN", "VEDICWAY_SEO_AGENT_BASE_URL", "VEDICWAY_PUBLIC_ORIGIN", "VEDICWAY_SEO_JOB_TIMEOUT_SECONDS", "VEDICWAY_IMAGEGEN_RUN_STARTED_NS", "VEDICWAY_PINTEREST_BOARD_NAME", "CODEX_HOME"]
+startup_timeout_sec = 20
+tool_timeout_sec = 180

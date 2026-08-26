@@ -88,14 +88,18 @@ def bootstrap(repo_root: Path | None = None) -> dict[str, Any]:
             "cluster",
             {
                 **contract,
-                "status": "ready",
-                "rationale": "Tracked VedicWay Wordstat seed marked article_candidate; refresh before brief if older than 30 days",
+                "status": "candidate",
+                "rationale": "Tracked repository seed; promote only after fresh Wordstat and Yandex SERP evidence",
                 "query_ids": [query_id],
                 "primary_query_id": query_id,
             },
         )
         clusters.append(str(result["id"]))
-    return {"source_documents": source_ids, "queries": len(queries), "ready_clusters": clusters}
+    return {
+        "source_documents": source_ids,
+        "queries": len(queries),
+        "candidate_clusters": clusters,
+    }
 
 
 def main() -> int:

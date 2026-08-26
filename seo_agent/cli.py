@@ -45,7 +45,10 @@ def parser() -> argparse.ArgumentParser:
     finish.add_argument("--owner-token", required=True)
     finish.add_argument("--failed-error")
     claim = commands.add_parser("claim")
-    claim.add_argument("entity", choices=("cluster", "draft", "action"))
+    claim.add_argument(
+        "entity",
+        choices=("cluster", "draft", "dzen-article", "action", "vk-post", "pinterest-pin"),
+    )
     claim.add_argument("--lease-seconds", type=int, default=default_claim_lease_seconds())
     write = commands.add_parser("write")
     write.add_argument(
@@ -56,6 +59,7 @@ def parser() -> argparse.ArgumentParser:
             "draft-quality", "media", "publication-attempt", "publication",
             "performance", "action",
             "action-result",
+            "distribution-item", "distribution-attempt", "distribution-publication",
         ),
     )
     write.add_argument("--json-file", type=Path)

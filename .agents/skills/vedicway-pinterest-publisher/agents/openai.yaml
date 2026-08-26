@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pinterest-публикатор VedicWay"
+  short_description: "Публикует памятки VedicWay в Pinterest"
+  default_prompt: "Use $vedicway-pinterest-publisher to upload ten approved VedicWay astrology cards in one hourly Pinterest Business CSV batch and verify processing."

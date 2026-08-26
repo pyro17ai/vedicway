@@ -13,14 +13,33 @@ from pathlib import Path
 from typing import Any
 
 import psycopg
+from PIL import Image, UnidentifiedImageError
 from psycopg.rows import dict_row
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.4.0"
 MANUAL_QUALITY_CHECKS = {
     "brief_alignment",
     "evidence_verified",
     "originality_reviewed",
     "prohibited_claims_reviewed",
+}
+TOOL_PROVIDER_ALIASES = {
+    "yandex-search": "yandex-search",
+    "yandex_search": "yandex-search",
+    "search": "yandex-search",
+    "yandex-wordstat": "wordstat",
+    "yandex_wordstat": "wordstat",
+    "wordstat": "wordstat",
+    "yandex-webmaster": "webmaster",
+    "yandex_webmaster": "webmaster",
+    "webmaster": "webmaster",
+    "yandex-metrika": "metrika",
+    "yandex_metrika": "metrika",
+    "metrika": "metrika",
+    "site": "site",
+    "dzen": "dzen",
+    "vk": "vk",
+    "pinterest": "pinterest",
 }
 
 
@@ -30,6 +49,21 @@ def utc_now() -> str:
 
 def canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def normalize_tool_provider(value: Any) -> str:
+    provider = TOOL_PROVIDER_ALIASES.get(str(value).strip().casefold())
+    if provider is None:
+        raise LedgerError("Unsupported tool-response provider")
+    return provider
+
+
+def normalize_tool_response(value: Any) -> dict[str, Any] | list[Any]:
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str) and value.strip():
+        return {"text": value}
+    raise LedgerError("Tool response must be a JSON object, array or non-empty text")
 
 
 class LedgerError(RuntimeError):
@@ -172,6 +206,14 @@ class AgentLedger:
                     "UPDATE cron_runs SET status='failed', finished_at=%s, error_code='STALE_LEASE', error_detail='Scheduler lease expired' WHERE id=%s",
                     (now_text, row["id"]),
                 )
+                connection.execute(
+                    """INSERT INTO run_logs(cron_run_id,log_text) VALUES (%s,%s)
+                    ON CONFLICT(cron_run_id) DO NOTHING""",
+                    (
+                        row["id"],
+                        "Codex exec не завершил run: Scheduler обнаружил просроченную аренду.",
+                    ),
+                )
                 self._release_run_claims(connection, str(row["id"]))
             try:
                 connection.execute(
@@ -191,6 +233,34 @@ class AgentLedger:
             ).rowcount
             if changed != 1:
                 raise LedgerError("Run lease is not active or ownership token is stale")
+
+    def record_run_log(self, run_id: str, log_text: str) -> dict[str, str]:
+        text = str(log_text).strip()
+        if not 1 <= len(text) <= 4000:
+            raise LedgerError("Run log must contain between 1 and 4000 characters")
+        with self.transaction(immediate=True) as connection:
+            active = connection.execute(
+                "SELECT 1 FROM cron_runs WHERE id=%s AND status='running'", (run_id,)
+            ).fetchone()
+            if not active:
+                raise LedgerError("Cannot attach a log to an inactive run")
+            if connection.execute(
+                "SELECT 1 FROM run_logs WHERE cron_run_id=%s", (run_id,)
+            ).fetchone():
+                raise LedgerError("Run already has a log")
+            connection.execute(
+                "INSERT INTO run_logs(cron_run_id,log_text) VALUES (%s,%s)",
+                (run_id, text),
+            )
+            self._audit(
+                connection,
+                "codex",
+                "run.log_recorded",
+                "cron_run",
+                run_id,
+                {},
+            )
+        return {"cron_run_id": run_id}
 
     def record_result(self, run_id: str, outcome: str, summary: str, artifact: Any) -> str:
         if outcome not in {"completed", "blocked", "skipped"}:
@@ -216,8 +286,27 @@ class AgentLedger:
     def finish_run(self, run_id: str, owner_token: str, *, failed_error: str | None = None) -> str:
         with self.transaction(immediate=True) as connection:
             row = connection.execute(
-                "SELECT outcome FROM job_results WHERE cron_run_id=%s", (run_id,)
+                "SELECT outcome,summary FROM job_results WHERE cron_run_id=%s", (run_id,)
             ).fetchone()
+            if failed_error:
+                fallback_log = (
+                    "Codex exec не записал отдельный лог. Ошибка запуска: "
+                    + failed_error[:3000]
+                )
+            elif row:
+                fallback_log = (
+                    "Codex exec не записал отдельный лог. Итог: "
+                    + str(row["summary"])[:3000]
+                )
+            else:
+                fallback_log = (
+                    "Codex exec не записал отдельный лог и завершился без job_result."
+                )
+            connection.execute(
+                """INSERT INTO run_logs(cron_run_id,log_text) VALUES (%s,%s)
+                ON CONFLICT(cron_run_id) DO NOTHING""",
+                (run_id, fallback_log),
+            )
             outstanding_claims = sum(
                 int(
                     connection.execute(
@@ -229,7 +318,15 @@ class AgentLedger:
                     ("keyword_clusters", "claimed"),
                     ("article_drafts", "publishing"),
                     ("optimization_actions", "claimed"),
+                    ("distribution_items", "publishing"),
                 )
+            )
+            outstanding_claims += int(
+                connection.execute(
+                    """SELECT COUNT(*) AS count FROM article_drafts
+                    WHERE claim_run_id=%s AND status='published'""",
+                    (run_id,),
+                ).fetchone()["count"]
             )
             if failed_error:
                 status, outcome, error_code, error_detail = "failed", "failed", "AGENT_EXEC_FAILED", failed_error[:4000]
@@ -272,10 +369,22 @@ class AgentLedger:
             (now, run_id),
         ).rowcount
         released += connection.execute(
+            """UPDATE article_drafts
+            SET claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s
+            WHERE claim_run_id=%s AND status='published'""",
+            (now, run_id),
+        ).rowcount
+        released += connection.execute(
             """UPDATE optimization_actions
             SET status='open',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL
             WHERE claim_run_id=%s AND status='claimed'""",
             (run_id,),
+        ).rowcount
+        released += connection.execute(
+            """UPDATE distribution_items
+            SET status='approved',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s
+            WHERE claim_run_id=%s AND status='publishing'""",
+            (now, run_id),
         ).rowcount
         if released:
             self._audit(
@@ -293,8 +402,60 @@ class AgentLedger:
             raise LedgerError("Claim lease must be between 30 and 86400 seconds")
         contracts = {
             "cluster": ("keyword_clusters", "status IN ('ready','claimed')", "priority_score DESC, created_at ASC", "claimed"),
-            "draft": ("article_drafts", "status IN ('approved','publishing')", "approved_at ASC", "publishing"),
+            "draft": (
+                "article_drafts",
+                """status IN ('approved','publishing')
+                OR (
+                  status='published'
+                  AND EXISTS (
+                    SELECT 1 FROM publications site
+                    WHERE site.draft_id=article_drafts.id
+                      AND site.target='site' AND site.status='verified'
+                      AND site.content_hash=article_drafts.content_hash
+                      AND (
+                        (SELECT COUNT(*) FROM distribution_items item
+                         WHERE item.source_publication_id=site.id
+                           AND item.platform='vk') < 1
+                        OR
+                        (SELECT COUNT(*) FROM distribution_items item
+                         WHERE item.source_publication_id=site.id
+                           AND item.platform='pinterest') < 10
+                      )
+                  )
+                )""",
+                "approved_at ASC",
+                "publishing",
+            ),
+            "dzen-article": (
+                "article_drafts",
+                """status='published'
+                AND EXISTS (
+                  SELECT 1 FROM publications site
+                  WHERE site.draft_id=article_drafts.id
+                    AND site.target='site' AND site.status='verified'
+                )
+                AND (
+                  NOT EXISTS (
+                    SELECT 1 FROM publications dzen
+                    WHERE dzen.draft_id=article_drafts.id
+                      AND dzen.target='dzen' AND dzen.status='verified'
+                  )
+                  OR EXISTS (
+                    SELECT 1 FROM publications dzen
+                    WHERE dzen.draft_id=article_drafts.id
+                      AND dzen.target='dzen' AND dzen.status='verified'
+                      AND COALESCE(
+                        dzen.evidence_json::jsonb #>> '{checks,cover_present}',
+                        'false'
+                      ) <> 'true'
+                  )
+                )""",
+                "updated_at ASC",
+                "published",
+            ),
             "action": ("optimization_actions", "status IN ('open','claimed')", "priority_score DESC, created_at ASC", "claimed"),
+            "vk-post": ("distribution_items", "platform='vk' AND status IN ('approved','publishing')", "created_at ASC", "publishing"),
+            "pinterest-pin": ("distribution_items", "platform='pinterest' AND status IN ('approved','publishing')", "created_at ASC", "publishing"),
         }
         if entity not in contracts:
             raise LedgerError("Unsupported claim entity")
@@ -313,25 +474,126 @@ class AgentLedger:
                 allowed_claims = {
                     "article_content_production": {"cluster"},
                     "article_site_publish": {"draft"},
+                    "dzen_daily_publish": {"dzen-article"},
                     "article_optimization": {"action", "draft"},
+                    "vk_daily_publish": {"vk-post"},
+                    "pinterest_daily_publish": {"pinterest-pin"},
                 }
                 if entity not in allowed_claims.get(str(run["job_name"]), set()):
                     raise LedgerError(
                         f"Job {run['job_name']} is not allowed to claim {entity}"
                     )
             row = connection.execute(
-                f"SELECT * FROM {table} WHERE {predicate} AND (claim_expires_at IS NULL OR claim_expires_at < %s) ORDER BY {order_by} LIMIT 1",
+                f"SELECT * FROM {table} WHERE ({predicate}) AND (claim_expires_at IS NULL OR claim_expires_at < %s) ORDER BY {order_by} LIMIT 1",
                 (now,),
             ).fetchone()
             if not row:
                 return None
+            claimed_status = (
+                str(row["status"])
+                if entity == "draft" and row["status"] == "published"
+                else next_status
+            )
             connection.execute(
                 f"UPDATE {table} SET status=%s, claim_token=%s, claim_expires_at=%s, claim_run_id=%s WHERE id=%s",
-                (next_status, token, expires, run_id, row["id"]),
+                (claimed_status, token, expires, run_id, row["id"]),
             )
             self._audit(connection, "codex", f"{entity}.claimed", entity, row["id"], {"expires_at": expires})
             result = dict(row)
-            if entity == "action":
+            if entity == "cluster":
+                query_rows = connection.execute(
+                    """SELECT q.id,q.phrase,q.region_id,q.source,q.intent,
+                    q.metrics_json,q.observed_at,q.raw_response_id,cq.is_primary
+                    FROM cluster_queries cq
+                    JOIN keyword_queries q ON q.id=cq.query_id
+                    WHERE cq.cluster_id=%s
+                    ORDER BY cq.is_primary DESC,q.observed_at DESC,q.id ASC""",
+                    (row["id"],),
+                ).fetchall()
+                queries: list[dict[str, Any]] = []
+                for query_row in query_rows:
+                    snapshots = connection.execute(
+                        """SELECT id,region_id,requested_at,result_json,checksum,
+                        raw_response_id
+                        FROM serp_snapshots
+                        WHERE query_id=%s
+                        ORDER BY requested_at DESC,id ASC""",
+                        (query_row["id"],),
+                    ).fetchall()
+                    query = {
+                        "id": str(query_row["id"]),
+                        "phrase": str(query_row["phrase"]),
+                        "region_id": str(query_row["region_id"]),
+                        "source": str(query_row["source"]),
+                        "intent": query_row["intent"],
+                        "metrics": json.loads(str(query_row["metrics_json"])),
+                        "observed_at": str(query_row["observed_at"]),
+                        "raw_response_id": query_row["raw_response_id"],
+                        "is_primary": bool(query_row["is_primary"]),
+                        "serp_snapshots": [
+                            {
+                                "id": str(snapshot["id"]),
+                                "region_id": str(snapshot["region_id"]),
+                                "requested_at": str(snapshot["requested_at"]),
+                                "results": json.loads(str(snapshot["result_json"])),
+                                "checksum": str(snapshot["checksum"]),
+                                "raw_response_id": snapshot["raw_response_id"],
+                            }
+                            for snapshot in snapshots
+                        ],
+                    }
+                    queries.append(query)
+                primary_query = next(
+                    (query for query in queries if query["is_primary"]), None
+                )
+                result["queries"] = queries
+                result["primary_query"] = primary_query
+            elif entity == "draft":
+                media = connection.execute(
+                    """SELECT id,purpose,local_path,alt_text,title,caption,
+                    source_kind,source_url,license_note,checksum,public_url,
+                    distribution_role,width,height
+                    FROM article_media
+                    WHERE draft_id=%s
+                    ORDER BY CASE purpose WHEN 'cover' THEN 0 ELSE 1 END,created_at,id""",
+                    (row["id"],),
+                ).fetchall()
+                result["media"] = [dict(item) for item in media]
+                if row["status"] == "published":
+                    site = connection.execute(
+                        """SELECT id,public_url FROM publications
+                        WHERE draft_id=%s AND target='site' AND status='verified'
+                          AND content_hash=%s""",
+                        (row["id"], row["content_hash"]),
+                    ).fetchone()
+                    if not site:
+                        raise LedgerError(
+                            "Distribution recovery lost its verified site publication"
+                        )
+                    counts = {"vk": 0, "pinterest": 0}
+                    for count_row in connection.execute(
+                        """SELECT platform,COUNT(*) AS count
+                        FROM distribution_items WHERE source_publication_id=%s
+                        GROUP BY platform""",
+                        (site["id"],),
+                    ):
+                        counts[str(count_row["platform"])] = int(count_row["count"])
+                    existing = connection.execute(
+                        """SELECT id,platform,media_id,status,title
+                        FROM distribution_items WHERE source_publication_id=%s
+                        ORDER BY platform,created_at,id""",
+                        (site["id"],),
+                    ).fetchall()
+                    result.update(
+                        {
+                            "recovery_mode": "missing_distribution",
+                            "site_publication_id": str(site["id"]),
+                            "site_public_url": str(site["public_url"]),
+                            "distribution_counts": counts,
+                            "distribution_items": [dict(item) for item in existing],
+                        }
+                    )
+            elif entity == "action":
                 details = connection.execute(
                     """SELECT p.draft_id,p.public_url,p.content_hash AS published_content_hash,
                     p.request_hash AS published_request_hash,d.brief_id,d.slug,d.title,d.excerpt,
@@ -346,12 +608,47 @@ class AgentLedger:
                 if not details:
                     raise LedgerError("Optimization action lost its publication or draft")
                 result.update(dict(details))
+            elif entity == "dzen-article":
+                site = connection.execute(
+                    """SELECT id AS site_publication_id,public_url AS site_public_url,
+                    request_hash AS site_request_hash
+                    FROM publications
+                    WHERE draft_id=%s AND target='site' AND status='verified'""",
+                    (row["id"],),
+                ).fetchone()
+                dzen = connection.execute(
+                    """SELECT id,public_url,external_id,evidence_json
+                    FROM publications
+                    WHERE draft_id=%s AND target='dzen' AND status='verified'""",
+                    (row["id"],),
+                ).fetchone()
+                media = connection.execute(
+                    """SELECT id,purpose,local_path,alt_text,caption,public_url,width,height
+                    FROM article_media
+                    WHERE draft_id=%s AND public_url IS NOT NULL
+                      AND distribution_role IS NULL
+                    ORDER BY CASE purpose WHEN 'cover' THEN 0 ELSE 1 END,created_at""",
+                    (row["id"],),
+                ).fetchall()
+                if not site:
+                    raise LedgerError("Dzen article lost its verified site publication")
+                result.update(dict(site))
+                result["media"] = [dict(item) for item in media]
+                if dzen:
+                    result.update(
+                        {
+                            "recovery_mode": "missing_cover",
+                            "existing_dzen_publication_id": str(dzen["id"]),
+                            "existing_dzen_public_url": str(dzen["public_url"]),
+                            "existing_dzen_external_id": dzen["external_id"],
+                        }
+                    )
             result.update(
                 {
                     "claim_token": token,
                     "claim_expires_at": expires,
                     "claim_run_id": run_id,
-                    "status": next_status,
+                    "status": claimed_status,
                 }
             )
             return result
@@ -362,6 +659,7 @@ class AgentLedger:
             for table in (
                 "cron_runs", "source_documents", "keyword_queries", "keyword_clusters",
                 "content_briefs", "article_drafts", "publications", "optimization_actions",
+                "distribution_items", "distribution_publications", "run_logs",
             ):
                 counts[table] = int(
                     connection.execute(
@@ -372,6 +670,31 @@ class AgentLedger:
                 "SELECT id,job_name,status,started_at,finished_at,error_code FROM cron_runs ORDER BY started_at DESC LIMIT 10"
             )]
         return {"counts": counts, "recent_runs": recent}
+
+    def due_lifecycle(self, *, limit: int = 25) -> list[dict[str, Any]]:
+        if not 1 <= limit <= 100:
+            raise LedgerError("Lifecycle queue limit must be between 1 and 100")
+        run_id = os.environ.get("VEDICWAY_SEO_RUN_ID", "").strip()
+        if not run_id:
+            raise LedgerError("VEDICWAY_SEO_RUN_ID is required")
+        with self.connect() as connection:
+            run = connection.execute(
+                "SELECT job_name FROM cron_runs WHERE id=%s AND status='running'",
+                (run_id,),
+            ).fetchone()
+            if not run or str(run["job_name"]) != "article_lifecycle_review":
+                raise LedgerError(
+                    "Only article_lifecycle_review may read the lifecycle queue"
+                )
+            rows = connection.execute(
+                """SELECT id,draft_id,target,status,public_url,content_hash,
+                request_hash,published_at,verified_at
+                FROM v_due_lifecycle
+                ORDER BY published_at ASC, id ASC
+                LIMIT %s""",
+                (limit,),
+            ).fetchall()
+        return [dict(row) for row in rows]
 
     def write_record(self, record_type: str, payload: dict[str, Any]) -> dict[str, Any]:
         handlers = {
@@ -389,6 +712,9 @@ class AgentLedger:
             "performance": self._record_performance,
             "action": self._record_action,
             "action-result": self._record_action_result,
+            "distribution-item": self._record_distribution_item,
+            "distribution-attempt": self._record_distribution_attempt,
+            "distribution-publication": self._record_distribution_publication,
         }
         if record_type not in handlers:
             raise LedgerError(f"Unsupported record type: {record_type}")
@@ -431,8 +757,8 @@ class AgentLedger:
 
     def _record_tool_response(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._required(payload, "provider", "tool_name", "request_hash", "response")
-        if not isinstance(payload["response"], (dict, list)):
-            raise LedgerError("Tool response must be a JSON object or array")
+        provider = normalize_tool_provider(payload["provider"])
+        response = normalize_tool_response(payload["response"])
         run_id = str(payload.get("cron_run_id") or os.environ.get("VEDICWAY_SEO_RUN_ID", ""))
         if not run_id:
             raise LedgerError("cron_run_id or VEDICWAY_SEO_RUN_ID is required")
@@ -444,7 +770,7 @@ class AgentLedger:
                 raise LedgerError("Tool response requires an active cron run")
             connection.execute(
                 "INSERT INTO raw_tool_responses(id,cron_run_id,provider,tool_name,request_hash,response_json,observed_at,expires_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
-                (record_id, run_id, payload["provider"], payload["tool_name"], payload["request_hash"], canonical_json(payload["response"]), payload.get("observed_at", utc_now()), payload.get("expires_at")),
+                (record_id, run_id, provider, payload["tool_name"], payload["request_hash"], canonical_json(response), payload.get("observed_at", utc_now()), payload.get("expires_at")),
             )
         return {"id": record_id}
 
@@ -460,31 +786,49 @@ class AgentLedger:
         phrase = str(payload["phrase"]).strip()
         region_id = str(payload["region_id"])
         observed_at = str(payload.get("observed_at") or utc_now())
+        raw_response_id = payload.get("raw_response_id")
+        if source != "seed" and not raw_response_id:
+            raise LedgerError("Observed query requires its raw tool response")
         with self.transaction(immediate=True) as connection:
+            if source != "seed":
+                raw = connection.execute(
+                    "SELECT provider FROM raw_tool_responses WHERE id=%s",
+                    (raw_response_id,),
+                ).fetchone()
+                if not raw or raw["provider"] != source:
+                    raise LedgerError("Query source differs from its raw tool response")
             row = connection.execute(
                 "SELECT id FROM keyword_queries WHERE phrase=%s AND region_id=%s AND source=%s AND observed_at=%s",
                 (phrase, region_id, source, observed_at),
             ).fetchone()
             if row:
                 record_id = str(row["id"])
+                connection.execute(
+                    "UPDATE keyword_queries SET raw_response_id=%s WHERE id=%s",
+                    (raw_response_id, record_id),
+                )
             else:
                 connection.execute(
-                    "INSERT INTO keyword_queries(id,phrase,region_id,source,intent,metrics_json,observed_at) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                    (record_id, phrase, region_id, source, intent, canonical_json(payload.get("metrics", {})), observed_at),
+                    "INSERT INTO keyword_queries(id,phrase,region_id,source,intent,metrics_json,observed_at,raw_response_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (record_id, phrase, region_id, source, intent, canonical_json(payload.get("metrics", {})), observed_at, raw_response_id),
                 )
         return {"id": record_id}
 
     def _record_serp_snapshot(self, payload: dict[str, Any]) -> dict[str, Any]:
-        self._required(payload, "query_id", "region_id", "results", "checksum")
+        self._required(payload, "query_id", "region_id", "results", "raw_response_id")
         results = payload["results"]
         if not isinstance(results, list) or not results:
             raise LedgerError("SERP snapshot requires a non-empty results array")
         checksum = hashlib.sha256(canonical_json(results).encode("utf-8")).hexdigest()
-        if not secrets.compare_digest(str(payload["checksum"]), checksum):
-            raise LedgerError("SERP snapshot checksum does not match its canonical results")
         requested_at = str(payload.get("requested_at") or utc_now())
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
+            raw = connection.execute(
+                "SELECT provider FROM raw_tool_responses WHERE id=%s",
+                (payload["raw_response_id"],),
+            ).fetchone()
+            if not raw or raw["provider"] != "yandex-search":
+                raise LedgerError("SERP snapshot requires a Yandex Search raw response")
             query = connection.execute(
                 "SELECT region_id FROM keyword_queries WHERE id=%s", (payload["query_id"],)
             ).fetchone()
@@ -500,7 +844,7 @@ class AgentLedger:
                 record_id = str(existing["id"])
             else:
                 connection.execute(
-                    "INSERT INTO serp_snapshots(id,query_id,region_id,requested_at,result_json,checksum) VALUES (%s,%s,%s,%s,%s,%s)",
+                    "INSERT INTO serp_snapshots(id,query_id,region_id,requested_at,result_json,checksum,raw_response_id) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                     (
                         record_id,
                         payload["query_id"],
@@ -508,9 +852,10 @@ class AgentLedger:
                         requested_at,
                         canonical_json(results),
                         checksum,
+                        payload["raw_response_id"],
                     ),
                 )
-        return {"id": record_id}
+        return {"id": record_id, "checksum": checksum}
 
     def _record_cluster(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._required(payload, "slug", "title", "intent")
@@ -526,6 +871,29 @@ class AgentLedger:
         record_id = str(payload.get("id") or uuid.uuid4())
         now = utc_now()
         with self.transaction(immediate=True) as connection:
+            if status == "ready":
+                provenance = connection.execute(
+                    """SELECT q.source,q.raw_response_id,
+                    EXISTS(
+                        SELECT 1 FROM serp_snapshots s
+                        JOIN raw_tool_responses r ON r.id=s.raw_response_id
+                        WHERE s.query_id=q.id AND r.provider='yandex-search'
+                    ) AS has_serp
+                    FROM keyword_queries q WHERE q.id=%s""",
+                    (str(primary_query_id),),
+                ).fetchone()
+                if (
+                    not provenance
+                    or provenance["source"] != "wordstat"
+                    or not provenance["raw_response_id"]
+                ):
+                    raise LedgerError(
+                        "Ready cluster requires a Wordstat primary query with raw provenance"
+                    )
+                if provenance["has_serp"] is not True:
+                    raise LedgerError(
+                        "Ready cluster requires a SERP snapshot for its Wordstat primary query"
+                    )
             connection.execute(
                 """INSERT INTO keyword_clusters(id,slug,title,intent,status,priority_score,rationale,created_at,updated_at)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -548,7 +916,15 @@ class AgentLedger:
         return {"id": record_id}
 
     def _record_brief(self, payload: dict[str, Any]) -> dict[str, Any]:
-        self._required(payload, "cluster_id", "claim_token", "title", "primary_query", "audience_problem", "search_intent", "checksum")
+        self._required(
+            payload,
+            "cluster_id",
+            "claim_token",
+            "title",
+            "primary_query",
+            "audience_problem",
+            "search_intent",
+        )
         outline = payload.get("outline")
         evidence = payload.get("evidence")
         internal_links = payload.get("internal_links")
@@ -575,8 +951,6 @@ class AgentLedger:
             "prohibited_claims": prohibited_claims,
         }
         checksum = hashlib.sha256(canonical_json(brief_contract).encode("utf-8")).hexdigest()
-        if not secrets.compare_digest(str(payload["checksum"]), checksum):
-            raise LedgerError("Brief checksum does not match its canonical contract")
         record_id = str(payload.get("id") or uuid.uuid4())
         now = utc_now()
         with self.transaction(immediate=True) as connection:
@@ -590,14 +964,23 @@ class AgentLedger:
                 "INSERT INTO content_briefs(id,cluster_id,status,title,primary_query,audience_problem,search_intent,outline_json,evidence_json,internal_links_json,prohibited_claims_json,checksum,created_at,approved_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (record_id, payload["cluster_id"], "approved", payload["title"], payload["primary_query"], payload["audience_problem"], payload["search_intent"], canonical_json(outline), canonical_json(evidence), canonical_json(internal_links), canonical_json(prohibited_claims), checksum, now, now),
             )
-        return {"id": record_id}
+        return {"id": record_id, "checksum": checksum}
 
     def _record_draft(self, payload: dict[str, Any]) -> dict[str, Any]:
-        self._required(payload, "brief_id", "slug", "title", "excerpt", "content_markdown", "seo_title", "meta_description", "focus_keyphrase", "category", "content_hash")
+        self._required(
+            payload,
+            "brief_id",
+            "slug",
+            "title",
+            "excerpt",
+            "content_markdown",
+            "seo_title",
+            "meta_description",
+            "focus_keyphrase",
+            "category",
+        )
         content = str(payload["content_markdown"]).strip()
         content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-        if not secrets.compare_digest(str(payload["content_hash"]), content_hash):
-            raise LedgerError("Draft content_hash does not match content_markdown")
         if payload.get("status", "draft") not in {"draft", "editing"}:
             raise LedgerError("Draft writer cannot set an approved or terminal status")
         record_id = str(payload.get("id") or uuid.uuid4())
@@ -637,7 +1020,7 @@ class AgentLedger:
             )
             row = connection.execute("SELECT id FROM article_drafts WHERE slug=%s", (payload["slug"],)).fetchone()
             record_id = str(row["id"])
-        return {"id": record_id}
+        return {"id": record_id, "content_hash": content_hash}
 
     def _record_draft_quality(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._required(payload, "draft_id", "passed", "report")
@@ -670,6 +1053,11 @@ class AgentLedger:
 
     def _record_media(self, payload: dict[str, Any]) -> dict[str, Any]:
         self._required(payload, "draft_id", "purpose", "local_path", "alt_text", "source_kind", "license_note", "checksum")
+        distribution_role = payload.get("distribution_role")
+        if distribution_role not in {None, "pinterest"}:
+            raise LedgerError("Article media has an unsupported distribution role")
+        if distribution_role is not None and payload["purpose"] != "body":
+            raise LedgerError("Distribution media must use the body purpose")
         source = Path(str(payload["local_path"]))
         if not source.is_absolute():
             source = self.data_dir / source
@@ -683,6 +1071,14 @@ class AgentLedger:
         checksum = hashlib.sha256(source.read_bytes()).hexdigest()
         if not secrets.compare_digest(str(payload["checksum"]), checksum):
             raise LedgerError("Article media checksum does not match the local file")
+        try:
+            with Image.open(source) as image:
+                width, height = image.size
+                image.verify()
+        except (UnidentifiedImageError, OSError) as exc:
+            raise LedgerError("Article media is not a valid image") from exc
+        if distribution_role == "pinterest" and (width, height) != (1000, 1500):
+            raise LedgerError("Pinterest article media must be exactly 1000x1500")
         record_id = str(payload.get("id") or uuid.uuid4())
         with self.transaction(immediate=True) as connection:
             existing = connection.execute(
@@ -692,13 +1088,13 @@ class AgentLedger:
             if existing:
                 record_id = str(existing["id"])
                 connection.execute(
-                    "UPDATE article_media SET purpose=%s,local_path=%s,alt_text=%s,title=%s,caption=%s,source_kind=%s,source_url=%s,license_note=%s,checksum=%s,backend_media_id=%s,public_url=%s WHERE id=%s",
-                    (payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), record_id),
+                    "UPDATE article_media SET purpose=%s,local_path=%s,alt_text=%s,title=%s,caption=%s,source_kind=%s,source_url=%s,license_note=%s,checksum=%s,backend_media_id=%s,public_url=%s,distribution_role=%s,width=%s,height=%s WHERE id=%s",
+                    (payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), distribution_role, width, height, record_id),
                 )
             else:
                 connection.execute(
-                    "INSERT INTO article_media(id,draft_id,purpose,local_path,alt_text,title,caption,source_kind,source_url,license_note,checksum,backend_media_id,public_url,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (record_id, payload["draft_id"], payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), utc_now()),
+                    "INSERT INTO article_media(id,draft_id,purpose,local_path,alt_text,title,caption,source_kind,source_url,license_note,checksum,backend_media_id,public_url,distribution_role,width,height,created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    (record_id, payload["draft_id"], payload["purpose"], relative_path, payload["alt_text"], payload.get("title", ""), payload.get("caption", ""), payload["source_kind"], payload.get("source_url"), payload["license_note"], checksum, payload.get("backend_media_id"), payload.get("public_url"), distribution_role, width, height, utc_now()),
                 )
         return {"id": record_id}
 
@@ -712,7 +1108,7 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             draft = connection.execute(
-                "SELECT status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=%s",
+                "SELECT status,content_hash,claim_token,claim_expires_at,claim_run_id FROM article_drafts WHERE id=%s",
                 (payload["draft_id"],),
             ).fetchone()
             if not draft or draft["content_hash"] != payload["content_hash"]:
@@ -720,7 +1116,7 @@ class AgentLedger:
             if payload["target"] == "site":
                 self._required(payload, "claim_token")
                 if (
-                    draft["status"] != "publishing"
+                    draft["status"] not in {"publishing", "published"}
                     or draft["claim_token"] != payload["claim_token"]
                     or not draft["claim_expires_at"]
                     or draft["claim_expires_at"] < now
@@ -760,7 +1156,7 @@ class AgentLedger:
         now = utc_now()
         with self.transaction(immediate=True) as connection:
             draft = connection.execute(
-                "SELECT brief_id,status,content_hash,claim_token,claim_expires_at FROM article_drafts WHERE id=%s",
+                "SELECT brief_id,status,content_hash,claim_token,claim_expires_at,claim_run_id FROM article_drafts WHERE id=%s",
                 (payload["draft_id"],),
             ).fetchone()
             if not draft or draft["content_hash"] != payload["content_hash"]:
@@ -774,13 +1170,21 @@ class AgentLedger:
             if payload["target"] == "site":
                 self._required(payload, "claim_token")
                 if (
-                    draft["status"] != "publishing"
+                    draft["status"] not in {"publishing", "published"}
                     or draft["claim_token"] != payload["claim_token"]
                     or not draft["claim_expires_at"]
                     or draft["claim_expires_at"] < now
                 ):
                     raise LedgerError("Site publication requires the active draft claim")
-                required_checks = {"canonical", "article_schema", "title", "request_hash", "sitemap", "dzen_feed", "cover"}
+                required_checks = {
+                    "canonical",
+                    "article_schema",
+                    "title",
+                    "request_hash",
+                    "sitemap",
+                    "cover",
+                    "all_media_public",
+                }
                 checks = payload["evidence"].get("checks")
                 if not isinstance(checks, dict) or not required_checks.issubset(checks) or not all(
                     checks[name] is True for name in required_checks
@@ -793,6 +1197,21 @@ class AgentLedger:
                 ).fetchone()
                 if not site:
                     raise LedgerError("Dzen evidence requires the matching verified site publication")
+                required = {
+                    "editor_persisted",
+                    "public_url_verified",
+                    "playwright_ui",
+                    "cover_present",
+                }
+                checks = payload["evidence"].get("checks")
+                if (
+                    not isinstance(checks, dict)
+                    or not required.issubset(checks)
+                    or not all(checks[name] is True for name in required)
+                ):
+                    raise LedgerError(
+                        "Dzen publication evidence is incomplete or cover is unverified"
+                    )
             connection.execute(
                 """INSERT INTO publications(id,draft_id,target,status,public_url,external_id,content_hash,request_hash,evidence_json,published_at,verified_at)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
@@ -812,6 +1231,13 @@ class AgentLedger:
             if payload["target"] == "site":
                 connection.execute("UPDATE article_drafts SET status='published',claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s WHERE id=%s", (now, payload["draft_id"]))
                 connection.execute("UPDATE keyword_clusters SET status='published',updated_at=%s WHERE id=(SELECT cluster_id FROM content_briefs WHERE id=%s)", (now, draft["brief_id"]))
+            else:
+                connection.execute(
+                    """UPDATE article_drafts
+                    SET claim_token=NULL,claim_expires_at=NULL,claim_run_id=NULL,updated_at=%s
+                    WHERE id=%s""",
+                    (now, payload["draft_id"]),
+                )
         return {"id": record_id}
 
     def _record_performance(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -870,6 +1296,284 @@ class AgentLedger:
             )
             self._audit(connection, "codex", "action.finished", "optimization_action", payload["action_id"], {"status": status})
         return {"id": payload["action_id"], "status": status}
+
+    def _record_distribution_item(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self._required(
+            payload,
+            "source_publication_id",
+            "platform",
+            "kind",
+            "title",
+            "body",
+            "target_url",
+            "media_width",
+            "media_height",
+            "alt_text",
+        )
+        platform = str(payload["platform"])
+        kind = str(payload["kind"])
+        media_role = str(payload.get("media_role", ""))
+        if platform == "pinterest" and not payload.get("media_id"):
+            raise LedgerError("Pinterest distribution item requires an explicit media_id")
+        if not payload.get("media_id") and media_role not in {"cover", "pinterest"}:
+            raise LedgerError("Distribution item requires media_id or a supported media_role")
+        if media_role and (
+            (platform == "vk" and media_role != "cover")
+            or (platform == "pinterest" and media_role != "pinterest")
+        ):
+            raise LedgerError("Distribution media role does not match its platform")
+        if (platform, kind) not in {
+            ("vk", "article_digest"),
+            ("pinterest", "astrology_card"),
+        }:
+            raise LedgerError("Distribution kind does not match its platform")
+        width = int(payload["media_width"])
+        height = int(payload["media_height"])
+        if platform == "pinterest" and (width, height) != (1000, 1500):
+            raise LedgerError("Pinterest distribution media must be exactly 1000x1500")
+        if not str(payload["target_url"]).startswith("https://vedicway.ru/blog/"):
+            raise LedgerError("Distribution target must be a VedicWay blog URL")
+        metadata = payload.get("metadata", {})
+        if not isinstance(metadata, dict):
+            raise LedgerError("Distribution metadata must be an object")
+        content = {
+            "platform": platform,
+            "kind": kind,
+            "title": str(payload["title"]).strip(),
+            "body": str(payload["body"]).strip(),
+            "target_url": str(payload["target_url"]),
+            "media_role": media_role,
+            "media_width": width,
+            "media_height": height,
+            "alt_text": str(payload["alt_text"]).strip(),
+            "metadata": metadata,
+        }
+        if not content["title"] or not content["body"] or not content["alt_text"]:
+            raise LedgerError("Distribution text fields cannot be blank")
+        record_id = str(payload.get("id") or uuid.uuid4())
+        now = utc_now()
+        with self.transaction(immediate=True) as connection:
+            if payload.get("media_id"):
+                media_predicate = "m.id=%s"
+                query_parameters = (
+                    payload["media_id"],
+                    payload["source_publication_id"],
+                )
+            else:
+                media_predicate = (
+                    "m.purpose='cover'"
+                    if media_role == "cover"
+                    else "m.distribution_role='pinterest'"
+                )
+                query_parameters = (payload["source_publication_id"],)
+            source = connection.execute(
+                f"""SELECT p.public_url,p.draft_id,m.id AS media_id,
+                m.public_url AS media_public_url,m.width AS media_width,
+                m.height AS media_height
+                FROM publications p
+                JOIN article_media m ON m.draft_id=p.draft_id AND {media_predicate}
+                WHERE p.id=%s AND p.target='site' AND p.status='verified'""",
+                query_parameters,
+            ).fetchone()
+            if not source:
+                raise LedgerError(
+                    "Distribution requires verified site publication media from the same draft"
+                )
+            if str(source["public_url"]) != content["target_url"]:
+                raise LedgerError("Distribution target URL differs from its site publication")
+            media_public_url = str(source["media_public_url"] or "")
+            if not media_public_url.startswith("https://vedicway.ru/media/articles/"):
+                raise LedgerError("Distribution media requires public VedicWay article media")
+            if (source["media_width"], source["media_height"]) != (width, height):
+                raise LedgerError("Declared dimensions differ from actual media dimensions")
+            content["media_id"] = str(source["media_id"])
+            content["media_width"] = int(source["media_width"])
+            content["media_height"] = int(source["media_height"])
+            content_hash = hashlib.sha256(
+                canonical_json(content).encode("utf-8")
+            ).hexdigest()
+            existing = connection.execute(
+                "SELECT id,status,content_hash FROM distribution_items WHERE platform=%s AND content_hash=%s",
+                (platform, content_hash),
+            ).fetchone()
+            if existing:
+                return dict(existing)
+            connection.execute(
+                """INSERT INTO distribution_items(
+                id,source_publication_id,platform,kind,title,body,target_url,media_id,
+                media_public_url,media_width,media_height,alt_text,metadata_json,
+                content_hash,status,created_at,updated_at
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'approved',%s,%s)""",
+                (
+                    record_id,
+                    payload["source_publication_id"],
+                    platform,
+                    kind,
+                    content["title"],
+                    content["body"],
+                    content["target_url"],
+                    source["media_id"],
+                    media_public_url,
+                    width,
+                    height,
+                    content["alt_text"],
+                    canonical_json(metadata),
+                    content_hash,
+                    now,
+                    now,
+                ),
+            )
+            self._audit(
+                connection,
+                "codex",
+                "distribution.prepared",
+                "distribution_item",
+                record_id,
+                {"platform": platform},
+            )
+        return {"id": record_id, "status": "approved", "content_hash": content_hash}
+
+    def _record_distribution_attempt(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self._required(
+            payload,
+            "item_id",
+            "claim_token",
+            "attempt_token",
+            "idempotency_key",
+            "status",
+            "request_hash",
+            "response",
+        )
+        status = str(payload["status"])
+        if status not in {"succeeded", "failed", "blocked"}:
+            raise LedgerError("Distribution attempt must be terminal")
+        if not isinstance(payload["response"], dict):
+            raise LedgerError("Distribution response must be an object")
+        if status == "succeeded" and (
+            not payload.get("external_id") or not payload.get("external_url")
+        ):
+            raise LedgerError("Succeeded distribution attempt requires external evidence")
+        record_id = str(payload.get("id") or uuid.uuid4())
+        now = utc_now()
+        with self.transaction(immediate=True) as connection:
+            item = connection.execute(
+                """SELECT platform,content_hash FROM distribution_items
+                WHERE id=%s AND status='publishing' AND claim_token=%s
+                  AND claim_expires_at>=%s""",
+                (payload["item_id"], payload["claim_token"], now),
+            ).fetchone()
+            if not item:
+                raise LedgerError("Distribution claim is stale or belongs to another run")
+            if str(payload["idempotency_key"]) != str(item["content_hash"]):
+                raise LedgerError("Distribution idempotency key must equal the content hash")
+            attempt_no = int(
+                connection.execute(
+                    "SELECT COUNT(*) AS count FROM distribution_attempts WHERE item_id=%s",
+                    (payload["item_id"],),
+                ).fetchone()["count"]
+            ) + 1
+            connection.execute(
+                """INSERT INTO distribution_attempts(
+                id,item_id,platform,attempt_no,attempt_token,idempotency_key,status,
+                request_hash,response_json,external_id,external_url,created_at
+                ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                (
+                    record_id,
+                    payload["item_id"],
+                    item["platform"],
+                    attempt_no,
+                    payload["attempt_token"],
+                    payload["idempotency_key"],
+                    status,
+                    payload["request_hash"],
+                    canonical_json(payload["response"]),
+                    payload.get("external_id"),
+                    payload.get("external_url"),
+                    now,
+                ),
+            )
+        return {"id": record_id, "status": status, "attempt_no": attempt_no}
+
+    def _record_distribution_publication(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self._required(
+            payload,
+            "item_id",
+            "claim_token",
+            "attempt_token",
+            "request_hash",
+            "external_id",
+            "external_url",
+            "evidence",
+        )
+        evidence = payload["evidence"]
+        if not isinstance(evidence, dict) or evidence.get("external_state_verified") is not True:
+            raise LedgerError("Distribution publication requires verified external state")
+        if not str(payload["external_url"]).startswith("https://"):
+            raise LedgerError("Distribution external URL must use HTTPS")
+        record_id = str(payload.get("id") or uuid.uuid4())
+        now = utc_now()
+        with self.transaction(immediate=True) as connection:
+            existing = connection.execute(
+                "SELECT id,status FROM distribution_publications WHERE item_id=%s",
+                (payload["item_id"],),
+            ).fetchone()
+            if existing:
+                return dict(existing)
+            item = connection.execute(
+                """SELECT i.platform,i.content_hash,a.external_id,a.external_url,a.request_hash
+                FROM distribution_items i
+                JOIN distribution_attempts a ON a.item_id=i.id
+                  AND a.attempt_token=%s AND a.status='succeeded'
+                WHERE i.id=%s AND i.status='publishing' AND i.claim_token=%s
+                  AND i.claim_expires_at>=%s""",
+                (
+                    payload["attempt_token"],
+                    payload["item_id"],
+                    payload["claim_token"],
+                    now,
+                ),
+            ).fetchone()
+            if not item:
+                raise LedgerError("Verified distribution attempt or active claim is missing")
+            if (
+                str(item["request_hash"]) != str(payload["request_hash"])
+                or str(item["external_id"]) != str(payload["external_id"])
+                or str(item["external_url"]) != str(payload["external_url"])
+            ):
+                raise LedgerError("Distribution publication differs from its succeeded attempt")
+            connection.execute(
+                """INSERT INTO distribution_publications(
+                id,item_id,platform,status,external_id,external_url,content_hash,
+                request_hash,evidence_json,published_at
+                ) VALUES (%s,%s,%s,'verified',%s,%s,%s,%s,%s,%s)""",
+                (
+                    record_id,
+                    payload["item_id"],
+                    item["platform"],
+                    payload["external_id"],
+                    payload["external_url"],
+                    item["content_hash"],
+                    payload["request_hash"],
+                    canonical_json(evidence),
+                    now,
+                ),
+            )
+            connection.execute(
+                """UPDATE distribution_items
+                SET status='published',claim_token=NULL,claim_expires_at=NULL,
+                    claim_run_id=NULL,published_at=%s,updated_at=%s
+                WHERE id=%s""",
+                (now, now, payload["item_id"]),
+            )
+            self._audit(
+                connection,
+                "codex",
+                "distribution.verified",
+                "distribution_item",
+                payload["item_id"],
+                {"platform": item["platform"], "external_id": payload["external_id"]},
+            )
+        return {"id": record_id, "status": "verified"}
 
     @staticmethod
     def _audit(

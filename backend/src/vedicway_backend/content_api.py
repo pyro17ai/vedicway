@@ -23,7 +23,12 @@ from fastapi.responses import FileResponse, HTMLResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from .content_store import ArticleRevisionConflict, ContentDatabase, fingerprint_hash
+from .content_store import (
+    CONTENT_SCHEMA_REVISION,
+    ArticleRevisionConflict,
+    ContentDatabase,
+    fingerprint_hash,
+)
 from .errors import DomainError
 from .guide_catalog import (
     GUIDE_ARTICLE_SLOTS,
@@ -127,7 +132,6 @@ REMOVED_WITH_CONTENT_TAGS = {
 }
 ALLOWED_HTML_ATTRIBUTES = {
     "a": {"href", "title"},
-    "aside": {"data-kind"},
     "figure": {"data-media-id"},
     "img": {
         "alt",
@@ -430,6 +434,7 @@ def _media_dict(asset: Any) -> dict[str, Any]:
         "alt": asset.alt_text,
         "title": asset.title,
         "caption": asset.caption,
+        "publicUnlisted": asset.public_unlisted,
         "createdAt": asset.created_at.isoformat(),
     }
 
@@ -1295,15 +1300,19 @@ def _media_payload_hash(
     alt: str,
     title: str,
     caption: str,
+    public_unlisted: bool = False,
 ) -> str:
+    payload = {
+        "content_sha256": content_sha256.casefold(),
+        "purpose": purpose,
+        "alt": alt.strip(),
+        "title": title.strip(),
+        "caption": caption.strip(),
+    }
+    if public_unlisted:
+        payload["public_unlisted"] = True
     raw = json.dumps(
-        {
-            "content_sha256": content_sha256.casefold(),
-            "purpose": purpose,
-            "alt": alt.strip(),
-            "title": title.strip(),
-            "caption": caption.strip(),
-        },
+        payload,
         ensure_ascii=False,
         sort_keys=True,
         separators=(",", ":"),
@@ -1420,6 +1429,7 @@ def _store_article_media(
     alt: str,
     title: str,
     caption: str,
+    public_unlisted: bool,
     database: ContentDatabase,
     asset_id: str,
 ) -> Any:
@@ -1496,6 +1506,7 @@ def _store_article_media(
         "alt_text": alt.strip(),
         "title": title.strip(),
         "caption": caption.strip(),
+        "public_unlisted": public_unlisted,
     }
     try:
         return database.add_media(values)
@@ -1657,6 +1668,8 @@ def build_content_router() -> APIRouter:
             "guide_slots": len(GUIDE_ARTICLE_SLOTS),
             "guide_categories": len(GUIDE_CATEGORIES),
             "database_boundary": "content-api-only",
+            "content_schema_revision": CONTENT_SCHEMA_REVISION,
+            "capabilities": {"public_unlisted_media": True},
         }
 
     @router.post(
@@ -1671,11 +1684,19 @@ def build_content_router() -> APIRouter:
         alt: Annotated[str, Form(min_length=1, max_length=300)],
         title: Annotated[str, Form(max_length=240)] = "",
         caption: Annotated[str, Form(max_length=500)] = "",
+        public_unlisted: Annotated[bool, Form()] = False,
         authorization: Annotated[str | None, Header()] = None,
         idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
         x_content_sha256: Annotated[str | None, Header(alias="X-Content-SHA256")] = None,
     ) -> dict[str, Any]:
         _assert_content_agent(authorization)
+        if public_unlisted and purpose != "body":
+            raise DomainError(
+                "MEDIA_PUBLIC_UNLISTED_INVALID",
+                "Публичным без размещения в статье может быть только body media",
+                recoverable=False,
+                status_code=422,
+            )
         key = _assert_idempotency_key(idempotency_key)
         raw = await file.read(MAX_MEDIA_BYTES + 1)
         digest = hashlib.sha256(raw).hexdigest()
@@ -1689,7 +1710,14 @@ def build_content_router() -> APIRouter:
                 recoverable=False,
                 status_code=400,
             )
-        request_hash = _media_payload_hash(digest, purpose, alt, title, caption)
+        request_hash = _media_payload_hash(
+            digest,
+            purpose,
+            alt,
+            title,
+            caption,
+            public_unlisted,
+        )
         if not hmac.compare_digest(key.rsplit(":", 1)[-1], request_hash[:32]):
             raise DomainError(
                 "IDEMPOTENCY_KEY_CONTENT_MISMATCH",
@@ -1706,6 +1734,7 @@ def build_content_router() -> APIRouter:
             alt=alt,
             title=title,
             caption=caption,
+            public_unlisted=public_unlisted,
             database=database,
             asset_id=asset_id,
         )

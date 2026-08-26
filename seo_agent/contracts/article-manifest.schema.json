@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vedicway.ru/contracts/content-article-manifest-v2.json",
-  "title": "VedicWay Codex HTML article manifest",
+  "title": "VedicWay Codex Markdown article manifest",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "draft_id", "claim_token", "content_hash", "article", "media"],
@@ -15,17 +15,17 @@
       "additionalProperties": false,
       "required": [
         "section", "difficulty", "title", "slug", "category", "excerpt",
-        "content_html", "seo_title", "meta_description", "focus_keyphrase",
+        "content_markdown", "seo_title", "meta_description", "focus_keyphrase",
         "tags", "schema_extra", "author_name", "cover_image_alt"
       ],
       "properties": {
-        "section": {"enum": ["guide", "blog"]},
+        "section": {"const": "blog"},
         "difficulty": {"enum": ["beginner", "expert"]},
         "title": {"type": "string", "minLength": 35, "maxLength": 100},
         "slug": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 120},
         "category": {"type": "string", "minLength": 1, "maxLength": 120},
         "excerpt": {"type": "string", "minLength": 80, "maxLength": 300},
-        "content_html": {"type": "string", "minLength": 4500, "maxLength": 300000},
+        "content_markdown": {"type": "string", "minLength": 4500, "maxLength": 300000},
         "cover_media_id": {"type": ["string", "null"]},
         "cover_image_url": {"type": ["string", "null"]},
         "cover_image_alt": {"type": "string", "minLength": 1, "maxLength": 300},
@@ -58,7 +58,8 @@
           "caption": {"type": "string", "maxLength": 500},
           "source_kind": {"enum": ["generated", "licensed", "owned"]},
           "source_url": {"type": ["string", "null"], "format": "uri"},
-          "license_note": {"type": "string", "minLength": 1}
+          "license_note": {"type": "string", "minLength": 1},
+          "distribution_role": {"enum": ["pinterest"]}
         }
       }
     }

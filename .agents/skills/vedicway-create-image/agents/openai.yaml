@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Create Image"
+  short_description: "Создаёт изображения VedicWay через Codex Image Gen"
+  default_prompt: "Use $vedicway-create-image with $imagegen to create one owned VedicWay image."

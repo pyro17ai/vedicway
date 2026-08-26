@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import re
+from pathlib import Path
 from urllib.parse import urlsplit
 
 import httpx
@@ -28,7 +29,6 @@ def check(*, online: bool = False) -> dict[str, object]:
     if urlsplit(origin).scheme != "https" or not urlsplit(origin).hostname:
         errors.append("VEDICWAY_PUBLIC_ORIGIN must be an absolute HTTPS origin")
     secret_names = (
-        "OPENAI_API_KEY",
         "VEDICWAY_SEO_AGENT_TOKEN",
         "VEDICWAY_YANDEX_SEARCH_API_KEY",
         "VEDICWAY_YANDEX_FOLDER_ID",
@@ -37,6 +37,11 @@ def check(*, online: bool = False) -> dict[str, object]:
     )
     missing_secrets = [name for name in secret_names if not os.environ.get(name)]
     errors.extend(f"{name} is missing" for name in missing_secrets)
+    codex_home = Path(os.environ.get("CODEX_HOME", "")).expanduser()
+    if not (codex_home / "auth.json").is_file():
+        errors.append("Codex authentication is missing")
+    if not (codex_home / "skills" / ".system" / "imagegen" / "SKILL.md").is_file():
+        errors.append("Built-in Codex imagegen skill is missing")
     ledger_status: dict[str, object]
     try:
         ledger = AgentLedger()

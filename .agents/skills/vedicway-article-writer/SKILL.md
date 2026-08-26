@@ -1,6 +1,6 @@
 ---
 name: vedicway-article-writer
-description: Пиши русские SEO-статьи для раздела VedicWay Гид по астрологии строго по одобренному брифу. Используй только после создания evidence-backed brief.
+description: Пиши русские SEO-статьи для блога VedicWay строго по одобренному доказательному брифу. Используй только после создания evidence-backed brief.
 ---
 
 # Автор статей VedicWay
@@ -15,6 +15,6 @@ description: Пиши русские SEO-статьи для раздела Vedi
 
 ## Формат
 
-Используй Markdown-подмножество сайта: `##`, `###`, абзацы, строки `- `, ссылки `[текст](URL)` и отдельные медиамаркеры `{{media:body-1}}`. HTML запрещен. Slug, canonical, seo_title, meta_description, excerpt и focus_keyphrase входят в article manifest.
+Используй Markdown-подмножество сайта: `##`, `###`, абзацы, строки `- `, ссылки `[текст](URL)` и отдельные медиамаркеры `{{media:body-1}}`. HTML запрещен. Slug, canonical, seo_title, meta_description, excerpt и focus_keyphrase входят в article manifest. Укажи `section: blog`; справочник `/guide` агент не меняет.
 
-Сохрани draft через `$vedicway-seo-ledger` со статусом `draft`. Публиковать или самовольно менять бриф в этом Skill нельзя.
+Сохрани draft через `$vedicway-seo-ledger` со статусом `draft` без поля `content_hash`. Реестр сам вычислит SHA-256 точного `content_markdown` и вернет `content_hash`; используй только возвращенное значение в quality report и следующих шагах. Публиковать или самовольно менять бриф в этом Skill нельзя.

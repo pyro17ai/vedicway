@@ -25,7 +25,10 @@ for migration in /migrations/*.sql; do
   [ -f "$migration" ] || continue
   version="$(basename "$migration")"
   checksum="$(sha256sum "$migration" | awk '{print $1}')"
-  recorded="$(psql -h "$host" -p "$port" -U "$user" -d "$database" -At -v ON_ERROR_STOP=1 -v version="$version" -c "SELECT checksum FROM schema_migrations WHERE version = :'version'")"
+  recorded="$(
+    printf "SELECT checksum FROM schema_migrations WHERE version = :'version';\n" |
+      psql -h "$host" -p "$port" -U "$user" -d "$database" -At -v ON_ERROR_STOP=1 -v version="$version"
+  )"
 
   if [ -n "$recorded" ]; then
     if [ "$recorded" != "$checksum" ]; then

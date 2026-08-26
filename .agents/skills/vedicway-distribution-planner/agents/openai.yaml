@@ -1,0 +1,4 @@
+interface:
+  display_name: "Дистрибуция VedicWay"
+  short_description: "Готовит карточки для VK и Pinterest"
+  default_prompt: "Use $vedicway-distribution-planner to prepare one VK item and ten Pinterest items from a verified VedicWay blog publication."

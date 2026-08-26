@@ -1,0 +1,18 @@
+[Unit]
+Description=VedicWay TikTok persistent-profile login desktop
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+ExecStart=/opt/vedicway-tiktok-agent/current/scripts/tiktok/vps/login-desktop.sh
+Restart=on-failure
+RestartSec=3
+KillMode=control-group
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

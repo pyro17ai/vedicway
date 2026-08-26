@@ -11,7 +11,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
     PATH=/opt/venv/bin:/usr/local/bin:${PATH} \
-    VIRTUAL_ENV=/opt/venv
+    VIRTUAL_ENV=/opt/venv \
+    CLOAKBROWSER_CACHE_DIR=/opt/cloakbrowser-cache
 
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 COPY --from=node-runtime /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -28,7 +29,15 @@ RUN npm ci --no-audit --no-fund \
     && rm -rf /root/.cache /var/lib/apt/lists/*
 
 COPY seo_agent/mcp/package.json seo_agent/mcp/package-lock.json ./seo_agent/mcp/
-RUN npm ci --prefix /opt/vedicway/seo_agent/mcp --omit=dev --no-audit --no-fund
+COPY seo_agent/mcp/patch-yandex-metrika.mjs ./seo_agent/mcp/patch-yandex-metrika.mjs
+RUN npm ci --prefix /opt/vedicway/seo_agent/mcp --omit=dev --no-audit --no-fund \
+    && node /opt/vedicway/seo_agent/mcp/patch-yandex-metrika.mjs
+
+COPY seo_agent/browser_runtime/package.json seo_agent/browser_runtime/package-lock.json ./seo_agent/browser_runtime/
+COPY seo_agent/browser_runtime/ensure-cloak.mjs ./seo_agent/browser_runtime/ensure-cloak.mjs
+RUN npm ci --prefix /opt/vedicway/seo_agent/browser_runtime --omit=dev --no-audit --no-fund \
+    && mkdir -p /opt/cloakbrowser-cache \
+    && node /opt/vedicway/seo_agent/browser_runtime/ensure-cloak.mjs
 
 COPY backend ./backend
 COPY seo_agent ./seo_agent
@@ -42,10 +51,16 @@ COPY .agents/skills/vedicway-article-writer ./.agents/skills/vedicway-article-wr
 COPY .agents/skills/vedicway-article-editor-ru ./.agents/skills/vedicway-article-editor-ru
 COPY .agents/skills/vedicway-article-quality-gate ./.agents/skills/vedicway-article-quality-gate
 COPY .agents/skills/vedicway-article-media ./.agents/skills/vedicway-article-media
+COPY .agents/skills/vedicway-create-image ./.agents/skills/vedicway-create-image
+COPY .agents/skills/vedicway-article-cover-image ./.agents/skills/vedicway-article-cover-image
+COPY .agents/skills/vedicway-pinterest-card-image ./.agents/skills/vedicway-pinterest-card-image
 COPY .agents/skills/vedicway-article-optimizer ./.agents/skills/vedicway-article-optimizer
 COPY .agents/skills/vedicway-site-publisher ./.agents/skills/vedicway-site-publisher
 COPY .agents/skills/vedicway-dzen-distributor ./.agents/skills/vedicway-dzen-distributor
 COPY .agents/skills/vedicway-lifecycle-review ./.agents/skills/vedicway-lifecycle-review
+COPY .agents/skills/vedicway-distribution-planner ./.agents/skills/vedicway-distribution-planner
+COPY .agents/skills/vedicway-vk-publisher ./.agents/skills/vedicway-vk-publisher
+COPY .agents/skills/vedicway-pinterest-publisher ./.agents/skills/vedicway-pinterest-publisher
 COPY .codex ./.codex
 COPY scripts/wheelhouse_contract.py ./scripts/wheelhouse_contract.py
 COPY --from=pyjhora . /tmp/pyjhora-wheelhouse

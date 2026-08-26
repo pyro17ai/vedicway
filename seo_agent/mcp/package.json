@@ -1,12 +1,14 @@
 {
-  "name": "vedicway-yandex-mcp-runtime",
+  "name": "vedicway-seo-mcp-runtime",
   "version": "1.0.0",
   "private": true,
-  "description": "Pinned Yandex-only MCP runtime for the VedicWay SEO agent",
+  "description": "Pinned MCP runtime for the VedicWay SEO agent",
   "engines": {
     "node": ">=22.0.0 <23"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "sharp": "0.34.4",
     "yandex-metrika-mcp": "1.1.0",
     "yandex-search-mcp": "1.3.0",
     "yandex-webmaster-mcp": "1.1.0",

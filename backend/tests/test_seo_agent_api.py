@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import json
 import xml.etree.ElementTree as ET
 
 from fastapi.testclient import TestClient
@@ -33,6 +34,13 @@ def _cover() -> bytes:
     image = Image.new("RGB", (1200, 630), (39, 22, 12))
     buffer = io.BytesIO()
     image.save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+def _pinterest_card() -> bytes:
+    image = Image.new("RGB", (1000, 1500), (86, 55, 37))
+    buffer = io.BytesIO()
+    image.save(buffer, "WEBP")
     return buffer.getvalue()
 
 
@@ -103,10 +111,10 @@ def test_internal_agent_api_is_scoped_idempotent_and_revision_safe(tmp_path, mon
     app = _app(tmp_path, monkeypatch)
     with TestClient(app) as client:
         assert client.get("/internal/content-agent/health").status_code == 401
-        assert (
-            client.get("/internal/content-agent/health", headers=AUTH).json()["database_boundary"]
-            == "content-api-only"
-        )
+        health = client.get("/internal/content-agent/health", headers=AUTH).json()
+        assert health["database_boundary"] == "content-api-only"
+        assert health["content_schema_revision"] == "20260819_01"
+        assert health["capabilities"] == {"public_unlisted_media": True}
 
         cover = _upload(client, "cover", "media-cover-0001")
         replay = _upload(client, "cover", "media-cover-0001")
@@ -186,6 +194,52 @@ def test_internal_agent_api_is_scoped_idempotent_and_revision_safe(tmp_path, mon
         assert item is not None
         assert item.findtext("guid") == "https://vedicway.ru/guide/kak-chitat-natalnuyu-kartu"
         assert client.get("/api/v1/seo/dzen/status").json()["rss_ready"] is False
+
+
+def test_public_unlisted_media_is_reachable_without_appearing_in_an_article(
+    tmp_path, monkeypatch
+) -> None:
+    app = _app(tmp_path, monkeypatch)
+    raw = _pinterest_card()
+    digest = hashlib.sha256(raw).hexdigest()
+    alt = "Памятка по чтению домов натальной карты"
+    request_hash = hashlib.sha256(
+        json.dumps(
+            {
+                "content_sha256": digest,
+                "purpose": "body",
+                "alt": alt,
+                "title": "",
+                "caption": "",
+                "public_unlisted": True,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/internal/content-agent/media",
+            files={"file": ("pinterest.webp", raw, "image/webp")},
+            data={
+                "purpose": "body",
+                "alt": alt,
+                "title": "",
+                "caption": "",
+                "public_unlisted": "true",
+            },
+            headers={
+                **AUTH,
+                "Idempotency-Key": f"pinterest-card-0001:{request_hash[:32]}",
+                "X-Content-SHA256": digest,
+            },
+        )
+        assert response.status_code == 201, response.text
+        asset = response.json()["asset"]
+        assert client.get(str(asset["url"])).status_code == 200
+        assert str(asset["id"]) not in client.get("/sitemap.xml").text
 
 
 def test_internal_agent_rejects_wrong_hash_and_short_article(tmp_path, monkeypatch) -> None:

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Pinterest Card"
+  short_description: "Создаёт Pinterest-карточку через Codex Image Gen"
+  default_prompt: "Use $vedicway-pinterest-card-image with $imagegen to create one 1000x1500 astrology card."

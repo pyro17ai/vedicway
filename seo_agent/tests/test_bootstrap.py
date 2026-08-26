@@ -14,8 +14,8 @@ def test_tracked_yandex_seed_bootstrap_is_idempotent(tmp_path: Path, monkeypatch
     first = bootstrap(root)
     second = bootstrap(root)
     assert first["queries"] >= 16
-    assert len(first["ready_clusters"]) == 2
-    assert second["ready_clusters"] == first["ready_clusters"]
+    assert len(first["candidate_clusters"]) == 2
+    assert second["candidate_clusters"] == first["candidate_clusters"]
     summary = AgentLedger().summary()
     assert summary["counts"]["keyword_queries"] == first["queries"]
     assert summary["counts"]["keyword_clusters"] == 2

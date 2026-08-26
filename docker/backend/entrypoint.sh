@@ -38,12 +38,16 @@ if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
 
   case "$profile" in
     seo-agent)
-      read_secret OPENAI_API_KEY "${OPENAI_API_KEY_FILE:-/run/secrets/codex_api_key}"
+      if [ -n "${CODEX_AUTH_FILE:-}" ]; then
+        install_codex_auth "$CODEX_AUTH_FILE"
+      fi
       read_secret VEDICWAY_SEO_AGENT_TOKEN "${VEDICWAY_SEO_AGENT_TOKEN_FILE:-/run/secrets/vedicway_seo_agent_token}"
       read_secret VEDICWAY_YANDEX_SEARCH_API_KEY "${VEDICWAY_YANDEX_SEARCH_API_KEY_FILE:-/run/secrets/yandex_search_api_key}"
       read_secret VEDICWAY_YANDEX_FOLDER_ID "${VEDICWAY_YANDEX_FOLDER_ID_FILE:-/run/secrets/yandex_folder_id}"
       read_secret VEDICWAY_YANDEX_WEBMASTER_TOKEN "${VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE:-/run/secrets/yandex_webmaster_token}"
       read_secret VEDICWAY_YANDEX_METRIKA_TOKEN "${VEDICWAY_YANDEX_METRIKA_TOKEN_FILE:-/run/secrets/yandex_metrika_token}"
+      read_secret VEDICWAY_VK_GROUP_ACCESS_TOKEN "${VEDICWAY_VK_GROUP_ACCESS_TOKEN_FILE:-/run/secrets/vedicway_vk_group_access_token}"
+      read_secret VEDICWAY_VK_USER_ACCESS_TOKEN "${VEDICWAY_VK_USER_ACCESS_TOKEN_FILE:-/run/secrets/vedicway_vk_user_access_token}"
       ;;
     lifecycle)
       read_secret VEDICWAY_DATA_KEY "${VEDICWAY_DATA_KEY_FILE:-/run/secrets/vedicway_data_key}"
@@ -66,11 +70,7 @@ if [ "${VEDICWAY_ENV:-development}" = "production" ]; then
     worker)
       read_secret VEDICWAY_DATA_KEY "${VEDICWAY_DATA_KEY_FILE:-/run/secrets/vedicway_data_key}"
       read_secret VEDICWAY_SIGNING_KEY "${VEDICWAY_SIGNING_KEY_FILE:-/run/secrets/vedicway_signing_key}"
-      if [ -n "${CODEX_AUTH_FILE:-}" ]; then
-        install_codex_auth "$CODEX_AUTH_FILE"
-      else
-        read_secret OPENAI_API_KEY "${OPENAI_API_KEY_FILE:-/run/secrets/codex_api_key}"
-      fi
+      install_codex_auth "${CODEX_AUTH_FILE:-/run/secrets/codex_auth}"
       ;;
     *)
       echo "Unknown VEDICWAY_SECRET_PROFILE: $profile" >&2

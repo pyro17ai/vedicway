@@ -183,13 +183,11 @@ services:
       <<: *backend-environment
       VEDICWAY_SECRET_PROFILE: worker
       VEDICWAY_INLINE_WORKER: "0"
-      OPENAI_API_KEY_FILE: /run/secrets/codex_api_key
       CODEX_AUTH_FILE: /run/secrets/codex_auth
     secrets:
       - postgres_password
       - vedicway_data_key
       - vedicway_signing_key
-      - codex_api_key
       - codex_auth
     volumes: *backend-volumes
     networks:
@@ -226,27 +224,35 @@ services:
       VEDICWAY_SEO_JOB_TIMEOUT_SECONDS: ${VEDICWAY_SEO_JOB_TIMEOUT_SECONDS:-3600}
       VEDICWAY_SEO_MIN_ARTICLE_CHARS: ${VEDICWAY_SEO_MIN_ARTICLE_CHARS:-4500}
       VEDICWAY_PUBLIC_ORIGIN: ${VEDICWAY_PUBLIC_ORIGIN}
-      VEDICWAY_DZEN_PUBLICATION_MODE: ${VEDICWAY_DZEN_PUBLICATION_MODE:-native-draft}
+      VEDICWAY_DZEN_CDP_URL: http://vedicway-seo-browser-dzen:9322
+      VEDICWAY_PINTEREST_CDP_URL: http://vedicway-seo-browser-pinterest:9325
       VEDICWAY_YANDEX_HOST_ID: ${VEDICWAY_YANDEX_HOST_ID:-}
       VEDICWAY_METRIKA_COUNTER_ID: ${VEDICWAY_METRIKA_COUNTER_ID:-}
       VEDICWAY_SEO_CODEX_HOME: /var/lib/vedicway/seo-codex-home
-      OPENAI_API_KEY_FILE: /run/secrets/codex_api_key
+      VEDICWAY_CODEX_HOME: /var/lib/vedicway/seo-codex-home
+      CODEX_AUTH_FILE: /run/secrets/codex_auth
       VEDICWAY_SEO_AGENT_TOKEN_FILE: /run/secrets/vedicway_seo_agent_token
       VEDICWAY_YANDEX_SEARCH_API_KEY_FILE: /run/secrets/yandex_search_api_key
       VEDICWAY_YANDEX_FOLDER_ID_FILE: /run/secrets/yandex_folder_id
       VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE: /run/secrets/yandex_webmaster_token
       VEDICWAY_YANDEX_METRIKA_TOKEN_FILE: /run/secrets/yandex_metrika_token
+      VEDICWAY_VK_GROUP_ID: ${VEDICWAY_VK_GROUP_ID:-}
+      VEDICWAY_VK_GROUP_ACCESS_TOKEN_FILE: /run/secrets/vedicway_vk_group_access_token
+      VEDICWAY_VK_USER_ACCESS_TOKEN_FILE: /run/secrets/vedicway_vk_user_access_token
+      VEDICWAY_PINTEREST_BOARD_NAME: ${VEDICWAY_PINTEREST_BOARD_NAME:-}
       CODEX_HOME: /var/lib/vedicway/seo-codex-home
       HOME: /var/lib/vedicway/seo-codex-home
       PYTHONPATH: /opt/vedicway:/opt/vedicway/backend/src
     secrets:
       - postgres_password
-      - codex_api_key
+      - codex_auth
       - vedicway_seo_agent_token
       - yandex_search_api_key
       - yandex_folder_id
       - yandex_webmaster_token
       - yandex_metrika_token
+      - vedicway_vk_group_access_token
+      - vedicway_vk_user_access_token
     volumes:
       - seo_agent_data:/var/lib/vedicway/seo-agent
       - seo_codex_home:/var/lib/vedicway/seo-codex-home
@@ -254,8 +260,13 @@ services:
       - edge
       - data
       - seo-egress
+      - seo-browser
     depends_on:
       backend:
+        condition: service_healthy
+      vedicway-seo-browser-dzen:
+        condition: service_healthy
+      vedicway-seo-browser-pinterest:
         condition: service_healthy
     read_only: true
     tmpfs:
@@ -266,11 +277,103 @@ services:
       - ALL
     pids_limit: 256
     init: true
+    stop_grace_period: 45s
     healthcheck:
-      test: ["CMD", "python", "-m", "seo_agent.cli", "health"]
+      test:
+        - CMD-SHELL
+        - >-
+          DATABASE_URL="$$(python -c 'import os,pathlib,urllib.parse;
+          p=urllib.parse.quote(pathlib.Path(os.environ["POSTGRES_PASSWORD_FILE"]).read_text().rstrip("\r\n"),safe="");
+          u=urllib.parse.quote(os.environ.get("POSTGRES_USER","vedicway"),safe="");
+          d=urllib.parse.quote(os.environ.get("POSTGRES_DB","vedicway"),safe="");
+          h=os.environ.get("POSTGRES_HOST","postgres");
+          q=os.environ.get("POSTGRES_PORT","5432");
+          print(f"postgresql+psycopg://{u}:{p}@{h}:{q}/{d}")')";
+          export DATABASE_URL;
+          exec python -m seo_agent.cli health
       interval: 30s
       timeout: 5s
       start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  vedicway-seo-browser-dzen:
+    image: ${VEDICWAY_BROWSER_IMAGE:-vedicway-browser}:${VEDICWAY_BROWSER_RELEASE_TAG:-latest}
+    profiles: ["seo"]
+    entrypoint: ["/usr/local/bin/vedicway-browser-login"]
+    environment:
+      VEDICWAY_BROWSER_PROFILE_NAME: vedicway-dzen
+      VEDICWAY_BROWSER_USER_DATA_DIR: /var/lib/vedicway/browser-profile
+      VEDICWAY_BROWSER_CDP_PORT: "9222"
+      VEDICWAY_BROWSER_CDP_PROXY_PORT: "9322"
+      VEDICWAY_BROWSER_START_URL: https://dzen.ru/profile/editor/create
+      VEDICWAY_BROWSER_HEADLESS: "0"
+      VEDICWAY_BROWSER_FINGERPRINT_SEED: "41001"
+    volumes:
+      - ${VEDICWAY_BROWSER_DATA_ROOT:-/var/lib/vedicway-browser}/dzen:/var/lib/vedicway/browser-profile
+    secrets:
+      - vedicway_browser_vnc_password
+    ports:
+      - "127.0.0.1:${VEDICWAY_DZEN_NOVNC_PORT:-6081}:6080"
+    networks:
+      - seo-browser
+      - seo-egress
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,uid=10001,gid=10001,mode=1770
+      - /tmp/.X11-unix:rw,nosuid,nodev,size=1m,uid=0,gid=0,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    init: true
+    stop_grace_period: 45s
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"Promise.all([fetch('http://127.0.0.1:9222/json/version'),fetch('http://127.0.0.1:9322/json/version'),fetch('http://127.0.0.1:6080/vnc.html')]).then(rs=>{if(rs.some(r=>!r.ok))process.exit(1)}).catch(()=>process.exit(1))\" && netstat -ltn | grep -q '127.0.0.1:5900'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
+      retries: 5
+    restart: unless-stopped
+
+  vedicway-seo-browser-pinterest:
+    image: ${VEDICWAY_BROWSER_IMAGE:-vedicway-browser}:${VEDICWAY_BROWSER_RELEASE_TAG:-latest}
+    profiles: ["seo"]
+    entrypoint: ["/usr/local/bin/vedicway-browser-login"]
+    environment:
+      VEDICWAY_BROWSER_PROFILE_NAME: vedicway-pinterest
+      VEDICWAY_BROWSER_USER_DATA_DIR: /var/lib/vedicway/browser-profile
+      VEDICWAY_BROWSER_CDP_PORT: "9225"
+      VEDICWAY_BROWSER_CDP_PROXY_PORT: "9325"
+      VEDICWAY_BROWSER_START_URL: https://ru.pinterest.com/login/
+      VEDICWAY_BROWSER_HEADLESS: "0"
+      VEDICWAY_BROWSER_FINGERPRINT_SEED: "41004"
+    volumes:
+      - ${VEDICWAY_BROWSER_DATA_ROOT:-/var/lib/vedicway-browser}/pinterest:/var/lib/vedicway/browser-profile
+    secrets:
+      - vedicway_browser_vnc_password
+    ports:
+      - "127.0.0.1:${VEDICWAY_PINTEREST_NOVNC_PORT:-6082}:6080"
+    networks:
+      - seo-browser
+      - seo-egress
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m,uid=10001,gid=10001,mode=1770
+      - /tmp/.X11-unix:rw,nosuid,nodev,size=1m,uid=0,gid=0,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    init: true
+    stop_grace_period: 45s
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"Promise.all([fetch('http://127.0.0.1:9225/json/version'),fetch('http://127.0.0.1:9325/json/version'),fetch('http://127.0.0.1:6080/vnc.html')]).then(rs=>{if(rs.some(r=>!r.ok))process.exit(1)}).catch(()=>process.exit(1))\" && netstat -ltn | grep -q '127.0.0.1:5900'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 45s
       retries: 5
     restart: unless-stopped
 
@@ -520,6 +623,8 @@ networks:
   api-egress:
   worker-egress:
   seo-egress:
+  seo-browser:
+    internal: true
 
 volumes:
   postgres_data:
@@ -545,6 +650,8 @@ secrets:
     file: ${VEDICWAY_METRICS_TOKEN_FILE:-./secrets/vedicway_metrics_token.txt}
   vedicway_seo_agent_token:
     file: ${VEDICWAY_SEO_AGENT_TOKEN_FILE:-./secrets/vedicway_seo_agent_token.txt}
+  vedicway_browser_vnc_password:
+    file: ${VEDICWAY_BROWSER_VNC_PASSWORD_FILE:-./secrets/vedicway_browser_vnc_password.txt}
   yandex_search_api_key:
     file: ${VEDICWAY_YANDEX_SEARCH_API_KEY_FILE:-./secrets/vedicway_yandex_search_api_key.txt}
   yandex_folder_id:
@@ -553,12 +660,14 @@ secrets:
     file: ${VEDICWAY_YANDEX_WEBMASTER_TOKEN_FILE:-./secrets/vedicway_yandex_webmaster_token.txt}
   yandex_metrika_token:
     file: ${VEDICWAY_YANDEX_METRIKA_TOKEN_FILE:-./secrets/vedicway_yandex_metrika_token.txt}
+  vedicway_vk_group_access_token:
+    file: ${VEDICWAY_VK_GROUP_ACCESS_TOKEN_FILE:-./secrets/vedicway_vk_group_access_token.txt}
+  vedicway_vk_user_access_token:
+    file: ${VEDICWAY_VK_USER_ACCESS_TOKEN_FILE:-./secrets/vedicway_vk_user_access_token.txt}
   yookassa_shop_id:
     file: ${YOOKASSA_SHOP_ID_FILE:-./secrets/yookassa_shop_id.txt}
   yookassa_secret_key:
     file: ${YOOKASSA_SECRET_KEY_FILE:-./secrets/yookassa_secret_key.txt}
-  codex_api_key:
-    file: ${OPENAI_API_KEY_FILE:-./secrets/codex_api_key.txt}
   codex_auth:
     file: ${CODEX_AUTH_FILE:-./secrets/codex_auth.json}
   smtp_password:

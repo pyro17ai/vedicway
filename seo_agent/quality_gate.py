@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .db import AgentLedger, LedgerError
+from .markdown_renderer import render_markdown
 
 BANNED_PATTERNS = {
     "guaranteed_prediction": re.compile(
@@ -24,13 +25,75 @@ BANNED_PATTERNS = {
     ),
 }
 
+RUSSIAN_SUFFIXES = (
+    "иями",
+    "ями",
+    "ами",
+    "его",
+    "ого",
+    "ему",
+    "ому",
+    "ую",
+    "юю",
+    "ая",
+    "яя",
+    "ое",
+    "ее",
+    "ые",
+    "ие",
+    "ой",
+    "ей",
+    "ым",
+    "им",
+    "ых",
+    "их",
+    "а",
+    "я",
+    "у",
+    "ю",
+    "ы",
+    "и",
+    "е",
+    "о",
+)
+
+
+def _search_words(value: str) -> list[str]:
+    words = re.findall(r"[а-яёa-z0-9-]+", value.casefold())
+    normalized: list[str] = []
+    for word in words:
+        if re.fullmatch(r"[а-яё]+", word):
+            for suffix in RUSSIAN_SUFFIXES:
+                if word.endswith(suffix) and len(word) - len(suffix) >= 3:
+                    word = word[: -len(suffix)]
+                    break
+        normalized.append(word)
+    return normalized
+
+
+def _phrase_hits(words: list[str], phrase: list[str]) -> int:
+    if not phrase:
+        return 0
+    return sum(
+        1
+        for index in range(len(words))
+        if words[index : index + len(phrase)] == phrase
+    )
+
 
 def evaluate(manifest: dict[str, Any]) -> dict[str, Any]:
     article = manifest.get("article")
     media = manifest.get("media")
     if not isinstance(article, dict) or not isinstance(media, list):
         raise LedgerError("Manifest must contain article and media")
-    content = str(article.get("content_html", "")).strip()
+    source_content = str(
+        article.get("content_markdown", article.get("content_html", ""))
+    ).strip()
+    content = (
+        render_markdown(source_content)
+        if "content_markdown" in article
+        else source_content
+    )
     title = str(article.get("title", "")).strip()
     meta = str(article.get("meta_description", "")).strip()
     excerpt = str(article.get("excerpt", "")).strip()
@@ -55,17 +118,9 @@ def evaluate(manifest: dict[str, Any]) -> dict[str, Any]:
     source_links = [
         value for value in links if value.startswith(("http://", "https://"))
     ]
-    words = re.findall(r"[а-яёa-z0-9-]+", plain_text.casefold())
-    focus_words = re.findall(r"[а-яёa-z0-9-]+", focus)
-    focus_hits = (
-        sum(
-            1
-            for index in range(len(words))
-            if words[index : index + len(focus_words)] == focus_words
-        )
-        if focus_words
-        else 0
-    )
+    words = _search_words(plain_text)
+    focus_words = _search_words(focus)
+    focus_hits = _phrase_hits(words, focus_words)
     density = focus_hits * max(1, len(focus_words)) / max(1, len(words))
     checks = {
         "content_min_4500": len(plain_text) >= 4500,
@@ -74,8 +129,11 @@ def evaluate(manifest: dict[str, Any]) -> dict[str, Any]:
         "seo_title_length": 30 <= len(str(article.get("seo_title", ""))) <= 80,
         "meta_length": 80 <= len(meta) <= 200,
         "excerpt_length": 80 <= len(excerpt) <= 300,
-        "focus_in_title": bool(focus) and focus in title.casefold(),
-        "focus_in_opening": bool(focus) and focus in plain_text[:700].casefold(),
+        "focus_in_title": _phrase_hits(_search_words(title), focus_words) > 0,
+        "focus_in_opening": _phrase_hits(
+            _search_words(plain_text[:700]), focus_words
+        )
+        > 0,
         "focus_density_below_3_percent": density <= 0.03,
         "heading_count": len(re.findall(r"<h2\b", content, re.IGNORECASE)) >= 3,
         "internal_links": len(set(internal_links)) >= 2,
@@ -113,7 +171,7 @@ def evaluate(manifest: dict[str, Any]) -> dict[str, Any]:
             "focus_density": round(density, 5),
             "repeated_paragraphs": len(repeated),
         },
-        "content_hash": hashlib.sha256(content.encode("utf-8")).hexdigest(),
+        "content_hash": hashlib.sha256(source_content.encode("utf-8")).hexdigest(),
     }
 
 

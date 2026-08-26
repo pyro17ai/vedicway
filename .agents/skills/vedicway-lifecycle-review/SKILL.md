@@ -5,7 +5,7 @@ description: Анализируй недельные Yandex Webmaster и Metrika
 
 # Lifecycle-review статей VedicWay
 
-Возьми публикации из `v_due_lifecycle`. Через `$vedicway-yandex-signals` собери Webmaster и Metrika за одинаковое окно, подтвердив точные VedicWay host_id и counter_id. Запиши performance до интерпретации.
+Возьми публикации из `v_due_lifecycle` вызовом `vedicway_ledger_due_lifecycle`; прямой запрос к БД запрещен. Через `$vedicway-yandex-signals` собери Webmaster и Metrika за одинаковое окно, подтвердив точные VedicWay host_id и counter_id. Запиши performance до интерпретации.
 
 Создавай действие только при наблюдаемом разрыве. Высокие показы и низкий CTR дают гипотезу для title test. Позиции 8-20 с релевантным запросом дают expansion или internal_links. Индексная ошибка дает recrawl после технической проверки. Низкий трафик без достаточных показов дает `hold`, а не переписывание вслепую.
 

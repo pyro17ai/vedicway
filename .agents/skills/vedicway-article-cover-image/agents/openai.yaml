@@ -1,0 +1,4 @@
+interface:
+  display_name: "VedicWay Article Cover"
+  short_description: "Генерирует обложку через Codex Image Gen"
+  default_prompt: "Use $vedicway-article-cover-image with $imagegen to create one 1200x630 VedicWay article cover."

@@ -1,45 +1,70 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "jobs": [
     {
       "name": "article_intelligence_refresh",
-      "interval_minutes": 10080,
-      "model": "gpt-5.6-luna",
+      "interval_minutes": 1440,
+      "model": "gpt-5.6-terra",
       "reasoning_effort": "medium",
       "skills": ["vedicway-yandex-signals", "vedicway-topic-planner", "vedicway-seo-ledger"],
-      "prompt": "Обнови спрос и поисковую выдачу по теме VedicWay, собери только подтвержденные Yandex-сигналы, пересобери кластеры и запиши один job_result. Не используй host_id или counter_id, пока они не совпали с VEDICWAY_YANDEX_HOST_ID и VEDICWAY_METRIKA_COUNTER_ID."
+      "prompt": "Ежедневно обнови спрос и выдачу по астрологическим темам VedicWay. Если Webmaster или Metrika не настроены, не содержат сопоставимого периода либо дают слишком мало запросов и визитов для решения, используй Wordstat как основной источник спроса и Yandex Search для проверки интента. Не подменяй отсутствие данных нулевым спросом. До серии запросов проверь Wordstat ровно одним канареечным seed; этот запрос считается подтверждающим. При первом отказе доступа, квоты либо Permission denied не вызывай Wordstat повторно. Затем проверь Yandex Search ровно одним канареечным запросом и также не повторяй его после первого отказа. Для каждого источника допускается ровно один подтверждающий вызов до принятия решения. Сохрани raw response обоих канареечных вызовов. Если хотя бы один источник недоступен, не создавай query, serp-snapshot и cluster без реальных данных и заверши run как blocked с названиями недоступных источников. Полную серию запросов и свежие кластеры создавай только когда оба канареечных вызова успешны. В любом случае запиши ровно один job_result."
     },
     {
       "name": "article_content_production",
-      "interval_minutes": 2880,
+      "interval_minutes": 1440,
       "model": "gpt-5.6-terra",
       "reasoning_effort": "medium",
-      "skills": ["vedicway-content-brief", "vedicway-article-writer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "vedicway-article-media", "vedicway-seo-ledger"],
-      "prompt": "Забери один приоритетный кластер атомарной арендой, подготовь доказательный бриф, статью и медиапакет, проведи редактуру и quality gate. Публикацию не начинай. Заверши run одной записью job_result."
+      "skills": ["vedicway-content-brief", "vedicway-article-writer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "imagegen", "vedicway-create-image", "vedicway-article-cover-image", "vedicway-pinterest-card-image", "vedicway-article-media", "vedicway-seo-ledger"],
+      "prompt": "Подготовь один материал для раздела blog: доказательный бриф, статью, одну обложку 1200x630 и ровно 10 разных вертикальных Pinterest-памяток 1000x1500. Каждое изображение создай отдельным вызовом системного $imagegen и встроенного image_gen tool без OpenAI API и без imagegen-MCP, затем импортируй полученный файл через vedicway_import_generated_image. Каждая карточка должна содержать самостоятельный обучающий материал по астрологии, иметь уникальные текст, композицию, файл и SHA-256. Запиши все 10 карточек как distribution-only body media с distribution_role=pinterest и не вставляй placeholder в HTML. Проведи редактуру и практическую проверку качества. Публикацию не начинай."
+    },
+    {
+      "name": "article_site_publish",
+      "interval_minutes": 1440,
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "skills": ["vedicway-site-publisher", "vedicway-distribution-planner", "vedicway-seo-ledger"],
+      "prompt": "Опубликуй один одобренный материал в /blog, проверь публичный HTML, canonical, BlogPosting, sitemap и доступность всех медиа. Если claim для draft вернул item: null без ошибки доступа или реестра, заверши run как skipped: публикацию и distribution items не создавай. При recovery_mode=missing_distribution повторно опубликуй тот же draft и те же медиа, не меняя статью и не генерируя изображения; создай только недостающие distribution items с учетом distribution_counts. После verified site publication создай одну distribution item для VK и ровно 10 distribution item для Pinterest. Для media_id используй только каноническое поле media_id из publication.uploaded_media, никогда не backend_media_id. Каждая Pinterest item обязана ссылаться на свою уникальную вертикальную памятку 1000x1500."
+    },
+    {
+      "name": "dzen_daily_publish",
+      "interval_minutes": 1440,
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "skills": ["vedicway-dzen-distributor", "vedicway-seo-ledger"],
+      "prompt": "Забери одну опубликованную в блоге статью без подтвержденной обложки в Дзене. Подготовь принадлежащую статье обложку через vedicway_stage_dzen_media. Через отдельный Playwright MCP подключись к постоянному профилю VedicWay и открой Дзен-студию. При recovery_mode=missing_cover открой существующую публикацию по existing_dzen_public_url и исправь ее без создания дубля. Если первый переход после редиректа оставил пустой body или пустой #RootContentMicroRoot, один раз передай текущий URL Студии в browser_navigate, не открывай исходный /create повторно; подожди до 20 секунд появления интерфейса и снова проверь snapshot. Загрузи staged filename через фактический file input редактора, дождись автосохранения, перечитай статью и проверь видимую обложку. Запиши внешний ID, публичный URL и terminal evidence с checks.cover_present=true."
+    },
+    {
+      "name": "vk_daily_publish",
+      "interval_minutes": 1440,
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "skills": ["vedicway-vk-publisher", "vedicway-seo-ledger"],
+      "prompt": "Забери один готовый VK-пост. Если claim вернул item: null без ошибки доступа или реестра, заверши run как skipped. Иначе опубликуй его через vedicway-vk MCP с guid из content_hash, проверь внешний post_id и запиши terminal evidence. Один запуск публикует ровно один материал. Если внешний вызов или проверка завершились failed либо blocked, итог run обязан быть blocked; completed допустим только после принятой distribution-publication."
+    },
+    {
+      "name": "pinterest_daily_publish",
+      "interval_minutes": 1440,
+      "daily_at_moscow": "12:00",
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "high",
+      "skills": ["vedicway-pinterest-publisher", "vedicway-seo-ledger"],
+      "prompt": "В 12:00 по Москве забери пачку одним вызовом vedicway_claim_pinterest_batch. При batch_size=0 заверши run как skipped. При ненулевом batch_size и complete=false не создавай CSV и заверши run как blocked. Продолжай только при batch_size=10 и complete=true. Получи один детерминированный Pinterest CSV через vedicway_build_pinterest_csv: штатный запуск ставит 10 строк на текущий день каждый час с 13:00 до 22:00 по Москве, а поздний ручной запуск ставит те же часы следующего дня. Через отдельный Playwright MCP открой интерфейс массового создания пинов. Если control вернул pending_confirmation=true и страница уже показывает точную фразу обработки, зафиксируй задержанный успех без повторной загрузки; иначе загрузи непустой CSV в #csv-input через setInputFiles и жди подтверждение до 120 секунд. Запиши terminal attempt и publication для каждой из 10 item с общими request_hash и csv_sha256; отсутствие точной фразы или неполная пачка не считается публикацией."
     },
     {
       "name": "article_optimization",
       "interval_minutes": 1440,
       "model": "gpt-5.6-terra",
-      "reasoning_effort": "medium",
-      "skills": ["vedicway-article-optimizer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "vedicway-article-media", "vedicway-site-publisher", "vedicway-seo-ledger"],
-      "prompt": "Забери одну доказанную optimization action. Для контентного действия обнови существующий draft под тем же slug, заново проведи редактуру, quality gate и site publication с optimistic revision; затем закрой action только по совпавшему публичному evidence. Recrawl и hold исполни по их отдельному контракту. Заверши run одной записью job_result."
-    },
-    {
-      "name": "article_site_publish",
-      "interval_minutes": 60,
-      "model": "gpt-5.6-luna",
-      "reasoning_effort": "medium",
-      "skills": ["vedicway-site-publisher", "vedicway-dzen-distributor", "vedicway-seo-ledger"],
-      "prompt": "Забери один одобренный материал атомарной арендой, опубликуй его через внутренний API, проверь публичный HTML, canonical, Article JSON-LD, изображение, sitemap и Dzen RSS. Запиши publication evidence и одну итоговую запись job_result."
+      "reasoning_effort": "high",
+      "skills": ["vedicway-article-optimizer", "vedicway-article-editor-ru", "vedicway-article-quality-gate", "imagegen", "vedicway-create-image", "vedicway-article-cover-image", "vedicway-article-media", "vedicway-site-publisher", "vedicway-seo-ledger"],
+      "prompt": "Исполни одну доказанную optimization action под прежним slug, повтори quality gate и публичную проверку, затем закрой action только по совпавшему evidence."
     },
     {
       "name": "article_lifecycle_review",
       "interval_minutes": 10080,
-      "model": "gpt-5.6-luna",
+      "model": "gpt-5.6-terra",
       "reasoning_effort": "medium",
       "skills": ["vedicway-lifecycle-review", "vedicway-seo-ledger"],
-      "prompt": "Проверь опубликованные статьи по Webmaster и Metrika только для точных VedicWay host_id и counter_id, создай измеримые optimization_actions и запиши одну итоговую запись job_result."
+      "prompt": "Проверь опубликованные статьи по точным VedicWay Webmaster host_id и Metrika counter_id, создай измеримые optimization_actions и запиши итоговый job_result."
     }
   ]
 }
