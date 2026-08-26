@@ -76,6 +76,7 @@ EXPECTED_SKILLS = {
     "vedicway-vk-publisher",
     "vedicway-pinterest-publisher",
 }
+REPO_ONLY_SKILLS = {"vedicway-tiktok-carousel"}
 BUILTIN_SKILLS = {"imagegen"}
 
 FORBIDDEN_PUBLISHERS = (
@@ -193,9 +194,9 @@ def main() -> int:
     installed_skills = {
         path.name for path in skill_root.glob("vedicway-*") if path.is_dir()
     }
-    if installed_skills != EXPECTED_SKILLS:
+    if installed_skills != EXPECTED_SKILLS | REPO_ONLY_SKILLS:
         errors.append("Repo-local VedicWay SEO skill directories differ from the approved contract")
-    for name in sorted(EXPECTED_SKILLS):
+    for name in sorted(EXPECTED_SKILLS | REPO_ONLY_SKILLS):
         skill_file = skill_root / name / "SKILL.md"
         agent_file = skill_root / name / "agents" / "openai.yaml"
         if not skill_file.is_file() or not agent_file.is_file():

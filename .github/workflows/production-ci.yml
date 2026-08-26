@@ -105,12 +105,17 @@ jobs:
           for file in postgres_password vedicway_data_key vedicway_signing_key vedicway_operations_token vedicway_metrics_token vedicway_seo_agent_token yookassa_shop_id yookassa_secret_key codex_api_key smtp_password vedicway_yandex_search_api_key vedicway_yandex_folder_id vedicway_yandex_webmaster_token vedicway_yandex_metrika_token; do
             printf 'ci-placeholder-not-a-real-secret-00000000000000000000' > "secrets/${file}.txt"
           done
+          for file in vedicway_vk_group_access_token vedicway_vk_user_access_token; do
+            printf 'ci-placeholder-not-a-real-secret-00000000000000000000' > "secrets/${file}.txt"
+          done
       - name: Exercise the fail-closed SEO release guard
         run: |
           sed -i 's/^VEDICWAY_SEO_AGENT_ENABLED=.*/VEDICWAY_SEO_AGENT_ENABLED=1/' .env.production
           sed -i 's/^VEDICWAY_YANDEX_HOST_ID=.*/VEDICWAY_YANDEX_HOST_ID=https:vedicway.example:443/' .env.production
           sed -i 's/^VEDICWAY_METRIKA_COUNTER_ID=.*/VEDICWAY_METRIKA_COUNTER_ID=12345678/' .env.production
           sed -i 's/^VITE_YANDEX_METRIKA_ID=.*/VITE_YANDEX_METRIKA_ID=12345678/' .env.production
+          sed -i 's/^VEDICWAY_VK_GROUP_ID=.*/VEDICWAY_VK_GROUP_ID=123456789/' .env.production
+          sed -i 's/^VEDICWAY_PINTEREST_BOARD_NAME=.*/VEDICWAY_PINTEREST_BOARD_NAME=VedicWay-CI/' .env.production
           python scripts/check_seo_agent_release.py --env-file .env.production
       - name: Validate shell and YAML syntax
         run: |
